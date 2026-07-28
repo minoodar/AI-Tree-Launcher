@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Tree Settings</title>
+  <style>
+    :root {
+      --bg: #0F0F1B;
+      --surface: rgba(255, 255, 255, 0.05);
+      --surface-hover: rgba(255, 255, 255, 0.1);
+      --primary: #10B981;
+      --primary-hover: #34D399;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+    body {
+      width: 360px;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+      font-size: 13px;
+      direction: ltr; /* Default English */
+    }
+    body.rtl { direction: rtl; }
+    * { box-sizing: border-box; }
+    
+    .header { background: rgba(0, 0, 0, 0.2); padding: 16px; text-align: center; border-bottom: 1px solid var(--border); }
+    .header h2 { margin: 0; font-size: 16px; color: var(--primary-hover); letter-spacing: 1px; }
+    
+    .tabs { display: flex; border-bottom: 1px solid var(--border); }
+    .tab-btn { flex: 1; padding: 12px 0; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-family: inherit; font-weight: 600; font-size: 13px; transition: 0.2s; }
+    .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); background: rgba(16, 185, 129, 0.05); }
+    .tab-btn:hover:not(.active) { color: var(--text); background: var(--surface); }
+
+    .tab-content { padding: 16px; display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 12px; }
+    input, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0, 0, 0, 0.4); color: white; font-family: inherit; font-size: 13px; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
+    body.rtl input { text-align: right; }
+    
+    .btn { width: 100%; padding: 10px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-family: inherit; transition: 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, #34D399, #059669); color: white; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-secondary { background: var(--surface); color: white; border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--surface-hover); }
+
+    .btn-export { background: rgba(16, 185, 129, 0.12); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .btn-export:hover { background: rgba(16, 185, 129, 0.22); }
+    .btn-import { background: rgba(245, 158, 11, 0.12); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .btn-import:hover { background: rgba(245, 158, 11, 0.22); }
+    .backup-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin: 4px 0 12px; line-height: 1.6; }
+
+    .backup-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-right: 4px; }
+    .backup-list::-webkit-scrollbar { width: 6px; }
+    .backup-list::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 3px; }
+    
+    .backup-card { background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .backup-info { display: flex; flex-direction: column; gap: 4px; }
+    .backup-time { font-size: 11px; font-weight: bold; color: var(--primary-hover); direction: ltr; }
+    .backup-count { font-size: 10px; color: var(--text-muted); }
+    
+    .btn-restore { background: rgba(59, 130, 246, 0.2); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.4); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.2s; }
+    .btn-restore:hover { background: rgba(59, 130, 246, 0.4); color: white; }
+
+    .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--primary); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; opacity: 0; pointer-events: none; transition: 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 9999; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* استایل‌های نوار کرکره‌ای ارتباط با ما */
+    .contact-details { margin-top: 12px; background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .contact-details summary { padding: 10px 12px; cursor: pointer; font-weight: 600; color: var(--text-muted); user-select: none; outline: none; font-size: 12px; }
+    .contact-details summary:hover { color: var(--text); background: var(--surface); }
+    .contact-content { padding: 10px 12px; border-top: 1px solid var(--border); font-size: 12px; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.4); }
+    .contact-content a { color: var(--primary-hover); text-decoration: none; font-weight: bold; letter-spacing: 0.5px; }
+    .contact-content a:hover { text-decoration: underline; color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>AI Tree Launcher</h2>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-target="settings" id="tab-settings">Settings</button>
+    <button class="tab-btn" data-target="backups" id="tab-backups">Backup & Restore</button>
+  </div>
+
+  <!-- Settings Tab -->
+  <div id="settings" class="tab-content active">
+
+    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+      <button id="showOnPageBtn" class="btn btn-secondary" style="flex: 1; border-color: rgba(52, 211, 153, 0.4); color: #A7F3D0;">Show (Reset)</button>
+      <button id="hideOnPageBtn" class="btn btn-secondary" style="flex: 1; border-color: rgba(239, 68, 68, 0.4); color: #FCA5A5;">Hide</button>
+    </div>
+
+    <div class="form-group">
+      <label id="lbl-language">App Language:</label>
+      <select id="appLanguage">
+        <option value="en">English (Default)</option>
+        <option value="fa">فارسی (Persian)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label id="lbl-birth">Birth Year (for Clock Age):</label>
+      <input type="number" id="userBirthYear" placeholder="e.g., 1990 or 1375">
+    </div>
+
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
+      <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
+      
+      <!-- نوار کرکره‌ای ارتباط با ما -->
+      <details class="contact-details">
+        <summary id="lbl-contact-title">Contact Us</summary>
+        <div class="contact-content">
+          <span id="lbl-contact-email">Email:</span>
+          <a href="mailto:minoodar@gmail.com" dir="ltr">minoodar@gmail.com</a>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Backup Tab -->
+  <div id="backups" class="tab-content">
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-direction: column;">
+      <button id="exportJsonBtn" class="btn btn-export" style="flex: 1;">📤 Export Backup (JSON)</button>
+      <button id="importJsonBtn" class="btn btn-import" style="flex: 1;">📥 Import Backup (Restore)</button>
+      <input type="file" id="fileInput" accept=".json" hidden>
+    </div>
+    <div class="backup-hint" id="backup-hint">🟢 Export saves all bookmarks to a file &nbsp;·&nbsp; 🟠 Import restores from a file</div>
+  </div>
+
+  <div id="toast" class="toast">Saved!</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
