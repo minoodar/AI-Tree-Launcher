@@ -1,7 +1,9 @@
-README.md` مخزن گیت‌هاب خود قرار دهید:
-
 # 🌌 AI Tree Launcher (V25.6)
 > **Floating Orbital Workspace & Galactic Bookmark System**
+
+![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
+![License: MIT](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
 یک افزونه پیشرفته و اثرگذار برای مرورگرهای مبتنی بر کرومیوم که انباشتگی بوک‌مارک‌های سنتی را با یک **منظومه شناور، ارگونومیک و چندبعدی** جایگزین می‌کند. این افزونه با تلفیق مدیریت هوشمند اطلاعات، هسته‌های متمرکز هوش مصنوعی، ابزارهای مدیریت زمان و پیام‌های آرامش‌بخش، یک فضای کاری بی‌نظیر برای کاربران حرفه‌ای می‌سازد.
 
@@ -74,12 +76,10 @@ README.md` مخزن گیت‌هاب خود قرار دهید:
 
 ## 📜 لایسنس (License)
 
-این پروژه تحت لایسنس **GNU General Public License v3.0 (GPLv3)** منتشر شده است. 
-شما آزاد هستید این کد را مطالعه کنید، تغییر دهید و به اشتراک بگذارید؛ به این شرط که هرگونه نسخه مشتق‌شده از آن نیز به صورت متن‌باز و رایگان در اختیار همگان قرار گیرد.
+این پروژه تحت لایسنس **[MIT](https://opensource.org/licenses/MIT)** منتشر شده است. 
+شما آزاد هستید این کد را برای استفاده‌های شخصی، آموزشی و حتی تجاری کپی کنید، تغییر دهید و به اشتراک بگذارید. تنها شرط این است که کپی‌رایت اصلی و متن لایسنس در پروژه‌های مشتق‌شده حفظ شود.
 
 ---
 <p center="align">
   Designed with passion for productivity, aesthetics, and mindfulness. ✨
 </p>
-
-```
