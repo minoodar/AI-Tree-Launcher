@@ -296,6 +296,8 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: opacity 0.25s var(--ease-premium), transform 0.3s var(--ease-bounce),
+              width 0.25s var(--ease-premium), height 0.25s var(--ease-premium);
 }
 /* Custom resize grips — one at each bottom corner, so it's never stuck resizing from just one side */
 .ai-note-resize-handle {
@@ -1325,3 +1327,130 @@ color: #fff; font-weight: 700; font-size: 12.5px; white-space: nowrap; line-heig
 display: flex; align-items: center; justify-content: center;
 }
 #ai-mark-add-btn:hover { background: #34D399; }
+
+/* === Prompt Studio: template chips, token meter, history === */
+.ai-note-tpl-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex-shrink: 0;
+  margin: 0 0 2px 0;
+}
+.ai-note-tpl-chip {
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.10);
+  color: #a7f3d0;
+  font-size: 10.5px;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 4px 9px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.ai-note-tpl-chip:hover {
+  background: rgba(16, 185, 129, 0.22);
+  border-color: rgba(52, 211, 153, 0.55);
+  transform: translateY(-1px);
+}
+.ai-note-tpl-chip:active { transform: scale(0.96); }
+
+.ai-note-status-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  min-height: 18px;
+  margin: -2px 0 0 0;
+}
+.ai-note-token-meter {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(148, 163, 184, 0.85);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  user-select: none;
+}
+.ai-note-history-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(226, 232, 240, 0.8);
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.ai-note-history-btn:hover {
+  background: rgba(56, 189, 248, 0.18);
+  color: #e0f2fe;
+}
+.ai-note-history-menu {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 6px;
+  min-width: 220px;
+  max-width: min(340px, 86vw);
+  max-height: 200px;
+  overflow-y: auto;
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 10px;
+  background: rgba(12, 16, 28, 0.97);
+  border: 1px solid rgba(125, 211, 252, 0.22);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+  z-index: 30;
+}
+.ai-note-history-menu.active { display: flex; }
+body.rtl .ai-note-history-menu,
+.orbit-root[style*="direction: rtl"] .ai-note-history-menu {
+  right: auto;
+  left: 0;
+}
+.ai-note-history-item {
+  text-align: start;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-family: inherit;
+  padding: 7px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.12s, border-color 0.12s;
+}
+.ai-note-history-item:hover {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.28);
+}
+.ai-note-history-empty {
+  font-size: 11px;
+  color: rgba(148, 163, 184, 0.7);
+  text-align: center;
+  padding: 10px 6px;
+}
+
+/* Chips + meter need a bit more room than the original 200px floor */
+#ai-quick-note-form {
+  min-height: 240px;
+  height: 260px;
+}
+#ai-note-text {
+  unicode-bidi: isolate;
+}

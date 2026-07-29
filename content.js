@@ -101,7 +101,16 @@
       markToastDeleted: "Special day deleted",
       markInvalid: "Enter a title and pick a date",
       markTodayLine: "🎉 Today: {label}",
-      markUpcomingLine: "📌 {label} — in {days}d"
+      markUpcomingLine: "📌 {label} — in {days}d",
+      noteTplBarTitle: "Templates",
+      noteTplRefactor: "Code Review",
+      noteTplSummary: "Summarize",
+      noteTplCritic: "Critique",
+      noteTplTranslate: "Translate",
+      noteTokenMeter: "{chars} chars · ~{tokens} tokens",
+      noteTokenEmpty: "0 chars · 0 tokens",
+      noteHistoryTitle: "Recent prompts",
+      noteHistoryEmpty: "No recent prompts"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -196,7 +205,16 @@
       markToastDeleted: "مناسبت حذف شد",
       markInvalid: "یک عنوان و تاریخ معتبر وارد کنید",
       markTodayLine: "🎉 امروز: {label}",
-      markUpcomingLine: "📌 {label} — {days} روز مانده"
+      markUpcomingLine: "📌 {label} — {days} روز مانده",
+      noteTplBarTitle: "قالب‌ها",
+      noteTplRefactor: "بازبینی کد",
+      noteTplSummary: "خلاصه‌سازی",
+      noteTplCritic: "نقد",
+      noteTplTranslate: "ترجمه",
+      noteTokenMeter: "{chars} نویسه · ≈{tokens} توکن",
+      noteTokenEmpty: "۰ نویسه · ۰ توکن",
+      noteHistoryTitle: "پرامپت‌های اخیر",
+      noteHistoryEmpty: "پرامپتی ذخیره نشده"
     }
   };
 
@@ -401,8 +419,14 @@
       <button type="button" id="ai-align-center-btn" class="ai-format-btn ai-align-icon ai-align-icon-center" title="Center align"><span></span><span></span><span></span></button>
       <button type="button" id="ai-align-left-btn" class="ai-format-btn ai-align-icon ai-align-icon-left" title="Left align"><span></span><span></span><span></span></button>
     </div>
+    <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
     <div class="ai-note-text-wrap" id="ai-note-text-wrap">
       <textarea id="ai-note-text" rows="1" dir="auto"></textarea>
+    </div>
+    <div class="ai-note-status-row">
+      <span id="ai-note-token-meter" class="ai-note-token-meter">0 chars · 0 tokens</span>
+      <button type="button" id="ai-note-history-btn" class="ai-note-history-btn" title="Recent prompts">⏱</button>
+      <div id="ai-note-history-menu" class="ai-note-history-menu"></div>
     </div>
     <div class="ai-note-toolbar">
       <button id="ai-note-clear-btn" class="ai-toolbar-btn" style="background: rgba(217, 119, 87, 0.2); color: #D97757;"></button>
@@ -550,6 +574,10 @@
     alignCenterBtn: quickNoteForm.querySelector('#ai-align-center-btn'),
     alignLeftBtn: quickNoteForm.querySelector('#ai-align-left-btn'),
     textWrap: quickNoteForm.querySelector('#ai-note-text-wrap'),
+    tplBar: quickNoteForm.querySelector('#ai-note-tpl-bar'),
+    tokenMeter: quickNoteForm.querySelector('#ai-note-token-meter'),
+    historyBtn: quickNoteForm.querySelector('#ai-note-history-btn'),
+    historyMenu: quickNoteForm.querySelector('#ai-note-history-menu'),
     sendWrapper: quickNoteForm.querySelector('#ai-smart-send-wrapper'),
     sendActionBtn: quickNoteForm.querySelector('#ai-send-action-btn'),
     sendToggleBtn: quickNoteForm.querySelector('#ai-send-toggle-btn'),
@@ -614,6 +642,9 @@
     uiEls.noteClearBtn.textContent = t('noteClearBtn');
     uiEls.noteCopyBtn.textContent = t('noteCopyBtn');
     uiEls.saveTxtBtn.textContent = t('noteTxtBtn');
+    if (typeof renderNoteTemplates === 'function') renderNoteTemplates();
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    if (uiEls.historyBtn) uiEls.historyBtn.title = t('noteHistoryTitle');
     renderSmartRibbon();
 
     uiEls.todoMainTitle.textContent = t('todoTitle');
@@ -1790,8 +1821,15 @@
       if(undoneType === 'text') {
           const textState = pendingUndoState.data; const restoredText = typeof textState === 'string' ? textState : textState.value;
           noteTextarea.value = restoredText;
+          // Restore previous panel size if it was saved with the undo payload
+          if (typeof textState === 'object') {
+            if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
+            if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
+          }
           quickNoteForm.classList.add('active'); root.classList.add('show-notepad');
           if (typeof textState === 'object') { const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length); noteTextarea.focus(); noteTextarea.setSelectionRange(caret, caret); }
+          if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+          if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
           adjustNotepadPosition(); showToastNotification(t('toastRestored'));
       }
       else if (undoneType === 'bookmark' || undoneType === 'storage') {
@@ -2156,6 +2194,8 @@
     handleEl.addEventListener('mousedown', (e) => {
       e.stopPropagation(); e.preventDefault();
       dragging = true;
+      // Disable size transition while dragging so the grip feels instant
+      quickNoteForm.style.transition = 'none';
       const r = quickNoteForm.getBoundingClientRect();
       startX = e.clientX; startY = e.clientY;
       startW = r.width; startH = r.height; startLeft = r.left;
@@ -2179,6 +2219,8 @@
       if (!dragging) return;
       dragging = false;
       document.body.style.userSelect = '';
+      // Restore CSS transitions after a frame so the next Clear collapses smoothly
+      requestAnimationFrame(() => { quickNoteForm.style.transition = ''; });
     });
   }
   setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-bl'), 'bl');
@@ -2214,15 +2256,193 @@
       if (noteTextBeforeEdit && this.value !== noteTextBeforeEdit.value) setUndoState('text', noteTextBeforeEdit);
       noteTextBeforeEdit = null;
       if (typeof abortNoteClosing === 'function') abortNoteClosing();
+      if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+      if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
       adjustNotepadPosition(); resetToggleTimeout();
     });
   }
   
+  // --- Prompt Studio: templates, token meter, autosave, history ---
+  const PROMPT_TEMPLATES = [
+    {
+      key: 'noteTplRefactor',
+      textEn: 'Act as a Principal Software Architect. Review the following code for efficiency, security, and edge-case resilience:\n\n',
+      textFa: 'به‌عنوان یک معمار ارشد نرم‌افزار عمل کن. کد زیر را از نظر کارایی، امنیت و مقاومت در برابر حالت‌های لبه‌ای بررسی کن:\n\n'
+    },
+    {
+      key: 'noteTplSummary',
+      textEn: 'Analyze the text below and provide a structured comparative table and bullet-point executive summary:\n\n',
+      textFa: 'متن زیر را تحلیل کن و یک جدول مقایسه‌ای ساخت‌یافته به‌همراه خلاصهٔ مدیریتی گلوله‌ای ارائه بده:\n\n'
+    },
+    {
+      key: 'noteTplCritic',
+      textEn: 'Critique the following thesis from first principles. Identify logical fallacies and hidden assumptions:\n\n',
+      textFa: 'از اصول اولیه، تز زیر را نقد کن. مغالطات منطقی و فرض‌های پنهان را مشخص کن:\n\n'
+    },
+    {
+      key: 'noteTplTranslate',
+      textEn: 'Translate the following text into clear, natural English while preserving technical meaning:\n\n',
+      textFa: 'متن زیر را به انگلیسی روان و طبیعی ترجمه کن و معنای فنی را حفظ کن:\n\n'
+    }
+  ];
+
+  let promptHistory = [];
+  let noteDraftSaveTimer = null;
+
+  function estimateTokens(text) {
+    if (!text) return 0;
+    const chars = text.length;
+    const words = text.split(/\s+/).filter(Boolean).length;
+    // Heuristic: Latin ~1.35 tok/word; extra weight for dense Unicode (fa/ar/cjk)
+    return Math.max(1, Math.round(words * 1.35 + chars * 0.08));
+  }
+
+  function updateNoteTokenMeter() {
+    if (!uiEls.tokenMeter || !noteTextarea) return;
+    const text = noteTextarea.value;
+    if (!text.trim()) {
+      uiEls.tokenMeter.textContent = t('noteTokenEmpty');
+      return;
+    }
+    uiEls.tokenMeter.textContent = t('noteTokenMeter')
+      .replace('{chars}', String(text.length))
+      .replace('{tokens}', String(estimateTokens(text)));
+  }
+
+  function saveNoteDraftDebounced() {
+    clearTimeout(noteDraftSaveTimer);
+    noteDraftSaveTimer = setTimeout(() => {
+      try {
+        if (chrome.runtime?.id && noteTextarea) {
+          chrome.storage.local.set({ savedPromptDraft: noteTextarea.value });
+        }
+      } catch (e) {}
+    }, 400);
+  }
+
+  function restoreNoteDraft() {
+    try {
+      chrome.storage.local.get(['savedPromptDraft', 'aiTreePromptHistory'], (res) => {
+        if (res && typeof res.savedPromptDraft === 'string' && noteTextarea && !noteTextarea.value) {
+          noteTextarea.value = res.savedPromptDraft;
+        }
+        if (res && Array.isArray(res.aiTreePromptHistory)) {
+          promptHistory = res.aiTreePromptHistory.slice(0, 10);
+        }
+        updateNoteTokenMeter();
+      });
+    } catch (e) {}
+  }
+
+  function pushPromptHistory(text) {
+    const trimmed = (text || '').trim();
+    if (!trimmed) return;
+    promptHistory = [{ ts: Date.now(), text: trimmed }, ...promptHistory.filter(h => h.text !== trimmed)].slice(0, 10);
+    try {
+      if (chrome.runtime?.id) chrome.storage.local.set({ aiTreePromptHistory: promptHistory });
+    } catch (e) {}
+  }
+
+  function insertNoteTemplate(templateText) {
+    if (!noteTextarea) return;
+    const start = noteTextarea.selectionStart || 0;
+    const end = noteTextarea.selectionEnd || 0;
+    const current = noteTextarea.value;
+    noteTextarea.value = current.slice(0, start) + templateText + current.slice(end);
+    const pos = start + templateText.length;
+    noteTextarea.setSelectionRange(pos, pos);
+    noteTextarea.focus();
+    updateNoteTokenMeter();
+    saveNoteDraftDebounced();
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    adjustNotepadPosition();
+  }
+
+  function renderNoteTemplates() {
+    if (!uiEls.tplBar) return;
+    uiEls.tplBar.innerHTML = '';
+    PROMPT_TEMPLATES.forEach((tpl) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-note-tpl-chip';
+      btn.textContent = t(tpl.key);
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const body = currentLang === 'fa' ? tpl.textFa : tpl.textEn;
+        insertNoteTemplate(body);
+      });
+      uiEls.tplBar.appendChild(btn);
+    });
+  }
+
+  function renderPromptHistoryMenu() {
+    if (!uiEls.historyMenu) return;
+    uiEls.historyMenu.innerHTML = '';
+    if (!promptHistory.length) {
+      const empty = document.createElement('div');
+      empty.className = 'ai-note-history-empty';
+      empty.textContent = t('noteHistoryEmpty');
+      uiEls.historyMenu.appendChild(empty);
+      return;
+    }
+    promptHistory.forEach((item) => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'ai-note-history-item';
+      const preview = item.text.length > 72 ? item.text.slice(0, 72) + '…' : item.text;
+      row.textContent = preview;
+      row.title = item.text;
+      row.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (noteTextarea) {
+          noteTextarea.value = item.text;
+          noteTextarea.focus();
+          updateNoteTokenMeter();
+          saveNoteDraftDebounced();
+        }
+        uiEls.historyMenu.classList.remove('active');
+      });
+      uiEls.historyMenu.appendChild(row);
+    });
+  }
+
+  if (uiEls.historyBtn && uiEls.historyMenu) {
+    uiEls.historyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      renderPromptHistoryMenu();
+      uiEls.historyMenu.classList.toggle('active');
+    });
+    document.addEventListener('click', (e) => {
+      if (!uiEls.historyMenu.classList.contains('active')) return;
+      if (uiEls.historyMenu.contains(e.target) || e.target === uiEls.historyBtn) return;
+      uiEls.historyMenu.classList.remove('active');
+    });
+  }
+
+  restoreNoteDraft();
+  renderNoteTemplates();
+  updateNoteTokenMeter();
+
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     if (!noteTextarea || noteTextarea.value.trim() === '') return false;
-    setUndoState('text', { value: noteTextarea.value, selectionStart: noteTextarea.selectionStart });
-    noteTextarea.value = ''; if (focus) noteTextarea.focus();
-    adjustNotepadPosition(); resetToggleTimeout(); if (notify) showToastNotification(t('toastCleared')); return true;
+    setUndoState('text', {
+      value: noteTextarea.value,
+      selectionStart: noteTextarea.selectionStart,
+      prevWidth: quickNoteForm.style.width || '',
+      prevHeight: quickNoteForm.style.height || ''
+    });
+    noteTextarea.value = '';
+    if (focus) noteTextarea.focus();
+    // Reset inline size so CSS defaults (400×230) apply again
+    quickNoteForm.style.width = '';
+    quickNoteForm.style.height = '';
+    noteManuallyPositioned = false;
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ savedPromptDraft: '' }); } catch (e) {}
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    adjustNotepadPosition();
+    resetToggleTimeout();
+    if (notify) showToastNotification(t('toastCleared'));
+    return true;
   }
   document.getElementById('ai-note-clear-btn').addEventListener('click', (e) => { e.stopPropagation(); clearNoteWithUndo(); });
   document.getElementById('ai-note-copy-btn').addEventListener('click', (e) => { e.stopPropagation(); const textToCopy = noteTextarea ? noteTextarea.value : ''; if (!textToCopy.trim()) return; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(textToCopy).then(() => { clearNoteWithUndo({ focus: false, notify: false }); showToastNotification(t('toastCopied')); }).catch(() => { fallbackCopyText(textToCopy); }); } else fallbackCopyText(textToCopy); });
@@ -2242,20 +2462,87 @@
     return label;
   }
 
+  /**
+   * Builds a platform-optimized target URL.
+   * ChatGPT / OpenAI → injects ?q=<prompt> for official auto-fill.
+   * Claude / Gemini / DeepSeek / others → clean base URL (clipboard paste).
+   */
+  function buildAiDispatchUrl(baseUrl, promptText) {
+    if (!baseUrl || !promptText) return baseUrl || '';
+    try {
+      const parsedUrl = new URL(baseUrl);
+      const hostname = parsedUrl.hostname.toLowerCase();
+      const isChatGPT =
+        hostname.includes('chatgpt.com') ||
+        hostname.includes('openai.com') ||
+        hostname.includes('chat.openai.com');
+      if (isChatGPT) {
+        parsedUrl.searchParams.set('q', promptText.trim());
+        return parsedUrl.toString();
+      }
+      return baseUrl;
+    } catch (err) {
+      console.warn('[AI Tree] URL parse failed, falling back to raw base URL:', err);
+      return baseUrl;
+    }
+  }
+
+  /**
+   * Lightweight clipboard fallback for dispatch only (does NOT clear notepad).
+   */
+  function fallbackCopyTextForDispatch(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try { document.execCommand('copy'); } catch (err) { /* silent */ }
+    document.body.removeChild(textArea);
+  }
+
+  /**
+   * Hybrid dispatch:
+   * 1. Always copy prompt to clipboard (universal safety net).
+   * 2. ChatGPT → open URL with ?q= for zero-click auto-fill + clipboard fallback.
+   * 3. Others → open base site; user pastes with Ctrl/Cmd+V.
+   * 4. Toast shown BEFORE new tab steals focus.
+   */
   function sendPromptToNode(node) {
-    const promptText = noteTextarea.value.trim();
-    if (!promptText) { showToastNotification(t('dockEmptyPrompt'), true); return; }
-    const openTab = () => { window.open(node.url, '_blank', 'noopener,noreferrer'); };
-    const notifyThenOpen = () => {
-      // Show the toast first — window.open() shifts browser focus to the new tab immediately,
-      // so if we open before notifying, the user never sees the "copied" message.
-      showToastNotification(t('dockCopiedOpen').replace('{name}', node.label));
-      closeTree(); closeAllPanelsExcept('');
-      setTimeout(openTab, 900);
+    const promptText = (noteTextarea && noteTextarea.value) ? noteTextarea.value.trim() : '';
+    if (!promptText) {
+      showToastNotification(t('dockEmptyPrompt'), true);
+      return;
+    }
+
+    if (typeof pushPromptHistory === 'function') pushPromptHistory(promptText);
+
+    const targetUrl = buildAiDispatchUrl(node.url, promptText);
+
+    const openTab = () => {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     };
+
+    const notifyThenOpen = () => {
+      // Toast first — window.open() immediately moves focus to the new tab
+      showToastNotification(t('dockCopiedOpen').replace('{name}', node.label));
+      closeTree();
+      closeAllPanelsExcept('');
+      setTimeout(openTab, 800);
+    };
+
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(promptText).then(notifyThenOpen).catch(notifyThenOpen);
+      navigator.clipboard.writeText(promptText)
+        .then(notifyThenOpen)
+        .catch((err) => {
+          console.warn('[AI Tree] Clipboard API failed, using fallback:', err);
+          fallbackCopyTextForDispatch(promptText);
+          notifyThenOpen();
+        });
     } else {
+      fallbackCopyTextForDispatch(promptText);
       notifyThenOpen();
     }
   }
