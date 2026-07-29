@@ -816,6 +816,8 @@
     });
     // Panel grows a bit wider once the event list gets long, so entries stay comfortable to read/tap
     if (uiEls.markPanel) uiEls.markPanel.classList.toggle('is-grown', markedDays.length > 3);
+    // Width/height may have just changed (grew or shrank) — re-clamp so it never sticks off-screen
+    if (uiEls.markPanel && uiEls.markPanel.classList.contains('active')) positionMarksPanelSide();
   }
 
   function positionMarksPanelSide() {
@@ -823,6 +825,7 @@
     const rect = clockPanel.getBoundingClientRect();
     const panelW = (uiEls.markPanel.offsetWidth || 244) + 2; // marks panel actual width + tiny gap
     const vw = window.innerWidth;
+    const vh = window.innerHeight;
     const spaceRight = vw - rect.right;
     const spaceLeft = rect.left;
     const clockCenterX = rect.left + rect.width / 2;
@@ -840,6 +843,16 @@
     }
 
     uiEls.markPanel.classList.toggle('side-left', openLeft);
+
+    // Vertical clamp: the panel defaults to top-aligned with the clock (CSS top:0), but if the
+    // clock sits low/high on screen the (now taller) panel can run off the viewport — shift it
+    // up/down with an inline offset so it always stays fully visible.
+    const margin = 10;
+    const panelH = uiEls.markPanel.offsetHeight || 300;
+    let topOffset = 0;
+    if (rect.top + panelH > vh - margin) topOffset = (vh - margin) - panelH - rect.top;
+    if (rect.top + topOffset < margin) topOffset = margin - rect.top;
+    uiEls.markPanel.style.top = `${topOffset}px`;
   }
 
   uiEls.markToggle.addEventListener('click', (e) => {
@@ -1002,6 +1015,7 @@
 
   const JALALI_MONTHS_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
   const GREG_MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const GREG_MONTHS_FA = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
   const WEEKDAYS_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
@@ -1010,6 +1024,8 @@
   function closeDualPicker() {
     dualPickerOpen = false;
     if (uiEls.dualPicker) { uiEls.dualPicker.hidden = true; uiEls.dualPicker.style.display = 'none'; }
+    if (uiEls.markPanel) uiEls.markPanel.classList.remove('picker-open');
+    if (uiEls.markPanel && uiEls.markPanel.classList.contains('active')) positionMarksPanelSide();
   }
   function openDualPicker() {
     const base = smartDateISO ? new Date(smartDateISO + 'T12:00:00') : new Date();
@@ -1018,7 +1034,9 @@
     dualPickerOpen = true;
     uiEls.dualPicker.hidden = false;
     uiEls.dualPicker.style.display = 'block';
+    if (uiEls.markPanel) uiEls.markPanel.classList.add('picker-open');
     renderDualGrid();
+    positionMarksPanelSide(); // the grid adds significant height — re-clamp so it doesn't run off-screen
   }
 
   function renderDualGrid() {
@@ -1030,20 +1048,12 @@
     const offset = preferJalali ? (startDow + 1) % 7 : startDow;
     const totalDays = daysInGregorianMonth(y, m);
 
-    // Simple month title — only the primary calendar
-    if (preferJalali) {
-      const jStart = gregorianToJalaali(y, m, 1);
-      const jEnd = gregorianToJalaali(y, m, totalDays);
-      const n1 = JALALI_MONTHS_FA[jStart.jm - 1] || '';
-      if (jStart.jm === jEnd.jm) {
-        uiEls.dualMonthLabel.textContent = `${n1} ${toPersianDigits(jStart.jy)}`;
-      } else {
-        const n2 = JALALI_MONTHS_FA[jEnd.jm - 1] || '';
-        uiEls.dualMonthLabel.textContent = `${n1}–${n2} ${toPersianDigits(jStart.jy)}`;
-      }
-    } else {
-      uiEls.dualMonthLabel.textContent = `${GREG_MONTHS_EN[m - 1]} ${y}`;
-    }
+    // One grid = one real (Gregorian) month, always — title just names that month.
+    // (Its Jalali equivalent can span two Jalali months, but the grid itself never mixes days
+    // from two different months, so the title shouldn't imply that either.)
+    uiEls.dualMonthLabel.textContent = preferJalali
+      ? `${GREG_MONTHS_FA[m - 1]} ${toPersianDigits(y)}`
+      : `${GREG_MONTHS_EN[m - 1]} ${y}`;
 
     const wd = preferJalali ? WEEKDAYS_FA : WEEKDAYS_EN;
     uiEls.dualWeekdays.innerHTML = wd.map(d => `<span class="ai-dual-wd">${d}</span>`).join('');

@@ -1090,10 +1090,11 @@ display: none;
 position: absolute;
 top: 0;
 left: calc(100% + 2px);
-width: 244px;
-max-height: min(460px, 82vh);
+width: 268px;
+max-height: min(560px, 88vh);
 overflow-y: auto;
-padding: 12px 12px 14px;
+overflow-x: hidden;
+padding: 13px 13px 15px;
 border-radius: 14px;
 border: 1px solid rgba(125,211,252,.27);
 background: radial-gradient(circle at 12% 5%, rgba(125,211,252,.14), transparent 32%),
@@ -1107,9 +1108,10 @@ transition: width 0.3s var(--ease-premium);
 }
 /* Grows further once the event list gets long (> 3 items), so entries stay roomy */
 .ai-clock-marks-panel.is-grown {
-width: 288px;
+width: 314px;
 }
 .ai-clock-marks-panel.active { display: block; }
+.ai-clock-marks-panel.picker-open .ai-clock-marks-list { display: none; }
 .ai-clock-marks-panel.side-left {
 left: auto;
 right: calc(100% + 2px);
@@ -1118,7 +1120,7 @@ right: calc(100% + 2px);
 .ai-clock-marks-list::-webkit-scrollbar { width: 4px; }
 .ai-clock-marks-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
 .ai-mark-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: rgba(255,255,255,0.04); border-radius: 8px; padding: 6px 9px; }
-.ai-mark-item-label { font-size: 12.5px; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-mark-item-label { flex: 1; min-width: 0; font-size: 12.5px; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ai-mark-item-del { background: transparent; border: none; color: rgba(252,165,165,0.8); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 3px; }
 .ai-mark-item-del:hover { color: #fca5a5; }
 .ai-mark-empty { font-size: 12px; color: var(--text-muted, rgba(186,230,253,.5)); text-align: center; list-style: none; padding: 6px 0; }
@@ -1149,36 +1151,37 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
 
 /* Dual calendar picker grid */
 .ai-dual-picker {
-  display: none; margin-top: 5px; padding: 8px 5px; border-radius: 9px;
+  display: none; margin-top: 6px; padding: 9px 6px; border-radius: 9px;
   background: rgba(8,12,22,0.96); border: 1px solid rgba(255,255,255,0.1);
+  box-sizing: border-box; width: 100%;
 }
 .ai-dual-picker-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 5px; margin-bottom: 6px;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 7px;
 }
 .ai-dual-picker-header button {
-  width: 26px; height: 26px; border: none; border-radius: 6px; background: rgba(255,255,255,0.06);
+  flex-shrink: 0; width: 26px; height: 26px; border: none; border-radius: 6px; background: rgba(255,255,255,0.06);
   color: #e0f2fe; font-size: 16px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .ai-dual-picker-header button:hover { background: rgba(56,189,248,0.25); }
 #ai-dual-month-label {
-  flex: 1; text-align: center; font-size: 11.5px; font-weight: 700; color: #bae6fd;
+  flex: 1; min-width: 0; text-align: center; font-size: 12px; font-weight: 700; color: #bae6fd;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px;
 }
 .ai-dual-weekdays {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-bottom: 3px;
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;
 }
 .ai-dual-wd {
-  text-align: center; font-size: 9.5px; font-weight: 700; color: rgba(186,230,253,0.45); padding: 3px 0;
+  text-align: center; font-size: 10px; font-weight: 700; color: rgba(186,230,253,0.45); padding: 3px 0;
 }
 .ai-dual-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
 }
 .day-cell {
-  aspect-ratio: 1; min-height: 30px; border-radius: 7px; cursor: pointer;
+  aspect-ratio: 1; border-radius: 7px; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   background: transparent; border: 1px solid transparent;
   transition: background 0.12s, border-color 0.12s;
-  user-select: none; padding: 1px 0;
+  user-select: none; padding: 1px 0; box-sizing: border-box;
 }
 .day-cell.empty { pointer-events: none; }
 .day-cell:not(.empty):hover { background: rgba(56,189,248,0.15); }
@@ -1212,10 +1215,10 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
 }
 
 .day-cell .primary-day {
-  font-size: 13px; font-weight: 700; color: #f1f5f9; line-height: 1.15;
+  font-size: 13.5px; font-weight: 700; color: #f1f5f9; line-height: 1.15;
 }
 .day-cell .sub-day {
-  font-size: 8.5px; font-weight: 500; color: rgba(148,163,184,0.55); line-height: 1;
+  font-size: 9px; font-weight: 500; color: rgba(148,163,184,0.55); line-height: 1;
 }
 
 #ai-mark-add-btn {
