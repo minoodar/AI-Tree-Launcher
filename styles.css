@@ -282,12 +282,13 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 
 /* Quick Note Panel */
 #ai-quick-note-form {
-  width: 640px;
+  width: 400px;
   min-width: 320px;
   max-width: 90vw;
-  min-height: 180px;
+  height: 230px;
+  min-height: 200px;
   max-height: 90vh;
-  resize: both;
+  resize: none;
   overflow: hidden;
   border: 1px solid rgba(16, 185, 129, 0.45);
   padding: 14px 16px;
@@ -295,6 +296,34 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+/* Custom resize grips — one at each bottom corner, so it's never stuck resizing from just one side */
+.ai-note-resize-handle {
+  position: absolute;
+  bottom: 0;
+  width: 18px;
+  height: 18px;
+  z-index: 5;
+}
+.ai-note-resize-bl { left: 0; cursor: sw-resize; }
+.ai-note-resize-br { right: 0; cursor: se-resize; }
+.ai-note-resize-handle::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  width: 9px;
+  height: 9px;
+  opacity: 0.55;
+  transition: opacity 0.15s;
+}
+.ai-note-resize-handle:hover::after { opacity: 0.95; }
+.ai-note-resize-br::after {
+  right: 4px;
+  background: repeating-linear-gradient(135deg, rgba(255,255,255,0.9) 0 1.4px, transparent 1.4px 4px);
+}
+.ai-note-resize-bl::after {
+  left: 4px;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,0.9) 0 1.4px, transparent 1.4px 4px);
 }
 .ai-note-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -333,6 +362,59 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 #ai-quick-note-form.is-pinned {
   border-color: rgba(52, 211, 153, 0.55);
 }
+.ai-note-format-bar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.ai-format-btn {
+  width: 24px;
+  height: 22px;
+  border: none;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, filter 0.15s;
+  padding: 0;
+  font-family: inherit;
+}
+.ai-format-btn:hover { background: rgba(255,255,255,0.1); }
+.ai-format-btn.active { background: rgba(16, 185, 129, 0.28); }
+.ai-align-icon {
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 5px;
+}
+.ai-align-icon span {
+  display: block;
+  height: 2px;
+  border-radius: 1px;
+  background: rgba(229,231,235,0.8);
+}
+.ai-align-icon span:nth-child(1) { width: 100%; }
+.ai-align-icon span:nth-child(2) { width: 70%; }
+.ai-align-icon span:nth-child(3) { width: 85%; }
+.ai-align-icon-right { align-items: flex-end; }
+.ai-align-icon-center { align-items: center; }
+.ai-align-icon-left { align-items: flex-start; }
+.ai-align-icon.active span { background: #34D399; }
+
+.ai-note-text-wrap {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+}
+.ai-note-text-wrap:focus-within {
+  border-color: rgba(16, 185, 129, 0.55);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
 #ai-note-text {
   flex: 1 1 auto;
   width: 100%;
@@ -352,6 +434,10 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-weight: 500;
   transition: border-color 0.2s var(--ease-premium), box-shadow 0.2s var(--ease-premium);
+}
+.ai-note-text-wrap:focus-within #ai-note-text {
+  border-color: transparent;
+  box-shadow: none;
 }
 #ai-note-text::placeholder {
   color: #888888 !important;
@@ -691,7 +777,19 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-search-result { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.06); padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background 0.2s var(--ease-premium); border: 1px solid transparent; }
 .ai-search-result:hover { background: rgba(0, 180, 255, 0.14); border-color: rgba(0, 180, 255, 0.3); }
 .ai-search-result-favicon { width: 16px; height: 16px; border-radius: 4px; object-fit: contain; flex-shrink: 0; }
-.ai-search-result span { font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-search-result-label { flex: 1; min-width: 0; font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-search-result-meta {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: #facc15;
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.25);
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
 .ai-search-empty { text-align: center; padding: 14px 4px; font-size: 12px; color: rgba(255,255,255,0.45); }
 
 /* Calculator Panel */

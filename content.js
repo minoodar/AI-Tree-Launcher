@@ -33,6 +33,8 @@
       searchTitle: "Search Bookmarks",
       searchPlaceholder: "Type to search bookmarks...",
       searchNoResults: "No matching bookmarks",
+      searchMetaHubStars: "G{hub} · {stars}",
+      searchMetaHubOnly: "G{hub}",
       noteTitle: "Notepad & AI",
       allTitle: "Show All Bookmarks",
       collapseTitle: "Collapse Menu",
@@ -126,6 +128,8 @@
       searchTitle: "جستجوی بوک‌مارک‌ها",
       searchPlaceholder: "برای جستجو تایپ کنید...",
       searchNoResults: "بوک‌مارکی یافت نشد",
+      searchMetaHubStars: "کهکشان {hub} · {stars}",
+      searchMetaHubOnly: "کهکشان {hub}",
       noteTitle: "یادداشت و هوش مصنوعی",
       allTitle: "نمایش تمام بوک‌مارک‌ها",
       collapseTitle: "بستن منو",
@@ -392,7 +396,14 @@
       <span class="ai-note-header-title">NOTEPAD & AI</span>
       <button type="button" id="ai-note-pin-btn" class="ai-note-pin-btn" title="Pin Window">📌</button>
     </div>
-    <textarea id="ai-note-text" rows="1"></textarea>
+    <div class="ai-note-format-bar" id="ai-note-format-bar">
+      <button type="button" id="ai-align-right-btn" class="ai-format-btn ai-align-icon ai-align-icon-right" title="Right align"><span></span><span></span><span></span></button>
+      <button type="button" id="ai-align-center-btn" class="ai-format-btn ai-align-icon ai-align-icon-center" title="Center align"><span></span><span></span><span></span></button>
+      <button type="button" id="ai-align-left-btn" class="ai-format-btn ai-align-icon ai-align-icon-left" title="Left align"><span></span><span></span><span></span></button>
+    </div>
+    <div class="ai-note-text-wrap" id="ai-note-text-wrap">
+      <textarea id="ai-note-text" rows="1" dir="auto"></textarea>
+    </div>
     <div class="ai-note-toolbar">
       <button id="ai-note-clear-btn" class="ai-toolbar-btn" style="background: rgba(217, 119, 87, 0.2); color: #D97757;"></button>
       <button id="ai-note-copy-btn" class="ai-toolbar-btn" style="background: rgba(16, 185, 129, 0.2); color: #10B981;"></button>
@@ -403,6 +414,8 @@
         <div id="ai-send-ribbon" class="ai-send-ribbon"></div>
       </div>
     </div>
+    <div class="ai-note-resize-handle ai-note-resize-bl" id="ai-note-resize-bl" title="Resize"></div>
+    <div class="ai-note-resize-handle ai-note-resize-br" id="ai-note-resize-br" title="Resize"></div>
   `;
 
   const calcPanel = document.createElement('div'); calcPanel.id = 'ai-calc-panel';
@@ -533,6 +546,10 @@
     noteClearBtn: quickNoteForm.querySelector('#ai-note-clear-btn'),
     noteCopyBtn: quickNoteForm.querySelector('#ai-note-copy-btn'),
     saveTxtBtn: quickNoteForm.querySelector('#ai-save-txt-btn'),
+    alignRightBtn: quickNoteForm.querySelector('#ai-align-right-btn'),
+    alignCenterBtn: quickNoteForm.querySelector('#ai-align-center-btn'),
+    alignLeftBtn: quickNoteForm.querySelector('#ai-align-left-btn'),
+    textWrap: quickNoteForm.querySelector('#ai-note-text-wrap'),
     sendWrapper: quickNoteForm.querySelector('#ai-smart-send-wrapper'),
     sendActionBtn: quickNoteForm.querySelector('#ai-send-action-btn'),
     sendToggleBtn: quickNoteForm.querySelector('#ai-send-toggle-btn'),
@@ -1516,8 +1533,8 @@
 
   function allBookmarksFlat() {
     const out = [];
-    [linksData, linksData2, linksData3].forEach((arr) => {
-      for (let i = 0; i < arr.length; i++) { if (arr[i] && arr[i].url) out.push(arr[i]); }
+    [linksData, linksData2, linksData3].forEach((arr, hubIdx) => {
+      for (let i = 0; i < arr.length; i++) { if (arr[i] && arr[i].url) out.push({ link: arr[i], hub: hubIdx + 1 }); }
     });
     return out;
   }
@@ -1544,22 +1561,26 @@
     if (!query) { adjustSearchPosition(); return; }
 
     const matches = allBookmarksFlat()
-      .map(link => ({ link, score: fuzzyScore(link.label, query) }))
+      .map(({ link, hub }) => ({ link, hub, score: fuzzyScore(link.label, query) }))
       .filter(x => x.score > -1)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 30)
-      .map(x => x.link);
+      .slice(0, 30);
 
     if (matches.length === 0) {
       const empty = document.createElement('li'); empty.className = 'ai-search-empty'; empty.textContent = t('searchNoResults');
       list.appendChild(empty);
     } else {
-      matches.forEach(link => {
+      matches.forEach(({ link, hub }) => {
         const li = document.createElement('li'); li.className = 'ai-search-result';
         const fav = document.createElement('img'); fav.className = 'ai-search-result-favicon'; fav.src = getFaviconUrl(link.url);
         fav.addEventListener('error', () => fav.style.display = 'none');
-        const span = document.createElement('span'); span.textContent = link.label;
-        li.appendChild(fav); li.appendChild(span);
+        const span = document.createElement('span'); span.className = 'ai-search-result-label'; span.textContent = link.label;
+        const meta = document.createElement('span'); meta.className = 'ai-search-result-meta';
+        const hubStr = currentLang === 'fa' ? toPersianDigits(hub) : String(hub);
+        meta.textContent = (link.importance == null)
+          ? t('searchMetaHubOnly').replace('{hub}', hubStr)
+          : t('searchMetaHubStars').replace('{hub}', hubStr).replace('{stars}', '★'.repeat(Math.max(1, Math.min(5, link.importance))));
+        li.appendChild(fav); li.appendChild(span); li.appendChild(meta);
         li.addEventListener('click', (e) => {
           e.stopPropagation();
           window.open(link.url, '_blank', 'noopener,noreferrer');
@@ -2110,6 +2131,8 @@
       quickNoteForm.classList.add('active');
       root.classList.add('show-notepad');
       noteManuallyPositioned = false;
+      quickNoteForm.style.width = '';
+      quickNoteForm.style.height = '';
       if (noteTextarea) {
         adjustNotepadPosition();
         setTimeout(() => {
@@ -2122,35 +2145,61 @@
     resetToggleTimeout();
   });
 
-  // Persist custom notepad size (native resize handle on panel)
-  let notepadResizeTimeout = null;
-  let notepadSizeReady = false;
-  try {
-    chrome.storage.local.get(['notepadCustomWidth', 'notepadCustomHeight'], (data) => {
-      if (data.notepadCustomWidth) quickNoteForm.style.width = data.notepadCustomWidth;
-      if (data.notepadCustomHeight) quickNoteForm.style.height = data.notepadCustomHeight;
-      notepadSizeReady = true;
+  // Custom dual-corner resize: notepad always opens at the fixed standard CSS size;
+  // the user can resize during this session from either bottom corner (not just one side).
+  const NOTE_MIN_W = 320, NOTE_MIN_H = 200;
+  function noteMaxW() { return Math.round(window.innerWidth * 0.9); }
+  function noteMaxH() { return Math.round(window.innerHeight * 0.9); }
+  function setupNoteResizeHandle(handleEl, corner) {
+    if (!handleEl) return;
+    let dragging = false, startX, startY, startW, startH, startLeft;
+    handleEl.addEventListener('mousedown', (e) => {
+      e.stopPropagation(); e.preventDefault();
+      dragging = true;
+      const r = quickNoteForm.getBoundingClientRect();
+      startX = e.clientX; startY = e.clientY;
+      startW = r.width; startH = r.height; startLeft = r.left;
+      document.body.style.userSelect = 'none';
     });
-  } catch (e) { notepadSizeReady = true; }
-
-  if (typeof ResizeObserver !== 'undefined') {
-    const notepadResizer = new ResizeObserver((entries) => {
-      if (!notepadSizeReady) return;
-      for (const entry of entries) {
-        clearTimeout(notepadResizeTimeout);
-        notepadResizeTimeout = setTimeout(() => {
-          const newWidth = entry.target.offsetWidth + 'px';
-          const newHeight = entry.target.offsetHeight + 'px';
-          try {
-            if (chrome.runtime?.id) {
-              chrome.storage.local.set({ notepadCustomWidth: newWidth, notepadCustomHeight: newHeight });
-            }
-          } catch (err) {}
-        }, 300);
+    document.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      let newW = corner === 'br' ? (startW + dx) : (startW - dx);
+      newW = Math.max(NOTE_MIN_W, Math.min(noteMaxW(), newW));
+      const newH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), startH + dy));
+      noteManuallyPositioned = true;
+      quickNoteForm.style.width = `${newW}px`;
+      quickNoteForm.style.height = `${newH}px`;
+      if (corner === 'bl') {
+        // keep the right edge anchored — the left edge is the one that moves for this handle
+        quickNoteForm.style.left = `${startLeft + (startW - newW)}px`;
       }
     });
-    notepadResizer.observe(quickNoteForm);
+    document.addEventListener('mouseup', () => {
+      if (!dragging) return;
+      dragging = false;
+      document.body.style.userSelect = '';
+    });
   }
+  setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-bl'), 'bl');
+  setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-br'), 'br');
+
+  // --- Minimal text formatting: alignment + line numbers ---
+  function setNoteAlign(align) {
+    noteTextarea.style.textAlign = align;
+    [uiEls.alignRightBtn, uiEls.alignCenterBtn, uiEls.alignLeftBtn].forEach(b => b && b.classList.remove('active'));
+    const btn = align === 'right' ? uiEls.alignRightBtn : align === 'center' ? uiEls.alignCenterBtn : uiEls.alignLeftBtn;
+    if (btn) btn.classList.add('active');
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ noteTextAlign: align }); } catch (e) {}
+  }
+  if (uiEls.alignRightBtn) uiEls.alignRightBtn.addEventListener('click', (e) => { e.stopPropagation(); setNoteAlign('right'); });
+  if (uiEls.alignCenterBtn) uiEls.alignCenterBtn.addEventListener('click', (e) => { e.stopPropagation(); setNoteAlign('center'); });
+  if (uiEls.alignLeftBtn) uiEls.alignLeftBtn.addEventListener('click', (e) => { e.stopPropagation(); setNoteAlign('left'); });
+  try {
+    chrome.storage.local.get(['noteTextAlign'], (data) => {
+      if (data.noteTextAlign) setNoteAlign(data.noteTextAlign);
+    });
+  } catch (e) {}
 
   let noteTextBeforeEdit = null;
   if (noteTextarea) {
