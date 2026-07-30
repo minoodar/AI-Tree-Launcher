@@ -1900,6 +1900,7 @@
       e.stopPropagation(); if(!undoToggleDot.classList.contains('active-undo')) return;
       const undoneType = pendingUndoState.type;
       if(undoneType === 'text') {
+          if (typeof endNoteEditSession === 'function') endNoteEditSession();
           const textState = pendingUndoState.data; const restoredText = typeof textState === 'string' ? textState : textState.value;
           noteTextarea.value = restoredText;
           // Restore previous panel size if it was saved with the undo payload
@@ -1908,7 +1909,11 @@
             if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
           }
           quickNoteForm.classList.add('active'); root.classList.add('show-notepad');
-          if (typeof textState === 'object') { const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length); noteTextarea.focus(); noteTextarea.setSelectionRange(caret, caret); }
+          if (typeof textState === 'object') {
+            const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length);
+            const caretEnd = Math.min(textState.selectionEnd ?? caret, restoredText.length);
+            noteTextarea.focus(); noteTextarea.setSelectionRange(caret, caretEnd);
+          }
           if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
           if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
           adjustNotepadPosition(); showToastNotification(t('toastRestored'));
@@ -2324,22 +2329,105 @@
     });
   } catch (e) {}
 
-  let noteTextBeforeEdit = null;
+  // Undo معنادار برای دفترچه: یک اسنپ‌شات در شروع «جلسهٔ ویرایش»، نه برای هر کاراکتر.
+  // جلسه با تایپ/حذف پیوسته ادامه دارد؛ بعد از سکوت کوتاه بسته می‌شود.
+  // Undo سراسری همان متن قبل از شروع جلسه (یا قبل از Clear/Paste بزرگ) را برمی‌گرداند.
+  let noteEditSessionOpen = false;
+  let noteEditSessionTimer = null;
+  const NOTE_EDIT_SESSION_IDLE_MS = 1200;
+
+  function snapshotNoteText(extra) {
+    if (!noteTextarea) return null;
+    return Object.assign({
+      value: noteTextarea.value,
+      selectionStart: noteTextarea.selectionStart,
+      selectionEnd: noteTextarea.selectionEnd,
+      prevWidth: quickNoteForm.style.width || '',
+      prevHeight: quickNoteForm.style.height || ''
+    }, extra || {});
+  }
+
+  function beginNoteEditSessionIfNeeded() {
+    if (!noteTextarea) return;
+    // فقط وقتی متنی وجود دارد ارزش Undo دارد
+    if (!noteTextarea.value) return;
+    if (noteEditSessionOpen) {
+      // تمدید جلسهٔ جاری
+      clearTimeout(noteEditSessionTimer);
+      noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
+      return;
+    }
+    noteEditSessionOpen = true;
+    setUndoState('text', snapshotNoteText());
+    clearTimeout(noteEditSessionTimer);
+    noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
+  }
+
+  function endNoteEditSession() {
+    noteEditSessionOpen = false;
+    clearTimeout(noteEditSessionTimer);
+    noteEditSessionTimer = null;
+  }
+
+  // قبل از عملیات‌های بزرگ (Clear از قبل جداست؛ اینجا Paste / Cut / حذف انتخاب‌شده)
+  function captureNoteUndoForBigChange(inputType, data) {
+    if (!noteTextarea || !noteTextarea.value) return;
+    const isDelete = inputType && inputType.startsWith('delete');
+    const isInsert = inputType && (inputType.startsWith('insert') || inputType === 'historyUndo' || inputType === 'historyRedo');
+    const selLen = Math.abs((noteTextarea.selectionEnd || 0) - (noteTextarea.selectionStart || 0));
+    const incomingLen = (data && data.length) || 0;
+    // حذف بازه‌ای، Cut، یا Paste با جایگزینی متن موجود → Undo کامل
+    const significant =
+      (isDelete && (selLen > 1 || noteTextarea.value.length > 0)) ||
+      (isInsert && (selLen > 0 || incomingLen > 20));
+    if (!significant && !(isDelete && noteTextarea.value.length > 0)) return;
+    // اگر جلسه باز است اسنپ‌شات اول جلسه را نگه دار؛ وگرنه همین الان بگیر
+    if (!noteEditSessionOpen) {
+      setUndoState('text', snapshotNoteText());
+      noteEditSessionOpen = true;
+    }
+    clearTimeout(noteEditSessionTimer);
+    noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
+  }
+
   if (noteTextarea) {
     noteTextarea.addEventListener('beforeinput', function (e) {
-      if (!e.inputType || !e.inputType.startsWith('delete') || !this.value) return;
-      noteTextBeforeEdit = { value: this.value, selectionStart: this.selectionStart, selectionEnd: this.selectionEnd };
+      if (!e.inputType) return;
+      // شروع جلسه روی اولین تغییر واقعی (insert یا delete)
+      if (e.inputType.startsWith('delete') || e.inputType.startsWith('insert') || e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop') {
+        // برای Paste/حذف انتخاب‌شده: اسنپ‌شات قبل از تغییر
+        const selLen = Math.abs((this.selectionEnd || 0) - (this.selectionStart || 0));
+        if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || (e.inputType.startsWith('delete') && selLen > 1)) {
+          if (!noteEditSessionOpen && this.value) {
+            setUndoState('text', snapshotNoteText());
+            noteEditSessionOpen = true;
+          }
+        } else if (e.inputType.startsWith('delete') || e.inputType.startsWith('insertText') || e.inputType === 'insertLineBreak') {
+          beginNoteEditSessionIfNeeded();
+        }
+        clearTimeout(noteEditSessionTimer);
+        noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
+      }
     });
-    noteTextarea.addEventListener('keydown', function () {
+    noteTextarea.addEventListener('keydown', function (e) {
       if (typeof abortNoteClosing === 'function') abortNoteClosing();
+      // Ctrl/Cmd+A سپس Delete/Backspace — اسنپ‌شات قبل از پاک شدن کل متن
+      if ((e.key === 'Backspace' || e.key === 'Delete') && this.selectionStart === 0 && this.selectionEnd === this.value.length && this.value.length > 0) {
+        if (!noteEditSessionOpen) {
+          setUndoState('text', snapshotNoteText());
+          noteEditSessionOpen = true;
+        }
+      }
     });
     noteTextarea.addEventListener('input', function () {
-      if (noteTextBeforeEdit && this.value !== noteTextBeforeEdit.value) setUndoState('text', noteTextBeforeEdit);
-      noteTextBeforeEdit = null;
       if (typeof abortNoteClosing === 'function') abortNoteClosing();
       if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
       if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
       adjustNotepadPosition(); resetToggleTimeout();
+    });
+    noteTextarea.addEventListener('blur', function () {
+      // با ترک فیلد، جلسه بسته شود تا Undo بعدی معنای روشن داشته باشد
+      endNoteEditSession();
     });
   }
   
@@ -2426,6 +2514,10 @@
 
   function insertNoteTemplate(templateText) {
     if (!noteTextarea) return;
+    if (noteTextarea.value) {
+      endNoteEditSession();
+      setUndoState('text', snapshotNoteText());
+    }
     const start = noteTextarea.selectionStart || 0;
     const end = noteTextarea.selectionEnd || 0;
     const current = noteTextarea.value;
@@ -2476,6 +2568,10 @@
       row.addEventListener('click', (e) => {
         e.stopPropagation();
         if (noteTextarea) {
+          if (noteTextarea.value && noteTextarea.value !== item.text) {
+            endNoteEditSession();
+            setUndoState('text', snapshotNoteText());
+          }
           noteTextarea.value = item.text;
           noteTextarea.focus();
           updateNoteTokenMeter();
@@ -2506,12 +2602,8 @@
 
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     if (!noteTextarea || noteTextarea.value.trim() === '') return false;
-    setUndoState('text', {
-      value: noteTextarea.value,
-      selectionStart: noteTextarea.selectionStart,
-      prevWidth: quickNoteForm.style.width || '',
-      prevHeight: quickNoteForm.style.height || ''
-    });
+    endNoteEditSession();
+    setUndoState('text', snapshotNoteText());
     noteTextarea.value = '';
     if (focus) noteTextarea.focus();
     // Reset inline size so CSS defaults (400×230) apply again
@@ -2661,30 +2753,16 @@
   }
 
   const AI_WHEEL_ITEM_H = 26; // px — باید با ارتفاع .ai-wheel-item در CSS یکی باشد
-  // scrub state باید قبل از setActiveAiIndex تعریف شود (برای همگام‌سازی مبدأ)
-  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
-  // hysteresis: تا نزدیک وسط آیتم بعدی نرویم، ایندکس عوض نشود (جلوگیری از پرش روی لبه‌ها)
-  const AI_WHEEL_SCRUB_HYSTERESIS = 0.35; // کسری از ارتفاع آیتم
 
   function clampAiIndex(idx) {
     const n = AI_DISPATCH_CATALOG.length;
     if (n === 0) return 0;
-    // بدون wrap: آخرین گزینه (مثلاً X) پایدار می‌ماند و به اول لیست نمی‌پرد
-    if (idx < 0) return 0;
-    if (idx >= n) return n - 1;
-    return idx | 0;
+    return ((idx % n) + n) % n;
   }
 
   let persistAiIndexTimer = null;
   function setActiveAiIndex(idx, persist) {
-    const next = clampAiIndex(idx);
-    const changed = next !== activeNoteAIIndex;
-    activeNoteAIIndex = next;
-    // مبدأ اسکراب را با انتخاب جدید همگام کن تا حرکت بعدی از همین نقطه حساب شود
-    if (changed && wheelScrubStartY !== null && typeof wheelScrubLatestY === 'number') {
-      wheelScrubStartY = wheelScrubLatestY;
-      wheelScrubStartIndex = activeNoteAIIndex;
-    }
+    activeNoteAIIndex = clampAiIndex(idx);
     if (persist !== false) {
       clearTimeout(persistAiIndexTimer);
       persistAiIndexTimer = setTimeout(() => {
@@ -2829,60 +2907,37 @@
     });
   }
 
-  // اسکرول روی چرخ = یک پلهٔ گسسته؛ در ابتدا/انتها متوقف می‌شود (بدون پرش به طرف دیگر)
+  // اسکرول روی چرخ = یک پلهٔ گسسته (دقیق‌تر از دنبال‌کردن مختصات پیوسته)
   if (uiEls.wheelViewport) {
     let wheelLock = false;
     uiEls.wheelViewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (wheelLock) return;
-      const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
-      if (!dir) return;
-      const next = clampAiIndex(activeNoteAIIndex + dir);
-      if (next === activeNoteAIIndex) return; // لبهٔ لیست — بی‌اثر، بدون پرش
       wheelLock = true;
-      setActiveAiIndex(next);
-      setTimeout(() => { wheelLock = false; }, 90);
+      setActiveAiIndex(activeNoteAIIndex + (e.deltaY > 0 ? 1 : -1));
+      setTimeout(() => { wheelLock = false; }, 120);
     }, { passive: false });
   }
 
-  // حرکت عمودی موس روی چرخ = اسکراب نسبی با hysteresis
-  // بدون wrap؛ در آخرین/اولین گزینه ثابت می‌ماند تا انتخاب سخت و پرش‌دار نباشد
+  // حرکت عمودی موس روی چرخ = اسکراب نسبی (نه مختصات مطلق) تا لرزون نباشد؛
+  // هر AI_WHEEL_ITEM_H پیکسل جابه‌جایی از نقطهٔ شروعِ هاور = یک مدل
+  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
   if (uiEls.wheelViewport) {
     uiEls.wheelViewport.addEventListener('mousemove', (e) => {
-      if (wheelScrubStartY === null) {
-        wheelScrubStartY = e.clientY;
-        wheelScrubStartIndex = activeNoteAIIndex;
-      }
+      if (wheelScrubStartY === null) { wheelScrubStartY = e.clientY; wheelScrubStartIndex = activeNoteAIIndex; }
       wheelScrubLatestY = e.clientY;
       if (wheelScrubRaf) return;
       wheelScrubRaf = requestAnimationFrame(() => {
         wheelScrubRaf = null;
         if (wheelScrubStartY === null) return;
         const deltaY = wheelScrubLatestY - wheelScrubStartY;
-        // hysteresis: فقط وقتی از نیم‌آیتم + حاشیه رد شدی ایندکس عوض شود
-        const raw = deltaY / AI_WHEEL_ITEM_H;
-        let steps;
-        if (raw >= 0) {
-          steps = Math.floor(raw + (1 - AI_WHEEL_SCRUB_HYSTERESIS));
-        } else {
-          steps = Math.ceil(raw - (1 - AI_WHEEL_SCRUB_HYSTERESIS));
-        }
-        if (steps === 0) return;
-        const target = clampAiIndex(wheelScrubStartIndex + steps);
-        if (target !== activeNoteAIIndex) setActiveAiIndex(target, false);
+        const steps = Math.round(deltaY / AI_WHEEL_ITEM_H);
+        const target = wheelScrubStartIndex + steps;
+        if (clampAiIndex(target) !== activeNoteAIIndex) setActiveAiIndex(target, false);
       });
     });
-    uiEls.wheelViewport.addEventListener('mouseleave', () => {
-      wheelScrubStartY = null;
-      wheelScrubLatestY = null;
-    });
-    // با ورود دوباره به viewport مبدأ را تازه کن
-    uiEls.wheelViewport.addEventListener('mouseenter', (e) => {
-      wheelScrubStartY = e.clientY;
-      wheelScrubStartIndex = activeNoteAIIndex;
-      wheelScrubLatestY = e.clientY;
-    });
+    uiEls.wheelViewport.addEventListener('mouseleave', () => { wheelScrubStartY = null; });
   }
 
   // کلیک بیرون از ویجت، چرخ را می‌بندد
