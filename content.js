@@ -444,9 +444,9 @@
       <div id="ai-note-history-menu" class="ai-note-history-menu"></div>
     </div>
     <div class="ai-note-toolbar">
-      <button id="ai-note-clear-btn" class="ai-toolbar-btn" style="background: rgba(217, 119, 87, 0.2); color: #D97757;"></button>
-      <button id="ai-note-copy-btn" class="ai-toolbar-btn" style="background: rgba(16, 185, 129, 0.2); color: #10B981;"></button>
-      <button id="ai-save-txt-btn" class="ai-toolbar-btn" style="background: rgba(255, 255, 255, 0.1); color: #fff;"></button>
+      <button id="ai-note-clear-btn" class="ai-toolbar-btn" style="background: rgba(217, 119, 87, 0.22); color: #E8A088;"></button>
+      <button id="ai-note-copy-btn" class="ai-toolbar-btn" style="background: rgba(16, 185, 129, 0.22); color: #34D399;"></button>
+      <button id="ai-save-txt-btn" class="ai-toolbar-btn" style="background: rgba(255, 255, 255, 0.14); color: #fff;"></button>
       <div id="ai-smart-send-wrapper" class="ai-smart-send-wrapper" tabindex="0" role="listbox" aria-label="Ask AI">
         <button type="button" id="ai-send-action-btn" class="ai-send-action-btn">
           <span class="ai-send-dot" id="ai-send-dot"></span>
