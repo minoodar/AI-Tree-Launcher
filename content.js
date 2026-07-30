@@ -65,9 +65,11 @@
       noteAskBtn: "✨ Ask AI",
       dockSendTo: "Send to {name}",
       dockAskName: "✨ Ask {name}",
+      dockPostName: "𝕏 Post to {name}",
       dockNoCore: "No AI configured",
       dockEmptyPrompt: "Type something first",
       dockCopiedOpen: "Copied! Paste it into {name} 📋",
+      dockOpenedFilled: "Opened {name} with your text ready ⚡",
       dockMethodAuto: "Opens pre-filled",
       dockMethodCopy: "Copy & paste",
       calcError: "Error",
@@ -173,9 +175,11 @@
       noteAskBtn: "✨ ارسال به هوش مصنوعی",
       dockSendTo: "ارسال به {name}",
       dockAskName: "✨ ارسال به {name}",
+      dockPostName: "𝕏 پست در {name}",
       dockNoCore: "هوش مصنوعی تنظیم نشده",
       dockEmptyPrompt: "اول یه متن بنویس",
       dockCopiedOpen: "کپی شد! توی {name} پیستش کن 📋",
+      dockOpenedFilled: "{name} با متنت باز شد، آماده ارسال ⚡",
       dockMethodAuto: "با متن آماده باز می‌شود",
       dockMethodCopy: "کپی و سپس پیست",
       calcError: "خطا",
@@ -2540,7 +2544,8 @@
     { id: 'copilot',    label: 'Copilot',    short: 'Copilot',  url: 'https://copilot.microsoft.com',    qParam: 'q',  color: '#3B9DF5' },
     { id: 'mistral',    label: 'Mistral',    short: 'Mistral',  url: 'https://chat.mistral.ai',          qParam: null, color: '#FF7A2F' },
     { id: 'qwen',       label: 'Qwen',       short: 'Qwen',     url: 'https://chat.qwen.ai',             qParam: null, color: '#9B6BF2' },
-    { id: 'pi',         label: 'Pi',         short: 'Pi',       url: 'https://pi.ai/talk',               qParam: null, color: '#FF8FAE' }
+    { id: 'pi',         label: 'Pi',         short: 'Pi',       url: 'https://pi.ai/talk',               qParam: null, color: '#FF8FAE' },
+    { id: 'x',          label: 'X (Twitter)', short: 'X',       url: 'https://x.com/intent/post',         qParam: 'text', color: '#E7E9EA', verb: 'post' }
   ];
   const AI_WHEEL_VISIBLE_ROWS = 5; // چند ردیف هم‌زمان دیده شود (با ۱۰ مدل، ۵ ردیف زمینهٔ بهتری می‌دهد)
 
@@ -2630,7 +2635,8 @@
     };
 
     const notifyThenOpen = () => {
-      showToastNotification(t('dockCopiedOpen').replace('{name}', node.label));
+      const msgKey = node.qParam ? 'dockOpenedFilled' : 'dockCopiedOpen';
+      showToastNotification(t(msgKey).replace('{name}', node.label));
       quickNoteForm.classList.add('dispatching');
       setTimeout(() => {
         openTab();
@@ -2719,10 +2725,11 @@
     const active = catalog[activeNoteAIIndex];
 
     // دکمهٔ فشرده: نقطهٔ رنگی برند + نام + آیکن روش ارجاع (⚡ پرشونده خودکار / 📋 کپی-پیست)
+    const actionLabelKey = active.verb === 'post' ? 'dockPostName' : 'dockAskName';
     if (uiEls.sendDot) uiEls.sendDot.style.background = active.color || '#fff';
-    if (uiEls.sendLabelEl) uiEls.sendLabelEl.textContent = t('dockAskName').replace('{name}', active.short || active.label);
+    if (uiEls.sendLabelEl) uiEls.sendLabelEl.textContent = t(actionLabelKey).replace('{name}', active.short || active.label);
     if (uiEls.sendMethodEl) uiEls.sendMethodEl.textContent = aiMethodGlyph(active);
-    actionBtn.title = t('dockAskName').replace('{name}', active.label) + ' · ' + aiMethodLabel(active);
+    actionBtn.title = t(actionLabelKey).replace('{name}', active.label) + ' · ' + aiMethodLabel(active);
     wrapper.title = actionBtn.title;
 
     list.innerHTML = '';
