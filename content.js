@@ -2661,16 +2661,30 @@
   }
 
   const AI_WHEEL_ITEM_H = 26; // px — باید با ارتفاع .ai-wheel-item در CSS یکی باشد
+  // scrub state باید قبل از setActiveAiIndex تعریف شود (برای همگام‌سازی مبدأ)
+  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
+  // hysteresis: تا نزدیک وسط آیتم بعدی نرویم، ایندکس عوض نشود (جلوگیری از پرش روی لبه‌ها)
+  const AI_WHEEL_SCRUB_HYSTERESIS = 0.35; // کسری از ارتفاع آیتم
 
   function clampAiIndex(idx) {
     const n = AI_DISPATCH_CATALOG.length;
     if (n === 0) return 0;
-    return ((idx % n) + n) % n;
+    // بدون wrap: آخرین گزینه (مثلاً X) پایدار می‌ماند و به اول لیست نمی‌پرد
+    if (idx < 0) return 0;
+    if (idx >= n) return n - 1;
+    return idx | 0;
   }
 
   let persistAiIndexTimer = null;
   function setActiveAiIndex(idx, persist) {
-    activeNoteAIIndex = clampAiIndex(idx);
+    const next = clampAiIndex(idx);
+    const changed = next !== activeNoteAIIndex;
+    activeNoteAIIndex = next;
+    // مبدأ اسکراب را با انتخاب جدید همگام کن تا حرکت بعدی از همین نقطه حساب شود
+    if (changed && wheelScrubStartY !== null && typeof wheelScrubLatestY === 'number') {
+      wheelScrubStartY = wheelScrubLatestY;
+      wheelScrubStartIndex = activeNoteAIIndex;
+    }
     if (persist !== false) {
       clearTimeout(persistAiIndexTimer);
       persistAiIndexTimer = setTimeout(() => {
@@ -2815,37 +2829,60 @@
     });
   }
 
-  // اسکرول روی چرخ = یک پلهٔ گسسته (دقیق‌تر از دنبال‌کردن مختصات پیوسته)
+  // اسکرول روی چرخ = یک پلهٔ گسسته؛ در ابتدا/انتها متوقف می‌شود (بدون پرش به طرف دیگر)
   if (uiEls.wheelViewport) {
     let wheelLock = false;
     uiEls.wheelViewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (wheelLock) return;
+      const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
+      if (!dir) return;
+      const next = clampAiIndex(activeNoteAIIndex + dir);
+      if (next === activeNoteAIIndex) return; // لبهٔ لیست — بی‌اثر، بدون پرش
       wheelLock = true;
-      setActiveAiIndex(activeNoteAIIndex + (e.deltaY > 0 ? 1 : -1));
-      setTimeout(() => { wheelLock = false; }, 120);
+      setActiveAiIndex(next);
+      setTimeout(() => { wheelLock = false; }, 90);
     }, { passive: false });
   }
 
-  // حرکت عمودی موس روی چرخ = اسکراب نسبی (نه مختصات مطلق) تا لرزون نباشد؛
-  // هر AI_WHEEL_ITEM_H پیکسل جابه‌جایی از نقطهٔ شروعِ هاور = یک مدل
-  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
+  // حرکت عمودی موس روی چرخ = اسکراب نسبی با hysteresis
+  // بدون wrap؛ در آخرین/اولین گزینه ثابت می‌ماند تا انتخاب سخت و پرش‌دار نباشد
   if (uiEls.wheelViewport) {
     uiEls.wheelViewport.addEventListener('mousemove', (e) => {
-      if (wheelScrubStartY === null) { wheelScrubStartY = e.clientY; wheelScrubStartIndex = activeNoteAIIndex; }
+      if (wheelScrubStartY === null) {
+        wheelScrubStartY = e.clientY;
+        wheelScrubStartIndex = activeNoteAIIndex;
+      }
       wheelScrubLatestY = e.clientY;
       if (wheelScrubRaf) return;
       wheelScrubRaf = requestAnimationFrame(() => {
         wheelScrubRaf = null;
         if (wheelScrubStartY === null) return;
         const deltaY = wheelScrubLatestY - wheelScrubStartY;
-        const steps = Math.round(deltaY / AI_WHEEL_ITEM_H);
-        const target = wheelScrubStartIndex + steps;
-        if (clampAiIndex(target) !== activeNoteAIIndex) setActiveAiIndex(target, false);
+        // hysteresis: فقط وقتی از نیم‌آیتم + حاشیه رد شدی ایندکس عوض شود
+        const raw = deltaY / AI_WHEEL_ITEM_H;
+        let steps;
+        if (raw >= 0) {
+          steps = Math.floor(raw + (1 - AI_WHEEL_SCRUB_HYSTERESIS));
+        } else {
+          steps = Math.ceil(raw - (1 - AI_WHEEL_SCRUB_HYSTERESIS));
+        }
+        if (steps === 0) return;
+        const target = clampAiIndex(wheelScrubStartIndex + steps);
+        if (target !== activeNoteAIIndex) setActiveAiIndex(target, false);
       });
     });
-    uiEls.wheelViewport.addEventListener('mouseleave', () => { wheelScrubStartY = null; });
+    uiEls.wheelViewport.addEventListener('mouseleave', () => {
+      wheelScrubStartY = null;
+      wheelScrubLatestY = null;
+    });
+    // با ورود دوباره به viewport مبدأ را تازه کن
+    uiEls.wheelViewport.addEventListener('mouseenter', (e) => {
+      wheelScrubStartY = e.clientY;
+      wheelScrubStartIndex = activeNoteAIIndex;
+      wheelScrubLatestY = e.clientY;
+    });
   }
 
   // کلیک بیرون از ویجت، چرخ را می‌بندد
