@@ -68,6 +68,8 @@
       dockNoCore: "No AI configured",
       dockEmptyPrompt: "Type something first",
       dockCopiedOpen: "Copied! Paste it into {name} 📋",
+      dockMethodAuto: "Opens pre-filled",
+      dockMethodCopy: "Copy & paste",
       calcError: "Error",
       ageLabel: "Age: {age} Years",
       toastCleared: "Cleared! Use Undo to restore it.",
@@ -174,6 +176,8 @@
       dockNoCore: "هوش مصنوعی تنظیم نشده",
       dockEmptyPrompt: "اول یه متن بنویس",
       dockCopiedOpen: "کپی شد! توی {name} پیستش کن 📋",
+      dockMethodAuto: "با متن آماده باز می‌شود",
+      dockMethodCopy: "کپی و سپس پیست",
       calcError: "خطا",
       ageLabel: "سن: {age} سال",
       toastCleared: "پاک شد؛ با Undo بازگردانید.",
@@ -443,18 +447,20 @@
       <button id="ai-note-clear-btn" class="ai-toolbar-btn" style="background: rgba(217, 119, 87, 0.2); color: #D97757;"></button>
       <button id="ai-note-copy-btn" class="ai-toolbar-btn" style="background: rgba(16, 185, 129, 0.2); color: #10B981;"></button>
       <button id="ai-save-txt-btn" class="ai-toolbar-btn" style="background: rgba(255, 255, 255, 0.1); color: #fff;"></button>
-      <div id="ai-smart-send-wrapper" class="ai-smart-send-wrapper">
-        <button type="button" id="ai-send-action-btn" class="ai-send-action-btn"></button>
-        <button type="button" id="ai-send-toggle-btn" class="ai-send-toggle-btn" aria-label="Choose AI">⌃</button>
+      <div id="ai-smart-send-wrapper" class="ai-smart-send-wrapper" tabindex="0" role="listbox" aria-label="Ask AI">
+        <button type="button" id="ai-send-action-btn" class="ai-send-action-btn">
+          <span class="ai-send-dot" id="ai-send-dot"></span>
+          <span class="ai-send-label" id="ai-send-label"></span>
+          <span class="ai-send-method" id="ai-send-method"></span>
+        </button>
         <div class="ai-wheel-popover" id="ai-wheel-popover">
-          <button type="button" class="ai-wheel-nav" id="ai-wheel-prev" aria-label="Previous AI">▴</button>
           <div class="ai-wheel-viewport" id="ai-wheel-viewport">
             <div class="ai-wheel-list" id="ai-wheel-list"></div>
           </div>
-          <button type="button" class="ai-wheel-nav" id="ai-wheel-next" aria-label="Next AI">▾</button>
         </div>
       </div>
     </div>
+
     <div class="ai-note-resize-handle ai-note-resize-bl" id="ai-note-resize-bl" title="Resize"></div>
     <div class="ai-note-resize-handle ai-note-resize-br" id="ai-note-resize-br" title="Resize"></div>
   `;
@@ -597,10 +603,10 @@
     historyMenu: quickNoteForm.querySelector('#ai-note-history-menu'),
     sendWrapper: quickNoteForm.querySelector('#ai-smart-send-wrapper'),
     sendActionBtn: quickNoteForm.querySelector('#ai-send-action-btn'),
-    sendToggleBtn: quickNoteForm.querySelector('#ai-send-toggle-btn'),
+    sendDot: quickNoteForm.querySelector('#ai-send-dot'),
+    sendLabelEl: quickNoteForm.querySelector('#ai-send-label'),
+    sendMethodEl: quickNoteForm.querySelector('#ai-send-method'),
     wheelPopover: quickNoteForm.querySelector('#ai-wheel-popover'),
-    wheelPrev: quickNoteForm.querySelector('#ai-wheel-prev'),
-    wheelNext: quickNoteForm.querySelector('#ai-wheel-next'),
     wheelViewport: quickNoteForm.querySelector('#ai-wheel-viewport'),
     wheelList: quickNoteForm.querySelector('#ai-wheel-list'),
     todoMainTitle: todoPanel.querySelector('#ai-todo-main-title'),
@@ -2525,17 +2531,22 @@
   // So instead we copy the prompt to the clipboard and open the chat — this works with 100% of sites.
   // Fixed catalog of popular AIs for notepad dispatch (independent of core bookmark slots)
   const AI_DISPATCH_CATALOG = [
-    { id: 'chatgpt',    label: 'ChatGPT',    short: 'GPT',      url: 'https://chatgpt.com',              qParam: 'q' },
-    { id: 'claude',     label: 'Claude',     short: 'Claude',   url: 'https://claude.ai',                qParam: null },
-    { id: 'gemini',     label: 'Gemini',     short: 'Gemini',   url: 'https://gemini.google.com/app',    qParam: null },
-    { id: 'deepseek',   label: 'DeepSeek',   short: 'Seek',     url: 'https://chat.deepseek.com',        qParam: null },
-    { id: 'grok',       label: 'Grok',       short: 'Grok',     url: 'https://grok.com',                 qParam: 'q' },
-    { id: 'perplexity', label: 'Perplexity', short: 'Perplex',  url: 'https://www.perplexity.ai',        qParam: 'q' },
-    { id: 'copilot',    label: 'Copilot',    short: 'Copilot',  url: 'https://copilot.microsoft.com',    qParam: 'q' },
-    { id: 'mistral',    label: 'Mistral',    short: 'Mistral',  url: 'https://chat.mistral.ai',          qParam: null },
-    { id: 'qwen',       label: 'Qwen',       short: 'Qwen',     url: 'https://chat.qwen.ai',             qParam: null },
-    { id: 'pi',         label: 'Pi',         short: 'Pi',       url: 'https://pi.ai/talk',               qParam: null }
+    { id: 'chatgpt',    label: 'ChatGPT',    short: 'GPT',      url: 'https://chatgpt.com',              qParam: 'q',  color: '#10A37F' },
+    { id: 'claude',     label: 'Claude',     short: 'Claude',   url: 'https://claude.ai',                qParam: null, color: '#D97757' },
+    { id: 'gemini',     label: 'Gemini',     short: 'Gemini',   url: 'https://gemini.google.com/app',    qParam: null, color: '#4C8DF6' },
+    { id: 'deepseek',   label: 'DeepSeek',   short: 'Seek',     url: 'https://chat.deepseek.com',        qParam: null, color: '#5B7CFA' },
+    { id: 'grok',       label: 'Grok',       short: 'Grok',     url: 'https://grok.com',                 qParam: 'q',  color: '#B4B8C2' },
+    { id: 'perplexity', label: 'Perplexity', short: 'Perplex',  url: 'https://www.perplexity.ai',        qParam: 'q',  color: '#22B8CF' },
+    { id: 'copilot',    label: 'Copilot',    short: 'Copilot',  url: 'https://copilot.microsoft.com',    qParam: 'q',  color: '#3B9DF5' },
+    { id: 'mistral',    label: 'Mistral',    short: 'Mistral',  url: 'https://chat.mistral.ai',          qParam: null, color: '#FF7A2F' },
+    { id: 'qwen',       label: 'Qwen',       short: 'Qwen',     url: 'https://chat.qwen.ai',             qParam: null, color: '#9B6BF2' },
+    { id: 'pi',         label: 'Pi',         short: 'Pi',       url: 'https://pi.ai/talk',               qParam: null, color: '#FF8FAE' }
   ];
+  const AI_WHEEL_VISIBLE_ROWS = 5; // چند ردیف هم‌زمان دیده شود (با ۱۰ مدل، ۵ ردیف زمینهٔ بهتری می‌دهد)
+
+  // آیتم‌هایی که پارامتر q دارند مستقیماً پرشده باز می‌شوند؛ بقیه فقط با کپی/پیست
+  function aiMethodGlyph(node) { return node && node.qParam ? '⚡' : '📋'; }
+  function aiMethodLabel(node) { return (node && node.qParam) ? t('dockMethodAuto') : t('dockMethodCopy'); }
 
   let activeNoteAIIndex = 0; // index into AI_DISPATCH_CATALOG
 
@@ -2643,7 +2654,7 @@
     }
   }
 
-  const AI_WHEEL_ITEM_H = 26; // px — must match CSS .ai-wheel-item height
+  const AI_WHEEL_ITEM_H = 26; // px — باید با ارتفاع .ai-wheel-item در CSS یکی باشد
 
   function clampAiIndex(idx) {
     const n = AI_DISPATCH_CATALOG.length;
@@ -2651,12 +2662,21 @@
     return ((idx % n) + n) % n;
   }
 
+  let persistAiIndexTimer = null;
   function setActiveAiIndex(idx, persist) {
     activeNoteAIIndex = clampAiIndex(idx);
     if (persist !== false) {
-      try { if (chrome.runtime?.id) chrome.storage.local.set({ activeNoteAIIndex }); } catch (err) {}
+      clearTimeout(persistAiIndexTimer);
+      persistAiIndexTimer = setTimeout(() => {
+        try { if (chrome.runtime?.id) chrome.storage.local.set({ activeNoteAIIndex }); } catch (err) {}
+      }, 250);
     }
     renderSmartRibbon();
+  }
+  // انتخاب فعلی را فوراً (بدون تأخیر) ذخیره کن — پیش از ارسال یا وقتی چرخ بسته می‌شود
+  function commitActiveAiIndex() {
+    clearTimeout(persistAiIndexTimer);
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ activeNoteAIIndex }); } catch (err) {}
   }
 
   function isAiWheelOpen() {
@@ -2664,21 +2684,18 @@
   }
 
   function openAiWheel() {
-    if (!uiEls.wheelPopover || !uiEls.sendToggleBtn) return;
+    if (!uiEls.wheelPopover || !uiEls.sendActionBtn) return;
     uiEls.wheelPopover.classList.add('active');
-    uiEls.sendToggleBtn.classList.add('ribbon-open');
+    uiEls.sendActionBtn.classList.add('wheel-open');
     renderSmartRibbon();
   }
 
   function closeAiWheel() {
-    if (!uiEls.wheelPopover || !uiEls.sendToggleBtn) return;
+    if (!uiEls.wheelPopover || !uiEls.sendActionBtn) return;
     uiEls.wheelPopover.classList.remove('active');
-    uiEls.sendToggleBtn.classList.remove('ribbon-open');
-  }
-
-  function toggleAiWheel() {
-    if (isAiWheelOpen()) closeAiWheel();
-    else openAiWheel();
+    uiEls.sendActionBtn.classList.remove('wheel-open');
+    wheelScrubStartY = null;
+    commitActiveAiIndex();
   }
 
   function renderSmartRibbon() {
@@ -2691,7 +2708,7 @@
     const catalog = AI_DISPATCH_CATALOG;
     if (!catalog.length) {
       list.innerHTML = '';
-      actionBtn.textContent = t('dockNoCore');
+      uiEls.sendLabelEl.textContent = t('dockNoCore');
       actionBtn.disabled = true;
       wrapper.style.opacity = '0.5';
       return;
@@ -2701,58 +2718,89 @@
     activeNoteAIIndex = clampAiIndex(activeNoteAIIndex);
     const active = catalog[activeNoteAIIndex];
 
-    // Compact toolbar label — keeps Clear/Copy/TXT space intact
-    actionBtn.textContent = t('dockAskName').replace('{name}', active.short || active.label);
-    actionBtn.title = t('dockAskName').replace('{name}', active.label);
+    // دکمهٔ فشرده: نقطهٔ رنگی برند + نام + آیکن روش ارجاع (⚡ پرشونده خودکار / 📋 کپی-پیست)
+    if (uiEls.sendDot) uiEls.sendDot.style.background = active.color || '#fff';
+    if (uiEls.sendLabelEl) uiEls.sendLabelEl.textContent = t('dockAskName').replace('{name}', active.short || active.label);
+    if (uiEls.sendMethodEl) uiEls.sendMethodEl.textContent = aiMethodGlyph(active);
+    actionBtn.title = t('dockAskName').replace('{name}', active.label) + ' · ' + aiMethodLabel(active);
     wrapper.title = actionBtn.title;
 
     list.innerHTML = '';
+    const n = catalog.length;
     catalog.forEach((node, idx) => {
-      const dist = Math.min(
-        Math.abs(idx - activeNoteAIIndex),
-        catalog.length - Math.abs(idx - activeNoteAIIndex)
-      );
+      // کوتاه‌ترین فاصلهٔ دایره‌ای (با علامت) تا مرکز، برای چرخش سه‌بعدیِ ملایم
+      let raw = idx - activeNoteAIIndex;
+      if (raw > n / 2) raw -= n;
+      if (raw < -n / 2) raw += n;
+      const dist = Math.abs(raw);
+
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ai-wheel-item' + (idx === activeNoteAIIndex ? ' is-active' : '');
       btn.dataset.index = String(idx);
-      btn.textContent = node.short || node.label;
-      btn.title = node.label + (node.qParam ? ' · auto-fill' : '');
-      if (idx === activeNoteAIIndex) {
-        btn.style.opacity = '1';
-        btn.style.transform = 'scale(1.06)';
-        btn.style.filter = 'none';
-      } else if (dist === 1) {
-        btn.style.opacity = '0.42';
-        btn.style.transform = 'scale(0.92)';
-        btn.style.filter = 'blur(0.2px)';
-      } else {
-        btn.style.opacity = '0.18';
-        btn.style.transform = 'scale(0.86)';
-        btn.style.filter = 'blur(0.6px)';
-      }
+
+      const dot = document.createElement('span'); dot.className = 'ai-wheel-item-dot'; dot.style.background = node.color || '#fff';
+      const label = document.createElement('span'); label.className = 'ai-wheel-item-label'; label.textContent = node.short || node.label;
+      const method = document.createElement('span'); method.className = 'ai-wheel-item-method'; method.textContent = aiMethodGlyph(node);
+      btn.appendChild(dot); btn.appendChild(label); btn.appendChild(method);
+      btn.title = node.label + ' · ' + aiMethodLabel(node);
+
+      // ذره‌بین: مرکز واضح و کمی بزرگ، اطراف محو/کوچک/چرخیده (افکت استوانه‌ای شبیه پیکر iOS)
+      const scale = Math.max(0.74, 1 - dist * 0.1);
+      const opacity = idx === activeNoteAIIndex ? 1 : Math.max(0.14, 1 - dist * 0.34);
+      const blur = idx === activeNoteAIIndex ? 0 : Math.min(2.2, dist * 0.55);
+      const rotateX = Math.max(-42, Math.min(42, raw * 20));
+      btn.style.opacity = String(opacity);
+      btn.style.filter = blur ? `blur(${blur}px)` : 'none';
+      btn.style.transform = `perspective(360px) rotateX(${rotateX}deg) scale(${scale})`;
+
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         if (idx === activeNoteAIIndex) {
-          // Center item while open → send
           closeAiWheel();
           sendPromptToNode(node);
         } else {
           setActiveAiIndex(idx);
-          // Keep popover open so user can confirm / scroll more
         }
       });
       list.appendChild(btn);
     });
 
-    const offset = (activeNoteAIIndex * AI_WHEEL_ITEM_H) - AI_WHEEL_ITEM_H;
+    const centerRow = Math.floor(AI_WHEEL_VISIBLE_ROWS / 2);
+    const offset = (activeNoteAIIndex * AI_WHEEL_ITEM_H) - (centerRow * AI_WHEEL_ITEM_H);
     list.style.transform = `translateY(${-offset}px)`;
   }
 
-  // Main compact button → send to current AI
+  // --- باز/بسته شدن با هاور موس (بهینه برای کاربر ماوس) + پشتیبانی کلیک/کیبورد ---
+  let wheelOpenTimer = null, wheelCloseTimer = null;
+  function scheduleOpenWheel() { clearTimeout(wheelCloseTimer); wheelOpenTimer = setTimeout(openAiWheel, 150); }
+  function scheduleCloseWheel() { clearTimeout(wheelOpenTimer); wheelCloseTimer = setTimeout(closeAiWheel, 260); }
+
+  if (uiEls.sendWrapper) {
+    uiEls.sendWrapper.addEventListener('mouseenter', scheduleOpenWheel);
+    uiEls.sendWrapper.addEventListener('mouseleave', scheduleCloseWheel);
+    uiEls.sendWrapper.addEventListener('focusin', () => { clearTimeout(wheelCloseTimer); openAiWheel(); });
+    uiEls.sendWrapper.addEventListener('focusout', (e) => {
+      if (uiEls.sendWrapper.contains(e.relatedTarget)) return;
+      closeAiWheel();
+    });
+    uiEls.sendWrapper.addEventListener('keydown', (e) => {
+      if (!isAiWheelOpen()) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAiWheel(); } return; }
+      if (e.key === 'ArrowUp') { e.preventDefault(); setActiveAiIndex(activeNoteAIIndex - 1); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); setActiveAiIndex(activeNoteAIIndex + 1); }
+      else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const node = AI_DISPATCH_CATALOG[clampAiIndex(activeNoteAIIndex)];
+        if (node && node.url) { closeAiWheel(); sendPromptToNode(node); }
+      } else if (e.key === 'Escape') { e.preventDefault(); closeAiWheel(); }
+    });
+  }
+
+  // کلیک روی دکمهٔ فشرده: اگر چرخ بسته است بازش کن (لمسی/بدون‌ماوس)، اگر باز است یعنی مرکز را می‌فرستد
   if (uiEls.sendActionBtn) {
     uiEls.sendActionBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (!isAiWheelOpen()) { openAiWheel(); return; }
       const node = AI_DISPATCH_CATALOG[clampAiIndex(activeNoteAIIndex)];
       if (!node || !node.url) return;
       closeAiWheel();
@@ -2760,29 +2808,7 @@
     });
   }
 
-  // Chevron → open/close vertical picker popover
-  if (uiEls.sendToggleBtn) {
-    uiEls.sendToggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleAiWheel();
-    });
-  }
-
-  // Wheel navigation
-  if (uiEls.wheelPrev) {
-    uiEls.wheelPrev.addEventListener('click', (e) => {
-      e.stopPropagation();
-      setActiveAiIndex(activeNoteAIIndex - 1);
-    });
-  }
-  if (uiEls.wheelNext) {
-    uiEls.wheelNext.addEventListener('click', (e) => {
-      e.stopPropagation();
-      setActiveAiIndex(activeNoteAIIndex + 1);
-    });
-  }
-
-  // Scroll over viewport cycles
+  // اسکرول روی چرخ = یک پلهٔ گسسته (دقیق‌تر از دنبال‌کردن مختصات پیوسته)
   if (uiEls.wheelViewport) {
     let wheelLock = false;
     uiEls.wheelViewport.addEventListener('wheel', (e) => {
@@ -2795,7 +2821,27 @@
     }, { passive: false });
   }
 
-  // Click outside closes picker
+  // حرکت عمودی موس روی چرخ = اسکراب نسبی (نه مختصات مطلق) تا لرزون نباشد؛
+  // هر AI_WHEEL_ITEM_H پیکسل جابه‌جایی از نقطهٔ شروعِ هاور = یک مدل
+  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
+  if (uiEls.wheelViewport) {
+    uiEls.wheelViewport.addEventListener('mousemove', (e) => {
+      if (wheelScrubStartY === null) { wheelScrubStartY = e.clientY; wheelScrubStartIndex = activeNoteAIIndex; }
+      wheelScrubLatestY = e.clientY;
+      if (wheelScrubRaf) return;
+      wheelScrubRaf = requestAnimationFrame(() => {
+        wheelScrubRaf = null;
+        if (wheelScrubStartY === null) return;
+        const deltaY = wheelScrubLatestY - wheelScrubStartY;
+        const steps = Math.round(deltaY / AI_WHEEL_ITEM_H);
+        const target = wheelScrubStartIndex + steps;
+        if (clampAiIndex(target) !== activeNoteAIIndex) setActiveAiIndex(target, false);
+      });
+    });
+    uiEls.wheelViewport.addEventListener('mouseleave', () => { wheelScrubStartY = null; });
+  }
+
+  // کلیک بیرون از ویجت، چرخ را می‌بندد
   document.addEventListener('click', (e) => {
     if (!isAiWheelOpen()) return;
     const wrap = uiEls.sendWrapper;
