@@ -1696,7 +1696,7 @@
 
   function adjustSearchPosition() {
       if (!searchPanel.classList.contains('active')) return;
-      const rect = hub.getBoundingClientRect(); const panelWidth = 280; const panelHeight = searchPanel.offsetHeight || 260; const vw = window.innerWidth; const vh = window.innerHeight;
+      const rect = hub.getBoundingClientRect(); const panelWidth = 400; const panelHeight = searchPanel.offsetHeight || 260; const vw = window.innerWidth; const vh = window.innerHeight;
       const hubCenterX = rect.left + rect.width / 2; const hubCenterY = rect.top + rect.height / 2;
       let leftPos = hubCenterX + 55; if (leftPos + panelWidth > vw - 16) leftPos = hubCenterX - panelWidth - 55;
       let topPos = hubCenterY - (panelHeight / 2); if (topPos + panelHeight > vh - 16) topPos = vh - panelHeight - 16; if (topPos < 16) topPos = 16;
