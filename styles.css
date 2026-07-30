@@ -776,22 +776,35 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 #ai-search-results:empty { display: none; }
 #ai-search-results::-webkit-scrollbar { width: 4px; }
 #ai-search-results::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-.ai-search-result { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.06); padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background 0.2s var(--ease-premium); border: 1px solid transparent; }
+.ai-search-result { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background 0.2s var(--ease-premium); border: 1px solid transparent; }
 .ai-search-result:hover { background: rgba(0, 180, 255, 0.14); border-color: rgba(0, 180, 255, 0.3); }
+.ai-search-result-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .ai-search-result-favicon { width: 16px; height: 16px; border-radius: 4px; object-fit: contain; flex-shrink: 0; }
 .ai-search-result-label { flex: 1; min-width: 0; font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ai-search-result-meta {
+.ai-search-result-badges { flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
+.ai-search-result-galaxy,
+.ai-search-result-stars {
   flex-shrink: 0;
   font-size: 10px;
   font-weight: 700;
-  color: #facc15;
-  background: rgba(250, 204, 21, 0.12);
-  border: 1px solid rgba(250, 204, 21, 0.25);
   border-radius: 6px;
   padding: 2px 6px;
   white-space: nowrap;
   letter-spacing: 0.2px;
 }
+.ai-search-result-galaxy { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); }
+.ai-search-result-stars { color: #facc15; background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.25); }
+.ai-search-result-actions { flex-shrink: 0; display: flex; align-items: center; gap: 4px; opacity: 0; transform: translateX(4px); transition: all 0.2s var(--ease-premium); }
+.ai-search-result:hover .ai-search-result-actions { opacity: 1; transform: translateX(0); }
+.ai-search-action-btn {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--matte-bg); border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff; font-size: 10px; line-height: 1; cursor: pointer; padding: 0;
+  transition: all 0.2s var(--ease-premium);
+}
+.ai-search-action-edit:hover { background: rgba(56, 189, 248, 0.85); border-color: #38bdf8; box-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+.ai-search-action-delete:hover { background: rgba(239, 68, 68, 0.85); border-color: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
 .ai-search-empty { text-align: center; padding: 14px 4px; font-size: 12px; color: rgba(255,255,255,0.45); }
 
 /* Calculator Panel */
@@ -1453,4 +1466,493 @@ body.rtl .ai-note-history-menu,
 }
 #ai-note-text {
   unicode-bidi: isolate;
+}
+
+/* ==========================================================================
+   AI Tree Launcher — APPLE STYLE REDESIGN (Notepad & Send)
+   Focus: Glassmorphism, Premium Shadows, Zoom Micro-interactions
+   Scoped so other panels keep their existing look.
+   ========================================================================== */
+
+:root {
+  --apple-glass-bg: rgba(20, 20, 25, 0.45);
+  --apple-glass-blur: blur(25px) saturate(160%);
+  --apple-radius: 20px;
+  --apple-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.4),
+    0 5px 15px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+  --ease-apple: cubic-bezier(0.15, 0.85, 0.35, 1);
+  --ease-in-out-apple: cubic-bezier(0.45, 0, 0.55, 1);
+}
+
+/* --- Notepad container: deeper glass + softer entry zoom --- */
+#ai-quick-note-form {
+  background: var(--apple-glass-bg) !important;
+  backdrop-filter: var(--apple-glass-blur) !important;
+  -webkit-backdrop-filter: var(--apple-glass-blur) !important;
+  border-radius: var(--apple-radius) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: var(--apple-shadow), 0 0 28px rgba(16, 185, 129, 0.12) !important;
+  transition:
+    opacity 0.35s var(--ease-apple),
+    transform 0.4s var(--ease-apple),
+    width 0.3s var(--ease-in-out-apple),
+    height 0.3s var(--ease-in-out-apple) !important;
+  transform: scale(0.85) translateY(20px);
+}
+
+#ai-quick-note-form.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+#ai-quick-note-form.is-pinned {
+  border-color: rgba(52, 211, 153, 0.45) !important;
+  box-shadow: var(--apple-shadow), 0 0 32px rgba(52, 211, 153, 0.18) !important;
+}
+
+/* Dispatch zoom-out when sending prompt to an AI tab */
+#ai-quick-note-form.dispatching {
+  pointer-events: none;
+  animation: appleDispatchZoom 0.6s var(--ease-apple) forwards;
+}
+
+@keyframes appleDispatchZoom {
+  0% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  30% {
+    transform: scale(0.96) translateY(5px);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  100% {
+    transform: scale(1.15) translateY(-50px);
+    opacity: 0;
+    filter: blur(5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ai-quick-note-form.dispatching {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Resize grips: subtle until hover */
+#ai-quick-note-form .ai-note-resize-handle {
+  opacity: 0;
+  transition: opacity 0.2s var(--ease-apple);
+}
+#ai-quick-note-form:hover .ai-note-resize-handle {
+  opacity: 0.5;
+}
+
+/* Format bar: soft matte chip tray */
+#ai-quick-note-form .ai-note-format-bar {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Toolbar gap */
+#ai-quick-note-form .ai-note-toolbar {
+  gap: 8px;
+}
+
+/* Clear / Copy / TXT — glass matte + scale micro-interactions */
+#ai-quick-note-form .ai-toolbar-btn {
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-weight: 600 !important;
+  transition:
+    background 0.2s var(--ease-apple),
+    transform 0.2s var(--ease-apple),
+    box-shadow 0.2s var(--ease-apple),
+    color 0.2s var(--ease-apple) !important;
+}
+
+#ai-quick-note-form .ai-toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  transform: scale(1.04);
+  color: #fff !important;
+  filter: none;
+}
+
+#ai-quick-note-form .ai-toolbar-btn:active {
+  transform: scale(0.97);
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Smart send split button — deeper glass, soft hover zoom */
+#ai-quick-note-form .ai-smart-send-wrapper {
+  background: rgba(0, 0, 0, 0.32) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.22) !important;
+  transition:
+    transform 0.2s var(--ease-apple),
+    box-shadow 0.2s var(--ease-apple),
+    border-color 0.2s var(--ease-apple) !important;
+}
+
+#ai-quick-note-form .ai-smart-send-wrapper:hover {
+  transform: scale(1.02);
+  border-color: rgba(16, 185, 129, 0.32) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.28), inset 0 0 0 1px rgba(0, 0, 0, 0.15) !important;
+}
+
+#ai-quick-note-form .ai-send-action-btn {
+  border-radius: 12px 0 0 12px !important;
+  background: transparent !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.2px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  transition: background 0.2s var(--ease-apple) !important;
+}
+
+#ai-quick-note-form .ai-send-action-btn:hover {
+  background: rgba(16, 185, 129, 0.16) !important;
+}
+
+#ai-quick-note-form .ai-send-action-btn:active {
+  background: rgba(16, 185, 129, 0.22) !important;
+}
+
+#ai-quick-note-form .ai-send-toggle-btn {
+  border-radius: 0 12px 12px 0 !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  transition: background 0.2s var(--ease-apple), color 0.2s var(--ease-apple), transform 0.2s var(--ease-apple) !important;
+}
+
+#ai-quick-note-form .ai-send-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
+}
+
+#ai-quick-note-form .ai-send-toggle-btn.ribbon-open {
+  background: rgba(168, 85, 247, 0.16) !important;
+  color: #c084fc !important;
+  transform: rotate(180deg);
+}
+
+/* AI target ribbon popover */
+#ai-quick-note-form .ai-send-ribbon {
+  background: rgba(25, 25, 30, 0.78) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+  border-radius: var(--apple-radius) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+  padding: 8px !important;
+  gap: 4px !important;
+  transform: translateY(10px) scale(0.95);
+  transform-origin: bottom right;
+  transition:
+    opacity 0.2s var(--ease-apple),
+    transform 0.3s var(--ease-apple) !important;
+}
+
+#ai-quick-note-form .ai-send-ribbon.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+#ai-quick-note-form .ai-ribbon-item {
+  border-radius: 10px !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-weight: 600 !important;
+  transition: background 0.15s var(--ease-apple), color 0.15s var(--ease-apple), transform 0.15s var(--ease-apple) !important;
+}
+
+#ai-quick-note-form .ai-ribbon-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  transform: translateX(-3px);
+}
+
+body.rtl #ai-quick-note-form .ai-ribbon-item:hover,
+.orbit-root[style*="direction: rtl"] #ai-quick-note-form .ai-ribbon-item:hover {
+  transform: translateX(3px);
+}
+
+/* Template chips slightly softer glass */
+#ai-quick-note-form .ai-note-tpl-chip {
+  border-radius: 999px;
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  background: rgba(16, 185, 129, 0.08);
+  transition: background 0.15s var(--ease-apple), border-color 0.15s var(--ease-apple), transform 0.12s var(--ease-apple);
+}
+#ai-quick-note-form .ai-note-tpl-chip:hover {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(52, 211, 153, 0.5);
+  transform: translateY(-1px) scale(1.02);
+}
+#ai-quick-note-form .ai-note-tpl-chip:active {
+  transform: scale(0.96);
+}
+
+
+
+/* ==========================================================================
+   AI Dispatch — compact toolbar button + vertical wheel POPOVER
+   Toolbar stays normal height; picker floats above only when opened.
+   ========================================================================== */
+
+#ai-quick-note-form .ai-smart-send-wrapper {
+  flex: 3;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 32px !important;
+  height: auto !important;
+  background: rgba(0, 0, 0, 0.32) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2) !important;
+  padding: 0 !important;
+  overflow: visible !important; /* allow popover to escape */
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+  transform: none !important;
+}
+
+#ai-quick-note-form .ai-smart-send-wrapper:hover {
+  border-color: rgba(16, 185, 129, 0.28) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(0, 0, 0, 0.15) !important;
+  transform: none !important;
+}
+
+/* Primary send label — same footprint as original */
+#ai-quick-note-form .ai-send-action-btn {
+  display: flex !important;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  color: #fff !important;
+  border: none !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 10px 0 0 10px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 6px 8px !important;
+  transition: background 0.15s !important;
+  font-family: inherit;
+}
+
+#ai-quick-note-form .ai-send-action-btn:hover {
+  background: rgba(16, 185, 129, 0.16) !important;
+}
+
+#ai-quick-note-form .ai-send-action-btn:active {
+  background: rgba(16, 185, 129, 0.24) !important;
+}
+
+/* Chevron opens the picker */
+#ai-quick-note-form .ai-send-toggle-btn {
+  display: flex !important;
+  width: 28px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  border: none !important;
+  border-radius: 0 10px 10px 0 !important;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, transform 0.2s !important;
+  font-family: inherit;
+  padding: 0;
+}
+
+#ai-quick-note-form .ai-send-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #fff !important;
+}
+
+#ai-quick-note-form .ai-send-toggle-btn.ribbon-open {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #6ee7b7 !important;
+  transform: rotate(180deg);
+}
+
+/* Floating vertical wheel — only visible when .active */
+.ai-wheel-popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  min-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 4px 0;
+  border-radius: 14px;
+  background: rgba(18, 20, 28, 0.92);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 0 20px rgba(16, 185, 129, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px) scale(0.96);
+  transform-origin: bottom center;
+  transition:
+    opacity 0.2s cubic-bezier(0.15, 0.85, 0.35, 1),
+    transform 0.28s cubic-bezier(0.15, 0.85, 0.35, 1);
+  z-index: 80;
+  overflow: hidden;
+}
+
+.ai-wheel-popover.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.ai-wheel-nav {
+  flex-shrink: 0;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.4);
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.15s, background 0.15s;
+  font-family: inherit;
+}
+
+.ai-wheel-nav:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ai-wheel-nav:active {
+  color: #34D399;
+}
+
+.ai-wheel-viewport {
+  position: relative;
+  height: 78px; /* 3 × 26 */
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 16%,
+    #000 84%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 16%,
+    #000 84%,
+    transparent 100%
+  );
+}
+
+.ai-wheel-viewport::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 50%;
+  height: 26px;
+  margin-top: -13px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(52, 211, 153, 0.3);
+  pointer-events: none;
+  z-index: 0;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.12);
+}
+
+.ai-wheel-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+  transition: transform 0.28s cubic-bezier(0.15, 0.85, 0.35, 1);
+}
+
+.ai-wheel-item {
+  height: 26px;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: rgba(226, 232, 240, 0.85);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    opacity 0.2s cubic-bezier(0.15, 0.85, 0.35, 1),
+    transform 0.2s cubic-bezier(0.15, 0.85, 0.35, 1),
+    color 0.15s,
+    filter 0.2s;
+}
+
+.ai-wheel-item.is-active {
+  color: #ecfdf5;
+  font-weight: 800;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.45);
+}
+
+.ai-wheel-item:not(.is-active):hover {
+  color: #fff;
+}
+
+/* Legacy ribbon fully hidden */
+#ai-quick-note-form .ai-send-ribbon {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-wheel-popover,
+  .ai-wheel-list,
+  .ai-wheel-item {
+    transition: none;
+  }
 }

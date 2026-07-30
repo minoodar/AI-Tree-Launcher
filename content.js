@@ -35,6 +35,8 @@
       searchNoResults: "No matching bookmarks",
       searchMetaHubStars: "G{hub} · {stars}",
       searchMetaHubOnly: "G{hub}",
+      searchEditBtn: "Edit bookmark",
+      searchDeleteBtn: "Delete bookmark",
       noteTitle: "Notepad & AI",
       allTitle: "Show All Bookmarks",
       collapseTitle: "Collapse Menu",
@@ -139,6 +141,8 @@
       searchNoResults: "بوک‌مارکی یافت نشد",
       searchMetaHubStars: "کهکشان {hub} · {stars}",
       searchMetaHubOnly: "کهکشان {hub}",
+      searchEditBtn: "ویرایش بوک‌مارک",
+      searchDeleteBtn: "حذف بوک‌مارک",
       noteTitle: "یادداشت و هوش مصنوعی",
       allTitle: "نمایش تمام بوک‌مارک‌ها",
       collapseTitle: "بستن منو",
@@ -350,6 +354,13 @@
     { bg: "rgba(79, 70, 229, 0.75)",  border: "rgba(99, 102, 241, 0.5)", glow: "rgba(99, 102, 241, 0.2)" },  
     { bg: "rgba(153, 27, 27, 0.75)",  border: "rgba(239, 68, 68, 0.5)",  glow: "rgba(239, 68, 68, 0.2)" }
   ];
+  // همان منطقِ رنگ‌دهیِ نودهای اسپیرال، برای استفاده در نتایج جستجو (تا رنگ‌ها همیشه هم‌خوان بمانند)
+  function colorSetForBookmark(link, idxInHub) {
+    if (idxInHub < 4) return CORE_COLORS[idxInHub] || EXTRA_COLORS[0];
+    const importance = (link && link.importance) || 3;
+    const nodeLayer = Math.max(0, importance - 1);
+    return EXTRA_COLORS[nodeLayer % EXTRA_COLORS.length];
+  }
 
   const root = document.createElement('div'); root.id = 'ai-orbit-root';
   const hub = document.createElement('div'); hub.id = 'ai-orbit-hub'; hub.innerHTML = mainAIIcon();
@@ -434,8 +445,14 @@
       <button id="ai-save-txt-btn" class="ai-toolbar-btn" style="background: rgba(255, 255, 255, 0.1); color: #fff;"></button>
       <div id="ai-smart-send-wrapper" class="ai-smart-send-wrapper">
         <button type="button" id="ai-send-action-btn" class="ai-send-action-btn"></button>
-        <button type="button" id="ai-send-toggle-btn" class="ai-send-toggle-btn">⌃</button>
-        <div id="ai-send-ribbon" class="ai-send-ribbon"></div>
+        <button type="button" id="ai-send-toggle-btn" class="ai-send-toggle-btn" aria-label="Choose AI">⌃</button>
+        <div class="ai-wheel-popover" id="ai-wheel-popover">
+          <button type="button" class="ai-wheel-nav" id="ai-wheel-prev" aria-label="Previous AI">▴</button>
+          <div class="ai-wheel-viewport" id="ai-wheel-viewport">
+            <div class="ai-wheel-list" id="ai-wheel-list"></div>
+          </div>
+          <button type="button" class="ai-wheel-nav" id="ai-wheel-next" aria-label="Next AI">▾</button>
+        </div>
       </div>
     </div>
     <div class="ai-note-resize-handle ai-note-resize-bl" id="ai-note-resize-bl" title="Resize"></div>
@@ -581,7 +598,11 @@
     sendWrapper: quickNoteForm.querySelector('#ai-smart-send-wrapper'),
     sendActionBtn: quickNoteForm.querySelector('#ai-send-action-btn'),
     sendToggleBtn: quickNoteForm.querySelector('#ai-send-toggle-btn'),
-    sendRibbon: quickNoteForm.querySelector('#ai-send-ribbon'),
+    wheelPopover: quickNoteForm.querySelector('#ai-wheel-popover'),
+    wheelPrev: quickNoteForm.querySelector('#ai-wheel-prev'),
+    wheelNext: quickNoteForm.querySelector('#ai-wheel-next'),
+    wheelViewport: quickNoteForm.querySelector('#ai-wheel-viewport'),
+    wheelList: quickNoteForm.querySelector('#ai-wheel-list'),
     todoMainTitle: todoPanel.querySelector('#ai-todo-main-title'),
     todoInput: todoPanel.querySelector('#ai-todo-input'),
     todoAddBtn: todoPanel.querySelector('#ai-todo-add-btn'),
@@ -1565,7 +1586,7 @@
   function allBookmarksFlat() {
     const out = [];
     [linksData, linksData2, linksData3].forEach((arr, hubIdx) => {
-      for (let i = 0; i < arr.length; i++) { if (arr[i] && arr[i].url) out.push({ link: arr[i], hub: hubIdx + 1 }); }
+      for (let i = 0; i < arr.length; i++) { if (arr[i] && arr[i].url) out.push({ link: arr[i], hub: hubIdx + 1, idx: i }); }
     });
     return out;
   }
@@ -1592,7 +1613,7 @@
     if (!query) { adjustSearchPosition(); return; }
 
     const matches = allBookmarksFlat()
-      .map(({ link, hub }) => ({ link, hub, score: fuzzyScore(link.label, query) }))
+      .map(({ link, hub, idx }) => ({ link, hub, idx, score: fuzzyScore(link.label, query) }))
       .filter(x => x.score > -1)
       .sort((a, b) => b.score - a.score)
       .slice(0, 30);
@@ -1601,17 +1622,45 @@
       const empty = document.createElement('li'); empty.className = 'ai-search-empty'; empty.textContent = t('searchNoResults');
       list.appendChild(empty);
     } else {
-      matches.forEach(({ link, hub }) => {
+      matches.forEach(({ link, hub, idx }) => {
         const li = document.createElement('li'); li.className = 'ai-search-result';
+
+        // رنگ همان تیرِ بوک‌مارک در چرخ - همیشه محاسبه می‌شود، هرگز خالی نمی‌ماند
+        const colorDot = document.createElement('span'); colorDot.className = 'ai-search-result-color';
+        const colorSet = colorSetForBookmark(link, idx);
+        colorDot.style.background = colorSet.border; colorDot.style.boxShadow = `0 0 5px ${colorSet.glow}`;
+
         const fav = document.createElement('img'); fav.className = 'ai-search-result-favicon'; fav.src = getFaviconUrl(link.url);
         fav.addEventListener('error', () => fav.style.display = 'none');
         const span = document.createElement('span'); span.className = 'ai-search-result-label'; span.textContent = link.label;
-        const meta = document.createElement('span'); meta.className = 'ai-search-result-meta';
+
+        // بج کهکشان همیشه و جدا از بج ستاره نشان داده می‌شود تا هیچ‌وقت گم نشود
+        const badges = document.createElement('span'); badges.className = 'ai-search-result-badges';
         const hubStr = currentLang === 'fa' ? toPersianDigits(hub) : String(hub);
-        meta.textContent = (link.importance == null)
-          ? t('searchMetaHubOnly').replace('{hub}', hubStr)
-          : t('searchMetaHubStars').replace('{hub}', hubStr).replace('{stars}', '★'.repeat(Math.max(1, Math.min(5, link.importance))));
-        li.appendChild(fav); li.appendChild(span); li.appendChild(meta);
+        const galaxyBadge = document.createElement('span'); galaxyBadge.className = 'ai-search-result-galaxy';
+        galaxyBadge.textContent = t('searchMetaHubOnly').replace('{hub}', hubStr);
+        badges.appendChild(galaxyBadge);
+        if (link.importance != null) {
+          const starBadge = document.createElement('span'); starBadge.className = 'ai-search-result-stars';
+          starBadge.textContent = '★'.repeat(Math.max(1, Math.min(5, link.importance)));
+          badges.appendChild(starBadge);
+        }
+
+        li.appendChild(colorDot); li.appendChild(fav); li.appendChild(span); li.appendChild(badges);
+
+        // ویرایش/حذف فقط برای بوک‌مارک‌های واقعی (نه ۴ اسلوت ثابت هوش مصنوعی)
+        if (idx >= 4) {
+          const actions = document.createElement('span'); actions.className = 'ai-search-result-actions';
+          const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'ai-search-action-btn ai-search-action-edit';
+          editBtn.title = t('searchEditBtn'); editBtn.setAttribute('aria-label', t('searchEditBtn')); editBtn.textContent = '✎';
+          editBtn.addEventListener('click', (e) => { e.stopPropagation(); editBookmarkFromSearch(link, hub, idx); });
+          const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-search-action-btn ai-search-action-delete';
+          delBtn.title = t('searchDeleteBtn'); delBtn.setAttribute('aria-label', t('searchDeleteBtn')); delBtn.textContent = '✕';
+          delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteBookmarkFromSearch(link, hub); });
+          actions.appendChild(editBtn); actions.appendChild(delBtn);
+          li.appendChild(actions);
+        }
+
         li.addEventListener('click', (e) => {
           e.stopPropagation();
           window.open(link.url, '_blank', 'noopener,noreferrer');
@@ -1621,6 +1670,28 @@
       });
     }
     adjustSearchPosition();
+  }
+
+  // باز کردن فرم ویرایش برای نتیجه‌ی جستجو: ابتدا به کهکشانِ واقعیِ بوک‌مارک سوییچ می‌کنیم
+  // (باگ قبلی همین بود؛ فرم همیشه از روی کهکشانِ در حالِ نمایش می‌خواند، نه کهکشانِ واقعیِ آیتم)
+  function editBookmarkFromSearch(link, hubIdx, idxInHub) {
+    closeAllPanelsExcept('');
+    if (currentHubIndex !== hubIdx) switchHub(hubIdx);
+    openEditForm(idxInHub, null);
+  }
+
+  // حذف مستقیم از نتایج جستجو، با همان الگوی Undo موجود در برنامه
+  function deleteBookmarkFromSearch(link, hubIdx) {
+    const arr = hubData(hubIdx);
+    const pos = arr.indexOf(link);
+    if (pos === -1) return;
+    const deletedItem = arr.splice(pos, 1)[0]; deletedItem._hub = hubIdx;
+    saveLinksAll();
+    if (currentHubIndex === hubIdx) renderSpiral();
+    if (typeof renderTierDots === 'function') renderTierDots();
+    showToastNotification(t('toastDeleted'), true);
+    setUndoState('bookmark', deletedItem, hubIdx);
+    renderSearchResults(uiEls.searchInput.value);
   }
 
   function adjustSearchPosition() {
@@ -2452,32 +2523,54 @@
   // Note: most AI chat sites do NOT reliably support prefilling via a "?q=" URL parameter
   // (only ChatGPT documents it; Claude/Gemini/DeepSeek ignore it or have removed it).
   // So instead we copy the prompt to the clipboard and open the chat — this works with 100% of sites.
-  let activeNoteAIIndex = 0;
+  // Fixed catalog of popular AIs for notepad dispatch (independent of core bookmark slots)
+  const AI_DISPATCH_CATALOG = [
+    { id: 'chatgpt',    label: 'ChatGPT',    short: 'GPT',      url: 'https://chatgpt.com',              qParam: 'q' },
+    { id: 'claude',     label: 'Claude',     short: 'Claude',   url: 'https://claude.ai',                qParam: null },
+    { id: 'gemini',     label: 'Gemini',     short: 'Gemini',   url: 'https://gemini.google.com/app',    qParam: null },
+    { id: 'deepseek',   label: 'DeepSeek',   short: 'Seek',     url: 'https://chat.deepseek.com',        qParam: null },
+    { id: 'grok',       label: 'Grok',       short: 'Grok',     url: 'https://grok.com',                 qParam: 'q' },
+    { id: 'perplexity', label: 'Perplexity', short: 'Perplex',  url: 'https://www.perplexity.ai',        qParam: 'q' },
+    { id: 'copilot',    label: 'Copilot',    short: 'Copilot',  url: 'https://copilot.microsoft.com',    qParam: 'q' },
+    { id: 'mistral',    label: 'Mistral',    short: 'Mistral',  url: 'https://chat.mistral.ai',          qParam: null },
+    { id: 'qwen',       label: 'Qwen',       short: 'Qwen',     url: 'https://chat.qwen.ai',             qParam: null },
+    { id: 'pi',         label: 'Pi',         short: 'Pi',       url: 'https://pi.ai/talk',               qParam: null }
+  ];
+
+  let activeNoteAIIndex = 0; // index into AI_DISPATCH_CATALOG
 
   function shortenAiLabel(label) {
     const lower = (label || '').toLowerCase();
     if (lower.includes('chatgpt')) return 'GPT';
     if (lower.includes('deepseek')) return 'Seek';
+    if (lower.includes('perplexity')) return 'Perplex';
     if (label.length > 9) return label.slice(0, 8) + '…';
     return label;
   }
 
   /**
    * Builds a platform-optimized target URL.
-   * ChatGPT / OpenAI → injects ?q=<prompt> for official auto-fill.
-   * Claude / Gemini / DeepSeek / others → clean base URL (clipboard paste).
+   * Injects ?q= (or catalog qParam) when the host supports prompt auto-fill.
    */
-  function buildAiDispatchUrl(baseUrl, promptText) {
+  function buildAiDispatchUrl(baseUrl, promptText, qParam) {
     if (!baseUrl || !promptText) return baseUrl || '';
     try {
       const parsedUrl = new URL(baseUrl);
       const hostname = parsedUrl.hostname.toLowerCase();
-      const isChatGPT =
-        hostname.includes('chatgpt.com') ||
-        hostname.includes('openai.com') ||
-        hostname.includes('chat.openai.com');
-      if (isChatGPT) {
-        parsedUrl.searchParams.set('q', promptText.trim());
+      let param = qParam;
+      if (param === undefined) {
+        const isQHost =
+          hostname.includes('chatgpt.com') ||
+          hostname.includes('openai.com') ||
+          hostname.includes('chat.openai.com') ||
+          hostname.includes('perplexity.ai') ||
+          hostname.includes('copilot.microsoft.com') ||
+          hostname.includes('grok.com') ||
+          hostname.includes('x.ai');
+        param = isQHost ? 'q' : null;
+      }
+      if (param) {
+        parsedUrl.searchParams.set(param, promptText.trim());
         return parsedUrl.toString();
       }
       return baseUrl;
@@ -2506,9 +2599,9 @@
   /**
    * Hybrid dispatch:
    * 1. Always copy prompt to clipboard (universal safety net).
-   * 2. ChatGPT → open URL with ?q= for zero-click auto-fill + clipboard fallback.
+   * 2. Hosts with qParam → open URL with ?q= for auto-fill + clipboard fallback.
    * 3. Others → open base site; user pastes with Ctrl/Cmd+V.
-   * 4. Toast shown BEFORE new tab steals focus.
+   * 4. Apple-style zoom-out on notepad, then open tab.
    */
   function sendPromptToNode(node) {
     const promptText = (noteTextarea && noteTextarea.value) ? noteTextarea.value.trim() : '';
@@ -2519,18 +2612,21 @@
 
     if (typeof pushPromptHistory === 'function') pushPromptHistory(promptText);
 
-    const targetUrl = buildAiDispatchUrl(node.url, promptText);
+    const targetUrl = buildAiDispatchUrl(node.url, promptText, node.qParam);
 
     const openTab = () => {
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     };
 
     const notifyThenOpen = () => {
-      // Toast first — window.open() immediately moves focus to the new tab
       showToastNotification(t('dockCopiedOpen').replace('{name}', node.label));
-      closeTree();
-      closeAllPanelsExcept('');
-      setTimeout(openTab, 800);
+      quickNoteForm.classList.add('dispatching');
+      setTimeout(() => {
+        openTab();
+        closeTree();
+        closeAllPanelsExcept('');
+        quickNoteForm.classList.remove('dispatching');
+      }, 600);
     };
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2547,68 +2643,164 @@
     }
   }
 
+  const AI_WHEEL_ITEM_H = 26; // px — must match CSS .ai-wheel-item height
+
+  function clampAiIndex(idx) {
+    const n = AI_DISPATCH_CATALOG.length;
+    if (n === 0) return 0;
+    return ((idx % n) + n) % n;
+  }
+
+  function setActiveAiIndex(idx, persist) {
+    activeNoteAIIndex = clampAiIndex(idx);
+    if (persist !== false) {
+      try { if (chrome.runtime?.id) chrome.storage.local.set({ activeNoteAIIndex }); } catch (err) {}
+    }
+    renderSmartRibbon();
+  }
+
+  function isAiWheelOpen() {
+    return !!(uiEls.wheelPopover && uiEls.wheelPopover.classList.contains('active'));
+  }
+
+  function openAiWheel() {
+    if (!uiEls.wheelPopover || !uiEls.sendToggleBtn) return;
+    uiEls.wheelPopover.classList.add('active');
+    uiEls.sendToggleBtn.classList.add('ribbon-open');
+    renderSmartRibbon();
+  }
+
+  function closeAiWheel() {
+    if (!uiEls.wheelPopover || !uiEls.sendToggleBtn) return;
+    uiEls.wheelPopover.classList.remove('active');
+    uiEls.sendToggleBtn.classList.remove('ribbon-open');
+  }
+
+  function toggleAiWheel() {
+    if (isAiWheelOpen()) closeAiWheel();
+    else openAiWheel();
+  }
+
   function renderSmartRibbon() {
-    const ribbon = uiEls.sendRibbon; const actionBtn = uiEls.sendActionBtn;
-    const toggleBtn = uiEls.sendToggleBtn; const wrapper = uiEls.sendWrapper;
-    if (!ribbon || !actionBtn || !toggleBtn || !wrapper) return;
+    const list = uiEls.wheelList;
+    const viewport = uiEls.wheelViewport;
+    const wrapper = uiEls.sendWrapper;
+    const actionBtn = uiEls.sendActionBtn;
+    if (!list || !viewport || !wrapper || !actionBtn) return;
 
-    const coreNodes = linksData.slice(0, 4);
-    const validIdxs = coreNodes.map((n, i) => (n && n.url) ? i : -1).filter(i => i !== -1);
-
-    if (validIdxs.length === 0) {
-      // All 4 core slots are empty (e.g. user reset them) — show a disabled placeholder, never crash.
-      actionBtn.textContent = t('dockNoCore'); actionBtn.title = '';
-      actionBtn.disabled = true; wrapper.style.opacity = '0.5'; wrapper.style.background = '';
-      wrapper.style.borderColor = ''; ribbon.innerHTML = ''; ribbon.classList.remove('active');
-      toggleBtn.style.display = 'none'; toggleBtn.classList.remove('ribbon-open');
+    const catalog = AI_DISPATCH_CATALOG;
+    if (!catalog.length) {
+      list.innerHTML = '';
+      actionBtn.textContent = t('dockNoCore');
+      actionBtn.disabled = true;
+      wrapper.style.opacity = '0.5';
       return;
     }
-    wrapper.style.opacity = ''; toggleBtn.style.display = ''; actionBtn.disabled = false;
-    if (!validIdxs.includes(activeNoteAIIndex)) activeNoteAIIndex = validIdxs[0];
+    wrapper.style.opacity = '';
+    actionBtn.disabled = false;
+    activeNoteAIIndex = clampAiIndex(activeNoteAIIndex);
+    const active = catalog[activeNoteAIIndex];
 
-    const activeNode = coreNodes[activeNoteAIIndex];
-    actionBtn.textContent = t('dockAskName').replace('{name}', shortenAiLabel(activeNode.label));
-    actionBtn.title = t('dockSendTo').replace('{name}', activeNode.label);
+    // Compact toolbar label — keeps Clear/Copy/TXT space intact
+    actionBtn.textContent = t('dockAskName').replace('{name}', active.short || active.label);
+    actionBtn.title = t('dockAskName').replace('{name}', active.label);
+    wrapper.title = actionBtn.title;
 
-    const activeColor = CORE_COLORS[activeNoteAIIndex] || CORE_COLORS[0];
-    wrapper.style.background = `linear-gradient(90deg, rgba(0,0,0,0.35) 0%, ${activeColor.bg.replace('0.82', '0.4')} 100%)`;
-    wrapper.style.borderColor = activeColor.border.replace('0.8', '0.4');
-
-    ribbon.innerHTML = '';
-    validIdxs.forEach((idx) => {
-      const node = coreNodes[idx];
-      const itemBtn = document.createElement('button');
-      itemBtn.type = 'button'; itemBtn.className = 'ai-ribbon-item'; itemBtn.textContent = node.label;
-      const colorSet = CORE_COLORS[idx] || CORE_COLORS[0];
-      if (idx === activeNoteAIIndex) { itemBtn.style.background = colorSet.bg; itemBtn.style.borderColor = colorSet.border; }
-      itemBtn.addEventListener('click', (e) => {
+    list.innerHTML = '';
+    catalog.forEach((node, idx) => {
+      const dist = Math.min(
+        Math.abs(idx - activeNoteAIIndex),
+        catalog.length - Math.abs(idx - activeNoteAIIndex)
+      );
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-wheel-item' + (idx === activeNoteAIIndex ? ' is-active' : '');
+      btn.dataset.index = String(idx);
+      btn.textContent = node.short || node.label;
+      btn.title = node.label + (node.qParam ? ' · auto-fill' : '');
+      if (idx === activeNoteAIIndex) {
+        btn.style.opacity = '1';
+        btn.style.transform = 'scale(1.06)';
+        btn.style.filter = 'none';
+      } else if (dist === 1) {
+        btn.style.opacity = '0.42';
+        btn.style.transform = 'scale(0.92)';
+        btn.style.filter = 'blur(0.2px)';
+      } else {
+        btn.style.opacity = '0.18';
+        btn.style.transform = 'scale(0.86)';
+        btn.style.filter = 'blur(0.6px)';
+      }
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        activeNoteAIIndex = idx;
-        try { if (chrome.runtime?.id) chrome.storage.local.set({ activeNoteAIIndex }); } catch (err) {}
-        renderSmartRibbon();
-        ribbon.classList.remove('active'); toggleBtn.classList.remove('ribbon-open');
+        if (idx === activeNoteAIIndex) {
+          // Center item while open → send
+          closeAiWheel();
+          sendPromptToNode(node);
+        } else {
+          setActiveAiIndex(idx);
+          // Keep popover open so user can confirm / scroll more
+        }
       });
-      ribbon.appendChild(itemBtn);
+      list.appendChild(btn);
+    });
+
+    const offset = (activeNoteAIIndex * AI_WHEEL_ITEM_H) - AI_WHEEL_ITEM_H;
+    list.style.transform = `translateY(${-offset}px)`;
+  }
+
+  // Main compact button → send to current AI
+  if (uiEls.sendActionBtn) {
+    uiEls.sendActionBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const node = AI_DISPATCH_CATALOG[clampAiIndex(activeNoteAIIndex)];
+      if (!node || !node.url) return;
+      closeAiWheel();
+      sendPromptToNode(node);
     });
   }
 
-  // Listeners are attached once (not re-attached on every render), so no clone/replace hack is needed.
-  uiEls.sendToggleBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isNowActive = uiEls.sendRibbon.classList.toggle('active');
-    uiEls.sendToggleBtn.classList.toggle('ribbon-open', isNowActive);
-  });
-  uiEls.sendActionBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const coreNodes = linksData.slice(0, 4);
-    const node = coreNodes[activeNoteAIIndex];
-    if (!node || !node.url) return;
-    sendPromptToNode(node);
-  });
+  // Chevron → open/close vertical picker popover
+  if (uiEls.sendToggleBtn) {
+    uiEls.sendToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAiWheel();
+    });
+  }
+
+  // Wheel navigation
+  if (uiEls.wheelPrev) {
+    uiEls.wheelPrev.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setActiveAiIndex(activeNoteAIIndex - 1);
+    });
+  }
+  if (uiEls.wheelNext) {
+    uiEls.wheelNext.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setActiveAiIndex(activeNoteAIIndex + 1);
+    });
+  }
+
+  // Scroll over viewport cycles
+  if (uiEls.wheelViewport) {
+    let wheelLock = false;
+    uiEls.wheelViewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (wheelLock) return;
+      wheelLock = true;
+      setActiveAiIndex(activeNoteAIIndex + (e.deltaY > 0 ? 1 : -1));
+      setTimeout(() => { wheelLock = false; }, 120);
+    }, { passive: false });
+  }
+
+  // Click outside closes picker
   document.addEventListener('click', (e) => {
-    if (uiEls.sendRibbon.classList.contains('active') && !uiEls.sendRibbon.contains(e.target) && e.target !== uiEls.sendToggleBtn) {
-      uiEls.sendRibbon.classList.remove('active'); uiEls.sendToggleBtn.classList.remove('ribbon-open');
-    }
+    if (!isAiWheelOpen()) return;
+    const wrap = uiEls.sendWrapper;
+    if (wrap && wrap.contains(e.target)) return;
+    closeAiWheel();
   });
 
   function fallbackCopyText(text) { const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.opacity = "0"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); try { document.execCommand('copy'); clearNoteWithUndo({ focus: false, notify: false }); showToastNotification(t('toastCopied')); } catch (err) {} document.body.removeChild(textArea); setTimeout(resetToggleTimeout, 100); }
@@ -2658,7 +2850,7 @@
       storageGet('local', ['linksData', 'linksData2', 'linksData3', 'activeNoteAIIndex'])
     ]);
 
-    if (typeof localData.activeNoteAIIndex === 'number') activeNoteAIIndex = localData.activeNoteAIIndex;
+    if (typeof localData.activeNoteAIIndex === 'number') activeNoteAIIndex = clampAiIndex(localData.activeNoteAIIndex);
 
     let resolvedLinksData = localData.linksData;
     if ((!resolvedLinksData || resolvedLinksData.length === 0) && syncData.linksData && syncData.linksData.length > 0) {
