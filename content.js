@@ -116,7 +116,17 @@
       noteTokenMeter: "{chars} chars · ~{tokens} tokens",
       noteTokenEmpty: "0 chars · 0 tokens",
       noteHistoryTitle: "Recent prompts",
-      noteHistoryEmpty: "No recent prompts"
+      noteHistoryEmpty: "No recent prompts",
+      emojiTrayTitle: "Favorite emojis",
+      emojiMoreTitle: "More emojis",
+      shareBtn: "Share",
+      shareTitle: "Share note to social",
+      shareEmpty: "Type something first",
+      shareOpened: "Opened {name} ⚡",
+      shareX: "X (Twitter)",
+      shareTelegram: "Telegram",
+      shareLinkedIn: "LinkedIn",
+      shareFacebook: "Facebook"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -226,7 +236,17 @@
       noteTokenMeter: "{chars} نویسه · ≈{tokens} توکن",
       noteTokenEmpty: "۰ نویسه · ۰ توکن",
       noteHistoryTitle: "پرامپت‌های اخیر",
-      noteHistoryEmpty: "پرامپتی ذخیره نشده"
+      noteHistoryEmpty: "پرامپتی ذخیره نشده",
+      emojiTrayTitle: "ایموجی‌های موردعلاقه",
+      emojiMoreTitle: "ایموجی‌های بیشتر",
+      shareBtn: "اشتراک",
+      shareTitle: "اشتراک‌گذاری یادداشت",
+      shareEmpty: "اول یه متن بنویس",
+      shareOpened: "{name} باز شد ⚡",
+      shareX: "شبکه X",
+      shareTelegram: "تلگرام",
+      shareLinkedIn: "لینکدین",
+      shareFacebook: "فیسبوک"
     }
   };
 
@@ -246,6 +266,9 @@
   let userBirthYear = null; 
   let markedDays = []; // مناسبت‌های نشانه‌گذاری‌شده: [{ id, label, day, month }]
   let isNotePinned = false;
+  // ایموجی‌های موردعلاقه — باید قبل از هر renderEmojiTray مقداردهی شود (جلوگیری از TDZ)
+  const DEFAULT_FAVORITE_EMOJIS = ['✨', '📌', '🔥', '💡', '🌱', '🎯', '🚀', '⭐'];
+  let favoriteEmojis = DEFAULT_FAVORITE_EMOJIS.slice();
 
   const systemLocale = (navigator.languages && navigator.languages[0]) || navigator.language || 'en-US';
   const RTL_LOCALE_PREFIXES = ['ar', 'fa', 'he', 'ur', 'ps', 'sd', 'ug', 'yi'];
@@ -437,6 +460,11 @@
       <button type="button" id="ai-align-right-btn" class="ai-format-btn ai-align-icon ai-align-icon-right" title="Right align"><span></span><span></span><span></span></button>
       <button type="button" id="ai-align-center-btn" class="ai-format-btn ai-align-icon ai-align-icon-center" title="Center align"><span></span><span></span><span></span></button>
       <button type="button" id="ai-align-left-btn" class="ai-format-btn ai-align-icon ai-align-icon-left" title="Left align"><span></span><span></span><span></span></button>
+      <div class="ai-note-emoji-wrap" id="ai-note-emoji-wrap">
+        <button type="button" id="ai-emoji-toggle-btn" class="ai-emoji-toggle-btn" title="Emojis">😀</button>
+        <div id="ai-emoji-tray" class="ai-emoji-tray" role="list"></div>
+        <div id="ai-emoji-popover" class="ai-emoji-popover" role="dialog"></div>
+      </div>
     </div>
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
     <div class="ai-note-text-wrap" id="ai-note-text-wrap">
@@ -451,6 +479,13 @@
       <button id="ai-note-clear-btn" class="ai-toolbar-btn" style="background: rgba(217, 119, 87, 0.22); color: #E8A088;"></button>
       <button id="ai-note-copy-btn" class="ai-toolbar-btn" style="background: rgba(16, 185, 129, 0.22); color: #34D399;"></button>
       <button id="ai-save-txt-btn" class="ai-toolbar-btn" style="background: rgba(255, 255, 255, 0.14); color: #fff;"></button>
+      <div id="ai-social-share-wrap" class="ai-social-share-wrap">
+        <button type="button" id="ai-social-toggle-btn" class="ai-social-toggle-btn" title="Share">
+          <span id="ai-social-toggle-label">Share</span>
+          <span class="ai-social-icon" aria-hidden="true">🔗</span>
+        </button>
+        <div id="ai-social-popover" class="ai-social-popover" role="menu"></div>
+      </div>
       <div id="ai-smart-send-wrapper" class="ai-smart-send-wrapper" tabindex="0" role="listbox" aria-label="Ask AI">
         <button type="button" id="ai-send-action-btn" class="ai-send-action-btn">
           <span class="ai-send-dot" id="ai-send-dot"></span>
@@ -600,6 +635,14 @@
     alignRightBtn: quickNoteForm.querySelector('#ai-align-right-btn'),
     alignCenterBtn: quickNoteForm.querySelector('#ai-align-center-btn'),
     alignLeftBtn: quickNoteForm.querySelector('#ai-align-left-btn'),
+    emojiWrap: quickNoteForm.querySelector('#ai-note-emoji-wrap'),
+    emojiToggleBtn: quickNoteForm.querySelector('#ai-emoji-toggle-btn'),
+    emojiTray: quickNoteForm.querySelector('#ai-emoji-tray'),
+    emojiPopover: quickNoteForm.querySelector('#ai-emoji-popover'),
+    socialWrap: quickNoteForm.querySelector('#ai-social-share-wrap'),
+    socialToggleBtn: quickNoteForm.querySelector('#ai-social-toggle-btn'),
+    socialToggleLabel: quickNoteForm.querySelector('#ai-social-toggle-label'),
+    socialPopover: quickNoteForm.querySelector('#ai-social-popover'),
     textWrap: quickNoteForm.querySelector('#ai-note-text-wrap'),
     tplBar: quickNoteForm.querySelector('#ai-note-tpl-bar'),
     tokenMeter: quickNoteForm.querySelector('#ai-note-token-meter'),
@@ -677,6 +720,11 @@
     if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
     if (uiEls.historyBtn) uiEls.historyBtn.title = t('noteHistoryTitle');
     renderSmartRibbon();
+    if (uiEls.socialToggleLabel) uiEls.socialToggleLabel.textContent = t('shareBtn');
+    if (uiEls.socialToggleBtn) uiEls.socialToggleBtn.title = t('shareTitle');
+    if (uiEls.emojiToggleBtn) uiEls.emojiToggleBtn.title = t('emojiMoreTitle');
+    if (typeof renderEmojiTray === 'function' && Array.isArray(favoriteEmojis)) renderEmojiTray();
+    if (typeof renderSocialPopover === 'function') renderSocialPopover();
 
     uiEls.todoMainTitle.textContent = t('todoTitle');
     uiEls.todoInput.placeholder = activeTodoTab === 'daily' ? t('todoDailyInput') : t('todoGoalInput');
@@ -2255,16 +2303,13 @@
       quickNoteForm.classList.add('active');
       root.classList.add('show-notepad');
       noteManuallyPositioned = false;
-      noteUserResized = false;
       quickNoteForm.style.width = '';
       quickNoteForm.style.height = '';
-      if (noteTextarea) noteTextarea.style.height = '';
       if (noteTextarea) {
         adjustNotepadPosition();
         setTimeout(() => {
           noteTextarea.focus();
-          if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
-          else adjustNotepadPosition();
+          adjustNotepadPosition();
         }, 50);
       }
       startNotepadIdleTimer();
@@ -2272,71 +2317,11 @@
     resetToggleTimeout();
   });
 
-  // Custom dual-corner resize + auto-grow while typing
-  // حداقل عرض ۳۲۰؛ هنگام تایپ عرض هدف = ۲×حداقل (۶۴۰)
-  // حداقل ارتفاع برای ≈۱۰ خط متن خوانا
-  const NOTE_MIN_W = 320;
-  const NOTE_AUTO_W = NOTE_MIN_W * 2; // 640
-  const NOTE_MIN_H = 200;
-  const NOTE_AUTO_MIN_LINES = 10;
-  let noteUserResized = false; // اگر کاربر دستی resize کرد، عرض را زور نکن؛ ارتفاع فقط رشد کند
+  // Custom dual-corner resize: notepad always opens at the fixed standard CSS size;
+  // the user can resize during this session from either bottom corner (not just one side).
+  const NOTE_MIN_W = 320, NOTE_MIN_H = 200;
   function noteMaxW() { return Math.round(window.innerWidth * 0.9); }
   function noteMaxH() { return Math.round(window.innerHeight * 0.9); }
-
-  /**
-   * رشد خودکار کادر یادداشت هنگام تایپ:
-   * - عرض تا ۲× حداقل (در حد صفحه)
-   * - ارتفاع تا متن کامل دیده شود، حداقل ۱۰ خط
-   */
-  function autoGrowNotepad() {
-    if (!noteTextarea || !quickNoteForm.classList.contains('active')) return;
-
-    const maxW = noteMaxW();
-    const maxH = noteMaxH();
-    const targetW = Math.min(NOTE_AUTO_W, maxW);
-
-    // عرض: اگر هنوز کوچک‌تر از هدف است و کاربر عمداً باریک‌تر نکرده، بزرگ کن
-    if (!noteUserResized) {
-      const curW = quickNoteForm.offsetWidth || 0;
-      if (curW < targetW - 1) {
-        quickNoteForm.style.width = targetW + 'px';
-      }
-    }
-
-    // ارتفاع textarea بر اساس محتوا (حداقل ۱۰ خط)
-    const cs = window.getComputedStyle(noteTextarea);
-    let lineH = parseFloat(cs.lineHeight);
-    if (!lineH || isNaN(lineH)) {
-      const fs = parseFloat(cs.fontSize) || 14;
-      lineH = fs * 1.6;
-    }
-    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-    const minTextH = Math.ceil(lineH * NOTE_AUTO_MIN_LINES + padY);
-
-    // اندازه‌گیری scrollHeight
-    const prevTaH = noteTextarea.style.height;
-    noteTextarea.style.height = '0px';
-    const contentH = Math.max(minTextH, noteTextarea.scrollHeight);
-    noteTextarea.style.height = contentH + 'px';
-
-    // ارتفاع کل پنل = کروم (غیر از ناحیه متن) + ارتفاع متن
-    const textWrap = uiEls.textWrap || noteTextarea.parentElement;
-    const wrapH = textWrap ? textWrap.offsetHeight : noteTextarea.offsetHeight;
-    const formH = quickNoteForm.offsetHeight || NOTE_MIN_H;
-    const chrome = Math.max(0, formH - wrapH);
-    // اگر wrap هنوز با height ثابت فرم فشرده است، chrome را از ساختار تقریبی بگیر
-    const estimatedChrome = chrome > 40 ? chrome : 160;
-    let neededFormH = estimatedChrome + contentH;
-    neededFormH = Math.max(NOTE_MIN_H, Math.min(maxH, neededFormH));
-
-    const curFormH = quickNoteForm.offsetHeight || 0;
-    // فقط رشد؛ جمع‌شدن فقط با Clear
-    if (neededFormH > curFormH + 2) {
-      quickNoteForm.style.height = neededFormH + 'px';
-    }
-
-    if (typeof adjustNotepadPosition === 'function') adjustNotepadPosition();
-  }
   function setupNoteResizeHandle(handleEl, corner) {
     if (!handleEl) return;
     let dragging = false, startX, startY, startW, startH, startLeft;
@@ -2357,7 +2342,6 @@
       newW = Math.max(NOTE_MIN_W, Math.min(noteMaxW(), newW));
       const newH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), startH + dy));
       noteManuallyPositioned = true;
-      noteUserResized = true;
       quickNoteForm.style.width = `${newW}px`;
       quickNoteForm.style.height = `${newH}px`;
       if (corner === 'bl') {
@@ -2483,13 +2467,14 @@
         }
       }
     });
+    let lastNoteValueForEmoji = noteTextarea ? noteTextarea.value : '';
     noteTextarea.addEventListener('input', function () {
+      if (typeof harvestTypedEmoji === 'function') harvestTypedEmoji(lastNoteValueForEmoji, this.value);
+      lastNoteValueForEmoji = this.value;
       if (typeof abortNoteClosing === 'function') abortNoteClosing();
       if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
       if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
-      if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
-      else adjustNotepadPosition();
-      resetToggleTimeout();
+      adjustNotepadPosition(); resetToggleTimeout();
     });
     noteTextarea.addEventListener('blur', function () {
       // با ترک فیلد، جلسه بسته شود تا Undo بعدی معنای روشن داشته باشد
@@ -2593,7 +2578,6 @@
     noteTextarea.focus();
     updateNoteTokenMeter();
     saveNoteDraftDebounced();
-    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
     adjustNotepadPosition();
   }
@@ -2666,8 +2650,6 @@
   restoreNoteDraft();
   renderNoteTemplates();
   updateNoteTokenMeter();
-  // اگر پیش‌نویس بازیابی شد، بعد از نمایش پنل رشد کن
-  setTimeout(() => { if (typeof autoGrowNotepad === 'function') autoGrowNotepad(); }, 0);
 
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     if (!noteTextarea || noteTextarea.value.trim() === '') return false;
@@ -2675,12 +2657,10 @@
     setUndoState('text', snapshotNoteText());
     noteTextarea.value = '';
     if (focus) noteTextarea.focus();
-    // Reset inline size so CSS defaults apply again
+    // Reset inline size so CSS defaults (400×230) apply again
     quickNoteForm.style.width = '';
     quickNoteForm.style.height = '';
-    if (noteTextarea) noteTextarea.style.height = '';
     noteManuallyPositioned = false;
-    noteUserResized = false;
     try { if (chrome.runtime?.id) chrome.storage.local.set({ savedPromptDraft: '' }); } catch (e) {}
     if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
     adjustNotepadPosition();
@@ -2697,6 +2677,213 @@
   // (only ChatGPT documents it; Claude/Gemini/DeepSeek ignore it or have removed it).
   // So instead we copy the prompt to the clipboard and open the chat — this works with 100% of sites.
   // Fixed catalog of popular AIs for notepad dispatch (independent of core bookmark slots)
+
+  // ============================================================================
+  // Emoji memory tray + Social share (X / Telegram / LinkedIn / Facebook)
+  // ============================================================================
+  // DEFAULT_FAVORITE_EMOJIS + favoriteEmojis بالاتر تعریف شده‌اند
+  const EMOJI_PICKER_GRID = [
+    '😀','😊','🥰','😎','🤔','😂','🙌','👏',
+    '✨','🔥','💡','📌','✅','❌','⚠️','💬',
+    '🌱','🎯','🚀','⭐','❤️','💙','💜','🖤',
+    '📝','📚','🧠','⚡','🛠️','🎨','🎵','☕'
+  ];
+
+  function loadEmojiMemory() {
+    try {
+      if (!chrome.runtime?.id) return;
+      chrome.storage.local.get(['aiTreeEmojiMemory'], (res) => {
+        if (res && Array.isArray(res.aiTreeEmojiMemory) && res.aiTreeEmojiMemory.length) {
+          favoriteEmojis = res.aiTreeEmojiMemory.filter(e => typeof e === 'string' && e).slice(0, 12);
+          renderEmojiTray();
+        }
+      });
+    } catch (e) {}
+  }
+
+  function saveEmojiMemory() {
+    try {
+      if (chrome.runtime?.id) chrome.storage.local.set({ aiTreeEmojiMemory: favoriteEmojis });
+    } catch (e) {}
+  }
+
+  function pushEmojiToMemory(emoji) {
+    if (!emoji) return;
+    favoriteEmojis = [emoji, ...favoriteEmojis.filter(e => e !== emoji)].slice(0, 10);
+    renderEmojiTray();
+    saveEmojiMemory();
+  }
+
+  function insertEmojiAtCursor(emoji) {
+    if (!noteTextarea || !emoji) return;
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    if (typeof beginNoteEditSessionIfNeeded === 'function') beginNoteEditSessionIfNeeded();
+    const start = noteTextarea.selectionStart || 0;
+    const end = noteTextarea.selectionEnd || 0;
+    const val = noteTextarea.value;
+    noteTextarea.value = val.slice(0, start) + emoji + val.slice(end);
+    const pos = start + [...emoji].length; // code-point safe-ish
+    noteTextarea.setSelectionRange(pos, pos);
+    noteTextarea.focus();
+    pushEmojiToMemory(emoji);
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+  }
+
+  function renderEmojiTray() {
+    const tray = (typeof uiEls !== 'undefined' && uiEls.emojiTray) || document.getElementById('ai-emoji-tray');
+    if (!tray) return;
+    if (!Array.isArray(favoriteEmojis) || !favoriteEmojis.length) {
+      favoriteEmojis = (typeof DEFAULT_FAVORITE_EMOJIS !== 'undefined' ? DEFAULT_FAVORITE_EMOJIS : ['✨','📌','🔥','💡']).slice();
+    }
+    tray.innerHTML = '';
+    favoriteEmojis.forEach((emoji) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-emoji-item';
+      btn.textContent = emoji;
+      btn.title = emoji;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        insertEmojiAtCursor(emoji);
+      });
+      tray.appendChild(btn);
+    });
+  }
+
+  function renderEmojiPopover() {
+    const pop = uiEls.emojiPopover || document.getElementById('ai-emoji-popover');
+    if (!pop) return;
+    pop.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'ai-emoji-popover-title';
+    title.textContent = t('emojiMoreTitle');
+    pop.appendChild(title);
+    const grid = document.createElement('div');
+    grid.className = 'ai-emoji-grid';
+    const seen = new Set();
+    const list = [...favoriteEmojis, ...EMOJI_PICKER_GRID].filter((e) => {
+      if (seen.has(e)) return false;
+      seen.add(e);
+      return true;
+    });
+    list.forEach((emoji) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-emoji-item';
+      btn.textContent = emoji;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        insertEmojiAtCursor(emoji);
+        pop.classList.remove('active');
+      });
+      grid.appendChild(btn);
+    });
+    pop.appendChild(grid);
+  }
+
+  function toggleEmojiPopover(force) {
+    const pop = uiEls.emojiPopover;
+    if (!pop) return;
+    const open = force === true ? true : force === false ? false : !pop.classList.contains('active');
+    if (open) {
+      renderEmojiPopover();
+      pop.classList.add('active');
+      if (uiEls.socialPopover) uiEls.socialPopover.classList.remove('active');
+    } else {
+      pop.classList.remove('active');
+    }
+  }
+
+  // سبک: اگر کاربر ایموجی از کیبورد تایپ کرد، به حافظه اضافه شود
+  const EMOJI_CHAR_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
+  function harvestTypedEmoji(prev, next) {
+    if (!next || next.length <= (prev || '').length) return;
+    // فقط کاراکترهای اضافه‌شده را بررسی کن
+    let i = 0;
+    while (i < (prev || '').length && i < next.length && prev[i] === next[i]) i++;
+    const added = next.slice(i, i + 8);
+    const m = added.match(EMOJI_CHAR_RE);
+    if (m) pushEmojiToMemory(m[0]);
+  }
+
+  // --- Social share ---
+  const TEXT_SOCIAL_NETWORKS = [
+    { id: 'x', labelKey: 'shareX', icon: '𝕏', buildUrl: (text) => 'https://x.com/intent/post?text=' + encodeURIComponent(text) },
+    { id: 'tg', labelKey: 'shareTelegram', icon: '✈️', buildUrl: (text) => 'https://t.me/share/url?url=' + encodeURIComponent(' ') + '&text=' + encodeURIComponent(text) },
+    { id: 'in', labelKey: 'shareLinkedIn', icon: 'in', buildUrl: (text) => 'https://www.linkedin.com/feed/?shareActive=true&text=' + encodeURIComponent(text) },
+    { id: 'fb', labelKey: 'shareFacebook', icon: 'f', buildUrl: (text) => 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent('https://x.com') + '&quote=' + encodeURIComponent(text) }
+  ];
+
+  function renderSocialPopover() {
+    const pop = uiEls.socialPopover || document.getElementById('ai-social-popover');
+    if (!pop) return;
+    pop.innerHTML = '';
+    TEXT_SOCIAL_NETWORKS.forEach((net) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-social-item';
+      btn.setAttribute('data-network', net.id);
+      btn.innerHTML = '<span>' + t(net.labelKey) + '</span><span class="ai-social-icon">' + net.icon + '</span>';
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        shareToTextNetwork(net.id);
+        pop.classList.remove('active');
+      });
+      pop.appendChild(btn);
+    });
+  }
+
+  function shareToTextNetwork(networkId) {
+    const text = noteTextarea ? noteTextarea.value.trim() : '';
+    if (!text) {
+      showToastNotification(t('shareEmpty'), true);
+      return;
+    }
+    const net = TEXT_SOCIAL_NETWORKS.find(n => n.id === networkId);
+    if (!net) return;
+    const url = net.buildUrl(text);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    showToastNotification(t('shareOpened').replace('{name}', t(net.labelKey)));
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+  }
+
+  function setupEmojiAndShareUI() {
+    loadEmojiMemory();
+    renderEmojiTray();
+    renderSocialPopover();
+    if (uiEls.socialToggleLabel) uiEls.socialToggleLabel.textContent = t('shareBtn');
+    if (uiEls.socialToggleBtn) uiEls.socialToggleBtn.title = t('shareTitle');
+    if (uiEls.emojiToggleBtn) {
+      uiEls.emojiToggleBtn.title = t('emojiMoreTitle');
+      uiEls.emojiToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleEmojiPopover();
+      });
+    }
+    if (uiEls.socialToggleBtn && uiEls.socialPopover) {
+      uiEls.socialToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const open = !uiEls.socialPopover.classList.contains('active');
+        uiEls.socialPopover.classList.toggle('active', open);
+        if (open && uiEls.emojiPopover) uiEls.emojiPopover.classList.remove('active');
+      });
+    }
+    document.addEventListener('click', (e) => {
+      if (uiEls.emojiPopover && uiEls.emojiWrap && !uiEls.emojiWrap.contains(e.target)) {
+        uiEls.emojiPopover.classList.remove('active');
+      }
+      if (uiEls.socialPopover && uiEls.socialWrap && !uiEls.socialWrap.contains(e.target)) {
+        uiEls.socialPopover.classList.remove('active');
+      }
+    });
+  }
+  // بعد از تعریف ماژول ایموجی/اشتراک — جلوگیری از TDZ روی favoriteEmojis
+  setupEmojiAndShareUI();
+
+
+
   const AI_DISPATCH_CATALOG = [
     { id: 'chatgpt',    label: 'ChatGPT',    short: 'GPT',      url: 'https://chatgpt.com',              qParam: 'q',  color: '#10A37F' },
     { id: 'claude',     label: 'Claude',     short: 'Claude',   url: 'https://claude.ai',                qParam: null, color: '#D97757' },

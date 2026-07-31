@@ -285,8 +285,8 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   width: 400px;
   min-width: 320px;
   max-width: 90vw;
-  height: 260px;
-  min-height: 240px;
+  height: 230px;
+  min-height: 200px;
   max-height: 90vh;
   resize: none;
   overflow: hidden;
@@ -1423,8 +1423,8 @@ body.rtl .ai-note-history-menu,
 
 /* Chips + meter need a bit more room than the original 200px floor */
 #ai-quick-note-form {
-  min-height: 260px;
-  height: 280px;
+  min-height: 240px;
+  height: 260px;
 }
 #ai-note-text {
   unicode-bidi: isolate;
@@ -1715,4 +1715,161 @@ body.rtl .ai-note-history-menu,
     transition: none;
   }
 }
+
+
+
+/* ========== Emoji memory tray (format bar) ========== */
+.ai-note-emoji-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 6px;
+  padding-inline-start: 8px;
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.1);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.ai-emoji-toggle-btn {
+  flex: 0 0 auto;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 8px;
+  color: #FBBF24;
+  cursor: pointer;
+  padding: 3px 7px;
+  font-size: 13px;
+  line-height: 1;
+  transition: background 0.15s, transform 0.15s, border-color 0.15s;
+}
+.ai-emoji-toggle-btn:hover {
+  background: rgba(251, 191, 36, 0.22);
+  transform: scale(1.06);
+}
+.ai-emoji-tray {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  overflow-x: auto;
+  max-width: min(180px, 42vw);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ai-emoji-tray::-webkit-scrollbar { display: none; }
+.ai-emoji-item {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  transition: background 0.12s, transform 0.12s;
+  user-select: none;
+  line-height: 1.2;
+  flex: 0 0 auto;
+}
+.ai-emoji-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.18);
+}
+.ai-emoji-popover {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 95;
+  min-width: 200px;
+  max-width: 240px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(12, 16, 28, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.ai-emoji-popover.active { display: block; }
+.ai-emoji-popover-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: rgba(226, 232, 240, 0.55);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+.ai-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+
+/* ========== Social share (toolbar) ========== */
+.ai-social-share-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.ai-social-toggle-btn {
+  background: rgba(59, 130, 246, 0.16);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #93C5FD;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.ai-social-toggle-btn:hover {
+  background: rgba(59, 130, 246, 0.28);
+  color: #BFDBFE;
+  border-color: rgba(96, 165, 250, 0.55);
+}
+.ai-social-popover {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: 96;
+  min-width: 148px;
+  padding: 5px;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 12px;
+  background: rgba(12, 16, 28, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.ai-social-popover.active { display: flex; }
+.ai-social-item {
+  background: transparent;
+  border: none;
+  color: #E2E8F0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  transition: background 0.12s, color 0.12s;
+  font-family: inherit;
+  text-align: start;
+  width: 100%;
+}
+.ai-social-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+.ai-social-icon { font-size: 13px; opacity: 0.9; }
 
