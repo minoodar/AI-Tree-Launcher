@@ -1,58 +1,79 @@
 /* AI Tree Launcher — Core Styles (V25.3 - Golden Ratio & Synced Drag) */
 :root {
---orbit-size: 56px;
+  --orbit-size: 56px;
 
-/* Color Palette */
---c-emerald: #10B981;
---c-emerald-light: #34D399;
---c-blue: #3B82F6;
---c-blue-light: #60A5FA;
---c-coral: #FA8072;
---c-coral-light: #FF9284;
---c-amber: #F59E0B;
---c-red: #EF4444;
---c-indigo: #6366f1;
---c-indigo-light: #818cf8;
---c-neutral: #9CA3AF;
---c-neutral-dark: #6B7280;
+  /* Color Palette */
+  --c-emerald: #10B981;
+  --c-emerald-light: #34D399;
+  --c-blue: #3B82F6;
+  --c-blue-light: #60A5FA;
+  --c-coral: #FA8072;
+  --c-coral-light: #FF9284;
+  --c-amber: #F59E0B;
+  --c-red: #EF4444;
+  --c-indigo: #6366f1;
+  --c-indigo-light: #818cf8;
+  --c-neutral: #9CA3AF;
+  --c-neutral-dark: #6B7280;
 
-/* Glassmorphism */
---glass-bg: rgba(15, 15, 27, 0.94);
---glass-blur: blur(16px);
---glass-radius: 16px;
---glass-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  /* ——— Glass system (یک تم واحد برای همه پنل‌ها) ——— */
+  --glass-bg: rgba(14, 15, 24, 0.78);
+  --glass-bg-solid: rgba(14, 15, 24, 0.94); /* fallback بدون شفافیت */
+  --glass-blur: blur(18px) saturate(140%);
+  --glass-radius: 16px;
+  --glass-border: 1px solid rgba(255, 255, 255, 0.10);
+  --glass-highlight: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.02) 28%,
+    transparent 55%
+  );
+  --glass-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.55),
+    0 2px 8px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --glass-glow-emerald: 0 0 28px rgba(16, 185, 129, 0.16);
+  --glass-glow-blue: 0 0 26px rgba(59, 130, 246, 0.14);
+  --glass-glow-indigo: 0 0 26px rgba(99, 102, 241, 0.14);
+  --glass-glow-coral: 0 0 26px rgba(250, 128, 114, 0.14);
+  --glass-glow-cyan: 0 0 26px rgba(0, 180, 255, 0.14);
 
-/* Matte elements */
---matte-bg: rgba(255, 255, 255, 0.08);
---matte-bg-hover: rgba(255, 255, 255, 0.16);
---matte-border: rgba(255, 255, 255, 0.10);
+  /* Matte chips / buttons on glass */
+  --matte-bg: rgba(255, 255, 255, 0.07);
+  --matte-bg-hover: rgba(255, 255, 255, 0.14);
+  --matte-border: rgba(255, 255, 255, 0.11);
 
-/* Dynamic Hub properties */
---hub-alpha: 0.25;
---hub-blur: 20px;
---hub-bg: rgba(15, 15, 25, var(--hub-alpha));
+  /* Hub */
+  --hub-alpha: 0.28;
+  --hub-blur: 18px;
+  --hub-bg: rgba(15, 15, 25, var(--hub-alpha));
 
-/* Animations */
---space-sm: 8px;
---space-md: 14px;
---space-lg: 18px;
---ease-premium: cubic-bezier(0.19, 1, 0.22, 1);
---ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* Spacing & motion */
+  --space-sm: 8px;
+  --space-md: 14px;
+  --space-lg: 18px;
+  --ease-premium: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .orbit-root { position: fixed; bottom: 28px; left: 28px; z-index: 2147483647; width: 0; height: 0; direction: ltr; }
 .orbit-root[style*="direction: rtl"] { direction: rtl; }
 
 .orbit-hub {
-position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-width: var(--orbit-size); height: var(--orbit-size); border-radius: 50%;
-background: var(--hub-bg);
-border: 1px solid rgba(255, 255, 255, 0.2);
-backdrop-filter: blur(var(--hub-blur)) saturate(150%);
--webkit-backdrop-filter: blur(var(--hub-blur)) saturate(150%);
-box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 2px 6px rgba(255,255,255,0.15);
-display: flex; align-items: center; justify-content: center; cursor: grab; z-index: 100;
-transition: transform 0.3s var(--ease-bounce), width 0.3s, height 0.3s, background 0.25s var(--ease-premium), backdrop-filter 0.25s var(--ease-premium), box-shadow 0.3s var(--ease-premium), border-color 0.3s, border-radius 0.3s, clip-path 0.3s, opacity 0.35s var(--ease-premium);
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: var(--orbit-size); height: var(--orbit-size); border-radius: 50%;
+  background: var(--hub-bg);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(var(--hub-blur)) saturate(145%);
+  -webkit-backdrop-filter: blur(var(--hub-blur)) saturate(145%);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  display: flex; align-items: center; justify-content: center; cursor: grab; z-index: 100;
+  transition: transform 0.3s var(--ease-bounce), width 0.3s, height 0.3s, background 0.25s var(--ease-premium),
+              box-shadow 0.3s var(--ease-premium), border-color 0.3s, border-radius 0.3s, opacity 0.35s var(--ease-premium);
 }
 .orbit-root.dragging .orbit-hub { cursor: grabbing; }
 .orbit-hub:hover { transform: translate(-50%, -50%) scale(1.12); background: rgba(28, 28, 40, 0.45); }
@@ -270,14 +291,69 @@ transition: transform 0.4s var(--ease-bounce), opacity 0.4s var(--ease-premium),
 @keyframes addNodeBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 
 /* Panels Base */
-#ai-quick-note-form, #ai-calc-panel, #ai-clock-panel, #ai-todo-panel, #ai-search-panel, .orbit-inline-form {
-position: fixed; background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-border-radius: var(--glass-radius); z-index: 2147483645; box-shadow: var(--glass-shadow);
-opacity: 0; pointer-events: none; transform: scale(0.8) translateY(10px); transition: opacity 0.25s var(--ease-premium), transform 0.3s var(--ease-bounce);
-contain: layout style paint;
+/* پنل‌های شناور — یک شیشهٔ مشترک */
+#ai-quick-note-form,
+#ai-calc-panel,
+#ai-clock-panel,
+#ai-todo-panel,
+#ai-search-panel,
+.orbit-inline-form {
+  position: fixed;
+  z-index: 2147483645;
+  border-radius: var(--glass-radius);
+  background:
+    var(--glass-highlight),
+    var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.92) translateY(8px);
+  transition:
+    opacity 0.22s var(--ease-premium),
+    transform 0.28s var(--ease-bounce),
+    box-shadow 0.25s var(--ease-premium),
+    border-color 0.25s var(--ease-premium);
+  contain: layout style paint;
+  isolation: isolate; /* جلوگیری از نشت backdrop به لایهٔ زیر */
 }
-#ai-quick-note-form.active, #ai-calc-panel.active, #ai-clock-panel.active, #ai-todo-panel.active, #ai-search-panel.active, .orbit-inline-form.active {
-opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
+#ai-quick-note-form.active,
+#ai-calc-panel.active,
+#ai-clock-panel.active,
+#ai-todo-panel.active,
+#ai-search-panel.active,
+.orbit-inline-form.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+/* کاهش شفافیت در صورت ترجیح کاربر / عملکرد پایین */
+@media (prefers-reduced-transparency: reduce) {
+  #ai-quick-note-form,
+  #ai-calc-panel,
+  #ai-clock-panel,
+  #ai-todo-panel,
+  #ai-search-panel,
+  .orbit-inline-form,
+  .orbit-hub {
+    --glass-bg: var(--glass-bg-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ai-quick-note-form,
+  #ai-calc-panel,
+  #ai-clock-panel,
+  #ai-todo-panel,
+  #ai-search-panel,
+  .orbit-inline-form {
+    transition: opacity 0.15s ease;
+    transform: none;
+  }
 }
 
 /* Quick Note Panel */
@@ -285,19 +361,20 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   width: 400px;
   min-width: 320px;
   max-width: 90vw;
-  height: 230px;
-  min-height: 200px;
+  height: 300px;
+  min-height: 280px;
   max-height: 90vh;
   resize: none;
   overflow: hidden;
-  border: 1px solid rgba(16, 185, 129, 0.45);
-  padding: 14px 16px;
-  box-shadow: var(--glass-shadow), 0 0 25px rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.40);
+  padding: 12px 14px;
+  box-shadow: var(--glass-shadow), var(--glass-glow-emerald);
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  transition: opacity 0.25s var(--ease-premium), transform 0.3s var(--ease-bounce),
-              width 0.25s var(--ease-premium), height 0.25s var(--ease-premium);
+  gap: 6px;
+  transition: opacity 0.22s var(--ease-premium), transform 0.28s var(--ease-bounce),
+              width 0.2s var(--ease-premium), height 0.2s var(--ease-premium),
+              border-color 0.2s var(--ease-premium), box-shadow 0.25s var(--ease-premium);
 }
 /* Custom resize grips — one at each bottom corner, so it's never stuck resizing from just one side */
 .ai-note-resize-handle {
@@ -507,7 +584,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 }
 
 
-#ai-todo-panel { width: 280px; border: 1px solid rgba(99, 102, 241, 0.35); padding: var(--space-lg); box-shadow: var(--glass-shadow), 0 0 26px rgba(99, 102, 241, 0.14); display: flex; flex-direction: column; gap: 12px; transition: border-color 0.35s var(--ease-premium), box-shadow 0.35s var(--ease-premium), background 0.35s var(--ease-premium); }
+#ai-todo-panel { width: 280px; border-color: rgba(99, 102, 241, 0.38); padding: var(--space-lg); box-shadow: var(--glass-shadow), var(--glass-glow-indigo); display: flex; flex-direction: column; gap: 12px; transition: border-color 0.3s var(--ease-premium), box-shadow 0.3s var(--ease-premium); }
 
 /* Paper slip under calendar — glass theme */
 .ai-todo-quote {
@@ -724,7 +801,7 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
 @keyframes tierDotPulse { 0%, 100% { box-shadow: 0 0 4px #67e8f9, 0 0 10px rgba(103, 232, 249, 0.7); } 50% { box-shadow: 0 0 7px #67e8f9, 0 0 16px rgba(103, 232, 249, 0.95); } }
 
 /* Bookmark Search Panel */
-#ai-search-panel { width: 400px; max-width: min(400px, 92vw); border: 1px solid rgba(0, 180, 255, 0.35); padding: var(--space-lg); box-shadow: var(--glass-shadow), 0 0 26px rgba(0, 180, 255, 0.14); display: flex; flex-direction: column; gap: 10px; position: fixed; overflow: visible; contain: layout style; }
+#ai-search-panel { width: 400px; max-width: min(400px, 92vw); border-color: rgba(0, 180, 255, 0.38); padding: var(--space-lg); box-shadow: var(--glass-shadow), var(--glass-glow-cyan); display: flex; flex-direction: column; gap: 10px; position: fixed; overflow: visible; contain: layout style; }
 #ai-search-panel::before {
 content: ""; position: absolute; top: 0; left: 0; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; pointer-events: none;
 background: #67e8f9; box-shadow: 0 0 5px #67e8f9, 0 0 13px rgba(103, 232, 249, 0.85), 0 0 22px rgba(56, 189, 248, 0.5);
@@ -772,7 +849,7 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-search-empty { text-align: center; padding: 14px 4px; font-size: 12px; color: rgba(255,255,255,0.45); }
 
 /* Calculator Panel */
-#ai-calc-panel { width: 240px; border: 1px solid rgba(250, 128, 114, 0.35); padding: var(--space-lg); box-shadow: var(--glass-shadow), 0 0 26px rgba(250, 128, 114, 0.14); display: flex; flex-direction: column; gap: 12px; }
+#ai-calc-panel { width: 240px; border-color: rgba(250, 128, 114, 0.40); padding: var(--space-lg); box-shadow: var(--glass-shadow), var(--glass-glow-coral); display: flex; flex-direction: column; gap: 12px; }
 .ai-calc-display { background: rgba(0, 0, 0, 0.32); border: 1px solid rgba(250, 128, 114, 0.25); border-radius: 14px; padding: 10px 14px 12px; box-sizing: border-box; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; overflow: hidden; }
 .ai-calc-expr { font-size: 12px; font-family: 'SF Mono', 'Consolas', monospace; color: rgba(255, 255, 255, 0.42); min-height: 14px; width: 100%; text-align: right; direction: ltr; white-space: nowrap; overflow-x: hidden; }
 .ai-calc-result { font-size: 30px; font-weight: 700; font-family: 'SF Mono', 'Consolas', monospace; color: var(--c-coral-light); width: 100%; text-align: right; direction: ltr; white-space: nowrap; overflow-x: hidden; text-shadow: 0 0 18px rgba(250, 128, 114, 0.35); transition: color 0.2s var(--ease-premium); }
@@ -1439,36 +1516,36 @@ body.rtl .ai-note-history-menu,
    ========================================================================== */
 
 :root {
-  --apple-glass-bg: rgba(17, 18, 23, 0.97);
-  --apple-glass-blur: blur(14px) saturate(120%);
-  --apple-surface: rgba(255, 255, 255, 0.11);
-  --apple-surface-hover: rgba(255, 255, 255, 0.18);
-  --apple-surface-active: rgba(255, 255, 255, 0.25);
-  --apple-radius: 20px;
-  --apple-shadow:
-    0 15px 35px rgba(0, 0, 0, 0.4),
-    0 5px 15px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(255, 255, 255, 0.06) inset;
-  --ease-apple: cubic-bezier(0.15, 0.85, 0.35, 1);
+  /* هم‌تراز با سیستم شیشهٔ اصلی — بدون لایهٔ مات جدا */
+  --apple-glass-bg: var(--glass-bg);
+  --apple-glass-blur: var(--glass-blur);
+  --apple-surface: var(--matte-bg);
+  --apple-surface-hover: var(--matte-bg-hover);
+  --apple-surface-active: rgba(255, 255, 255, 0.20);
+  --apple-radius: var(--glass-radius);
+  --apple-shadow: var(--glass-shadow);
+  --ease-apple: var(--ease-premium);
   --ease-in-out-apple: cubic-bezier(0.45, 0, 0.55, 1);
 }
 
 /* --- Notepad container: deeper glass + softer entry zoom --- */
 #ai-quick-note-form {
+  /* از توکن‌های شیشهٔ مشترک استفاده می‌کند؛ فقط درخشش emerald اضافه */
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0) 45%),
-    var(--apple-glass-bg) !important;
-  backdrop-filter: var(--apple-glass-blur) !important;
-  -webkit-backdrop-filter: var(--apple-glass-blur) !important;
-  border-radius: var(--apple-radius) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: var(--apple-shadow), 0 0 28px rgba(16, 185, 129, 0.12) !important;
+    var(--glass-highlight),
+    var(--glass-bg) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border-radius: var(--glass-radius) !important;
+  border: 1px solid rgba(16, 185, 129, 0.38) !important;
+  box-shadow: var(--glass-shadow), var(--glass-glow-emerald) !important;
   transition:
-    opacity 0.35s var(--ease-apple),
-    transform 0.4s var(--ease-apple),
-    width 0.3s var(--ease-in-out-apple),
-    height 0.3s var(--ease-in-out-apple) !important;
-  transform: scale(0.85) translateY(20px);
+    opacity 0.22s var(--ease-premium),
+    transform 0.28s var(--ease-bounce),
+    width 0.2s var(--ease-premium),
+    height 0.2s var(--ease-premium),
+    border-color 0.2s var(--ease-premium),
+    box-shadow 0.25s var(--ease-premium) !important;
 }
 
 #ai-quick-note-form.active {
@@ -1478,8 +1555,8 @@ body.rtl .ai-note-history-menu,
 }
 
 #ai-quick-note-form.is-pinned {
-  border-color: rgba(52, 211, 153, 0.45) !important;
-  box-shadow: var(--apple-shadow), 0 0 32px rgba(52, 211, 153, 0.18) !important;
+  border-color: rgba(52, 211, 153, 0.55) !important;
+  box-shadow: var(--glass-shadow), 0 0 34px rgba(52, 211, 153, 0.22) !important;
 }
 
 /* Dispatch zoom-out when sending prompt to an AI tab */

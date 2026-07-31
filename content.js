@@ -482,7 +482,7 @@
     </div>
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
     <div class="ai-note-text-wrap" id="ai-note-text-wrap">
-      <textarea id="ai-note-text" rows="1" dir="auto"></textarea>
+      <textarea id="ai-note-text" rows="2" dir="auto"></textarea>
     </div>
     <div class="ai-note-status-row">
       <span id="ai-note-token-meter" class="ai-note-token-meter">0 chars · 0 tokens</span>
@@ -2334,12 +2334,13 @@
       quickNoteForm.classList.add('active');
       root.classList.add('show-notepad');
       noteManuallyPositioned = false;
-      quickNoteForm.style.width = '';
-      quickNoteForm.style.height = '';
+      if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
+      else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
       if (noteTextarea) {
         adjustNotepadPosition();
         setTimeout(() => {
           noteTextarea.focus();
+          if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
           adjustNotepadPosition();
         }, 50);
       }
@@ -2348,18 +2349,96 @@
     resetToggleTimeout();
   });
 
-  // Custom dual-corner resize: notepad always opens at the fixed standard CSS size;
-  // the user can resize during this session from either bottom corner (not just one side).
-  const NOTE_MIN_W = 320, NOTE_MIN_H = 200;
+  // ========== اندازه دفترچه: پیش‌فرض جا برای ۲ خط + نوارها بدون فشردگی ==========
+  const NOTE_MIN_W = 320;
+  const NOTE_MIN_H = 280;       // جا برای chrome + حداقل ۲ خط
+  const NOTE_DEFAULT_W = 400;
+  const NOTE_DEFAULT_H = 300;
+  const NOTE_GROW_W = 640;
+  const NOTE_TA_MIN_LINES = 2;
+  const NOTE_TA_MAX_LINES = 10;
+  let noteUserResized = false;
+
   function noteMaxW() { return Math.round(window.innerWidth * 0.9); }
   function noteMaxH() { return Math.round(window.innerHeight * 0.9); }
+
+  function resetNoteSizeToDefault() {
+    noteUserResized = false;
+    quickNoteForm.style.width = '';
+    quickNoteForm.style.height = '';
+    if (noteTextarea) {
+      noteTextarea.style.height = '';
+      noteTextarea.style.minHeight = '';
+    }
+  }
+
+  function measureNoteLineMetrics() {
+    if (!noteTextarea) return { lineH: 21, padY: 16 };
+    const cs = window.getComputedStyle(noteTextarea);
+    let lineH = parseFloat(cs.lineHeight);
+    if (!lineH || Number.isNaN(lineH)) lineH = (parseFloat(cs.fontSize) || 13.5) * 1.55;
+    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    return { lineH, padY };
+  }
+
+  function measureNoteChromeHeight() {
+    if (!quickNoteForm || !noteTextarea) return 140;
+    const wrap = noteTextarea.closest('.ai-note-text-wrap') || noteTextarea.parentElement;
+    let chrome = 0;
+    const gap = parseFloat(window.getComputedStyle(quickNoteForm).gap) || 6;
+    let kids = 0;
+    Array.prototype.forEach.call(quickNoteForm.children, (ch) => {
+      if (ch === wrap) return;
+      if (ch.classList && (ch.classList.contains('ai-note-resize-handle') || ch.id === 'ai-emoji-modal')) return;
+      const h = ch.offsetHeight || 0;
+      if (h > 0) { chrome += h; kids++; }
+    });
+    const cs = window.getComputedStyle(quickNoteForm);
+    const formPad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+    return chrome + formPad + (kids + 1) * gap;
+  }
+
+  function autoGrowNotepad() {
+    if (!noteTextarea || !quickNoteForm.classList.contains('active')) return;
+    if (noteUserResized) return;
+    const { lineH, padY } = measureNoteLineMetrics();
+    const minTaH = Math.ceil(NOTE_TA_MIN_LINES * lineH + padY);
+    const maxTaH = Math.ceil(NOTE_TA_MAX_LINES * lineH + padY);
+    const prevMin = noteTextarea.style.minHeight;
+    const prevH = noteTextarea.style.height;
+    noteTextarea.style.minHeight = '0';
+    noteTextarea.style.height = '0';
+    const scrollH = noteTextarea.scrollHeight || minTaH;
+    noteTextarea.style.minHeight = prevMin;
+    noteTextarea.style.height = prevH;
+    const contentTaH = Math.max(minTaH, Math.min(maxTaH, scrollH));
+    const chromeH = measureNoteChromeHeight();
+    let targetFormH = Math.round(chromeH + contentTaH);
+    targetFormH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), targetFormH));
+    const text = noteTextarea.value || '';
+    const longLine = text.split('\n').some((ln) => ln.length > 48);
+    const needsWide = text.length > 60 || text.includes('\n') || longLine;
+    let targetW = null;
+    if (text.trim()) {
+      targetW = needsWide ? Math.min(NOTE_GROW_W, noteMaxW()) : Math.min(NOTE_DEFAULT_W, noteMaxW());
+    }
+    const prevTrans = quickNoteForm.style.transition;
+    quickNoteForm.style.transition = 'none';
+    quickNoteForm.style.width = targetW == null ? '' : (targetW + 'px');
+    quickNoteForm.style.height = targetFormH + 'px';
+    noteTextarea.style.minHeight = minTaH + 'px';
+    requestAnimationFrame(() => {
+      quickNoteForm.style.transition = prevTrans;
+      if (!noteManuallyPositioned) adjustNotepadPosition();
+    });
+  }
+
   function setupNoteResizeHandle(handleEl, corner) {
     if (!handleEl) return;
     let dragging = false, startX, startY, startW, startH, startLeft;
     handleEl.addEventListener('mousedown', (e) => {
       e.stopPropagation(); e.preventDefault();
       dragging = true;
-      // Disable size transition while dragging so the grip feels instant
       quickNoteForm.style.transition = 'none';
       const r = quickNoteForm.getBoundingClientRect();
       startX = e.clientX; startY = e.clientY;
@@ -2373,18 +2452,15 @@
       newW = Math.max(NOTE_MIN_W, Math.min(noteMaxW(), newW));
       const newH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), startH + dy));
       noteManuallyPositioned = true;
+      noteUserResized = true;
       quickNoteForm.style.width = `${newW}px`;
       quickNoteForm.style.height = `${newH}px`;
-      if (corner === 'bl') {
-        // keep the right edge anchored — the left edge is the one that moves for this handle
-        quickNoteForm.style.left = `${startLeft + (startW - newW)}px`;
-      }
+      if (corner === 'bl') quickNoteForm.style.left = `${startLeft + (startW - newW)}px`;
     });
     document.addEventListener('mouseup', () => {
       if (!dragging) return;
       dragging = false;
       document.body.style.userSelect = '';
-      // Restore CSS transitions after a frame so the next Clear collapses smoothly
       requestAnimationFrame(() => { quickNoteForm.style.transition = ''; });
     });
   }
@@ -2505,7 +2581,9 @@
       if (typeof abortNoteClosing === 'function') abortNoteClosing();
       if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
       if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
-      adjustNotepadPosition(); resetToggleTimeout();
+      if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+      else adjustNotepadPosition();
+      resetToggleTimeout();
     });
     noteTextarea.addEventListener('blur', function () {
       // با ترک فیلد، جلسه بسته شود تا Undo بعدی معنای روشن داشته باشد
@@ -2688,9 +2766,8 @@
     setUndoState('text', snapshotNoteText());
     noteTextarea.value = '';
     if (focus) noteTextarea.focus();
-    // Reset inline size so CSS defaults (400×230) apply again
-    quickNoteForm.style.width = '';
-    quickNoteForm.style.height = '';
+    if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
+    else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
     noteManuallyPositioned = false;
     try { if (chrome.runtime?.id) chrome.storage.local.set({ savedPromptDraft: '' }); } catch (e) {}
     if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
@@ -3185,9 +3262,13 @@
     { id: 'mistral',    label: 'Mistral',    short: 'Mistral',  url: 'https://chat.mistral.ai',          qParam: null, color: '#FF7A2F' },
     { id: 'qwen',       label: 'Qwen',       short: 'Qwen',     url: 'https://chat.qwen.ai',             qParam: null, color: '#9B6BF2' },
     { id: 'pi',         label: 'Pi',         short: 'Pi',       url: 'https://pi.ai/talk',               qParam: null, color: '#FF8FAE' },
-    { id: 'x',          label: 'X (Twitter)', short: 'X',       url: 'https://x.com/intent/post',         qParam: 'text', color: '#E7E9EA', verb: 'post' }
+    { id: 'metaai',     label: 'Meta AI',    short: 'Meta',     url: 'https://www.meta.ai',              qParam: null, color: '#0668E1' },
+    { id: 'poe',        label: 'Poe',        short: 'Poe',      url: 'https://poe.com',                  qParam: null, color: '#6F42F5' },
+    { id: 'you',        label: 'You.com',    short: 'You',      url: 'https://you.com',                  qParam: null, color: '#4E5EF2' },
+    { id: 'huggingchat',label: 'HuggingChat',short: 'Hugging',  url: 'https://huggingface.co/chat',      qParam: null, color: '#FF9D00' },
+    { id: 'kimi',       label: 'Kimi',       short: 'Kimi',     url: 'https://www.kimi.com',             qParam: null, color: '#6C4EFF' }
   ];
-  const AI_WHEEL_VISIBLE_ROWS = 5; // چند ردیف هم‌زمان دیده شود (با ۱۰ مدل، ۵ ردیف زمینهٔ بهتری می‌دهد)
+  const AI_WHEEL_VISIBLE_ROWS = 5; // چند ردیف هم‌زمان دیده شود (با ۱۵ مدل، ۵ ردیف زمینهٔ بهتری می‌دهد)
 
   // آیتم‌هایی که پارامتر q دارند مستقیماً پرشده باز می‌شوند؛ بقیه فقط با کپی/پیست
   function aiMethodGlyph(node) { return node && node.qParam ? '⚡' : '📋'; }
