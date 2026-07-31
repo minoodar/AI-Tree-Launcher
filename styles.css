@@ -1622,7 +1622,6 @@ body.rtl .ai-note-history-menu,
   overflow: hidden;
   cursor: pointer;
   perspective: 360px; /* افکت استوانه‌ای/چرخشیِ ردیف‌های اطراف */
-  /* mask ملایم‌تر تا آیتم‌های بالا/پایین قابل‌کلیک و قابل‌انتخاب بمانند */
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
@@ -1681,17 +1680,11 @@ body.rtl .ai-note-history-menu,
   gap: 6px;
   padding: 0 12px;
   white-space: nowrap;
-  /* ناحیهٔ کلیک پایدارتر حتی وقتی نزدیک لبهٔ mask هستیم */
-  position: relative;
-  z-index: 2;
   transition:
     opacity 0.2s cubic-bezier(0.15, 0.85, 0.35, 1),
     transform 0.2s cubic-bezier(0.15, 0.85, 0.35, 1),
     color 0.15s,
     filter 0.2s;
-}
-.ai-wheel-item.is-active {
-  z-index: 3;
 }
 
 .ai-wheel-item-dot {

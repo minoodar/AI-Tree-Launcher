@@ -2096,8 +2096,11 @@
   }
 
   let noteManuallyPositioned = false;
+  let noteLinkedStartLeft, noteLinkedStartTop;
   let isNoteDragging = false, noteDragMoved = false;
   let noteStartX, noteStartY, noteStartLeft, noteStartTop;
+  // موقعیت هاب در شروع کشیدن یادداشت — تا هر دو با هم جابه‌جا شوند
+  let noteHubStartLeft = 0, noteHubStartTop = 0, noteHubStartBottom = null;
   const noteHeaderEl = quickNoteForm.querySelector('#ai-note-header');
   if (noteHeaderEl) {
     noteHeaderEl.addEventListener('mousedown', (e) => {
@@ -2107,7 +2110,13 @@
       noteStartX = e.clientX; noteStartY = e.clientY;
       const r = quickNoteForm.getBoundingClientRect();
       noteStartLeft = r.left; noteStartTop = r.top;
+      // هاب را هم از rect واقعی بگیر (نه فقط style) تا با bottom/auto هم درست باشد
+      const hubRect = root.getBoundingClientRect();
+      noteHubStartLeft = hubRect.left + hubRect.width / 2;
+      noteHubStartTop = hubRect.top + hubRect.height / 2;
+      noteHubStartBottom = null;
       noteHeaderEl.style.cursor = 'grabbing';
+      root.classList.add('dragging');
     });
   }
   document.addEventListener('mousemove', (e) => {
@@ -2118,12 +2127,30 @@
       noteManuallyPositioned = true;
       quickNoteForm.style.left = `${noteStartLeft + dx}px`;
       quickNoteForm.style.top = `${noteStartTop + dy}px`;
+      // ابزارک اصلی (هاب) دقیقاً همان جابه‌جایی را می‌کند
+      root.style.left = `${noteHubStartLeft + dx}px`;
+      root.style.top = `${noteHubStartTop + dy}px`;
+      root.style.bottom = 'auto';
+      if (isOpen) repositionSpiralNodes();
+      adjustCalcPosition(); adjustClockPosition(); adjustTodoPosition();
+      adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition();
     }
   });
   document.addEventListener('mouseup', () => {
     if (!isNoteDragging) return;
     isNoteDragging = false;
+    root.classList.remove('dragging');
     if (noteHeaderEl) noteHeaderEl.style.cursor = 'grab';
+    if (noteDragMoved) {
+      try {
+        if (chrome.runtime?.id) {
+          chrome.storage.sync.set({
+            orbitX: parseInt(root.style.left, 10) || 0,
+            orbitY: parseInt(root.style.top, 10) || 0
+          });
+        }
+      } catch (err) {}
+    }
   });
 
   // Pin button
@@ -2753,16 +2780,28 @@
   }
 
   const AI_WHEEL_ITEM_H = 26; // px — باید با ارتفاع .ai-wheel-item در CSS یکی باشد
+  const AI_WHEEL_SCRUB_HYSTERESIS = 0.35;
+  // scrub state قبل از setActiveAiIndex
+  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
 
   function clampAiIndex(idx) {
     const n = AI_DISPATCH_CATALOG.length;
     if (n === 0) return 0;
-    return ((idx % n) + n) % n;
+    // بدون wrap دایره‌ای — آخرین/اولین گزینه پایدار می‌ماند
+    if (idx < 0) return 0;
+    if (idx >= n) return n - 1;
+    return idx | 0;
   }
 
   let persistAiIndexTimer = null;
   function setActiveAiIndex(idx, persist) {
-    activeNoteAIIndex = clampAiIndex(idx);
+    const next = clampAiIndex(idx);
+    const changed = next !== activeNoteAIIndex;
+    activeNoteAIIndex = next;
+    if (changed && wheelScrubStartY !== null && typeof wheelScrubLatestY === 'number') {
+      wheelScrubStartY = wheelScrubLatestY;
+      wheelScrubStartIndex = activeNoteAIIndex;
+    }
     if (persist !== false) {
       clearTimeout(persistAiIndexTimer);
       persistAiIndexTimer = setTimeout(() => {
@@ -2827,10 +2866,8 @@
     list.innerHTML = '';
     const n = catalog.length;
     catalog.forEach((node, idx) => {
-      // کوتاه‌ترین فاصلهٔ دایره‌ای (با علامت) تا مرکز، برای چرخش سه‌بعدیِ ملایم
-      let raw = idx - activeNoteAIIndex;
-      if (raw > n / 2) raw -= n;
-      if (raw < -n / 2) raw += n;
+      // فاصلهٔ خطی تا مرکز (بدون wrap) — با clamp غیرحلقه‌ای هماهنگ است و پرش ندارد
+      const raw = idx - activeNoteAIIndex;
       const dist = Math.abs(raw);
 
       const btn = document.createElement('button');
@@ -2907,37 +2944,54 @@
     });
   }
 
-  // اسکرول روی چرخ = یک پلهٔ گسسته (دقیق‌تر از دنبال‌کردن مختصات پیوسته)
+  // اسکرول روی چرخ = یک پلهٔ گسسته؛ در ابتدا/انتها متوقف (بدون پرش)
   if (uiEls.wheelViewport) {
     let wheelLock = false;
     uiEls.wheelViewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (wheelLock) return;
+      const dir = e.deltaY > 0 ? 1 : (e.deltaY < 0 ? -1 : 0);
+      if (!dir) return;
+      const next = clampAiIndex(activeNoteAIIndex + dir);
+      if (next === activeNoteAIIndex) return;
       wheelLock = true;
-      setActiveAiIndex(activeNoteAIIndex + (e.deltaY > 0 ? 1 : -1));
-      setTimeout(() => { wheelLock = false; }, 120);
+      setActiveAiIndex(next);
+      setTimeout(() => { wheelLock = false; }, 90);
     }, { passive: false });
   }
 
-  // حرکت عمودی موس روی چرخ = اسکراب نسبی (نه مختصات مطلق) تا لرزون نباشد؛
-  // هر AI_WHEEL_ITEM_H پیکسل جابه‌جایی از نقطهٔ شروعِ هاور = یک مدل
-  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
+  // اسکراب موس با hysteresis — بدون wrap
   if (uiEls.wheelViewport) {
     uiEls.wheelViewport.addEventListener('mousemove', (e) => {
-      if (wheelScrubStartY === null) { wheelScrubStartY = e.clientY; wheelScrubStartIndex = activeNoteAIIndex; }
+      if (wheelScrubStartY === null) {
+        wheelScrubStartY = e.clientY;
+        wheelScrubStartIndex = activeNoteAIIndex;
+      }
       wheelScrubLatestY = e.clientY;
       if (wheelScrubRaf) return;
       wheelScrubRaf = requestAnimationFrame(() => {
         wheelScrubRaf = null;
         if (wheelScrubStartY === null) return;
         const deltaY = wheelScrubLatestY - wheelScrubStartY;
-        const steps = Math.round(deltaY / AI_WHEEL_ITEM_H);
-        const target = wheelScrubStartIndex + steps;
-        if (clampAiIndex(target) !== activeNoteAIIndex) setActiveAiIndex(target, false);
+        const raw = deltaY / AI_WHEEL_ITEM_H;
+        let steps;
+        if (raw >= 0) steps = Math.floor(raw + (1 - AI_WHEEL_SCRUB_HYSTERESIS));
+        else steps = Math.ceil(raw - (1 - AI_WHEEL_SCRUB_HYSTERESIS));
+        if (steps === 0) return;
+        const target = clampAiIndex(wheelScrubStartIndex + steps);
+        if (target !== activeNoteAIIndex) setActiveAiIndex(target, false);
       });
     });
-    uiEls.wheelViewport.addEventListener('mouseleave', () => { wheelScrubStartY = null; });
+    uiEls.wheelViewport.addEventListener('mouseleave', () => {
+      wheelScrubStartY = null;
+      wheelScrubLatestY = null;
+    });
+    uiEls.wheelViewport.addEventListener('mouseenter', (e) => {
+      wheelScrubStartY = e.clientY;
+      wheelScrubStartIndex = activeNoteAIIndex;
+      wheelScrubLatestY = e.clientY;
+    });
   }
 
   // کلیک بیرون از ویجت، چرخ را می‌بندد
@@ -3603,6 +3657,15 @@
     const rect = root.getBoundingClientRect(); 
     startDragX = e.clientX; startDragY = e.clientY; 
     startLeft = rect.left + (rect.width/2); startTop = rect.top + (rect.height/2); 
+    // موقعیت اولیه یادداشت برای جابه‌جایی هم‌زمان با هاب
+    if (quickNoteForm.classList.contains('active')) {
+      const nr = quickNoteForm.getBoundingClientRect();
+      noteLinkedStartLeft = nr.left;
+      noteLinkedStartTop = nr.top;
+    } else {
+      noteLinkedStartLeft = undefined;
+      noteLinkedStartTop = undefined;
+    }
     e.preventDefault();
 
     quickAddFired = false; quickAddActive = false; quickAddStars = 0;
@@ -3637,8 +3700,15 @@
     if (!rafId) {
         rafId = requestAnimationFrame(() => {
             root.style.left = (startLeft + dx) + 'px'; root.style.top = (startTop + dy) + 'px'; root.style.bottom = 'auto'; 
-            if (isOpen) repositionSpiralNodes(); 
-            adjustNotepadPosition(); adjustCalcPosition(); adjustClockPosition(); adjustTodoPosition(); adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition();
+            if (isOpen) repositionSpiralNodes();
+            // اگر یادداشت باز است و دستی جابه‌جا شده، همان delta را روی آن هم اعمال کن
+            if (quickNoteForm.classList.contains('active') && noteManuallyPositioned && typeof noteLinkedStartLeft === 'number') {
+              quickNoteForm.style.left = (noteLinkedStartLeft + dx) + 'px';
+              quickNoteForm.style.top = (noteLinkedStartTop + dy) + 'px';
+            } else {
+              adjustNotepadPosition();
+            }
+            adjustCalcPosition(); adjustClockPosition(); adjustTodoPosition(); adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition();
             rafId = null;
         });
     }
