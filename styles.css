@@ -285,8 +285,8 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   width: 400px;
   min-width: 320px;
   max-width: 90vw;
-  height: 230px;
-  min-height: 200px;
+  height: 260px;
+  min-height: 240px;
   max-height: 90vh;
   resize: none;
   overflow: hidden;
@@ -1423,8 +1423,8 @@ body.rtl .ai-note-history-menu,
 
 /* Chips + meter need a bit more room than the original 200px floor */
 #ai-quick-note-form {
-  min-height: 240px;
-  height: 260px;
+  min-height: 260px;
+  height: 280px;
 }
 #ai-note-text {
   unicode-bidi: isolate;
@@ -1625,15 +1625,15 @@ body.rtl .ai-note-history-menu,
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 8%,
-    #000 92%,
+    #000 14%,
+    #000 86%,
     transparent 100%
   );
   mask-image: linear-gradient(
     to bottom,
     transparent 0%,
-    #000 8%,
-    #000 92%,
+    #000 14%,
+    #000 86%,
     transparent 100%
   );
 }
