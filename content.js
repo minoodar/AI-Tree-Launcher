@@ -471,9 +471,9 @@
       <button type="button" id="ai-note-pin-btn" class="ai-note-pin-btn" title="Pin Window">📌</button>
     </div>
     <div class="ai-note-format-bar" id="ai-note-format-bar">
-      <button type="button" id="ai-align-right-btn" class="ai-format-btn ai-align-icon ai-align-icon-right" title="Right align"><span></span><span></span><span></span></button>
-      <button type="button" id="ai-align-center-btn" class="ai-format-btn ai-align-icon ai-align-icon-center" title="Center align"><span></span><span></span><span></span></button>
-      <button type="button" id="ai-align-left-btn" class="ai-format-btn ai-align-icon ai-align-icon-left" title="Left align"><span></span><span></span><span></span></button>
+      <button type="button" id="ai-align-left-btn" class="ai-format-btn ai-align-icon ai-align-icon-left" title="Left"><span></span><span></span><span></span></button>
+      <button type="button" id="ai-align-center-btn" class="ai-format-btn ai-align-icon ai-align-icon-center" title="Center"><span></span><span></span><span></span></button>
+      <button type="button" id="ai-align-right-btn" class="ai-format-btn ai-align-icon ai-align-icon-right" title="Right"><span></span><span></span><span></span></button>
       <div class="ai-note-emoji-wrap" id="ai-note-emoji-wrap">
         <button type="button" id="ai-emoji-toggle-btn" class="ai-emoji-toggle-btn" title="Emojis">😀</button>
         <div id="ai-emoji-tray" class="ai-emoji-tray" role="list"></div>
@@ -2349,14 +2349,15 @@
     resetToggleTimeout();
   });
 
-  // ========== اندازه دفترچه: پیش‌فرض جا برای ۲ خط + نوارها بدون فشردگی ==========
+  // ========== اندازه یادداشت ==========
+  // باز شدن: جمع‌وجور با ۲ خط | تایپ: فقط ارتفاع رشد می‌کند (نه عرض با چند کلمه)
   const NOTE_MIN_W = 320;
-  const NOTE_MIN_H = 280;       // جا برای chrome + حداقل ۲ خط
-  const NOTE_DEFAULT_W = 400;
-  const NOTE_DEFAULT_H = 300;
-  const NOTE_GROW_W = 640;
+  const NOTE_MIN_H = 260;
+  const NOTE_DEFAULT_H = 280;
   const NOTE_TA_MIN_LINES = 2;
   const NOTE_TA_MAX_LINES = 10;
+  // برآورد ثابت chrome (هدر+فرمت+قالب+وضعیت+تولبار+gap+padding) — بدون اندازه‌گیری ناپایدار
+  const NOTE_CHROME_H = 175;
   let noteUserResized = false;
 
   function noteMaxW() { return Math.round(window.innerWidth * 0.9); }
@@ -2381,50 +2382,41 @@
     return { lineH, padY };
   }
 
-  function measureNoteChromeHeight() {
-    if (!quickNoteForm || !noteTextarea) return 140;
-    const wrap = noteTextarea.closest('.ai-note-text-wrap') || noteTextarea.parentElement;
-    let chrome = 0;
-    const gap = parseFloat(window.getComputedStyle(quickNoteForm).gap) || 6;
-    let kids = 0;
-    Array.prototype.forEach.call(quickNoteForm.children, (ch) => {
-      if (ch === wrap) return;
-      if (ch.classList && (ch.classList.contains('ai-note-resize-handle') || ch.id === 'ai-emoji-modal')) return;
-      const h = ch.offsetHeight || 0;
-      if (h > 0) { chrome += h; kids++; }
-    });
-    const cs = window.getComputedStyle(quickNoteForm);
-    const formPad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-    return chrome + formPad + (kids + 1) * gap;
-  }
-
   function autoGrowNotepad() {
     if (!noteTextarea || !quickNoteForm.classList.contains('active')) return;
     if (noteUserResized) return;
+
     const { lineH, padY } = measureNoteLineMetrics();
     const minTaH = Math.ceil(NOTE_TA_MIN_LINES * lineH + padY);
     const maxTaH = Math.ceil(NOTE_TA_MAX_LINES * lineH + padY);
+
+    // فقط ارتفاع محتوا — عرض را دست نزن (جلوگیری از بزرگ شدن با چند کلمه)
     const prevMin = noteTextarea.style.minHeight;
     const prevH = noteTextarea.style.height;
-    noteTextarea.style.minHeight = '0';
-    noteTextarea.style.height = '0';
+    noteTextarea.style.minHeight = minTaH + 'px';
+    noteTextarea.style.height = 'auto';
     const scrollH = noteTextarea.scrollHeight || minTaH;
-    noteTextarea.style.minHeight = prevMin;
     noteTextarea.style.height = prevH;
+    noteTextarea.style.minHeight = prevMin;
+
     const contentTaH = Math.max(minTaH, Math.min(maxTaH, scrollH));
-    const chromeH = measureNoteChromeHeight();
-    let targetFormH = Math.round(chromeH + contentTaH);
-    targetFormH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), targetFormH));
-    const text = noteTextarea.value || '';
-    const longLine = text.split('\n').some((ln) => ln.length > 48);
-    const needsWide = text.length > 60 || text.includes('\n') || longLine;
-    let targetW = null;
-    if (text.trim()) {
-      targetW = needsWide ? Math.min(NOTE_GROW_W, noteMaxW()) : Math.min(NOTE_DEFAULT_W, noteMaxW());
+    let targetFormH = Math.round(NOTE_CHROME_H + contentTaH);
+    // کف: حداقل پیش‌فرض باز شدن؛ سقف: max viewport
+    targetFormH = Math.max(NOTE_DEFAULT_H, Math.min(noteMaxH(), targetFormH));
+
+    // اگر متن خالی یا فقط ۱–۲ خط واقعی → ارتفاع پیش‌فرض، بدون رشد اضافه
+    const plain = (noteTextarea.value || '').replace(/\s+/g, '');
+    const newlineCount = (noteTextarea.value.match(/\n/g) || []).length;
+    if (!plain) {
+      targetFormH = NOTE_DEFAULT_H;
+    } else if (newlineCount === 0 && scrollH <= minTaH + 4) {
+      // چند کلمه در یک خط → رشد نکن
+      targetFormH = NOTE_DEFAULT_H;
     }
+
     const prevTrans = quickNoteForm.style.transition;
     quickNoteForm.style.transition = 'none';
-    quickNoteForm.style.width = targetW == null ? '' : (targetW + 'px');
+    // عرض ثابت CSS — عمداً style.width را دست نمی‌زنیم مگر Clear/reset
     quickNoteForm.style.height = targetFormH + 'px';
     noteTextarea.style.minHeight = minTaH + 'px';
     requestAnimationFrame(() => {
