@@ -126,7 +126,13 @@
       shareX: "X (Twitter)",
       shareTelegram: "Telegram",
       shareLinkedIn: "LinkedIn",
-      shareFacebook: "Facebook"
+      shareFacebook: "Facebook",
+      emojiOnlineBtn: "Online vault",
+      emojiOnlineTitle: "Online emoji vault",
+      emojiOnlineSearch: "Search… fire, heart, book",
+      emojiOnlineLoading: "Loading vault…",
+      emojiOnlineEmpty: "No emoji found",
+      emojiOnlineError: "Could not load online emojis"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -246,7 +252,13 @@
       shareX: "شبکه X",
       shareTelegram: "تلگرام",
       shareLinkedIn: "لینکدین",
-      shareFacebook: "فیسبوک"
+      shareFacebook: "فیسبوک",
+      emojiOnlineBtn: "گنجینه آنلاین",
+      emojiOnlineTitle: "گنجینه آنلاین ایموجی",
+      emojiOnlineSearch: "جستجو… آتش، قلب، کتاب",
+      emojiOnlineLoading: "در حال بارگذاری گنجینه…",
+      emojiOnlineEmpty: "ایموجی یافت نشد",
+      emojiOnlineError: "بارگذاری آنلاین ناموفق بود"
     }
   };
 
@@ -2849,9 +2861,262 @@
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
   }
 
+
+  // ============================================================================
+  // Online emoji vault — lazy fetch + chrome.storage.local cache (opt-in only)
+  // نیاز به host_permissions برای CDN در manifest.json
+  // ============================================================================
+  const EMOJI_CDN_URLS = [
+    'https://cdn.jsdelivr.net/npm/unicode-emoji-json@0.8.0/data-by-group.json',
+    'https://unpkg.com/unicode-emoji-json@0.8.0/data-by-group.json'
+  ];
+  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v2';
+  const EMOJI_CACHE_MAX_ITEMS = 2500;
+  let cachedOnlineEmojis = null; // [{ e, n }]
+  let onlineEmojiLoadPromise = null;
+
+  // نگاشت سبک فارسی → انگلیسی برای جستجو (اختیاری)
+  const EMOJI_FA_HINTS = {
+    'آتش': 'fire', 'شعله': 'fire', 'قلب': 'heart', 'عشق': 'heart',
+    'خنده': 'grin', 'لبخند': 'smile', 'گریه': 'cry', 'کتاب': 'book',
+    'ستاره': 'star', 'ماه': 'moon', 'خورشید': 'sun', 'گل': 'flower',
+    'درخت': 'tree', 'ماشین': 'car', 'هواپیما': 'airplane', 'موشک': 'rocket',
+    'کامپیوتر': 'computer', 'کد': 'laptop', 'تلفن': 'phone', 'موسیقی': 'music',
+    'غذا': 'food', 'قهوه': 'coffee', 'چای': 'tea', 'کیک': 'cake',
+    'ورزش': 'sport', 'فوتبال': 'soccer', 'برنده': 'trophy', 'هدیه': 'gift',
+    'تیک': 'check', 'خطا': 'cross', 'هشدار': 'warning', 'ایده': 'bulb',
+    'پین': 'pushpin', 'یادداشت': 'memo', 'چشم': 'eye', 'دست': 'hand'
+  };
+
+  function normalizeEmojiQuery(raw) {
+    let q = String(raw || '').trim().toLowerCase();
+    if (!q) return '';
+    // اگر کلمه فارسی بود، معادل انگلیسی را هم اضافه کن
+    Object.keys(EMOJI_FA_HINTS).forEach((fa) => {
+      if (q.includes(fa)) q += ' ' + EMOJI_FA_HINTS[fa];
+    });
+    return q;
+  }
+
+  function flattenEmojiCdnData(data) {
+    const out = [];
+    const seen = new Set();
+    const pushItem = (emoji, name) => {
+      if (!emoji || seen.has(emoji)) return;
+      seen.add(emoji);
+      out.push({ e: emoji, n: String(name || '').toLowerCase() });
+    };
+    const walkGroup = (group) => {
+      if (!group) return;
+      const list = group.emojis || group.emoji || group;
+      if (!Array.isArray(list)) return;
+      list.forEach((item) => {
+        if (typeof item === 'string') pushItem(item, '');
+        else if (item && typeof item === 'object') {
+          pushItem(item.emoji || item.char || item.e, item.name || item.slug || item.n || '');
+        }
+      });
+    };
+    if (Array.isArray(data)) {
+      data.forEach(walkGroup);
+    } else if (data && typeof data === 'object') {
+      Object.keys(data).forEach((k) => walkGroup(data[k]));
+    }
+    return out.slice(0, EMOJI_CACHE_MAX_ITEMS);
+  }
+
+  function loadOnlineEmojisFromStorage() {
+    return new Promise((resolve) => {
+      try {
+        if (!chrome.runtime?.id) { resolve(null); return; }
+        chrome.storage.local.get([EMOJI_CACHE_KEY], (res) => {
+          const pack = res && res[EMOJI_CACHE_KEY];
+          if (pack && Array.isArray(pack.items) && pack.items.length > 50) {
+            resolve(pack.items);
+          } else resolve(null);
+        });
+      } catch (e) { resolve(null); }
+    });
+  }
+
+  function saveOnlineEmojisToStorage(items) {
+    try {
+      if (chrome.runtime?.id) {
+        chrome.storage.local.set({
+          [EMOJI_CACHE_KEY]: { ts: Date.now(), items: items.slice(0, EMOJI_CACHE_MAX_ITEMS) }
+        });
+      }
+    } catch (e) {}
+  }
+
+  async function fetchOnlineEmojis() {
+    if (cachedOnlineEmojis && cachedOnlineEmojis.length) return cachedOnlineEmojis;
+    if (onlineEmojiLoadPromise) return onlineEmojiLoadPromise;
+
+    onlineEmojiLoadPromise = (async () => {
+      const fromStore = await loadOnlineEmojisFromStorage();
+      if (fromStore && fromStore.length) {
+        cachedOnlineEmojis = fromStore;
+        return cachedOnlineEmojis;
+      }
+
+      let lastErr = null;
+      for (let i = 0; i < EMOJI_CDN_URLS.length; i++) {
+        try {
+          const res = await fetch(EMOJI_CDN_URLS[i], { credentials: 'omit', cache: 'force-cache' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          const flat = flattenEmojiCdnData(data);
+          if (flat.length < 20) throw new Error('empty catalog');
+          cachedOnlineEmojis = flat;
+          saveOnlineEmojisToStorage(flat);
+          return cachedOnlineEmojis;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      console.warn('[AI Tree] Online emoji fetch failed:', lastErr);
+      // fallback: local picker grid only
+      cachedOnlineEmojis = (typeof EMOJI_PICKER_GRID !== 'undefined' ? EMOJI_PICKER_GRID : []).map((e) => ({ e, n: '' }));
+      return cachedOnlineEmojis;
+    })();
+
+    try {
+      return await onlineEmojiLoadPromise;
+    } finally {
+      // allow retry later if completely empty
+      if (!cachedOnlineEmojis || !cachedOnlineEmojis.length) onlineEmojiLoadPromise = null;
+    }
+  }
+
+  function ensureOnlineEmojiModal() {
+    let modal = document.getElementById('ai-emoji-modal');
+    if (modal) return modal;
+    modal = document.createElement('div');
+    modal.id = 'ai-emoji-modal';
+    modal.className = 'ai-emoji-modal';
+    modal.innerHTML =
+      '<div class="ai-emoji-modal-head">' +
+        '<span class="ai-emoji-modal-title" id="ai-emoji-modal-title"></span>' +
+        '<button type="button" class="ai-emoji-modal-close" id="ai-emoji-modal-close" aria-label="Close">✕</button>' +
+      '</div>' +
+      '<input type="text" id="ai-emoji-search-input" class="ai-emoji-search-input" autocomplete="off" dir="auto" />' +
+      '<div id="ai-emoji-grid-wrap" class="ai-emoji-grid-wrap"></div>';
+    quickNoteForm.appendChild(modal);
+
+    const searchInput = modal.querySelector('#ai-emoji-search-input');
+    let searchTimer = null;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => renderOnlineEmojiGrid(searchInput.value), 80);
+    });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { e.stopPropagation(); closeOnlineEmojiModal(); }
+    });
+    modal.querySelector('#ai-emoji-modal-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeOnlineEmojiModal();
+    });
+    return modal;
+  }
+
+  function renderOnlineEmojiGrid(queryRaw) {
+    const grid = document.getElementById('ai-emoji-grid-wrap');
+    if (!grid) return;
+    const q = normalizeEmojiQuery(queryRaw);
+    const source = cachedOnlineEmojis || [];
+    let filtered;
+    if (!q) {
+      filtered = source.slice(0, 160);
+    } else {
+      const parts = q.split(/\s+/).filter(Boolean);
+      filtered = source.filter((item) => {
+        const hay = (item.n || '') + ' ' + (item.e || '');
+        return parts.every((p) => hay.includes(p) || (item.e && item.e.includes(p)));
+      }).slice(0, 160);
+    }
+
+    grid.innerHTML = '';
+    if (!filtered.length) {
+      const empty = document.createElement('div');
+      empty.className = 'ai-emoji-loading';
+      empty.textContent = t('emojiOnlineEmpty');
+      grid.appendChild(empty);
+      return;
+    }
+
+    const frag = document.createDocumentFragment();
+    filtered.forEach((item) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-emoji-cell';
+      btn.textContent = item.e;
+      btn.title = item.n || item.e;
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        insertEmojiAtCursor(item.e);
+        closeOnlineEmojiModal();
+      });
+      frag.appendChild(btn);
+    });
+    grid.appendChild(frag);
+  }
+
+  function closeOnlineEmojiModal() {
+    const modal = document.getElementById('ai-emoji-modal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  async function openOnlineEmojiRepository() {
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    const modal = ensureOnlineEmojiModal();
+    const titleEl = modal.querySelector('#ai-emoji-modal-title');
+    const searchInput = modal.querySelector('#ai-emoji-search-input');
+    const grid = modal.querySelector('#ai-emoji-grid-wrap');
+    if (titleEl) titleEl.textContent = t('emojiOnlineTitle');
+    if (searchInput) {
+      searchInput.placeholder = t('emojiOnlineSearch');
+      searchInput.value = '';
+    }
+    if (grid) {
+      grid.innerHTML = '<div class="ai-emoji-loading">' + t('emojiOnlineLoading') + '</div>';
+    }
+    modal.classList.add('active');
+    if (uiEls.emojiPopover) uiEls.emojiPopover.classList.remove('active');
+    if (uiEls.socialPopover) uiEls.socialPopover.classList.remove('active');
+
+    try {
+      await fetchOnlineEmojis();
+      renderOnlineEmojiGrid('');
+      if (searchInput) setTimeout(() => searchInput.focus(), 30);
+    } catch (err) {
+      if (grid) grid.innerHTML = '<div class="ai-emoji-loading">' + t('emojiOnlineError') + '</div>';
+    }
+  }
+
+  function ensureOnlineEmojiButton() {
+    const wrap = uiEls.emojiWrap || document.getElementById('ai-note-emoji-wrap');
+    if (!wrap || document.getElementById('ai-emoji-online-btn')) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'ai-emoji-online-btn';
+    btn.className = 'ai-emoji-online-btn';
+    btn.title = t('emojiOnlineBtn');
+    btn.textContent = '🌐';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const modal = document.getElementById('ai-emoji-modal');
+      if (modal && modal.classList.contains('active')) closeOnlineEmojiModal();
+      else openOnlineEmojiRepository();
+    });
+    wrap.appendChild(btn);
+  }
+
+
   function setupEmojiAndShareUI() {
     loadEmojiMemory();
     renderEmojiTray();
+    ensureOnlineEmojiButton();
     renderSocialPopover();
     if (uiEls.socialToggleLabel) uiEls.socialToggleLabel.textContent = t('shareBtn');
     if (uiEls.socialToggleBtn) uiEls.socialToggleBtn.title = t('shareTitle');
@@ -2876,6 +3141,12 @@
       }
       if (uiEls.socialPopover && uiEls.socialWrap && !uiEls.socialWrap.contains(e.target)) {
         uiEls.socialPopover.classList.remove('active');
+      }
+      const modal = document.getElementById('ai-emoji-modal');
+      if (modal && modal.classList.contains('active')) {
+        if (!modal.contains(e.target) && !e.target.closest('#ai-emoji-online-btn')) {
+          closeOnlineEmojiModal();
+        }
       }
     });
   }
