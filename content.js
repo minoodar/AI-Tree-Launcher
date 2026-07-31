@@ -37,6 +37,7 @@
       searchMetaHubOnly: "G{hub}",
       searchEditBtn: "Edit bookmark",
       searchDeleteBtn: "Delete bookmark",
+      searchMatchedInDesc: "matched in description",
       noteTitle: "Notepad & AI",
       allTitle: "Show All Bookmarks",
       collapseTitle: "Collapse Menu",
@@ -163,6 +164,7 @@
       searchMetaHubOnly: "کهکشان {hub}",
       searchEditBtn: "ویرایش بوک‌مارک",
       searchDeleteBtn: "حذف بوک‌مارک",
+      searchMatchedInDesc: "یافت‌شده در توضیحات",
       noteTitle: "یادداشت و هوش مصنوعی",
       allTitle: "نمایش تمام بوک‌مارک‌ها",
       collapseTitle: "بستن منو",
@@ -1683,8 +1685,16 @@
     if (!query) { adjustSearchPosition(); return; }
 
     const matches = allBookmarksFlat()
-      .map(({ link, hub, idx }) => ({ link, hub, idx, score: fuzzyScore(link.label, query) }))
-      .filter(x => x.score > -1)
+      .map(({ link, hub, idx }) => {
+        const titleScore = fuzzyScore(link.label, query);
+        const descScore = fuzzyScore(link.description, query);
+        // مچ در عنوان همیشه بالاتر از مچ در توضیحات رتبه‌بندی می‌شود
+        let score = -1;
+        if (titleScore > -1) score = titleScore;
+        else if (descScore > -1) score = descScore - 2000;
+        return { link, hub, idx, score, matchedDesc: titleScore === -1 && descScore > -1 };
+      })
+      .filter(x => x.score > -1 || x.matchedDesc)
       .sort((a, b) => b.score - a.score)
       .slice(0, 30);
 
@@ -1692,7 +1702,7 @@
       const empty = document.createElement('li'); empty.className = 'ai-search-empty'; empty.textContent = t('searchNoResults');
       list.appendChild(empty);
     } else {
-      matches.forEach(({ link, hub, idx }) => {
+      matches.forEach(({ link, hub, idx, matchedDesc }) => {
         const li = document.createElement('li'); li.className = 'ai-search-result';
 
         // رنگ همان تیرِ بوک‌مارک در چرخ - همیشه محاسبه می‌شود، هرگز خالی نمی‌ماند
@@ -1702,7 +1712,16 @@
 
         const fav = document.createElement('img'); fav.className = 'ai-search-result-favicon'; fav.src = getFaviconUrl(link.url);
         fav.addEventListener('error', () => fav.style.display = 'none');
-        const span = document.createElement('span'); span.className = 'ai-search-result-label'; span.textContent = link.label;
+
+        // وقتی مچ فقط در توضیحات پیدا شده، عنوان + یک نشانه‌ی کوچک از توضیحات را نمایش می‌دهیم
+        const labelWrap = document.createElement('span'); labelWrap.className = 'ai-search-result-label';
+        const span = document.createElement('span'); span.className = 'ai-search-result-label-title'; span.textContent = link.label;
+        labelWrap.appendChild(span);
+        if (matchedDesc && link.description) {
+          const descHint = document.createElement('span'); descHint.className = 'ai-search-result-desc-hint';
+          descHint.textContent = `${t('searchMatchedInDesc')}: ${link.description}`;
+          labelWrap.appendChild(descHint);
+        }
 
         // بج کهکشان همیشه و جدا از بج ستاره نشان داده می‌شود تا هیچ‌وقت گم نشود
         const badges = document.createElement('span'); badges.className = 'ai-search-result-badges';
@@ -1716,7 +1735,7 @@
           badges.appendChild(starBadge);
         }
 
-        li.appendChild(colorDot); li.appendChild(fav); li.appendChild(span); li.appendChild(badges);
+        li.appendChild(colorDot); li.appendChild(fav); li.appendChild(labelWrap); li.appendChild(badges);
 
         // ویرایش/حذف فقط برای بوک‌مارک‌های واقعی (نه ۴ اسلوت ثابت هوش مصنوعی)
         if (idx >= 4) {

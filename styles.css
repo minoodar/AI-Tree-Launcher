@@ -742,7 +742,9 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-search-result:hover { background: rgba(0, 180, 255, 0.14); border-color: rgba(0, 180, 255, 0.3); }
 .ai-search-result-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .ai-search-result-favicon { width: 16px; height: 16px; border-radius: 4px; object-fit: contain; flex-shrink: 0; }
-.ai-search-result-label { flex: 1; min-width: 0; font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-search-result-label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ai-search-result-label-title { font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-search-result-desc-hint { font-size: 10.5px; color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ai-search-result-badges { flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
 .ai-search-result-galaxy,
 .ai-search-result-stars {
