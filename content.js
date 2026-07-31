@@ -37,7 +37,7 @@
       searchMetaHubOnly: "G{hub}",
       searchEditBtn: "Edit bookmark",
       searchDeleteBtn: "Delete bookmark",
-      searchMatchedInDesc: "matched in description",
+      searchMatchedInDesc: "desc",
       noteTitle: "Notepad & AI",
       allTitle: "Show All Bookmarks",
       collapseTitle: "Collapse Menu",
@@ -164,7 +164,7 @@
       searchMetaHubOnly: "کهکشان {hub}",
       searchEditBtn: "ویرایش بوک‌مارک",
       searchDeleteBtn: "حذف بوک‌مارک",
-      searchMatchedInDesc: "یافت‌شده در توضیحات",
+      searchMatchedInDesc: "توضیحات",
       noteTitle: "یادداشت و هوش مصنوعی",
       allTitle: "نمایش تمام بوک‌مارک‌ها",
       collapseTitle: "بستن منو",
@@ -1737,18 +1737,20 @@
 
         li.appendChild(colorDot); li.appendChild(fav); li.appendChild(labelWrap); li.appendChild(badges);
 
-        // ویرایش/حذف فقط برای بوک‌مارک‌های واقعی (نه ۴ اسلوت ثابت هوش مصنوعی)
-        if (idx >= 4) {
-          const actions = document.createElement('span'); actions.className = 'ai-search-result-actions';
-          const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'ai-search-action-btn ai-search-action-edit';
-          editBtn.title = t('searchEditBtn'); editBtn.setAttribute('aria-label', t('searchEditBtn')); editBtn.textContent = '✎';
-          editBtn.addEventListener('click', (e) => { e.stopPropagation(); editBookmarkFromSearch(link, hub, idx); });
-          const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-search-action-btn ai-search-action-delete';
-          delBtn.title = t('searchDeleteBtn'); delBtn.setAttribute('aria-label', t('searchDeleteBtn')); delBtn.textContent = '✕';
-          delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteBookmarkFromSearch(link, hub); });
-          actions.appendChild(editBtn); actions.appendChild(delBtn);
-          li.appendChild(actions);
-        }
+        // ویرایش همیشه در دسترس است. برای ۴ اسلوت ثابت (هوش مصنوعی در کهکشان ۱،
+        // یا جایگاه‌های خالی پیش‌فرض در کهکشان ۲ و ۳) دکمهٔ حذف به‌جای برداشتنِ کامل آیتم،
+        // آن را به‌همان روشی که فرم ویرایش انجام می‌دهد خالی می‌کند.
+        const isFixedSlot = idx < 4;
+        const actions = document.createElement('span'); actions.className = 'ai-search-result-actions';
+        const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'ai-search-action-btn ai-search-action-edit';
+        editBtn.title = t('searchEditBtn'); editBtn.setAttribute('aria-label', t('searchEditBtn')); editBtn.textContent = '✎';
+        editBtn.addEventListener('click', (e) => { e.stopPropagation(); editBookmarkFromSearch(link, hub, idx); });
+        const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-search-action-btn ai-search-action-delete';
+        const delTitle = isFixedSlot ? t('formClearCoreBtn') : t('searchDeleteBtn');
+        delBtn.title = delTitle; delBtn.setAttribute('aria-label', delTitle); delBtn.textContent = '✕';
+        delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteBookmarkFromSearch(link, hub); });
+        actions.appendChild(editBtn); actions.appendChild(delBtn);
+        li.appendChild(actions);
 
         li.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -1774,6 +1776,16 @@
     const arr = hubData(hubIdx);
     const pos = arr.indexOf(link);
     if (pos === -1) return;
+    if (pos < 4) {
+      // اسلوت ثابت — مثل فرم ویرایش، به‌جای حذف از آرایه، خالی می‌شود
+      arr[pos] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+      saveLinksAll();
+      if (currentHubIndex === hubIdx) renderSpiral();
+      if (typeof renderTierDots === 'function') renderTierDots();
+      showToastNotification(t('toastCoreCleared'));
+      renderSearchResults(uiEls.searchInput.value);
+      return;
+    }
     const deletedItem = arr.splice(pos, 1)[0]; deletedItem._hub = hubIdx;
     saveLinksAll();
     if (currentHubIndex === hubIdx) renderSpiral();
@@ -1785,7 +1797,7 @@
 
   function adjustSearchPosition() {
       if (!searchPanel.classList.contains('active')) return;
-      const rect = hub.getBoundingClientRect(); const panelWidth = 400; const panelHeight = searchPanel.offsetHeight || 260; const vw = window.innerWidth; const vh = window.innerHeight;
+      const rect = hub.getBoundingClientRect(); const panelWidth = 440; const panelHeight = searchPanel.offsetHeight || 260; const vw = window.innerWidth; const vh = window.innerHeight;
       const hubCenterX = rect.left + rect.width / 2; const hubCenterY = rect.top + rect.height / 2;
       let leftPos = hubCenterX + 55; if (leftPos + panelWidth > vw - 16) leftPos = hubCenterX - panelWidth - 55;
       let topPos = hubCenterY - (panelHeight / 2); if (topPos + panelHeight > vh - 16) topPos = vh - panelHeight - 16; if (topPos < 16) topPos = 16;
