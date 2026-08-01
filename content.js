@@ -1713,14 +1713,14 @@
         const fav = document.createElement('img'); fav.className = 'ai-search-result-favicon'; fav.src = getFaviconUrl(link.url);
         fav.addEventListener('error', () => fav.style.display = 'none');
 
-        // وقتی مچ فقط در توضیحات پیدا شده، عنوان + یک نشانه‌ی کوچک از توضیحات را نمایش می‌دهیم
+        // عنوان و توضیحات هر دو در یک خط — توضیحات داخل پرانتز و کم‌رنگ‌تر، بدون برچسبِ اضافه
         const labelWrap = document.createElement('span'); labelWrap.className = 'ai-search-result-label';
         const span = document.createElement('span'); span.className = 'ai-search-result-label-title'; span.textContent = link.label;
         labelWrap.appendChild(span);
-        if (matchedDesc && link.description) {
-          const descHint = document.createElement('span'); descHint.className = 'ai-search-result-desc-hint';
-          descHint.textContent = `${t('searchMatchedInDesc')}: ${link.description}`;
-          labelWrap.appendChild(descHint);
+        if (link.description) {
+          const descSpan = document.createElement('span'); descSpan.className = 'ai-search-result-desc-inline';
+          descSpan.textContent = ` (${link.description})`;
+          labelWrap.appendChild(descSpan);
         }
 
         // بج کهکشان همیشه و جدا از بج ستاره نشان داده می‌شود تا هیچ‌وقت گم نشود
@@ -1797,7 +1797,7 @@
 
   function adjustSearchPosition() {
       if (!searchPanel.classList.contains('active')) return;
-      const rect = hub.getBoundingClientRect(); const panelWidth = 440; const panelHeight = searchPanel.offsetHeight || 260; const vw = window.innerWidth; const vh = window.innerHeight;
+      const rect = hub.getBoundingClientRect(); const panelWidth = 380; const panelHeight = searchPanel.offsetHeight || 260; const vw = window.innerWidth; const vh = window.innerHeight;
       const hubCenterX = rect.left + rect.width / 2; const hubCenterY = rect.top + rect.height / 2;
       let leftPos = hubCenterX + 55; if (leftPos + panelWidth > vw - 16) leftPos = hubCenterX - panelWidth - 55;
       let topPos = hubCenterY - (panelHeight / 2); if (topPos + panelHeight > vh - 16) topPos = vh - panelHeight - 16; if (topPos < 16) topPos = 16;
@@ -1978,14 +1978,14 @@
   const uiToggles = ['ai-todo-toggle', 'ai-search-toggle', 'ai-note-toggle', 'ai-all-toggle', 'ai-collapse-toggle', 'ai-undo-toggle', 'ai-calc-hub-toggle', 'ai-clock-toggle', 'ai-spacing-arc', 'ai-spacing-thumb', 'ai-spacing-value'];
 
   let globalUndoTimeout = null; let pendingUndoState = { type: null, data: null, hub: 1 };
-  function setUndoState(type, data, targetHub = currentHubIndex) {
+  function setUndoState(type, data, targetHub = currentHubIndex, duration = 10000) {
       const previousType = pendingUndoState.type; pendingUndoState = { type, data, hub: targetHub };
       root.classList.remove('hide-toggles'); undoToggleDot.classList.add('active-undo'); clearTimeout(globalUndoTimeout);
       if ((previousType === 'bookmark' || previousType === 'storage') && type !== previousType) { try { chrome.storage.sync.remove('lastDeletedLink'); } catch (err) {} }
       globalUndoTimeout = setTimeout(() => {
           undoToggleDot.classList.remove('active-undo'); pendingUndoState = { type: null, data: null, hub: 1 };
           if (type === 'bookmark' || type === 'storage') { try { chrome.storage.sync.remove('lastDeletedLink'); } catch(err){} }
-      }, 10000); 
+      }, duration); 
   }
   undoToggleDot.addEventListener('click', (e) => {
       e.stopPropagation(); if(!undoToggleDot.classList.contains('active-undo')) return;
@@ -2362,12 +2362,18 @@
   });
 
   // ========== اندازه یادداشت ==========
-  // باز شدن: جمع‌وجور با ۲ خط | تایپ: فقط ارتفاع رشد می‌کند (نه عرض با چند کلمه)
-  const NOTE_MIN_W = 320;
+  // باز شدن: ارتفاعِ پیش‌فرض از روی «۴ خط مرجع» محاسبه می‌شود (نه یک عدد ثابتِ حدسی)
+  // تا اگر فونت/line-height بعداً عوض شد خودش هماهنگ بماند؛ عرضِ پیش‌فرض هم به‌اندازه‌ای
+  // بزرگ است که ردیف دکمه‌های پایین (پاک‌کردن/کپی/متنی/اشتراک/ارسال) در یک خط جا شوند.
+  // تایپ: اول ارتفاع رشد می‌کند؛ اگر محتوا حتی در حداکثر ارتفاع هم جا نشد،
+  // عرض هم متناسب با میزان سرریز رشد می‌کند.
+  const NOTE_MIN_W = 380;
   const NOTE_MIN_H = 260;
-  const NOTE_DEFAULT_H = 280;
-  const NOTE_TA_MIN_LINES = 2;
+  const NOTE_DEFAULT_W = 500;
+  const NOTE_TA_MIN_LINES = 4; // ارتفاع پیش‌فرضِ باز شدن، معادل ۴ خط تایپ
   const NOTE_TA_MAX_LINES = 10;
+  // هر خط سرریزِ فراتر از حداکثر ارتفاع، عرض کادر را همین‌قدر پیکسل بیشتر می‌کند
+  const NOTE_WIDTH_PER_OVERFLOW_LINE = 26;
   // برآورد ثابت chrome (هدر+فرمت+قالب+وضعیت+تولبار+gap+padding) — بدون اندازه‌گیری ناپایدار
   const NOTE_CHROME_H = 175;
   let noteUserResized = false;
@@ -2394,6 +2400,13 @@
     return { lineH, padY };
   }
 
+  // ارتفاع پیش‌فرض = chrome ثابت + جای ۴ خط تایپ (به‌جای عدد ثابتِ حدسی قبلی)
+  function computeNoteDefaultH() {
+    const { lineH, padY } = measureNoteLineMetrics();
+    return Math.round(NOTE_CHROME_H + NOTE_TA_MIN_LINES * lineH + padY);
+  }
+  const NOTE_DEFAULT_H = computeNoteDefaultH();
+
   function autoGrowNotepad() {
     if (!noteTextarea || !quickNoteForm.classList.contains('active')) return;
     if (noteUserResized) return;
@@ -2402,25 +2415,45 @@
     const minTaH = Math.ceil(NOTE_TA_MIN_LINES * lineH + padY);
     const maxTaH = Math.ceil(NOTE_TA_MAX_LINES * lineH + padY);
 
+    const measureScrollH = () => {
+      const prevMin = noteTextarea.style.minHeight;
+      const prevH = noteTextarea.style.height;
+      noteTextarea.style.minHeight = minTaH + 'px';
+      noteTextarea.style.height = 'auto';
+      const h = noteTextarea.scrollHeight || minTaH;
+      noteTextarea.style.height = prevH;
+      noteTextarea.style.minHeight = prevMin;
+      return h;
+    };
+
     // فقط ارتفاع محتوا — عرض را دست نزن (جلوگیری از بزرگ شدن با چند کلمه)
-    const prevMin = noteTextarea.style.minHeight;
-    const prevH = noteTextarea.style.height;
-    noteTextarea.style.minHeight = minTaH + 'px';
-    noteTextarea.style.height = 'auto';
-    const scrollH = noteTextarea.scrollHeight || minTaH;
-    noteTextarea.style.height = prevH;
-    noteTextarea.style.minHeight = prevMin;
+    let scrollH = measureScrollH();
+
+    const plain = (noteTextarea.value || '').replace(/\s+/g, '');
+    const newlineCount = (noteTextarea.value.match(/\n/g) || []).length;
+
+    // عرض فقط وقتی رشد می‌کند که حتی در حداکثر ارتفاعِ مجاز هم محتوا جا نشود —
+    // یعنی اول کادر عمودی کشیده می‌شود، و تنها اگر باز هم کم بود، عرض هم متناسب با
+    // میزان سرریز رشد می‌کند. چون عرض بیشتر یعنی متن در خط‌های کمتری می‌شکند،
+    // بعد از تغییر عرض، ارتفاعِ لازم را دوباره در همان عرض جدید اندازه می‌گیریم.
+    let targetFormW = NOTE_DEFAULT_W;
+    if (plain && scrollH > maxTaH) {
+      const overflowLines = (scrollH - maxTaH) / lineH;
+      targetFormW = Math.round(NOTE_DEFAULT_W + overflowLines * NOTE_WIDTH_PER_OVERFLOW_LINE);
+      targetFormW = Math.max(NOTE_DEFAULT_W, Math.min(noteMaxW(), targetFormW));
+      quickNoteForm.style.width = targetFormW + 'px';
+      scrollH = measureScrollH();
+    }
 
     const contentTaH = Math.max(minTaH, Math.min(maxTaH, scrollH));
     let targetFormH = Math.round(NOTE_CHROME_H + contentTaH);
     // کف: حداقل پیش‌فرض باز شدن؛ سقف: max viewport
     targetFormH = Math.max(NOTE_DEFAULT_H, Math.min(noteMaxH(), targetFormH));
 
-    // اگر متن خالی یا فقط ۱–۲ خط واقعی → ارتفاع پیش‌فرض، بدون رشد اضافه
-    const plain = (noteTextarea.value || '').replace(/\s+/g, '');
-    const newlineCount = (noteTextarea.value.match(/\n/g) || []).length;
+    // اگر متن خالی یا فقط ۱–۲ خط واقعی → ارتفاع/عرض پیش‌فرض، بدون رشد اضافه
     if (!plain) {
       targetFormH = NOTE_DEFAULT_H;
+      targetFormW = NOTE_DEFAULT_W;
     } else if (newlineCount === 0 && scrollH <= minTaH + 4) {
       // چند کلمه در یک خط → رشد نکن
       targetFormH = NOTE_DEFAULT_H;
@@ -2428,7 +2461,7 @@
 
     const prevTrans = quickNoteForm.style.transition;
     quickNoteForm.style.transition = 'none';
-    // عرض ثابت CSS — عمداً style.width را دست نمی‌زنیم مگر Clear/reset
+    quickNoteForm.style.width = targetFormW + 'px';
     quickNoteForm.style.height = targetFormH + 'px';
     noteTextarea.style.minHeight = minTaH + 'px';
     requestAnimationFrame(() => {
@@ -2767,7 +2800,7 @@
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     if (!noteTextarea || noteTextarea.value.trim() === '') return false;
     endNoteEditSession();
-    setUndoState('text', snapshotNoteText());
+    setUndoState('text', snapshotNoteText(), currentHubIndex, 5000);
     noteTextarea.value = '';
     if (focus) noteTextarea.focus();
     if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();

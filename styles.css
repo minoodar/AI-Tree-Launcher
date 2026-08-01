@@ -282,10 +282,10 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 
 /* Quick Note Panel */
 #ai-quick-note-form {
-  width: 400px;
-  min-width: 320px;
+  width: 500px;
+  min-width: 380px;
   max-width: 90vw;
-  height: 280px;
+  height: 290px;
   min-height: 260px;
   max-height: 90vh;
   resize: none;
@@ -467,7 +467,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 }
 
 .ai-note-toolbar {
-  display: flex; gap: 6px; width: 100%;
+  display: flex; flex-wrap: nowrap; gap: 6px; width: 100%;
 }
 /* --- کلید ارجاع هوشمند: یک دکمهٔ فشرده که با هاور به چرخِ انتخاب باز می‌شود --- */
 .ai-smart-send-wrapper {
@@ -740,7 +740,7 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
 @keyframes tierDotPulse { 0%, 100% { box-shadow: 0 0 4px #67e8f9, 0 0 10px rgba(103, 232, 249, 0.7); } 50% { box-shadow: 0 0 7px #67e8f9, 0 0 16px rgba(103, 232, 249, 0.95); } }
 
 /* Bookmark Search Panel */
-#ai-search-panel { width: 440px; max-width: min(440px, 92vw); border: 1px solid rgba(0, 180, 255, 0.35); padding: var(--space-lg); box-shadow: var(--glass-shadow), 0 0 26px rgba(0, 180, 255, 0.14); display: flex; flex-direction: column; gap: 10px; position: fixed; overflow: visible; contain: layout style; }
+#ai-search-panel { width: 380px; max-width: min(380px, 92vw); border: 1px solid rgba(0, 180, 255, 0.35); padding: var(--space-lg); box-shadow: var(--glass-shadow), 0 0 26px rgba(0, 180, 255, 0.14); display: flex; flex-direction: column; gap: 10px; position: fixed; overflow: visible; contain: layout style; }
 #ai-search-panel::before {
 content: ""; position: absolute; top: 0; left: 0; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; pointer-events: none;
 background: #67e8f9; box-shadow: 0 0 5px #67e8f9, 0 0 13px rgba(103, 232, 249, 0.85), 0 0 22px rgba(56, 189, 248, 0.5);
@@ -758,9 +758,9 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-search-result:hover { background: rgba(0, 180, 255, 0.14); border-color: rgba(0, 180, 255, 0.3); }
 .ai-search-result-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .ai-search-result-favicon { width: 16px; height: 16px; border-radius: 4px; object-fit: contain; flex-shrink: 0; }
-.ai-search-result-label { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.ai-search-result-label-title { font-size: 12px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ai-search-result-desc-hint { font-size: 10.5px; font-style: italic; color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-search-result-label { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-search-result-label-title { font-size: 12px; font-weight: 600; color: #fff; }
+.ai-search-result-desc-inline { font-size: 11px; font-style: italic; color: rgba(255,255,255,0.5); font-weight: 400; }
 .ai-search-result-badges { flex-shrink: 0; display: flex; align-items: center; gap: 3px; }
 .ai-search-result-galaxy,
 .ai-search-result-stars {
@@ -775,17 +775,19 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-search-result-galaxy { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); }
 .ai-search-result-stars { color: #facc15; background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.25); }
 /* دکمه‌های ویرایش/حذف روی ردیف شناور می‌شوند (فقط با هاور دیده می‌شوند) تا فضای
-   دائمی از عنوان نگیرند — قبلاً همیشه ~44px از عرض ردیف را اشغال می‌کردند، حتی وقتی
-   نامرئی بودند، و همین باعث می‌شد عنوانِ بوک‌مارک زودتر به سه‌نقطه ختم شود. */
+   دائمی از عنوان نگیرند. inset-inline-end (نه right) عمداً استفاده شده: پنل جستجو
+   در فارسی direction:rtl می‌گیرد و ترتیب فرزندهای flex برعکس می‌شود؛ right ثابت
+   باعث می‌شد این کادر روی شکلک/رنگ بوک‌مارک (که در rtl سمت راست می‌افتند) بنشیند
+   به‌جای اینکه کنار بج‌ها در انتهای واقعی ردیف باشد. */
 .ai-search-result-actions {
-  position: absolute; top: 50%; right: 6px; transform: translateY(-50%) translateX(4px);
+  position: absolute; top: 50%; inset-inline-end: 6px; transform: translateY(-50%);
   display: flex; align-items: center; gap: 4px;
-  background: linear-gradient(to left, rgba(15, 16, 24, 0.92) 65%, transparent);
-  padding: 2px 4px 2px 16px; border-radius: 8px;
+  background: rgba(15, 16, 24, 0.92);
+  padding: 3px; border-radius: 8px;
   opacity: 0; pointer-events: none;
-  transition: opacity 0.2s var(--ease-premium), transform 0.2s var(--ease-premium);
+  transition: opacity 0.2s var(--ease-premium);
 }
-.ai-search-result:hover .ai-search-result-actions { opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0); }
+.ai-search-result:hover .ai-search-result-actions { opacity: 1; pointer-events: auto; }
 .ai-search-action-btn {
   width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
@@ -874,7 +876,12 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 @media (prefers-reduced-motion: reduce) { .ai-clock-halo::before, .ai-life-now { animation: none; } }
 
 /* Toolbar Buttons */
-.ai-toolbar-btn { flex: 1; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; border: none; display: flex; align-items: center; justify-content: center; transition: filter 0.2s var(--ease-premium), transform 0.15s var(--ease-bounce); }
+/* قبلاً flex:1 بود یعنی این سه دکمه مجبور بودند سهم مساوی از عرض را ببرند —
+   چون برچسب فارسی «پاک کردن» از بقیه بلندتر است، در آن سهم مساوی جا نمی‌شد و
+   متنش می‌شکست و باعث می‌شد دکمه‌ها یک‌دست/هم‌قواره نباشند. حالا هر دکمه به
+   اندازهٔ متن خودش عرض می‌گیرد (nowrap)، و فضای باقی‌مانده صرف دکمهٔ ارسال هوشمند
+   (flex:3) می‌شود که واقعاً باید کشسان باشد. */
+.ai-toolbar-btn { flex: 0 1 auto; white-space: nowrap; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 11px; font-weight: 700; border: none; display: flex; align-items: center; justify-content: center; transition: filter 0.2s var(--ease-premium), transform 0.15s var(--ease-bounce); }
 .ai-toolbar-btn:hover { filter: brightness(1.2); }
 .ai-toolbar-btn:active { transform: scale(0.96); }
 
@@ -1461,8 +1468,8 @@ body.rtl .ai-note-history-menu,
    ========================================================================== */
 
 :root {
-  --apple-glass-bg: rgba(17, 18, 23, 0.97);
-  --apple-glass-blur: blur(14px) saturate(120%);
+  --apple-glass-bg: rgba(10, 11, 15, 0.82);
+  --apple-glass-blur: blur(24px) saturate(160%);
   --apple-surface: rgba(255, 255, 255, 0.11);
   --apple-surface-hover: rgba(255, 255, 255, 0.18);
   --apple-surface-active: rgba(255, 255, 255, 0.25);
@@ -1478,13 +1485,14 @@ body.rtl .ai-note-history-menu,
 /* --- Notepad container: deeper glass + softer entry zoom --- */
 #ai-quick-note-form {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0) 45%),
+    linear-gradient(125deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.02) 30%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 45%),
     var(--apple-glass-bg) !important;
   backdrop-filter: var(--apple-glass-blur) !important;
   -webkit-backdrop-filter: var(--apple-glass-blur) !important;
   border-radius: var(--apple-radius) !important;
-  border: 1px solid rgba(255, 255, 255, 0.05) !important;
-  box-shadow: var(--apple-shadow), 0 0 28px rgba(16, 185, 129, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  box-shadow: var(--apple-shadow), 0 0 32px rgba(16, 185, 129, 0.14) !important;
   transition:
     opacity 0.35s var(--ease-apple),
     transform 0.4s var(--ease-apple),
