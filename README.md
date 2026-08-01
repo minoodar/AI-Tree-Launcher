@@ -1,4 +1,4 @@
-# 🌌 AI Tree Launcher (V25.6)
+# 🌌 AI Tree Launcher (V30.3)
 > **Floating Orbital Workspace & Galactic Bookmark System**
 
 ![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
