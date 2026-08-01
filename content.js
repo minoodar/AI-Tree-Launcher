@@ -90,6 +90,8 @@
       toastTodoDeleted: "Task deleted! Use Undo to restore it.",
       toastTodoCopied: "Copied to clipboard",
       hubAll: "All",
+      bookmarkCount: "{n} Bookmarks",
+      coreCount: "{n} Core",
       hubCore: "Core",
       portalForward: "Extended Network {n}",
       portalHome: "Home",
@@ -217,6 +219,8 @@
       toastTodoDeleted: "وظیفه حذف شد؛ با Undo بازگردانید.",
       toastTodoCopied: "متن کپی شد",
       hubAll: "همه",
+      bookmarkCount: "{n} بوک‌مارک",
+      coreCount: "{n} هسته",
       hubCore: "هسته",
       portalForward: "منظومه‌ی فرعی {n}",
       portalHome: "خانه",
@@ -428,6 +432,11 @@
     <div id="ai-spacing-thumb"></div>
     <div id="ai-spacing-value">42</div>`;
   hub.appendChild(spacingArc);
+
+  const bookmarkCountEl = document.createElement('div');
+  bookmarkCountEl.id = 'ai-bookmark-count';
+  bookmarkCountEl.setAttribute('aria-live', 'polite');
+  root.appendChild(bookmarkCountEl);
 
   const addNodeBtn = document.createElement('div'); addNodeBtn.id = 'ai-add-node'; addNodeBtn.textContent = '+';
   const inlineForm = document.createElement('div'); inlineForm.id = 'ai-inline-form';
@@ -771,6 +780,7 @@
     if(searchPanel.classList.contains('active')) renderSearchResults(uiEls.searchInput.value);
     renderTierDots();
     if(isOpen) setHubLabel(currentLayerMode === 0 ? t('hubCore') : RING_CONFIG[currentLayerMode].label);
+    updateBookmarkCount();
   }
 
   function updateClockAge() {
@@ -3705,12 +3715,41 @@
     try { 
       if (chrome.runtime?.id) { chrome.storage.local.set({ linksData: linksData, linksData2: linksData2, linksData3: linksData3 }); } 
       renderSmartRibbon();
+      updateBookmarkCount();
     } catch (e) { showToastNotification(t('toastStorageErr'), true); } 
+  }
+
+  function countHubBookmarks(hubIdx) {
+    const arr = hubData(hubIdx);
+    let n = 0;
+    for (let i = 4; i < arr.length; i++) {
+      if (arr[i] && arr[i].url) n++;
+    }
+    return n;
+  }
+
+  function countHubCores(hubIdx) {
+    const arr = hubData(hubIdx);
+    let n = 0;
+    for (let i = 0; i < 4 && i < arr.length; i++) {
+      if (arr[i] && arr[i].url) n++;
+    }
+    return n;
+  }
+
+  function updateBookmarkCount() {
+    if (!bookmarkCountEl) return;
+    const bm = countHubBookmarks(currentHubIndex);
+    const cores = countHubCores(currentHubIndex);
+    bookmarkCountEl.innerHTML =
+      `<span class="ai-count-bm">${t('bookmarkCount').replace('{n}', String(bm))}</span>` +
+      `<span class="ai-count-core">${t('coreCount').replace('{n}', String(cores))}</span>`;
+    bookmarkCountEl.classList.toggle('visible', !!showAllOverride);
   }
 
   allToggleDot.addEventListener('click', (e) => {
     if (!chrome.runtime?.id) return; e.stopPropagation(); 
-    if (showAllOverride) { closeTree(); } else { closeAllPanelsExcept(''); isOpen = true; showAllOverride = true; root.classList.add('open', 'show-all-active'); setHubLabel(t('hubAll')); renderSpiral(); resetToggleTimeout(); }
+    if (showAllOverride) { closeTree(); } else { closeAllPanelsExcept(''); isOpen = true; showAllOverride = true; root.classList.add('open', 'show-all-active'); setHubLabel(t('hubAll')); renderSpiral(); updateBookmarkCount(); resetToggleTimeout(); }
   });
   
   function cycleLayer() { 
@@ -3718,7 +3757,7 @@
       currentLayerMode++; if (currentLayerMode >= MAX_LAYERS) currentLayerMode = 0; 
       let nextLabel = RING_CONFIG[currentLayerMode].label;
       if (RING_CONFIG[currentLayerMode].labelKey) nextLabel = t(RING_CONFIG[currentLayerMode].labelKey);
-      setHubLabel(nextLabel); renderSpiral(); 
+      setHubLabel(nextLabel); renderSpiral(); updateBookmarkCount();
   }
 
   function calculateSafePositions(countToGenerate) {
@@ -3741,7 +3780,8 @@
     let visibleIndices = [];
     let ring = null;
     if (showAllOverride) {
-        visibleIndices = activeData.map((_, i) => i);
+        // Show-all: only bookmarks of this galaxy — core AI slots stay on Core layer
+        for (let i = 4; i < activeData.length; i++) visibleIndices.push(i);
     } else {
         if (currentLayerMode === 0) {
             visibleIndices = [0, 1, 2, 3].filter(i => i < activeData.length);
@@ -3886,8 +3926,9 @@
   function switchHub(targetIndex, keepLayer) {
       currentHubIndex = targetIndex;
       if (!keepLayer) currentLayerMode = 0;
-      setHubLabel(currentLayerMode === 0 ? t('hubCore') : RING_CONFIG[currentLayerMode].label);
+      setHubLabel(showAllOverride ? t('hubAll') : (currentLayerMode === 0 ? t('hubCore') : RING_CONFIG[currentLayerMode].label));
       renderSpiral(); renderTierDots();
+      updateBookmarkCount();
   }
 
   function repositionSpiralNodes() {
@@ -4211,6 +4252,7 @@
     document.querySelectorAll('.ai-node').forEach(node => { node.classList.remove('faded'); node.style.transitionDelay = '0s'; }); resetToggleTimeout();
     if (typeof renderTierDots === 'function') renderTierDots();
     if (typeof renderHubDots === 'function') renderHubDots();
+    updateBookmarkCount();
   }
 
   collapseToggleDot.addEventListener('click', (e) => { if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); closeAllPanelsExcept(''); hub.classList.add('hub-collapsed'); });
