@@ -177,6 +177,54 @@ opacity: 0; transition: opacity 0.3s var(--ease-premium);
     0 0 14px rgba(99, 102, 241, 0.35),
     0 1px 2px rgba(0, 0, 0, 0.65);
 }
+
+/* Notepad edge-snap split view (left / right dock) */
+#ai-quick-note-form.split-preview-left {
+  box-shadow:
+    var(--apple-shadow, var(--glass-shadow)),
+    -6px 0 0 2px rgba(16, 185, 129, 0.55),
+    0 0 36px rgba(16, 185, 129, 0.22) !important;
+}
+#ai-quick-note-form.split-preview-right {
+  box-shadow:
+    var(--apple-shadow, var(--glass-shadow)),
+    6px 0 0 2px rgba(16, 185, 129, 0.55),
+    0 0 36px rgba(16, 185, 129, 0.22) !important;
+}
+#ai-quick-note-form.split-docked {
+  max-width: none !important;
+  max-height: none !important;
+  min-height: calc(100vh - 48px) !important;
+  height: calc(100vh - 48px) !important;
+  min-width: 380px !important;
+  border-radius: 0 !important;
+  transition:
+    left 0.28s var(--ease-premium),
+    top 0.28s var(--ease-premium),
+    width 0.28s var(--ease-premium),
+    height 0.28s var(--ease-premium),
+    box-shadow 0.25s var(--ease-premium) !important;
+  box-shadow:
+    0 0 40px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(16, 185, 129, 0.28) inset,
+    0 0 40px rgba(16, 185, 129, 0.16) !important;
+}
+#ai-quick-note-form.split-docked.split-left {
+  border-left: 3px solid rgba(16, 185, 129, 0.75) !important;
+  border-radius: 0 12px 12px 0 !important;
+}
+#ai-quick-note-form.split-docked.split-right {
+  border-right: 3px solid rgba(16, 185, 129, 0.75) !important;
+  border-radius: 12px 0 0 12px !important;
+}
+#ai-quick-note-form.split-docked .ai-note-text-wrap {
+  min-height: 120px;
+  flex: 1 1 auto;
+}
+#ai-quick-note-form.split-docked #ai-note-text {
+  min-height: 120px;
+}
+
 .orbit-root.hide-toggles #ai-bookmark-count,
 .orbit-hub.hub-collapsed ~ #ai-bookmark-count,
 .orbit-root:not(.show-all-active) #ai-bookmark-count {
@@ -383,14 +431,49 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 /* Custom resize grips — one at each bottom corner, so it's never stuck resizing from just one side */
 .ai-note-resize-handle {
   position: absolute;
+  z-index: 5;
+}
+/* Bottom corners — size both axes */
+.ai-note-resize-bl, .ai-note-resize-br {
   bottom: 0;
   width: 18px;
   height: 18px;
-  z-index: 5;
 }
 .ai-note-resize-bl { left: 0; cursor: sw-resize; }
 .ai-note-resize-br { right: 0; cursor: se-resize; }
-.ai-note-resize-handle::after {
+/* Left / right edges — width only */
+.ai-note-resize-l, .ai-note-resize-r {
+  top: 28px;
+  bottom: 18px;
+  width: 8px;
+  cursor: ew-resize;
+}
+.ai-note-resize-l { left: 0; }
+.ai-note-resize-r { right: 0; }
+.ai-note-resize-l::after, .ai-note-resize-r::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 36px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.22);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+.ai-note-resize-l:hover::after, .ai-note-resize-r:hover::after,
+#ai-quick-note-form.split-docked .ai-note-resize-l::after,
+#ai-quick-note-form.split-docked .ai-note-resize-r::after {
+  opacity: 0.85;
+}
+#ai-quick-note-form.split-docked .ai-note-resize-l:hover::after,
+#ai-quick-note-form.split-docked .ai-note-resize-r:hover::after {
+  background: rgba(52, 211, 153, 0.85);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+.ai-note-resize-bl::after, .ai-note-resize-br::after {
   content: '';
   position: absolute;
   bottom: 4px;
@@ -399,7 +482,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   opacity: 0.55;
   transition: opacity 0.15s;
 }
-.ai-note-resize-handle:hover::after { opacity: 0.95; }
+.ai-note-resize-bl:hover::after, .ai-note-resize-br:hover::after { opacity: 0.95; }
 .ai-note-resize-br::after {
   right: 4px;
   background: repeating-linear-gradient(135deg, rgba(255,255,255,0.9) 0 1.4px, transparent 1.4px 4px);
@@ -414,6 +497,31 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 }
 .ai-note-header-title {
   font-size: 11px; font-weight: 700; color: rgba(167, 243, 208, 0.85); letter-spacing: 0.5px;
+}
+.ai-note-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.ai-note-split-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #9CA3AF;
+  width: 28px; height: 26px; padding: 0; border-radius: 6px; cursor: pointer;
+  font-size: 13px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-note-split-btn:hover {
+  color: #e5e7eb;
+  background: rgba(255,255,255,0.06);
+}
+.ai-note-split-btn.is-active {
+  color: #34D399;
+  background: rgba(16, 185, 129, 0.16);
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
 }
 .ai-note-pin-btn {
   background: transparent; border: none; color: #9CA3AF;
@@ -1814,6 +1922,14 @@ body.rtl .ai-note-history-menu,
 #ai-quick-note-form:hover .ai-note-resize-handle {
   opacity: 0.5;
 }
+#ai-quick-note-form.split-docked .ai-note-resize-l,
+#ai-quick-note-form.split-docked .ai-note-resize-r {
+  opacity: 0.65;
+}
+#ai-quick-note-form.split-docked:hover .ai-note-resize-l,
+#ai-quick-note-form.split-docked:hover .ai-note-resize-r {
+  opacity: 1;
+}
 
 /* Format bar: soft matte chip tray */
 #ai-quick-note-form .ai-note-format-bar {
@@ -2126,13 +2242,22 @@ body.rtl .ai-note-history-menu,
   color: #BFDBFE;
   border-color: rgba(96, 165, 250, 0.55);
 }
+.ai-social-toggle-btn:focus-visible {
+  outline: 2px solid rgba(147, 197, 253, 0.85);
+  outline-offset: 2px;
+}
+.ai-social-toggle-btn.is-busy {
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+}
 .ai-social-popover {
-  display: none;
+  display: flex;
   position: absolute;
   bottom: calc(100% + 8px);
   inset-inline-end: 0;
   z-index: 96;
-  min-width: 148px;
+  min-width: 158px;
   padding: 5px;
   flex-direction: column;
   gap: 2px;
@@ -2142,8 +2267,30 @@ body.rtl .ai-note-history-menu,
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.92) translateY(6px);
+  transform-origin: bottom right;
+  transition: opacity 0.16s var(--ease-premium, ease), transform 0.2s var(--ease-premium, ease), visibility 0s linear 0.16s;
 }
-.ai-social-popover.active { display: flex; }
+/* اگر بالای دکمه جا کافی نبود، منو رو به پایین باز می‌شود (به‌جای کلیپ‌شدن زیر لبه‌ی بالای صفحه) */
+.ai-social-popover.flip-down {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+/* اگر سمت راست جا کافی نبود (مثلاً حالت split-docked باریک)، منو از سمت چپ دکمه باز می‌شود */
+.ai-social-popover.align-start {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+}
+.ai-social-popover.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+  transition: opacity 0.16s var(--ease-premium, ease), transform 0.2s var(--ease-premium, ease);
+}
 .ai-social-item {
   background: transparent;
   border: none;
@@ -2166,7 +2313,26 @@ body.rtl .ai-note-history-menu,
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
+.ai-social-item:focus-visible {
+  outline: 2px solid rgba(147, 197, 253, 0.85);
+  outline-offset: -2px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
 .ai-social-icon { font-size: 13px; opacity: 0.9; }
+/* بج رنگی هر شبکه، هم‌راستا با الگوی رنگ کم‌رنگ+متن پررنگِ دکمه‌های toolbar (پاک‌کن/کپی/ذخیره) */
+.ai-social-item-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
 
 
 

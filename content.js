@@ -81,7 +81,7 @@
       toastStorageErr: "Storage Error!",
       toastStarUpdated: "Importance Updated ⭐",
       toastInvalidUrl: "Invalid URL",
-      toastExists: "Bookmark already exists!",
+      toastExists: "Already in Galaxy {n}!",
       toastUpdated: "Bookmark Updated! ✏️",
       toastPlanted: "Bookmark Planted! 🌱",
       toastDeleted: "Deleted! Use Undo to restore it.",
@@ -126,8 +126,9 @@
       shareTitle: "Share note to social",
       shareEmpty: "Type something first",
       shareOpened: "Opened {name} ⚡",
+      shareTruncated: "Text was too long, trimmed for sharing",
       shareX: "X (Twitter)",
-      shareTelegram: "Telegram",
+      shareWhatsApp: "WhatsApp",
       shareLinkedIn: "LinkedIn",
       shareFacebook: "Facebook",
       emojiOnlineBtn: "Online vault",
@@ -210,7 +211,7 @@
       toastStorageErr: "خطای فضای ذخیره‌سازی!",
       toastStarUpdated: "میزان اهمیت بروز شد ⭐",
       toastInvalidUrl: "لینک نامعتبر است",
-      toastExists: "این بوک‌مارک از قبل وجود دارد!",
+      toastExists: "از قبل در کهکشان {n} هست!",
       toastUpdated: "بوک‌مارک به‌روزرسانی شد! ✏️",
       toastPlanted: "بوک‌مارک افزوده شد! 🌱",
       toastDeleted: "حذف شد؛ با Undo بازگردانید.",
@@ -255,8 +256,9 @@
       shareTitle: "اشتراک‌گذاری یادداشت",
       shareEmpty: "اول یه متن بنویس",
       shareOpened: "{name} باز شد ⚡",
+      shareTruncated: "متن خیلی بلند بود، برای اشتراک‌گذاری کوتاه شد",
       shareX: "شبکه X",
-      shareTelegram: "تلگرام",
+      shareWhatsApp: "واتساپ",
       shareLinkedIn: "لینکدین",
       shareFacebook: "فیسبوک",
       emojiOnlineBtn: "گنجینه آنلاین",
@@ -477,7 +479,10 @@
   quickNoteForm.innerHTML = `
     <div class="ai-note-header" id="ai-note-header">
       <span class="ai-note-header-title">NOTEPAD & AI</span>
-      <button type="button" id="ai-note-pin-btn" class="ai-note-pin-btn" title="Pin Window">📌</button>
+      <div class="ai-note-header-actions">
+        <button type="button" id="ai-note-split-btn" class="ai-note-split-btn" title="Split view">▦</button>
+        <button type="button" id="ai-note-pin-btn" class="ai-note-pin-btn" title="Pin Window">📌</button>
+      </div>
     </div>
     <div class="ai-note-format-bar" id="ai-note-format-bar">
       <button type="button" id="ai-align-left-btn" class="ai-format-btn ai-align-icon ai-align-icon-left" title="Left"><span></span><span></span><span></span></button>
@@ -503,7 +508,7 @@
       <button id="ai-note-copy-btn" class="ai-toolbar-btn" style="background: rgba(16, 185, 129, 0.22); color: #34D399;"></button>
       <button id="ai-save-txt-btn" class="ai-toolbar-btn" style="background: rgba(255, 255, 255, 0.14); color: #fff;"></button>
       <div id="ai-social-share-wrap" class="ai-social-share-wrap">
-        <button type="button" id="ai-social-toggle-btn" class="ai-social-toggle-btn" title="Share">
+        <button type="button" id="ai-social-toggle-btn" class="ai-social-toggle-btn" title="Share" aria-haspopup="menu" aria-expanded="false">
           <span id="ai-social-toggle-label">Share</span>
           <span class="ai-social-icon" aria-hidden="true">🔗</span>
         </button>
@@ -523,6 +528,8 @@
       </div>
     </div>
 
+    <div class="ai-note-resize-handle ai-note-resize-l" id="ai-note-resize-l" title="Resize width"></div>
+    <div class="ai-note-resize-handle ai-note-resize-r" id="ai-note-resize-r" title="Resize width"></div>
     <div class="ai-note-resize-handle ai-note-resize-bl" id="ai-note-resize-bl" title="Resize"></div>
     <div class="ai-note-resize-handle ai-note-resize-br" id="ai-note-resize-br" title="Resize"></div>
   `;
@@ -748,6 +755,7 @@
     if (uiEls.emojiToggleBtn) uiEls.emojiToggleBtn.title = t('emojiMoreTitle');
     if (typeof renderEmojiTray === 'function' && Array.isArray(favoriteEmojis)) renderEmojiTray();
     if (typeof renderSocialPopover === 'function') renderSocialPopover();
+    if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
 
     uiEls.todoMainTitle.textContent = t('todoTitle');
     uiEls.todoInput.placeholder = activeTodoTab === 'daily' ? t('todoDailyInput') : t('todoGoalInput');
@@ -2084,6 +2092,7 @@
   function closeAllPanelsExcept(exceptStr, force) {
       if (exceptStr !== 'note') {
         if (force || !isNotePinned) {
+          if (typeof exitNoteSplit === 'function') exitNoteSplit(false);
           quickNoteForm.classList.remove('active');
           root.classList.remove('show-notepad');
           isNotePinned = false;
@@ -2199,11 +2208,102 @@
   let noteManuallyPositioned = false;
   let isNoteDragging = false, noteDragMoved = false;
   let noteStartX, noteStartY, noteStartLeft, noteStartTop;
+  let noteSplitSide = null; // null | 'left' | 'right'
+  const NOTE_SPLIT_EDGE_PX = 48;
+  const NOTE_SPLIT_TOP = 0;
+  const NOTE_SPLIT_BOTTOM_GAP = 48; // keep toolbar above Windows taskbar
+  const NOTE_SPLIT_WIDTH_DEFAULT = 380;
+  let noteSplitWidth = NOTE_SPLIT_WIDTH_DEFAULT; // user-adjustable while split
+
+  function getNoteSplitMetrics() {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const minW = (typeof NOTE_MIN_W === 'number' ? NOTE_MIN_W : NOTE_SPLIT_WIDTH_DEFAULT);
+    const maxW = Math.max(minW, Math.round(vw * 0.7));
+    const width = Math.max(minW, Math.min(maxW, noteSplitWidth || minW));
+    const height = Math.max(280, vh - NOTE_SPLIT_TOP - NOTE_SPLIT_BOTTOM_GAP);
+    return { vw, vh, width, height, minW, maxW };
+  }
+
+  function syncNoteSplitBtn() {
+    const btn = document.getElementById('ai-note-split-btn');
+    if (!btn) return;
+    const on = !!noteSplitSide;
+    btn.classList.toggle('is-active', on);
+    btn.title = on
+      ? (currentLang === 'fa' ? 'خروج از اسپلیت' : 'Exit split view')
+      : (currentLang === 'fa' ? 'اسپلیت چپ/راست' : 'Split view');
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
+  function exitNoteSplit(keepSize) {
+    if (!noteSplitSide) { syncNoteSplitBtn(); return; }
+    noteSplitSide = null;
+    quickNoteForm.classList.remove('split-docked', 'split-left', 'split-right', 'split-preview-left', 'split-preview-right');
+    // Return to normal open state: unpin (same as first open)
+    isNotePinned = false;
+    quickNoteForm.classList.remove('is-pinned');
+    if (typeof applyPinVisual === 'function') applyPinVisual(false);
+    if (!keepSize) {
+      // Restore compact floating size near hub
+      noteManuallyPositioned = false;
+      if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
+      else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
+      if (typeof adjustNotepadPosition === 'function') adjustNotepadPosition();
+      if (typeof startNotepadIdleTimer === 'function') startNotepadIdleTimer();
+    }
+    syncNoteSplitBtn();
+  }
+
+  function enterNoteSplit(side) {
+    const { vw, vh, width, height } = getNoteSplitMetrics();
+    noteSplitSide = side;
+    noteSplitWidth = width;
+    noteManuallyPositioned = true;
+    // Prevent autoGrowNotepad from collapsing split height back to content size
+    if (typeof noteUserResized !== 'undefined') noteUserResized = true;
+    isNotePinned = true;
+    if (typeof applyPinVisual === 'function') applyPinVisual(true);
+    quickNoteForm.classList.add('is-pinned', 'split-docked');
+    quickNoteForm.classList.toggle('split-left', side === 'left');
+    quickNoteForm.classList.toggle('split-right', side === 'right');
+    quickNoteForm.classList.remove('split-preview-left', 'split-preview-right');
+    quickNoteForm.style.width = width + 'px';
+    quickNoteForm.style.height = height + 'px';
+    quickNoteForm.style.top = NOTE_SPLIT_TOP + 'px';
+    quickNoteForm.style.left = (side === 'left' ? 0 : (vw - width)) + 'px';
+    syncNoteSplitBtn();
+  }
+
+  function toggleNoteSplit() {
+    if (!quickNoteForm.classList.contains('active')) return;
+    if (noteSplitSide) {
+      exitNoteSplit(false);
+      return;
+    }
+    // Prefer the side closer to the current notepad position
+    const r = quickNoteForm.getBoundingClientRect();
+    const mid = r.left + r.width / 2;
+    const side = mid < window.innerWidth / 2 ? 'left' : 'right';
+    enterNoteSplit(side);
+  }
+
+  function detectNoteSplitSide(rect) {
+    const vw = window.innerWidth;
+    if (rect.left <= NOTE_SPLIT_EDGE_PX) return 'left';
+    if (rect.right >= vw - NOTE_SPLIT_EDGE_PX) return 'right';
+    return null;
+  }
+
   const noteHeaderEl = quickNoteForm.querySelector('#ai-note-header');
   if (noteHeaderEl) {
     noteHeaderEl.addEventListener('mousedown', (e) => {
-      if (e.target.closest('#ai-note-pin-btn')) return;
+      if (e.target.closest('#ai-note-pin-btn') || e.target.closest('#ai-note-split-btn')) return;
       e.stopPropagation(); e.preventDefault();
+      // Leaving split mode when user starts dragging again
+      if (noteSplitSide) {
+        exitNoteSplit(true);
+      }
       isNoteDragging = true; noteDragMoved = false;
       noteStartX = e.clientX; noteStartY = e.clientY;
       const r = quickNoteForm.getBoundingClientRect();
@@ -2219,12 +2319,33 @@
       noteManuallyPositioned = true;
       quickNoteForm.style.left = `${noteStartLeft + dx}px`;
       quickNoteForm.style.top = `${noteStartTop + dy}px`;
+      // Edge preview while dragging
+      const r = quickNoteForm.getBoundingClientRect();
+      const side = detectNoteSplitSide(r);
+      quickNoteForm.classList.toggle('split-preview-left', side === 'left');
+      quickNoteForm.classList.toggle('split-preview-right', side === 'right');
     }
   });
   document.addEventListener('mouseup', () => {
     if (!isNoteDragging) return;
     isNoteDragging = false;
     if (noteHeaderEl) noteHeaderEl.style.cursor = 'grab';
+    if (noteDragMoved && quickNoteForm.classList.contains('active')) {
+      const r = quickNoteForm.getBoundingClientRect();
+      const side = detectNoteSplitSide(r);
+      if (side) enterNoteSplit(side);
+      else {
+        quickNoteForm.classList.remove('split-preview-left', 'split-preview-right');
+      }
+    } else {
+      quickNoteForm.classList.remove('split-preview-left', 'split-preview-right');
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    if (noteSplitSide && quickNoteForm.classList.contains('active')) {
+      enterNoteSplit(noteSplitSide);
+    }
   });
 
   // Pin button
@@ -2234,6 +2355,15 @@
   let notepadIdleTimer = null;
   const IDLE_GRACE_PERIOD = 5000;
   const pinBtn = quickNoteForm.querySelector('#ai-note-pin-btn');
+  const splitBtn = quickNoteForm.querySelector('#ai-note-split-btn');
+  if (splitBtn) {
+    splitBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      toggleNoteSplit();
+    });
+  }
+  syncNoteSplitBtn();
 
   function applyPinVisual(pinned) {
     if (!pinBtn) return;
@@ -2349,6 +2479,7 @@
     if (isActive) {
       isNotePinned = false;
       applyPinVisual(false);
+      exitNoteSplit(false);
       closeAllPanelsExcept('', true);
       abortNoteClosing();
     } else {
@@ -2419,6 +2550,7 @@
 
   function autoGrowNotepad() {
     if (!noteTextarea || !quickNoteForm.classList.contains('active')) return;
+    if (noteSplitSide) return; // split mode manages its own full height
     if (noteUserResized) return;
 
     const { lineH, padY } = measureNoteLineMetrics();
@@ -2482,27 +2614,61 @@
 
   function setupNoteResizeHandle(handleEl, corner) {
     if (!handleEl) return;
-    let dragging = false, startX, startY, startW, startH, startLeft;
+    let dragging = false, startX, startY, startW, startH, startLeft, startTop;
     handleEl.addEventListener('mousedown', (e) => {
       e.stopPropagation(); e.preventDefault();
       dragging = true;
       quickNoteForm.style.transition = 'none';
       const r = quickNoteForm.getBoundingClientRect();
       startX = e.clientX; startY = e.clientY;
-      startW = r.width; startH = r.height; startLeft = r.left;
+      startW = r.width; startH = r.height; startLeft = r.left; startTop = r.top;
       document.body.style.userSelect = 'none';
     });
     document.addEventListener('mousemove', (e) => {
       if (!dragging) return;
       const dx = e.clientX - startX, dy = e.clientY - startY;
-      let newW = corner === 'br' ? (startW + dx) : (startW - dx);
-      newW = Math.max(NOTE_MIN_W, Math.min(noteMaxW(), newW));
-      const newH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), startH + dy));
+      const minW = NOTE_MIN_W;
+      const maxW = noteSplitSide ? Math.max(minW, Math.round(window.innerWidth * 0.7)) : noteMaxW();
+      let newW = startW;
+      let newH = startH;
+      let newLeft = startLeft;
+
+      if (corner === 'br') {
+        newW = startW + dx;
+        newH = startH + dy;
+      } else if (corner === 'bl') {
+        newW = startW - dx;
+        newH = startH + dy;
+        newLeft = startLeft + (startW - Math.max(minW, Math.min(maxW, newW)));
+      } else if (corner === 'r') {
+        newW = startW + dx;
+      } else if (corner === 'l') {
+        newW = startW - dx;
+        newLeft = startLeft + (startW - Math.max(minW, Math.min(maxW, newW)));
+      }
+
+      newW = Math.max(minW, Math.min(maxW, newW));
+      if (corner === 'br' || corner === 'bl') {
+        newH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), newH));
+      }
+
+      // While split: keep tall docked height (above taskbar) and stick to edge
+      if (noteSplitSide) {
+        newH = Math.max(280, window.innerHeight - NOTE_SPLIT_TOP - NOTE_SPLIT_BOTTOM_GAP);
+        if (noteSplitSide === 'left') {
+          newLeft = 0;
+        } else if (noteSplitSide === 'right') {
+          newLeft = window.innerWidth - newW;
+        }
+        noteSplitWidth = newW;
+      }
+
       noteManuallyPositioned = true;
       noteUserResized = true;
       quickNoteForm.style.width = `${newW}px`;
       quickNoteForm.style.height = `${newH}px`;
-      if (corner === 'bl') quickNoteForm.style.left = `${startLeft + (startW - newW)}px`;
+      quickNoteForm.style.left = `${newLeft}px`;
+      if (noteSplitSide) quickNoteForm.style.top = '0px';
     });
     document.addEventListener('mouseup', () => {
       if (!dragging) return;
@@ -2511,6 +2677,8 @@
       requestAnimationFrame(() => { quickNoteForm.style.transition = ''; });
     });
   }
+  setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-l'), 'l');
+  setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-r'), 'r');
   setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-bl'), 'bl');
   setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-br'), 'br');
 
@@ -2964,43 +3132,154 @@
   }
 
   // --- Social share ---
+  // سقف طول متن قبل از انکود شدن در URL؛ هم از رسیدن به محدودیت طول URL مرورگر/سیستم‌عامل
+  // جلوگیری می‌کند و هم از برش خاموش و بی‌اطلاع‌کننده‌ی خودِ شبکه‌های اجتماعی
+  const SHARE_MAX_LEN = 3800;
+  // رنگ هر بج مطابق برند خودِ شبکه، اما با همان الگوی «پس‌زمینه‌ی کم‌رنگ + متن پررنگ» که دکمه‌های
+  // toolbar (پاک‌کردن/کپی/ذخیره) از قبل استفاده می‌کنند — برای هم‌خوانی بصری با بقیه‌ی نوت‌پد
   const TEXT_SOCIAL_NETWORKS = [
-    { id: 'x', labelKey: 'shareX', icon: '𝕏', buildUrl: (text) => 'https://x.com/intent/post?text=' + encodeURIComponent(text) },
-    { id: 'tg', labelKey: 'shareTelegram', icon: '✈️', buildUrl: (text) => 'https://t.me/share/url?url=' + encodeURIComponent(' ') + '&text=' + encodeURIComponent(text) },
-    { id: 'in', labelKey: 'shareLinkedIn', icon: 'in', buildUrl: (text) => 'https://www.linkedin.com/feed/?shareActive=true&text=' + encodeURIComponent(text) },
-    { id: 'fb', labelKey: 'shareFacebook', icon: 'f', buildUrl: (text) => 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent('https://x.com') + '&quote=' + encodeURIComponent(text) }
+    { id: 'x', labelKey: 'shareX', icon: '𝕏', bg: 'rgba(255,255,255,0.16)', fg: '#fff', buildUrl: (text) => 'https://x.com/intent/post?text=' + encodeURIComponent(text) },
+    // واتساپ: wa.me پارامتر text را مستقیماً در باکس پیام پر می‌کند (بدون مشکل og:tags که فیسبوک/لینکدین
+    // دارند)، پس نیازی به کلیپ‌بورد نیست. عمداً از web.whatsapp.com/send استفاده نکردیم چون آن آدرس
+    // صفحه‌ی واسط را رد می‌کند و برای کاربری که از قبل در WhatsApp Web لاگین نیست می‌شکند؛ wa.me آدرس
+    // رسمی و مطمئنی است که هم به وب و هم به اپ دسکتاپ/موبایل به‌درستی می‌رسد
+    { id: 'wa', labelKey: 'shareWhatsApp', icon: 'W', bg: 'rgba(37,211,102,0.20)', fg: '#25D366', buildUrl: (text) => 'https://wa.me/?text=' + encodeURIComponent(text) },
+    // لینکدین هم دقیقاً مثل فیسبوک از سال ۲۰۱۸ پارامترهای متنی (title/summary/text) را در sharer نادیده
+    // می‌گیرد؛ endpoint فعلی‌اش (share-offsite) فقط url می‌گیرد و پیش‌نمایش را از og:tags همان صفحه
+    // می‌سازد. پس مثل فیسبوک به الگوی کپی‌در‌کلیپ‌بورد + بازکردن فید سوییچ می‌کنیم
+    { id: 'in', labelKey: 'shareLinkedIn', icon: 'in', bg: 'rgba(10,102,194,0.20)', fg: '#5B9BD5', needsClipboard: true, buildUrl: () => 'https://www.linkedin.com/feed/' },
+    // فیسبوک از سال ۲۰۱۸ پارامتر quote/متن دلخواه را در sharer.php نادیده می‌گیرد و کارت اشتراک را فقط
+    // از og:tags آدرس u می‌سازد. راه‌حل u=آدرس‌فعلی هم ریسک دارد: همیشه کارت/پیش‌نمایش صفحه‌ای که کاربر
+    // در همان لحظه باز داشته پیوست می‌شود، نه یادداشتش — همان مشکل اطلاعات اضافه‌ی گزارش‌شده، فقط با یک
+    // سایت دیگر به‌جای x.com. چون فیسبوک اصلاً از اشتراک متن خام پشتیبانی نمی‌کند، ساده‌ترین و
+    // صادقانه‌ترین راه: کپی در کلیپ‌بورد + باز کردن فید تمیز فیسبوک بدون هیچ لینک ضمیمه‌ای
+    { id: 'fb', labelKey: 'shareFacebook', icon: 'f', bg: 'rgba(24,119,242,0.20)', fg: '#1877F2', needsClipboard: true, buildUrl: () => 'https://www.facebook.com/' }
   ];
 
   function renderSocialPopover() {
     const pop = uiEls.socialPopover || document.getElementById('ai-social-popover');
     if (!pop) return;
     pop.innerHTML = '';
-    TEXT_SOCIAL_NETWORKS.forEach((net) => {
+    const frag = document.createDocumentFragment();
+    TEXT_SOCIAL_NETWORKS.forEach((net, i) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ai-social-item';
       btn.setAttribute('data-network', net.id);
-      btn.innerHTML = '<span>' + t(net.labelKey) + '</span><span class="ai-social-icon">' + net.icon + '</span>';
+      btn.setAttribute('role', 'menuitem');
+      // roving tabindex: فقط اولین آیتم قابل tab است، بقیه با arrow key در دسترس‌اند (الگوی استاندارد منوها)
+      btn.tabIndex = i === 0 ? 0 : -1;
+      btn.innerHTML = '<span>' + t(net.labelKey) + '</span>' +
+        '<span class="ai-social-item-icon" style="background:' + net.bg + ';color:' + net.fg + ';">' + net.icon + '</span>';
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         shareToTextNetwork(net.id);
-        pop.classList.remove('active');
+        closeSocialPopover(true);
       });
-      pop.appendChild(btn);
+      frag.appendChild(btn);
     });
+    pop.appendChild(frag);
   }
 
+  // موقعیت‌دهی پاپ‌اور نسبت به فضای واقعی ویوپورت — همان الگویی که پنل‌های دیگر (تودو/تقویم/جستجو)
+  // در این فایل استفاده می‌کنند، تا وقتی نوت‌پد نزدیک لبه‌ی بالا/کنار صفحه یا در حالت split-docked باز
+  // است، منوی اشتراک بیرون از دید کاربر کلیپ نشود
+  function positionSocialPopover() {
+    const pop = uiEls.socialPopover;
+    const btn = uiEls.socialToggleBtn;
+    if (!pop || !btn) return;
+    const btnRect = btn.getBoundingClientRect();
+    const popW = pop.offsetWidth || 158;
+    const popH = pop.offsetHeight || 180;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const opensUp = (btnRect.top - popH - 8) >= 0 || (btnRect.top - popH - 8) > (vh - btnRect.bottom - popH - 8);
+    pop.classList.toggle('flip-down', !opensUp);
+    const fitsEnd = (btnRect.right - popW) >= 0; // با inset-inline-end:0 یعنی لبه‌ی راست پاپ‌اور روی لبه‌ی راست دکمه است
+    pop.classList.toggle('align-start', !fitsEnd && (btnRect.left + popW) <= vw);
+    pop.style.transformOrigin = (opensUp ? 'bottom' : 'top') + ' ' + (fitsEnd ? 'right' : 'left');
+  }
+
+  function closeSocialPopover(returnFocus) {
+    if (!uiEls.socialPopover || !uiEls.socialPopover.classList.contains('active')) return;
+    uiEls.socialPopover.classList.remove('active', 'flip-down', 'align-start');
+    if (uiEls.socialToggleBtn) {
+      uiEls.socialToggleBtn.setAttribute('aria-expanded', 'false');
+      if (returnFocus) uiEls.socialToggleBtn.focus();
+    }
+  }
+
+  function socialPopoverKeydown(e) {
+    const items = Array.from(uiEls.socialPopover ? uiEls.socialPopover.querySelectorAll('.ai-social-item') : []);
+    if (!items.length) return;
+    const currentIdx = Math.max(0, items.findIndex(el => el === document.activeElement));
+    const focusIdx = (idx) => {
+      items.forEach((el, i) => { el.tabIndex = i === idx ? 0 : -1; });
+      items[idx].focus();
+    };
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const dir = e.key === 'ArrowDown' ? 1 : -1;
+      focusIdx((currentIdx + dir + items.length) % items.length);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); focusIdx(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); focusIdx(items.length - 1);
+    } else if (e.key === 'Escape') {
+      e.preventDefault(); e.stopPropagation();
+      closeSocialPopover(true);
+    } else if (e.key === 'Tab') {
+      closeSocialPopover(false);
+    }
+  }
+
+  let lastShareAt = 0;
   function shareToTextNetwork(networkId) {
-    const text = noteTextarea ? noteTextarea.value.trim() : '';
+    // جلوگیری از باز شدن چند پنجره/کپی چندباره روی کلیک‌های پیاپی یا دوباره‌فراخوانی تصادفی؛
+    // به‌جای شکست خاموش، دکمه‌ی toggle حالت "busy" می‌گیرد تا کاربر بفهمد کلیکش ثبت شده
+    const now = Date.now();
+    if (now - lastShareAt < 500) return;
+    lastShareAt = now;
+    if (uiEls.socialToggleBtn) {
+      uiEls.socialToggleBtn.classList.add('is-busy');
+      setTimeout(() => uiEls.socialToggleBtn.classList.remove('is-busy'), 500);
+    }
+
+    const raw = noteTextarea ? noteTextarea.value : '';
+    // حذف کاراکترهای نامرئی (zero-width / BOM) پیش از بررسیِ خالی بودن، وگرنه trim() به‌تنهایی آن‌ها را نمی‌گیرد
+    const text = raw.replace(/[\u200B\u200C\u200D\uFEFF]/g, '').trim();
     if (!text) {
       showToastNotification(t('shareEmpty'), true);
       return;
     }
     const net = TEXT_SOCIAL_NETWORKS.find(n => n.id === networkId);
     if (!net) return;
-    const url = net.buildUrl(text);
-    window.open(url, '_blank', 'noopener,noreferrer');
-    showToastNotification(t('shareOpened').replace('{name}', t(net.labelKey)));
+
+    const clipped = text.length > SHARE_MAX_LEN ? text.slice(0, SHARE_MAX_LEN) + '…' : text;
+    if (clipped !== text) showToastNotification(t('shareTruncated'), true);
+
+    const finish = () => {
+      const url = net.buildUrl(clipped);
+      window.open(url, '_blank', 'noopener,noreferrer');
+      // برای شبکه‌هایی که فقط کپی می‌کنیم (لینکدین/فیسبوک) از همان کلید ترجمه‌ای استفاده می‌کنیم که
+      // فیچر Ask-AI برای الگوی مشابهش دارد (dockCopiedOpen)، به‌جای تعریف پیام تکراری جدید
+      showToastNotification(t(net.needsClipboard ? 'dockCopiedOpen' : 'shareOpened').replace('{name}', t(net.labelKey)));
+    };
+
+    if (net.needsClipboard) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(clipped).then(finish, () => {
+          // اگر Clipboard API async شکست بخورد (دسترسی رد شده/کانتکست غیر امن)، از fallback همزمانِ
+          // execCommand که همین‌الان برای دیسپچ Ask-AI در کدبیس وجود دارد استفاده می‌کنیم
+          fallbackCopyTextForDispatch(clipped);
+          finish();
+        });
+      } else {
+        fallbackCopyTextForDispatch(clipped);
+        finish();
+      }
+    } else {
+      finish();
+    }
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
   }
 
@@ -3274,16 +3553,27 @@
       uiEls.socialToggleBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const open = !uiEls.socialPopover.classList.contains('active');
-        uiEls.socialPopover.classList.toggle('active', open);
-        if (open && uiEls.emojiPopover) uiEls.emojiPopover.classList.remove('active');
+        if (open) {
+          if (uiEls.emojiPopover) uiEls.emojiPopover.classList.remove('active');
+          uiEls.socialPopover.classList.add('active');
+          uiEls.socialToggleBtn.setAttribute('aria-expanded', 'true');
+          positionSocialPopover();
+          // فوکوس روی اولین آیتم برای کاربران کیبورد/screen-reader؛ کلیک ماوس هم مشکلی ندارد چون
+          // بلافاصله روی یک آیتم واقعی قرار می‌گیرد که قابل کلیک است
+          const first = uiEls.socialPopover.querySelector('.ai-social-item');
+          if (first) first.focus();
+        } else {
+          closeSocialPopover(false);
+        }
       });
+      uiEls.socialPopover.addEventListener('keydown', socialPopoverKeydown);
     }
     document.addEventListener('click', (e) => {
       if (uiEls.emojiPopover && uiEls.emojiWrap && !uiEls.emojiWrap.contains(e.target)) {
         uiEls.emojiPopover.classList.remove('active');
       }
       if (uiEls.socialPopover && uiEls.socialWrap && !uiEls.socialWrap.contains(e.target)) {
-        uiEls.socialPopover.classList.remove('active');
+        closeSocialPopover(false);
       }
       const modal = document.getElementById('ai-emoji-modal');
       if (modal && modal.classList.contains('active')) {
@@ -3292,6 +3582,9 @@
         }
       }
     });
+    // اگر پنجره ریسایز شود یا نوت‌پد جابه‌جا/تغییر اندازه شود، پاپ‌اور بازِ اشتراک باید یا موقعیتش
+    // به‌روز شود یا (ساده و امن‌تر) بسته شود تا هیچ‌وقت خارج از دید یا روی محل اشتباه نماند
+    window.addEventListener('resize', () => closeSocialPopover(false));
   }
   // بعد از تعریف ماژول ایموجی/اشتراک — جلوگیری از TDZ روی favoriteEmojis
   setupEmojiAndShareUI();
@@ -3630,12 +3923,18 @@
 
   function isDuplicateNodeAll(newUrl, newLabel, skipIndex = null, skipHub = null) {
     const cleanUrl = newUrl.replace(/\/$/, '').toLowerCase(); const cleanLabel = newLabel.toLowerCase();
-    const checkArr = (arr, hubId) => arr.some((link, idx) => {
-        if (hubId === skipHub && idx === skipIndex) return false;
-        if (!link.url) return false;
-        return link.url.replace(/\/$/, '').toLowerCase() === cleanUrl || link.label.toLowerCase() === cleanLabel;
-    });
-    return checkArr(linksData, 1) || checkArr(linksData2, 2) || checkArr(linksData3, 3);
+    const findInArr = (arr, hubId) => {
+      for (let idx = 0; idx < arr.length; idx++) {
+        if (hubId === skipHub && idx === skipIndex) continue;
+        const link = arr[idx];
+        if (!link || !link.url) continue;
+        if (link.url.replace(/\/$/, '').toLowerCase() === cleanUrl || (link.label && link.label.toLowerCase() === cleanLabel)) {
+          return hubId;
+        }
+      }
+      return 0;
+    };
+    return findInArr(linksData, 1) || findInArr(linksData2, 2) || findInArr(linksData3, 3);
   }
 
   try {
@@ -4145,7 +4444,8 @@
     const activeData = hubData(currentHubIndex);
     const isEditing = editingNodeIndex !== null && !!activeData[editingNodeIndex];
 
-    if (isDuplicateNodeAll(url, label, isEditing ? editingNodeIndex : null, currentHubIndex)) { showToastNotification(t('toastExists'), true); return; }
+    const dupHub = isDuplicateNodeAll(url, label, isEditing ? editingNodeIndex : null, currentHubIndex);
+    if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
 
     if (isEditing) {
         if (editingNodeIndex >= 4 && selectedGalaxy && selectedGalaxy !== currentHubIndex) {
@@ -4191,7 +4491,8 @@
     
     if (!homeUrl || !label) return;
 
-    if (isDuplicateNodeAll(homeUrl, label, null, null)) { showToastNotification(t('toastExists'), true); return; }
+    const dupHub = isDuplicateNodeAll(homeUrl, label, null, null);
+    if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
 
     const startHub = isOpen ? currentHubIndex : 1;
     const { ring, targetHub } = findTargetHubForImportance(importance, startHub);
