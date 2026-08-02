@@ -1230,6 +1230,41 @@
 
     let html = '';
     for (let i = 0; i < offset; i++) html += '<div class="day-cell empty"></div>';
+    const GREG_MONTHS_SHORT_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    function dayHoverTip(gy, gm, gd) {
+      // Line 1 — always Gregorian English (global-safe)
+      const gregLine = `${gd} ${GREG_MONTHS_SHORT_EN[gm - 1]}`;
+      // Line 2 — secondary calendar for the user's context
+      let secLine = '';
+      try {
+        const dt = new Date(gy, gm - 1, gd);
+        if (currentLang === 'fa') {
+          secLine = dt.toLocaleDateString('fa-IR-u-ca-persian', { day: 'numeric', month: 'short' });
+        } else {
+          let usedSystemAlt = false;
+          try {
+            const cal = new Intl.DateTimeFormat(systemLocale).resolvedOptions().calendar;
+            if (cal && cal !== 'gregory') {
+              secLine = dt.toLocaleDateString(systemLocale, { day: 'numeric', month: 'short', calendar: cal });
+              usedSystemAlt = true;
+            }
+          } catch (e1) {}
+          if (!usedSystemAlt) {
+            // Dual-calendar product: show Persian equivalent in Latin script for global EN UI
+            secLine = dt.toLocaleDateString('en-US-u-ca-persian', { day: 'numeric', month: 'short' });
+          }
+        }
+      } catch (e) {
+        try {
+          const j2 = gregorianToJalaali(gy, gm, gd);
+          secLine = currentLang === 'fa'
+            ? `${toPersianDigits(j2.jd)} ${JALALI_MONTHS_FA[j2.jm - 1]}`
+            : `${j2.jd}/${j2.jm}`;
+        } catch (e2) {}
+      }
+      return { gregLine, secLine: (secLine || '').trim() };
+    }
+
     for (let d = 1; d <= totalDays; d++) {
       const iso = isoFromYMD(y, m, d);
       const j = gregorianToJalaali(y, m, d);
@@ -1238,11 +1273,15 @@
       const isMarked = isMarkedDay(y, m, d, j.jy, j.jm, j.jd);
       const primary = preferJalali ? toPersianDigits(j.jd) : String(d);
       const sub = preferJalali ? String(d) : String(j.jd);
+      const tip = dayHoverTip(y, m, d);
+      const tipAttr = tip.secLine
+        ? ` data-tip-greg="${tip.gregLine}" data-tip-sec="${tip.secLine}"`
+        : ` data-tip-greg="${tip.gregLine}"`;
       const cls = ['day-cell'];
       if (isToday) cls.push('is-today');
       if (isMarked) cls.push('is-marked');
       if (isSelected) cls.push('is-selected');
-      html += `<div class="${cls.join(' ')}" data-iso="${iso}" role="button" tabindex="0">
+      html += `<div class="${cls.join(' ')}" data-iso="${iso}" role="button" tabindex="0"${tipAttr}>
         <span class="primary-day">${primary}</span>
         <span class="sub-day">${sub}</span>
       </div>`;

@@ -1692,6 +1692,44 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
   font-size: 9px; font-weight: 500; color: rgba(148,163,184,0.55); line-height: 1;
 }
 
+/* Day hover tip — Gregorian EN first, secondary calendar below (global-safe) */
+.day-cell[data-tip-greg] {
+  position: relative;
+}
+.day-cell[data-tip-greg]::after {
+  content: attr(data-tip-greg) "\A" attr(data-tip-sec);
+  white-space: pre;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 6px 9px;
+  border-radius: 8px;
+  background: rgba(10, 14, 24, 0.96);
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.45;
+  text-align: center;
+  direction: ltr;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 30;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.15s var(--ease-premium), transform 0.15s var(--ease-premium);
+  min-width: 64px;
+}
+.day-cell[data-tip-greg]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+/* Secondary line slightly muted */
+.day-cell[data-tip-sec]::after {
+  color: #e2e8f0;
+}
+
+
 #ai-mark-add-btn {
 box-sizing: border-box; width: 100%; padding: 9px 0; border: none; border-radius: 7px; background: rgba(52,211,153,0.85);
 color: #fff; font-weight: 700; font-size: 12.5px; white-space: nowrap; line-height: 1; cursor: pointer;
