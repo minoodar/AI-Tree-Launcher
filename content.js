@@ -104,6 +104,7 @@
       markToggleTitle: "Special Days",
       markAddPlaceholder: "Title (e.g. Child's Birthday)",
       markAddBtn: "Add",
+      markGoldenTitle: "Golden — keep every year",
       markEmpty: "No special days marked yet",
       markDeleteTitle: "Delete",
       markToastAdded: "Special day added! 🎉",
@@ -234,6 +235,7 @@
       markToggleTitle: "مناسبت‌ها",
       markAddPlaceholder: "عنوان (مثلاً تولد فرزند)",
       markAddBtn: "افزودن",
+      markGoldenTitle: "طلایی — هر سال نگه دار",
       markEmpty: "هنوز مناسبتی ثبت نشده",
       markDeleteTitle: "حذف",
       markToastAdded: "مناسبت ثبت شد! 🎉",
@@ -490,7 +492,7 @@
       <button type="button" id="ai-align-right-btn" class="ai-format-btn ai-align-icon ai-align-icon-right" title="Right"><span></span><span></span><span></span></button>
       <div class="ai-note-emoji-wrap" id="ai-note-emoji-wrap">
         <button type="button" id="ai-emoji-toggle-btn" class="ai-emoji-toggle-btn" title="Emojis">😀</button>
-        <div id="ai-emoji-tray" class="ai-emoji-tray" role="list"></div>
+        <button type="button" id="ai-emoji-online-btn" class="ai-emoji-online-btn" title="Online">🌐</button>
         <div id="ai-emoji-popover" class="ai-emoji-popover" role="dialog"></div>
       </div>
     </div>
@@ -569,6 +571,11 @@
           <div class="ai-dual-weekdays" id="ai-dual-weekdays"></div>
           <div class="ai-dual-grid" id="ai-dual-grid"></div>
         </div>
+        <label class="ai-mark-golden-row" id="ai-mark-golden-row" title="">
+          <input type="checkbox" id="ai-mark-golden-cb" class="ai-mark-golden-cb" />
+          <span class="ai-mark-golden-box" aria-hidden="true"></span>
+          <span class="ai-mark-golden-label" id="ai-mark-golden-label">★</span>
+        </label>
         <button type="button" id="ai-mark-add-btn"></button>
       </div>
     </div>
@@ -667,7 +674,7 @@
     alignLeftBtn: quickNoteForm.querySelector('#ai-align-left-btn'),
     emojiWrap: quickNoteForm.querySelector('#ai-note-emoji-wrap'),
     emojiToggleBtn: quickNoteForm.querySelector('#ai-emoji-toggle-btn'),
-    emojiTray: quickNoteForm.querySelector('#ai-emoji-tray'),
+    emojiOnlineBtn: quickNoteForm.querySelector('#ai-emoji-online-btn'),
     emojiPopover: quickNoteForm.querySelector('#ai-emoji-popover'),
     socialWrap: quickNoteForm.querySelector('#ai-social-share-wrap'),
     socialToggleBtn: quickNoteForm.querySelector('#ai-social-toggle-btn'),
@@ -717,6 +724,9 @@
     dualWeekdays: clockPanel.querySelector('#ai-dual-weekdays'),
     dualGrid: clockPanel.querySelector('#ai-dual-grid'),
     markAddBtn: clockPanel.querySelector('#ai-mark-add-btn'),
+    markGoldenCb: clockPanel.querySelector('#ai-mark-golden-cb'),
+    markGoldenRow: clockPanel.querySelector('#ai-mark-golden-row'),
+    markGoldenLabel: clockPanel.querySelector('#ai-mark-golden-label'),
   };
 
   function updateUITexts() {
@@ -753,6 +763,7 @@
     if (uiEls.socialToggleLabel) uiEls.socialToggleLabel.textContent = t('shareBtn');
     if (uiEls.socialToggleBtn) uiEls.socialToggleBtn.title = t('shareTitle');
     if (uiEls.emojiToggleBtn) uiEls.emojiToggleBtn.title = t('emojiMoreTitle');
+    if (uiEls.emojiOnlineBtn) uiEls.emojiOnlineBtn.title = t('emojiOnlineBtn');
     if (typeof renderEmojiTray === 'function' && Array.isArray(favoriteEmojis)) renderEmojiTray();
     if (typeof renderSocialPopover === 'function') renderSocialPopover();
     if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
@@ -771,6 +782,8 @@
     uiEls.markToggle.title = t('markToggleTitle');
     uiEls.markLabelInput.placeholder = t('markAddPlaceholder');
     uiEls.markAddBtn.textContent = t('markAddBtn');
+    if (uiEls.markGoldenRow) uiEls.markGoldenRow.title = t('markGoldenTitle');
+    if (uiEls.markGoldenLabel) uiEls.markGoldenLabel.textContent = '★';
     if (uiEls.smartDateInput) {
       uiEls.smartDateInput.placeholder = currentLang === 'fa'
         ? 'امروز · فردا · ۱۴۰۳/۰۵/۱۶ · 2026-07-27'
@@ -915,22 +928,58 @@
     return Math.round((target - todayStripped) / 86400000);
   }
 
+  // Occurrence date for the current year (does NOT roll to next year).
+  // Used to expire one-shot marks the day after they pass.
+  function markedOccurrenceThisYear(day, month, cal) {
+    const now = new Date();
+    const useJalali = cal === 'j' || cal === 'jalali';
+    try {
+      if (useJalali) {
+        const jToday = gregorianToJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+        const g = jalaaliToGregorian(jToday.jy, month, day);
+        return new Date(g.gy, g.gm - 1, g.gd);
+      }
+      return new Date(now.getFullYear(), month - 1, day);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function isMarkedDayPast(day, month, cal) {
+    const occ = markedOccurrenceThisYear(day, month, cal);
+    if (!occ || isNaN(occ.getTime())) return false;
+    const now = new Date();
+    const todayStripped = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Keep through the event day; remove starting the next calendar day
+    return occ < todayStripped;
+  }
+
+  function pruneExpiredMarkedDays() {
+    if (!Array.isArray(markedDays) || markedDays.length === 0) return false;
+    const kept = markedDays.filter(m => m.golden || !isMarkedDayPast(m.day, m.month, m.cal));
+    if (kept.length === markedDays.length) return false;
+    markedDays = kept;
+    saveMarkedDays();
+    return true;
+  }
+
   function renderMarkedDays() {
+    pruneExpiredMarkedDays();
     if (!uiEls.markDotsRow) return;
     // ردیف بالای ساعت: تا ۳ مناسبت نزدیک (امروز یا آینده)، هر کدوم یه تاگل دایره‌ای
     uiEls.markDotsRow.innerHTML = '';
     if (markedDays.length === 0) {
       uiEls.markDotsRow.style.display = 'none';
     } else {
-      const nearestThree = markedDays
+      const nearestMarks = markedDays
         .map(m => ({ ...m, days: daysUntilNext(m.day, m.month, m.cal) }))
         .sort((a, b) => a.days - b.days)
-        .slice(0, 3);
+        .slice(0, 5);
 
-      nearestThree.forEach((m, idx) => {
+      nearestMarks.forEach((m, idx) => {
         const wrap = document.createElement('div'); wrap.className = 'ai-mark-dot-wrap';
         const dot = document.createElement('button'); dot.type = 'button';
-        dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '');
+        dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? ' is-golden' : '');
         dot.textContent = String(idx + 1);
         const popup = document.createElement('div'); popup.className = 'ai-mark-dot-popup';
         popup.textContent = m.days === 0
@@ -958,12 +1007,12 @@
       return;
     }
     markedDays.slice().sort((a, b) => daysUntilNext(a.day, a.month, a.cal) - daysUntilNext(b.day, b.month, b.cal)).forEach(m => {
-      const li = document.createElement('li'); li.className = 'ai-mark-item';
+      const li = document.createElement('li'); li.className = 'ai-mark-item' + (m.golden ? ' is-golden' : '');
       const span = document.createElement('span'); span.className = 'ai-mark-item-label';
       const dd = String(m.day).padStart(2, '0'); const mm = String(m.month).padStart(2, '0');
       const isJ = m.cal === 'j' || m.cal === 'jalali';
       const dateStr = (isJ && currentLang === 'fa') ? toPersianDigits(`${dd}/${mm}`) : `${dd}/${mm}`;
-      span.textContent = `${m.label}  ·  ${dateStr}`;
+      span.textContent = `${m.golden ? '★ ' : ''}${m.label}  ·  ${dateStr}`;
       const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-mark-item-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
       delBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1232,26 +1281,26 @@
     for (let i = 0; i < offset; i++) html += '<div class="day-cell empty"></div>';
     const GREG_MONTHS_SHORT_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     function dayHoverTip(gy, gm, gd) {
-      // Line 1 — always Gregorian English (global-safe)
+      // Line 1 — Gregorian English, no year
       const gregLine = `${gd} ${GREG_MONTHS_SHORT_EN[gm - 1]}`;
-      // Line 2 — secondary calendar for the user's context
+      // Line 2 — secondary calendar (day + month only)
       let secLine = '';
       try {
         const dt = new Date(gy, gm - 1, gd);
+        const secOpts = { day: 'numeric', month: 'short' };
         if (currentLang === 'fa') {
-          secLine = dt.toLocaleDateString('fa-IR-u-ca-persian', { day: 'numeric', month: 'short' });
+          secLine = dt.toLocaleDateString('fa-IR-u-ca-persian', secOpts);
         } else {
           let usedSystemAlt = false;
           try {
             const cal = new Intl.DateTimeFormat(systemLocale).resolvedOptions().calendar;
             if (cal && cal !== 'gregory') {
-              secLine = dt.toLocaleDateString(systemLocale, { day: 'numeric', month: 'short', calendar: cal });
+              secLine = dt.toLocaleDateString(systemLocale, { ...secOpts, calendar: cal });
               usedSystemAlt = true;
             }
           } catch (e1) {}
           if (!usedSystemAlt) {
-            // Dual-calendar product: show Persian equivalent in Latin script for global EN UI
-            secLine = dt.toLocaleDateString('en-US-u-ca-persian', { day: 'numeric', month: 'short' });
+            secLine = dt.toLocaleDateString('en-US-u-ca-persian', secOpts);
           }
         }
       } catch (e) {
@@ -1319,7 +1368,7 @@
     renderDualGrid();
   });
 
- [uiEls.markToggle, uiEls.markLabelInput, uiEls.smartDateInput, uiEls.smartDatePickerBtn, uiEls.markAddBtn, uiEls.markPanel, uiEls.markList, uiEls.dualPicker].forEach(el => {
+ [uiEls.markToggle, uiEls.markLabelInput, uiEls.smartDateInput, uiEls.smartDatePickerBtn, uiEls.markAddBtn, uiEls.markGoldenRow, uiEls.markPanel, uiEls.markList, uiEls.dualPicker].forEach(el => {
     if (!el) return;
     el.addEventListener('mousedown', (e) => e.stopPropagation());
     el.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: false });
@@ -1363,9 +1412,11 @@
       showToastNotification(t('markInvalid'), true);
       return;
     }
-    markedDays.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), label, day, month, cal });
+    const isGolden = !!(uiEls.markGoldenCb && uiEls.markGoldenCb.checked);
+    markedDays.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), label, day, month, cal, golden: isGolden });
     saveMarkedDays(); renderMarkedDays();
     uiEls.markLabelInput.value = '';
+    if (uiEls.markGoldenCb) uiEls.markGoldenCb.checked = false;
     smartDateMeta = null;
     setSmartDate('');
     closeDualPicker();
@@ -3094,55 +3145,51 @@
   }
 
   function renderEmojiTray() {
-    const tray = (typeof uiEls !== 'undefined' && uiEls.emojiTray) || document.getElementById('ai-emoji-tray');
-    if (!tray) return;
+    // Inline tray removed — curated memory is shown inside the "more" popover only.
     if (!Array.isArray(favoriteEmojis) || !favoriteEmojis.length) {
       favoriteEmojis = (typeof DEFAULT_FAVORITE_EMOJIS !== 'undefined' ? DEFAULT_FAVORITE_EMOJIS : ['✨','📌','🔥','💡']).slice();
     }
-    tray.innerHTML = '';
-    favoriteEmojis.forEach((emoji) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ai-emoji-item';
-      btn.textContent = emoji;
-      btn.title = emoji;
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        insertEmojiAtCursor(emoji);
-      });
-      tray.appendChild(btn);
-    });
   }
 
   function renderEmojiPopover() {
     const pop = uiEls.emojiPopover || document.getElementById('ai-emoji-popover');
     if (!pop) return;
     pop.innerHTML = '';
-    const title = document.createElement('div');
-    title.className = 'ai-emoji-popover-title';
-    title.textContent = t('emojiMoreTitle');
-    pop.appendChild(title);
-    const grid = document.createElement('div');
-    grid.className = 'ai-emoji-grid';
-    const seen = new Set();
-    const list = [...favoriteEmojis, ...EMOJI_PICKER_GRID].filter((e) => {
+    if (!Array.isArray(favoriteEmojis) || !favoriteEmojis.length) {
+      favoriteEmojis = (typeof DEFAULT_FAVORITE_EMOJIS !== 'undefined' ? DEFAULT_FAVORITE_EMOJIS : ['✨','📌','🔥','💡']).slice();
+    }
+
+    const addGrid = (titleText, list, extraClass) => {
+      if (!list || !list.length) return;
+      const title = document.createElement('div');
+      title.className = 'ai-emoji-popover-title';
+      title.textContent = titleText;
+      pop.appendChild(title);
+      const grid = document.createElement('div');
+      grid.className = 'ai-emoji-grid' + (extraClass ? ' ' + extraClass : '');
+      list.forEach((emoji) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'ai-emoji-item';
+        btn.textContent = emoji;
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          insertEmojiAtCursor(emoji);
+          pop.classList.remove('active');
+        });
+        grid.appendChild(btn);
+      });
+      pop.appendChild(grid);
+    };
+
+    addGrid(t('emojiTrayTitle'), favoriteEmojis.slice(), 'is-memory');
+    const seen = new Set(favoriteEmojis);
+    const more = (typeof EMOJI_PICKER_GRID !== 'undefined' ? EMOJI_PICKER_GRID : []).filter((e) => {
       if (seen.has(e)) return false;
       seen.add(e);
       return true;
     });
-    list.forEach((emoji) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ai-emoji-item';
-      btn.textContent = emoji;
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        insertEmojiAtCursor(emoji);
-        pop.classList.remove('active');
-      });
-      grid.appendChild(btn);
-    });
-    pop.appendChild(grid);
+    addGrid(t('emojiMoreTitle'), more, '');
   }
 
   function toggleEmojiPopover(force) {
@@ -3150,6 +3197,8 @@
     if (!pop) return;
     const open = force === true ? true : force === false ? false : !pop.classList.contains('active');
     if (open) {
+      // Mutual exclusion: close online vault while "more" is open
+      if (typeof closeOnlineEmojiModal === 'function') closeOnlineEmojiModal();
       renderEmojiPopover();
       pop.classList.add('active');
       if (uiEls.socialPopover) uiEls.socialPopover.classList.remove('active');
@@ -3530,6 +3579,9 @@
 
   async function openOnlineEmojiRepository() {
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    // Mutual exclusion: close local "more" popover while online vault is open
+    if (uiEls.emojiPopover) uiEls.emojiPopover.classList.remove('active');
+    if (uiEls.socialPopover) uiEls.socialPopover.classList.remove('active');
     const modal = ensureOnlineEmojiModal();
     const titleEl = modal.querySelector('#ai-emoji-modal-title');
     const searchInput = modal.querySelector('#ai-emoji-search-input');
@@ -3543,8 +3595,6 @@
       grid.innerHTML = '<div class="ai-emoji-loading">' + t('emojiOnlineLoading') + '</div>';
     }
     modal.classList.add('active');
-    if (uiEls.emojiPopover) uiEls.emojiPopover.classList.remove('active');
-    if (uiEls.socialPopover) uiEls.socialPopover.classList.remove('active');
 
     try {
       await fetchOnlineEmojis();
@@ -3556,22 +3606,19 @@
   }
 
   function ensureOnlineEmojiButton() {
-    const wrap = uiEls.emojiWrap || document.getElementById('ai-note-emoji-wrap');
-    if (!wrap || document.getElementById('ai-emoji-online-btn')) return;
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'ai-emoji-online-btn';
-    btn.className = 'ai-emoji-online-btn';
+    const btn = (uiEls && uiEls.emojiOnlineBtn) || document.getElementById('ai-emoji-online-btn');
+    if (!btn || btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
     btn.title = t('emojiOnlineBtn');
-    btn.textContent = '🌐';
+    if (!btn.textContent.trim()) btn.textContent = '🌐';
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const modal = document.getElementById('ai-emoji-modal');
       if (modal && modal.classList.contains('active')) closeOnlineEmojiModal();
       else openOnlineEmojiRepository();
     });
-    wrap.appendChild(btn);
   }
+
 
 
   function setupEmojiAndShareUI() {
@@ -4034,7 +4081,7 @@
     if(syncData.lastDeletedLink) setUndoState('storage', null);
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
     if(syncData.aiTreeTodos) { todosData = syncData.aiTreeTodos; migrateTodos(); pruneExpiredDailyTodos(); }
-    if(Array.isArray(syncData.aiTreeMarkedDays)) markedDays = syncData.aiTreeMarkedDays;
+    if(Array.isArray(syncData.aiTreeMarkedDays)) { markedDays = syncData.aiTreeMarkedDays; pruneExpiredMarkedDays(); }
     if (typeof syncData.nodeSpacing === 'number' && !isNaN(syncData.nodeSpacing)) SPACING = Math.min(MAX_SPACING, Math.max(MIN_SPACING, syncData.nodeSpacing));
     if (syncData.clockCustomX !== undefined && syncData.clockCustomY !== undefined) {
       // فقط مختصات اولیه؛ لنگر دائمی نیست تا با باز شدن دوباره کنار هاب قرار بگیرد
