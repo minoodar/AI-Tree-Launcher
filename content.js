@@ -100,7 +100,7 @@
       toastOverflowed: "{tier} tier is full — saved to Extended Network {hub} instead.",
       toastTierFullEverywhere: "{tier} tier is full across all networks!",
       toastQuickAdded: "Bookmarked: {label} {stars}",
-      hubHoldHint: "Hold to bookmark this page — release at the star rating you want",
+      hubHoldHint: "Hold to bookmark this page\nRelease at the star you want",
       markToggleTitle: "Special Days",
       markAddPlaceholder: "Title (e.g. Child's Birthday)",
       markAddBtn: "Add",
@@ -124,8 +124,9 @@
       noteTplDone: "Done",
       noteTplFormTitleNew: "New Prompt",
       noteTplFormTitleEdit: "Edit Prompt",
-      noteTplFormName: "Title (English)",
-      noteTplFormBody: "Prompt text (English)",
+      noteTplFormName: "Title",
+      noteTplFormBody: "Prompt text",
+      noteTplFormBodyHint: "Any language works — English tends to get the most consistent results across AI services.",
       noteTplFormUseNote: "Use notepad text",
       noteTplFormSave: "Save",
       noteTplFormCancel: "Cancel",
@@ -250,7 +251,7 @@
       toastOverflowed: "رده‌ی {tier} پر شد؛ در منظومه‌ی فرعی {hub} ذخیره شد.",
       toastTierFullEverywhere: "رده‌ی {tier} در همه‌ی منظومه‌ها پر است!",
       toastQuickAdded: "بوک‌مارک شد: {label} {stars}",
-      hubHoldHint: "نگه دارید تا بوک‌مارک شود — در ستاره‌ی دلخواه رها کنید",
+      hubHoldHint: "نگه دارید تا بوک‌مارک شود\nدر ستاره‌ی دلخواه رها کنید",
       markToggleTitle: "مناسبت‌ها",
       markAddPlaceholder: "عنوان (مثلاً تولد فرزند)",
       markAddBtn: "افزودن",
@@ -274,8 +275,9 @@
       noteTplDone: "تمام",
       noteTplFormTitleNew: "پرامپت جدید",
       noteTplFormTitleEdit: "ویرایش پرامپت",
-      noteTplFormName: "عنوان (انگلیسی)",
-      noteTplFormBody: "متن پرامپت (انگلیسی)",
+      noteTplFormName: "عنوان",
+      noteTplFormBody: "متن پرامپت",
+      noteTplFormBodyHint: "هر زبانی مناسب است — انگلیسی معمولاً نتیجهٔ یکدست‌تری در همهٔ سرویس‌های هوش مصنوعی می‌دهد.",
       noteTplFormUseNote: "متن دفترچه",
       noteTplFormSave: "ذخیره",
       noteTplFormCancel: "لغو",
@@ -559,6 +561,7 @@
           <span class="ai-send-dot" id="ai-send-dot"></span>
           <span class="ai-send-label" id="ai-send-label"></span>
           <span class="ai-send-method" id="ai-send-method"></span>
+          <span class="ai-send-chevron" aria-hidden="true">⌄</span>
         </button>
         <div class="ai-wheel-popover" id="ai-wheel-popover">
           <div class="ai-wheel-viewport" id="ai-wheel-viewport">
@@ -767,18 +770,135 @@
     markGoldenLabel: clockPanel.querySelector('#ai-mark-golden-label'),
   };
 
+
+  // --- Galactic Constellation tooltips (replaces native title on hub toggles) ---
+  const GALAXY_ICONS = {
+    note: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.5l4.5 4.5-9.2 9.2-5.1 1.3 1.3-5.1L14 3.5z" stroke-opacity="0.75"/><path d="M13.2 4.3l4.5 4.5" stroke-opacity="0.45"/><circle cx="7.2" cy="16.8" r="1.6" fill="#10B981" stroke="none"/><circle cx="14" cy="3.5" r="1.35" fill="currentColor" stroke="none"/><circle cx="18.5" cy="8" r="1.2" fill="currentColor" stroke="none"/><circle cx="10.2" cy="12.2" r="1.1" fill="currentColor" stroke-opacity="0.7"/></svg>`,
+    todo: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="4.5" width="15" height="15" rx="2.5" stroke-opacity="0.55"/><path d="M8 12.2l2.2 2.2 5-5.2" stroke-opacity="0.85"/><circle cx="8" cy="12.2" r="1.35" fill="#818CF8" stroke="none"/><circle cx="10.2" cy="14.4" r="1.15" fill="currentColor" stroke="none"/><circle cx="15.2" cy="9.2" r="1.15" fill="currentColor" stroke="none"/><circle cx="12" cy="4.5" r="1.1" fill="currentColor" stroke-opacity="0.7"/></svg>`,
+    search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.2" stroke-opacity="0.7"/><path d="M16 16l4.2 4.2" stroke-opacity="0.75"/><path d="M11 6.5v1.2M11 14.3v1.2M6.5 11h1.2M14.3 11h1.2" stroke-opacity="0.45"/><circle cx="11" cy="11" r="1.7" fill="#00D2FF" stroke="none"/><circle cx="20.2" cy="20.2" r="1.2" fill="currentColor" stroke="none"/><circle cx="7.2" cy="7.2" r="1.05" fill="currentColor" stroke-opacity="0.7"/></svg>`,
+    all: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2" fill="#94A3B8" stroke="none"/><circle cx="12" cy="4.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="18.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="18.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="19.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="5.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="5.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><path d="M12 6.7v2.6M16.4 9.7l-2.2 1.3M16.4 14.3l-2.2-1.3M12 14.7v2.6M7.6 14.3l2.2-1.3M7.6 9.7l2.2 1.3" stroke-opacity="0.55"/></svg>`,
+    calc: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h12M6 12h12M6 18h12M8 6v12M16 6v12" stroke-opacity="0.55"/><circle cx="8" cy="6" r="1.45" fill="currentColor" stroke="none"/><circle cx="16" cy="6" r="1.45" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="1.7" fill="#FA8072" stroke="none"/><circle cx="16" cy="12" r="1.45" fill="currentColor" stroke="none"/><circle cx="8" cy="18" r="1.45" fill="currentColor" stroke="none"/><circle cx="16" cy="18" r="1.45" fill="currentColor" stroke="none"/></svg>`,
+    clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8" stroke-opacity="0.55"/><path d="M12 12l3.2-2.4" stroke-opacity="0.85"/><path d="M12 4.5v1.4M19.5 12h-1.4M12 19.5v-1.4M4.5 12h1.4" stroke-opacity="0.4"/><circle cx="12" cy="12" r="1.55" fill="#3B82F6" stroke="none"/><circle cx="15.2" cy="9.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="4.5" r="1.1" fill="currentColor" stroke-opacity="0.7"/></svg>`,
+    undo: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8.2L5 11.7l3.5 3.5" stroke-opacity="0.85"/><path d="M5 11.7h9.2a5 5 0 0 1 0 10H11" stroke-opacity="0.55"/><circle cx="5" cy="11.7" r="1.55" fill="#FBBF24" stroke="none"/><circle cx="14.2" cy="11.7" r="1.2" fill="currentColor" stroke="none"/><circle cx="19.2" cy="16.7" r="1.15" fill="currentColor" stroke-opacity="0.75"/></svg>`,
+    collapse: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5" stroke-opacity="0.5"/><circle cx="12" cy="12" r="3.2" stroke-opacity="0.75"/><circle cx="12" cy="12" r="1.5" fill="#BAE6FD" stroke="none"/><circle cx="12" cy="4.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="19.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="19.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg>`
+  };
+
+  function setGalaxyTooltip(toggleEl, titleText, svgIconHtml, side) {
+    if (!toggleEl) return;
+    toggleEl.removeAttribute('title');
+
+    // Remove legacy text tooltip if present
+    const oldTip = toggleEl.querySelector('.ai-galaxy-tooltip');
+    if (oldTip) oldTip.remove();
+
+    // Side constellation badge: icon + compact text label (outward of hub) — no colored dots
+    const sideClass = side === 'left' || side === 'right' || side === 'top' || side === 'bottom' ? side : 'right';
+    let badge = toggleEl.querySelector('.ai-constellation-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'ai-constellation-badge';
+      badge.innerHTML = `
+        <div class="ai-constellation-icon-col">
+          <div class="ai-constellation-icon"></div>
+          <span class="ai-constellation-label"></span>
+        </div>
+      `;
+      toggleEl.appendChild(badge);
+    } else {
+      // Remove legacy colored dots if present
+      badge.querySelectorAll('.ai-constellation-dot').forEach(d => d.remove());
+    }
+    badge.className = 'ai-constellation-badge side-' + sideClass;
+    if (titleText) badge.setAttribute('aria-label', titleText);
+    const iconWrap = badge.querySelector('.ai-constellation-icon');
+    if (iconWrap && svgIconHtml) iconWrap.innerHTML = svgIconHtml;
+    let labelEl = badge.querySelector('.ai-constellation-label');
+    if (!labelEl) {
+      // Migrate older badge markup (icon-only) to include a text label under the icon
+      const oldIcon = badge.querySelector('.ai-constellation-icon');
+      const col = document.createElement('div');
+      col.className = 'ai-constellation-icon-col';
+      labelEl = document.createElement('span');
+      labelEl.className = 'ai-constellation-label';
+      if (oldIcon) {
+        oldIcon.replaceWith(col);
+        col.appendChild(oldIcon);
+      } else {
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'ai-constellation-icon';
+        col.appendChild(iconDiv);
+        badge.appendChild(col);
+      }
+      col.appendChild(labelEl);
+    }
+    if (titleText) {
+      // Strip leading emoji for a cleaner micro-label under the icon
+      labelEl.textContent = String(titleText).replace(/^\s*[\p{Emoji_Presentation}\p{Extended_Pictographic}]\s*/u, '').trim() || titleText;
+    }
+  }
+
+  // Hub-center hold hint: only after ~3s hover on the hub body (not on toggle dots)
+  let hubHoldHintTimer = null;
+  let hubHoldHintEl = null;
+  function ensureHubHoldHintEl() {
+    if (hubHoldHintEl && hubHoldHintEl.isConnected) return hubHoldHintEl;
+    hubHoldHintEl = document.createElement('div');
+    hubHoldHintEl.id = 'ai-hub-hold-hint';
+    hubHoldHintEl.className = 'ai-hub-hold-hint';
+    hubHoldHintEl.setAttribute('role', 'tooltip');
+    root.appendChild(hubHoldHintEl);
+    return hubHoldHintEl;
+  }
+  function hideHubHoldHint() {
+    clearTimeout(hubHoldHintTimer);
+    hubHoldHintTimer = null;
+    if (hubHoldHintEl) hubHoldHintEl.classList.remove('visible');
+  }
+  function scheduleHubHoldHint() {
+    clearTimeout(hubHoldHintTimer);
+    hubHoldHintTimer = setTimeout(() => {
+      if (hub.classList.contains('hub-collapsed') || isDragging || quickAddActive) return;
+      const el = ensureHubHoldHintEl();
+      el.textContent = t('hubHoldHint');
+      el.classList.add('visible');
+    }, 3000);
+  }
+  function isHubCenterTarget(target) {
+    if (!target || !hub.contains(target)) return false;
+    // Toggles / spacing arc should not trigger the hold-to-bookmark hint
+    if (target.closest && (
+      target.closest('#ai-todo-toggle, #ai-search-toggle, #ai-note-toggle, #ai-all-toggle, #ai-collapse-toggle, #ai-calc-hub-toggle, #ai-clock-toggle, #ai-undo-toggle, #ai-spacing-arc')
+    )) return false;
+    return true;
+  }
+  hub.addEventListener('mouseenter', (e) => {
+    if (isHubCenterTarget(e.target)) scheduleHubHoldHint();
+  });
+  hub.addEventListener('mousemove', (e) => {
+    if (isHubCenterTarget(e.target)) {
+      if (!hubHoldHintTimer && !(hubHoldHintEl && hubHoldHintEl.classList.contains('visible'))) scheduleHubHoldHint();
+    } else {
+      hideHubHoldHint();
+    }
+  });
+  hub.addEventListener('mouseleave', hideHubHoldHint);
+  hub.addEventListener('mousedown', hideHubHoldHint);
+
+
+
   function updateUITexts() {
-    todoToggleDot.title = t('todoTitle');
-    searchToggleDot.title = t('searchTitle');
-    noteToggleDot.title = t('noteTitle');
-    allToggleDot.title = t('allTitle');
-    collapseToggleDot.title = t('collapseTitle');
-    calcToggleDot.title = t('calcTitle');
-    clockToggleDot.title = t('clockTitle');
-    undoToggleDot.title = t('undoTitle');
+    setGalaxyTooltip(noteToggleDot, t('noteTitle'), GALAXY_ICONS.note, 'left');
+    setGalaxyTooltip(todoToggleDot, t('todoTitle'), GALAXY_ICONS.todo, 'left');
+    setGalaxyTooltip(clockToggleDot, t('clockTitle'), GALAXY_ICONS.clock, 'left');
+    setGalaxyTooltip(allToggleDot, t('allTitle'), GALAXY_ICONS.all, 'right');
+    setGalaxyTooltip(searchToggleDot, t('searchTitle'), GALAXY_ICONS.search, 'right');
+    setGalaxyTooltip(calcToggleDot, t('calcTitle'), GALAXY_ICONS.calc, 'right');
+    setGalaxyTooltip(undoToggleDot, t('undoTitle'), GALAXY_ICONS.undo, 'top');
+    setGalaxyTooltip(collapseToggleDot, t('collapseTitle'), GALAXY_ICONS.collapse, 'bottom');
     spacingArc.title = t('spacingTitle');
     addNodeBtn.title = t('addNodeTitle');
-    hub.title = t('hubHoldHint');
+    hub.removeAttribute('title');
+    hideHubHoldHint();
 
     uiEls.formMainTitle.textContent = editingNodeIndex === null ? t('formAddTitle') : t('formEditTitle');
     uiEls.formUrl.placeholder = t('formUrlPlaceholder');
@@ -816,7 +936,6 @@
     uiEls.todoWhenToday.textContent = t('todoWhenToday');
     uiEls.todoWhenTomorrow.textContent = t('todoWhenTomorrow');
 
-    clockToggleDot.title = t('clockTitle');
     uiEls.markToggle.title = t('markToggleTitle');
     uiEls.markLabelInput.placeholder = t('markAddPlaceholder');
     uiEls.markAddBtn.textContent = t('markAddBtn');
@@ -2963,7 +3082,9 @@
   }
   
   // --- Prompt Studio: templates, token meter, autosave, history ---
-  // Built-in prompts: English title + English body only
+  // این ۶ پرامپتِ پیش‌فرض به‌عنوان محتوای اپ به انگلیسی نوشته شده‌اند، اما این یک قانون نیست:
+  // عنوان و متن پرامپت‌های سفارشیِ کاربر (customPrompts) و بازنویسی‌های او (promptOverrides)
+  // می‌توانند به هر زبانی باشند — هیچ‌جای این فایل زبان ورودی کاربر را بررسی/محدود نمی‌کند.
   const BUILTIN_PROMPTS = [
     {
       id: 'builtin-refactor',
@@ -3155,8 +3276,8 @@
         <span class="ai-tpl-ed-title" id="ai-tpl-ed-title"></span>
         <button type="button" class="ai-tpl-ed-close" id="ai-tpl-ed-close" aria-label="Close">✕</button>
       </div>
-      <input type="text" id="ai-tpl-ed-name" class="ai-tpl-ed-input" dir="ltr" maxlength="40" autocomplete="off" />
-      <textarea id="ai-tpl-ed-body" class="ai-tpl-ed-textarea" dir="ltr" rows="5"></textarea>
+      <input type="text" id="ai-tpl-ed-name" class="ai-tpl-ed-input" dir="auto" maxlength="40" autocomplete="off" />
+      <textarea id="ai-tpl-ed-body" class="ai-tpl-ed-textarea" dir="auto" rows="5"></textarea>
       <div class="ai-tpl-ed-actions">
         <button type="button" id="ai-tpl-ed-use-note" class="ai-tpl-ed-btn ghost"></button>
         <span class="ai-tpl-ed-spacer"></span>
@@ -3206,6 +3327,8 @@
     const bodyEl = ed.querySelector('#ai-tpl-ed-body');
     nameEl.placeholder = t('noteTplFormName');
     bodyEl.placeholder = t('noteTplFormBody');
+    // راهنمای نرم (فقط با هاور) نه محدودیت: عنوان و متن پرامپت هر دو می‌توانند به هر زبانی باشند
+    bodyEl.title = t('noteTplFormBodyHint');
     nameEl.value = promptOrNull ? (promptOrNull.title || '') : '';
     bodyEl.value = promptOrNull ? (promptOrNull.text || '') : '';
     ed.querySelector('#ai-tpl-ed-use-note').textContent = t('noteTplFormUseNote');
@@ -3303,6 +3426,7 @@
       chip.className = 'ai-note-tpl-chip' + (tpl.builtIn ? ' is-builtin' : ' is-custom');
       if (tpl.overridden) chip.classList.add('is-overridden');
       if (tplEditMode) chip.classList.add('is-editable');
+      chip.dir = 'auto'; // عنوان پرامپت ممکن است با زبان رابط کاربری فرق داشته باشد
       chip.textContent = tpl.title;
       chip.title = tplEditMode ? t('noteTplFormTitleEdit') : tpl.title;
       chip.addEventListener('click', (e) => {
@@ -3368,6 +3492,7 @@
       const row = document.createElement('button');
       row.type = 'button';
       row.className = 'ai-note-history-item';
+      row.dir = 'auto'; // متن پرامپت ممکن است هر زبانی باشد، جدا از زبان رابط کاربری
       const preview = item.text.length > 72 ? item.text.slice(0, 72) + '…' : item.text;
       row.textContent = preview;
       row.title = item.text;
@@ -4041,43 +4166,26 @@
   function aiMethodGlyph(node) { return node && node.qParam ? '⚡' : '📋'; }
   function aiMethodLabel(node) { return (node && node.qParam) ? t('dockMethodAuto') : t('dockMethodCopy'); }
 
-  let activeNoteAIIndex = 0; // index into AI_DISPATCH_CATALOG
-
-  function shortenAiLabel(label) {
-    const lower = (label || '').toLowerCase();
-    if (lower.includes('chatgpt')) return 'GPT';
-    if (lower.includes('deepseek')) return 'Seek';
-    if (lower.includes('perplexity')) return 'Perplex';
-    if (label.length > 9) return label.slice(0, 8) + '…';
-    return label;
+  // پیش‌فرض: ChatGPT (ارسال مستقیم با ?q=)
+  const DEFAULT_NOTE_AI_ID = 'chatgpt';
+  function indexOfAiId(id) {
+    const i = AI_DISPATCH_CATALOG.findIndex(n => n && n.id === id);
+    return i >= 0 ? i : 0;
   }
+  let activeNoteAIIndex = indexOfAiId(DEFAULT_NOTE_AI_ID); // index into AI_DISPATCH_CATALOG
 
   /**
    * Builds a platform-optimized target URL.
-   * Injects ?q= (or catalog qParam) when the host supports prompt auto-fill.
+   * Injects the catalog's qParam (e.g. ?q=) when that service supports prompt auto-fill.
+   * AI_DISPATCH_CATALOG.qParam is the single source of truth for this — every entry
+   * declares it explicitly ('q' or null), so no hostname guessing happens here.
    */
   function buildAiDispatchUrl(baseUrl, promptText, qParam) {
-    if (!baseUrl || !promptText) return baseUrl || '';
+    if (!baseUrl || !promptText || !qParam) return baseUrl || '';
     try {
       const parsedUrl = new URL(baseUrl);
-      const hostname = parsedUrl.hostname.toLowerCase();
-      let param = qParam;
-      if (param === undefined) {
-        const isQHost =
-          hostname.includes('chatgpt.com') ||
-          hostname.includes('openai.com') ||
-          hostname.includes('chat.openai.com') ||
-          hostname.includes('perplexity.ai') ||
-          hostname.includes('copilot.microsoft.com') ||
-          hostname.includes('grok.com') ||
-          hostname.includes('x.ai');
-        param = isQHost ? 'q' : null;
-      }
-      if (param) {
-        parsedUrl.searchParams.set(param, promptText.trim());
-        return parsedUrl.toString();
-      }
-      return baseUrl;
+      parsedUrl.searchParams.set(qParam, promptText.trim());
+      return parsedUrl.toString();
     } catch (err) {
       console.warn('[AI Tree] URL parse failed, falling back to raw base URL:', err);
       return baseUrl;
@@ -4085,9 +4193,11 @@
   }
 
   /**
-   * Lightweight clipboard fallback for dispatch only (does NOT clear notepad).
+   * Shared low-level execCommand('copy') fallback (used by both the dispatch
+   * flow below and the generic copy button near line ~4480, so the temp
+   * textarea creation/cleanup logic lives in exactly one place).
    */
-  function fallbackCopyTextForDispatch(text) {
+  function copyTextViaHiddenTextarea(text) {
     const textArea = document.createElement('textarea');
     textArea.value = text;
     textArea.style.position = 'fixed';
@@ -4098,6 +4208,13 @@
     textArea.select();
     try { document.execCommand('copy'); } catch (err) { /* silent */ }
     document.body.removeChild(textArea);
+  }
+
+  /**
+   * Lightweight clipboard fallback for dispatch only (does NOT clear notepad, no toast).
+   */
+  function fallbackCopyTextForDispatch(text) {
+    copyTextViaHiddenTextarea(text);
   }
 
   /**
@@ -4150,10 +4267,13 @@
 
   const AI_WHEEL_ITEM_H = 26; // px — باید با ارتفاع .ai-wheel-item در CSS یکی باشد
 
+  // محدودهٔ سخت [0 .. n-1] — بدون چرخش دایره‌ای تا در ابتدا/انتها پرش نکند
   function clampAiIndex(idx) {
     const n = AI_DISPATCH_CATALOG.length;
     if (n === 0) return 0;
-    return ((idx % n) + n) % n;
+    if (idx < 0) return 0;
+    if (idx > n - 1) return n - 1;
+    return idx | 0;
   }
 
   let persistAiIndexTimer = null;
@@ -4188,6 +4308,7 @@
     if (!uiEls.wheelPopover || !uiEls.sendActionBtn) return;
     uiEls.wheelPopover.classList.remove('active');
     uiEls.sendActionBtn.classList.remove('wheel-open');
+    wheelScrubActive = false;
     wheelScrubStartY = null;
     commitActiveAiIndex();
   }
@@ -4212,9 +4333,18 @@
     activeNoteAIIndex = clampAiIndex(activeNoteAIIndex);
     const active = catalog[activeNoteAIIndex];
 
+    // رنگ برند آیتم فعال را به کل ویجت (حاشیه/گلوی هاور + نوار هایلایت چرخ) تزریق می‌کند
+    // تا انتخاب واقعاً «رنگی» به‌نظر برسد، نه یک سبز ثابت یکنواخت
+    wrapper.style.setProperty('--ai-active-color', active.color || '#10B981');
+
     // دکمهٔ فشرده: نقطهٔ رنگی برند + نام + آیکن روش ارجاع (⚡ پرشونده خودکار / 📋 کپی-پیست)
     const actionLabelKey = active.verb === 'post' ? 'dockPostName' : 'dockAskName';
-    if (uiEls.sendDot) uiEls.sendDot.style.background = active.color || '#fff';
+    if (uiEls.sendDot) {
+      // هم background و هم color ست می‌شود چون گلوی CSS (box-shadow: 0 0 6px currentColor)
+      // به‌جای رنگ زمینه، به «color» عنصر وابسته است — قبلاً فقط background ست می‌شد و گلو رنگ برند را نشان نمی‌داد
+      uiEls.sendDot.style.background = active.color || '#fff';
+      uiEls.sendDot.style.color = active.color || '#fff';
+    }
     if (uiEls.sendLabelEl) uiEls.sendLabelEl.textContent = t(actionLabelKey).replace('{name}', active.short || active.label);
     if (uiEls.sendMethodEl) uiEls.sendMethodEl.textContent = aiMethodGlyph(active);
     actionBtn.title = t(actionLabelKey).replace('{name}', active.label) + ' · ' + aiMethodLabel(active);
@@ -4223,10 +4353,8 @@
     list.innerHTML = '';
     const n = catalog.length;
     catalog.forEach((node, idx) => {
-      // کوتاه‌ترین فاصلهٔ دایره‌ای (با علامت) تا مرکز، برای چرخش سه‌بعدیِ ملایم
-      let raw = idx - activeNoteAIIndex;
-      if (raw > n / 2) raw -= n;
-      if (raw < -n / 2) raw += n;
+      // فاصلهٔ خطی تا مرکز (بدون wrap) تا در لبهٔ لیست پرش بصری نباشد
+      const raw = idx - activeNoteAIIndex;
       const dist = Math.abs(raw);
 
       const btn = document.createElement('button');
@@ -4234,17 +4362,17 @@
       btn.className = 'ai-wheel-item' + (idx === activeNoteAIIndex ? ' is-active' : '');
       btn.dataset.index = String(idx);
 
-      const dot = document.createElement('span'); dot.className = 'ai-wheel-item-dot'; dot.style.background = node.color || '#fff';
+      const dot = document.createElement('span'); dot.className = 'ai-wheel-item-dot'; dot.style.background = node.color || '#fff'; dot.style.color = node.color || '#fff';
       const label = document.createElement('span'); label.className = 'ai-wheel-item-label'; label.textContent = node.short || node.label;
       const method = document.createElement('span'); method.className = 'ai-wheel-item-method'; method.textContent = aiMethodGlyph(node);
       btn.appendChild(dot); btn.appendChild(label); btn.appendChild(method);
       btn.title = node.label + ' · ' + aiMethodLabel(node);
 
-      // ذره‌بین: مرکز واضح و کمی بزرگ، اطراف محو/کوچک/چرخیده (افکت استوانه‌ای شبیه پیکر iOS)
-      const scale = Math.max(0.74, 1 - dist * 0.1);
-      const opacity = idx === activeNoteAIIndex ? 1 : Math.max(0.14, 1 - dist * 0.34);
-      const blur = idx === activeNoteAIIndex ? 0 : Math.min(2.2, dist * 0.55);
-      const rotateX = Math.max(-42, Math.min(42, raw * 20));
+      // ذره‌بین: مرکز واضح، اطراف محو/کوچک — فقط برای آیتم‌های نزدیک به مرکز
+      const scale = dist > 3 ? 0.72 : Math.max(0.78, 1 - dist * 0.08);
+      const opacity = idx === activeNoteAIIndex ? 1 : (dist > 3 ? 0.12 : Math.max(0.22, 1 - dist * 0.28));
+      const blur = idx === activeNoteAIIndex ? 0 : Math.min(1.6, dist * 0.4);
+      const rotateX = Math.max(-28, Math.min(28, raw * 14));
       btn.style.opacity = String(opacity);
       btn.style.filter = blur ? `blur(${blur}px)` : 'none';
       btn.style.transform = `perspective(360px) rotateX(${rotateX}deg) scale(${scale})`;
@@ -4281,13 +4409,44 @@
     });
     uiEls.sendWrapper.addEventListener('keydown', (e) => {
       if (!isAiWheelOpen()) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openAiWheel(); } return; }
-      if (e.key === 'ArrowUp') { e.preventDefault(); setActiveAiIndex(activeNoteAIIndex - 1); }
-      else if (e.key === 'ArrowDown') { e.preventDefault(); setActiveAiIndex(activeNoteAIIndex + 1); }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (activeNoteAIIndex > 0) setActiveAiIndex(activeNoteAIIndex - 1);
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (activeNoteAIIndex < AI_DISPATCH_CATALOG.length - 1) setActiveAiIndex(activeNoteAIIndex + 1);
+      } else if (e.key === 'PageUp') {
+        // پرش ۵تایی — با ۱۵ مورد، رسیدن به انتهای لیست فقط با ArrowUp/Down کند است
+        e.preventDefault();
+        setActiveAiIndex(clampAiIndex(activeNoteAIIndex - 5));
+      } else if (e.key === 'PageDown') {
+        e.preventDefault();
+        setActiveAiIndex(clampAiIndex(activeNoteAIIndex + 5));
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        setActiveAiIndex(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        setActiveAiIndex(AI_DISPATCH_CATALOG.length - 1);
+      }
       else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         const node = AI_DISPATCH_CATALOG[clampAiIndex(activeNoteAIIndex)];
         if (node && node.url) { closeAiWheel(); sendPromptToNode(node); }
       } else if (e.key === 'Escape') { e.preventDefault(); closeAiWheel(); }
+      else if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+        // تایپ حرف اول اسم = جستجوی نوع‌ای (type-ahead)؛ به نزدیک‌ترین تطابق بعدی می‌پرد (چرخشی)
+        e.preventDefault();
+        const letter = e.key.toLowerCase();
+        const n = AI_DISPATCH_CATALOG.length;
+        for (let step = 1; step <= n; step++) {
+          const idx = (activeNoteAIIndex + step) % n;
+          if (AI_DISPATCH_CATALOG[idx].label.toLowerCase().startsWith(letter)) {
+            setActiveAiIndex(idx);
+            break;
+          }
+        }
+      }
     });
   }
 
@@ -4303,37 +4462,64 @@
     });
   }
 
-  // اسکرول روی چرخ = یک پلهٔ گسسته (دقیق‌تر از دنبال‌کردن مختصات پیوسته)
+  // اسکرول روی چرخ = یک پلهٔ گسسته؛ در ابتدا/انتها متوقف می‌شود (بدون wrap)
   if (uiEls.wheelViewport) {
     let wheelLock = false;
     uiEls.wheelViewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       e.stopPropagation();
       if (wheelLock) return;
+      const next = activeNoteAIIndex + (e.deltaY > 0 ? 1 : -1);
+      const clamped = clampAiIndex(next);
+      if (clamped === activeNoteAIIndex) return; // لبهٔ لیست — هیچ پرشی نباشد
       wheelLock = true;
-      setActiveAiIndex(activeNoteAIIndex + (e.deltaY > 0 ? 1 : -1));
-      setTimeout(() => { wheelLock = false; }, 120);
+      setActiveAiIndex(clamped);
+      setTimeout(() => { wheelLock = false; }, 90);
     }, { passive: false });
   }
 
-  // حرکت عمودی موس روی چرخ = اسکراب نسبی (نه مختصات مطلق) تا لرزون نباشد؛
-  // هر AI_WHEEL_ITEM_H پیکسل جابه‌جایی از نقطهٔ شروعِ هاور = یک مدل
-  let wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
+  // اسکراب فقط با «فشردن و کشیدنِ» موس فعال می‌شود، نه صرفِ عبور موس روی چرخ.
+  // باگ قبلی: هر حرکتِ موس (حتی هنگام نزدیک شدن برای کلیک روی آیتم اول/آخر) لیست را
+  // دوباره مرکزچین می‌کرد، پس دقیقاً همان آیتمی که کاربر می‌خواست کلیک کند زیر نشانگرش
+  // جابه‌جا می‌شد — این «پرش» بیشترین اثر را روی لبه‌های لیست داشت چون بیشترین مسافتِ
+  // حرکتِ موس (و در نتیجه بیشترین تعداد مرکزچینی‌های میانی) مربوط به رسیدن به همان لبه‌هاست.
+  let wheelScrubActive = false, wheelScrubStartY = null, wheelScrubStartIndex = 0, wheelScrubRaf = null, wheelScrubLatestY = null;
+  function endWheelScrub() {
+    wheelScrubActive = false;
+    wheelScrubStartY = null;
+    if (wheelScrubRaf) { cancelAnimationFrame(wheelScrubRaf); wheelScrubRaf = null; }
+  }
   if (uiEls.wheelViewport) {
+    uiEls.wheelViewport.addEventListener('mousedown', (e) => {
+      wheelScrubActive = true;
+      wheelScrubStartY = e.clientY;
+      wheelScrubLatestY = e.clientY;
+      wheelScrubStartIndex = activeNoteAIIndex;
+    });
     uiEls.wheelViewport.addEventListener('mousemove', (e) => {
-      if (wheelScrubStartY === null) { wheelScrubStartY = e.clientY; wheelScrubStartIndex = activeNoteAIIndex; }
+      if (!wheelScrubActive || wheelScrubStartY === null) return;
       wheelScrubLatestY = e.clientY;
       if (wheelScrubRaf) return;
       wheelScrubRaf = requestAnimationFrame(() => {
         wheelScrubRaf = null;
-        if (wheelScrubStartY === null) return;
+        if (!wheelScrubActive || wheelScrubStartY === null) return;
         const deltaY = wheelScrubLatestY - wheelScrubStartY;
         const steps = Math.round(deltaY / AI_WHEEL_ITEM_H);
-        const target = wheelScrubStartIndex + steps;
-        if (clampAiIndex(target) !== activeNoteAIIndex) setActiveAiIndex(target, false);
+        const target = clampAiIndex(wheelScrubStartIndex + steps);
+        if (target !== activeNoteAIIndex) {
+          setActiveAiIndex(target, false);
+          // اگر به لبه رسیدیم، مبدأ را به موقعیت فعلی بچسبان تا با برگشت موس پرش نکند
+          if (target === 0 || target === AI_DISPATCH_CATALOG.length - 1) {
+            wheelScrubStartY = wheelScrubLatestY;
+            wheelScrubStartIndex = target;
+          }
+        }
       });
     });
-    uiEls.wheelViewport.addEventListener('mouseleave', () => { wheelScrubStartY = null; });
+    uiEls.wheelViewport.addEventListener('mouseup', endWheelScrub);
+    uiEls.wheelViewport.addEventListener('mouseleave', endWheelScrub);
+    // اگر دکمهٔ موس بیرون از چرخ رها شود هم اسکراب باید تمام شود
+    document.addEventListener('mouseup', endWheelScrub);
   }
 
   // کلیک بیرون از ویجت، چرخ را می‌بندد
@@ -4344,7 +4530,7 @@
     closeAiWheel();
   });
 
-  function fallbackCopyText(text) { const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.opacity = "0"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); try { document.execCommand('copy'); showToastNotification(t('toastCopied')); } catch (err) {} document.body.removeChild(textArea); setTimeout(resetToggleTimeout, 100); }
+  function fallbackCopyText(text) { copyTextViaHiddenTextarea(text); showToastNotification(t('toastCopied')); setTimeout(resetToggleTimeout, 100); }
 
   function getFaviconUrl(urlStr) { try { const domain = new URL(urlStr).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } catch(e) { return ''; } }
 
@@ -4397,7 +4583,12 @@
       storageGet('local', ['linksData', 'linksData2', 'linksData3', 'activeNoteAIIndex'])
     ]);
 
-    if (typeof localData.activeNoteAIIndex === 'number') activeNoteAIIndex = clampAiIndex(localData.activeNoteAIIndex);
+    if (typeof localData.activeNoteAIIndex === 'number') {
+      activeNoteAIIndex = clampAiIndex(localData.activeNoteAIIndex);
+    } else {
+      activeNoteAIIndex = indexOfAiId(DEFAULT_NOTE_AI_ID);
+      try { if (chrome.runtime?.id) chrome.storage.local.set({ activeNoteAIIndex }); } catch (err) {}
+    }
 
     let resolvedLinksData = localData.linksData;
     if ((!resolvedLinksData || resolvedLinksData.length === 0) && syncData.linksData && syncData.linksData.length > 0) {
@@ -4410,7 +4601,8 @@
 
     if (syncData.orbitX !== undefined) { root.style.left = syncData.orbitX + 'px'; root.style.top = syncData.orbitY + 'px'; root.style.bottom = 'auto'; } else { root.style.left = WIDGET1_DEFAULT_LEFT; root.style.top = 'auto'; root.style.bottom = WIDGET1_DEFAULT_BOTTOM; }
 
-    let defaultCore = [{ label: 'Claude', url: 'https://claude.ai' }, { label: 'Gemini', url: 'https://gemini.google.com' }, { label: 'ChatGPT', url: 'https://chatgpt.com' }, { label: 'DeepSeek', url: 'https://chatdeepseek.com' }];
+    // هسته پیش‌فرض: ChatGPT اول (ارسال مستقیم با q)
+    let defaultCore = [{ label: 'ChatGPT', url: 'https://chatgpt.com' }, { label: 'Claude', url: 'https://claude.ai' }, { label: 'Gemini', url: 'https://gemini.google.com' }, { label: 'DeepSeek', url: 'https://chat.deepseek.com' }];
     if (syncData.coreAIConfig && syncData.coreAIConfig.length === 4) defaultCore = syncData.coreAIConfig;
 
     linksData = (resolvedLinksData && resolvedLinksData.length >= 4) ? resolvedLinksData : defaultCore;

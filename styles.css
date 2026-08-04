@@ -103,7 +103,7 @@ animation: quantumSeed 4.8s ease-in-out infinite;
 #ai-search-toggle, #ai-note-toggle, #ai-all-toggle, #ai-collapse-toggle, #ai-undo-toggle, #ai-todo-toggle, #ai-calc-hub-toggle, #ai-clock-toggle {
 position: absolute; width: 12px; height: 12px; border-radius: 50%;
 cursor: pointer; z-index: 110; opacity: 0.55; pointer-events: auto; display: flex; align-items: center; justify-content: center;
-transition: transform 0.3s var(--ease-bounce), opacity 0.25s var(--ease-premium), background 0.3s, box-shadow 0.3s, border-color 0.3s;
+transition: transform 0.22s var(--ease-premium), opacity 0.25s var(--ease-premium), background 0.3s, box-shadow 0.3s, border-color 0.3s;
 }
 .orbit-hub:hover #ai-search-toggle, .orbit-hub:hover #ai-note-toggle, .orbit-hub:hover #ai-all-toggle,
 .orbit-hub:hover #ai-collapse-toggle, .orbit-hub:hover #ai-undo-toggle, .orbit-hub:hover #ai-todo-toggle,
@@ -261,36 +261,36 @@ transition: opacity 0.2s var(--ease-premium); border: 1px solid rgba(255,255,255
    Axis fixed:            Undo (top) · Collapse (bottom)
 */
 #ai-note-toggle { top: 2px; left: 2px; background: rgba(16, 185, 129, 0.8); box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
-#ai-note-toggle:hover { background: var(--c-emerald); transform: scale(1.35); }
+#ai-note-toggle:hover { background: var(--c-emerald); transform: scale(1.14); }
 .orbit-root.show-notepad #ai-note-toggle { background: var(--c-emerald-light); box-shadow: 0 0 14px var(--c-emerald-light); opacity: 1; }
 
 #ai-all-toggle { top: 2px; right: 2px; background: rgba(55, 65, 81, 0.9); box-shadow: 0 0 8px rgba(55, 65, 81, 0.4); }
-#ai-all-toggle:hover { background: #1f2937; transform: scale(1.35); box-shadow: 0 0 12px #1f2937; }
+#ai-all-toggle:hover { background: #1f2937; transform: scale(1.14); box-shadow: 0 0 12px #1f2937; }
 
 #ai-todo-toggle { top: 50%; left: -6px; transform: translateY(-50%); background: rgba(99, 102, 241, 0.85); box-shadow: 0 0 8px rgba(99, 102, 241, 0.4); }
-#ai-todo-toggle:hover { background: var(--c-indigo); transform: translateY(-50%) scale(1.35); filter: brightness(1.1); }
+#ai-todo-toggle:hover { background: var(--c-indigo); transform: translateY(-50%) scale(1.14); filter: brightness(1.1); }
 #ai-todo-toggle svg { width: 10px; height: 10px; stroke: none !important; fill: #fff; }
 .orbit-root.show-todo #ai-todo-toggle { background: var(--c-indigo-light); box-shadow: 0 0 12px var(--c-indigo-light); opacity: 1; }
 
 #ai-search-toggle { top: 50%; right: -6px; transform: translateY(-50%); background: rgba(0, 180, 255, 0.8); box-shadow: 0 0 8px rgba(0, 180, 255, 0.4); }
-#ai-search-toggle:hover { background: #00d2ff; transform: translateY(-50%) scale(1.35); }
+#ai-search-toggle:hover { background: #00d2ff; transform: translateY(-50%) scale(1.1); }
 .orbit-root.show-search #ai-search-toggle { background: #00d2ff; box-shadow: 0 0 12px #00d2ff; opacity: 1; }
 
 #ai-clock-toggle { bottom: 2px; left: 2px; background: var(--c-blue); box-shadow: 0 0 8px rgba(59, 130, 246, 0.5); }
-#ai-clock-toggle:hover { background: var(--c-blue-light); transform: scale(1.35); }
+#ai-clock-toggle:hover { background: var(--c-blue-light); transform: scale(1.14); }
 #ai-clock-toggle svg { width: 7px; height: 7px; }
 .orbit-root.show-clock #ai-clock-toggle { background: #2563EB; box-shadow: 0 0 12px #2563EB; opacity: 1; }
 
 #ai-calc-hub-toggle { bottom: 2px; right: 2px; background: var(--c-coral); box-shadow: 0 0 8px rgba(250, 128, 114, 0.5); }
-#ai-calc-hub-toggle:hover { background: #ff998c; transform: scale(1.35); }
+#ai-calc-hub-toggle:hover { background: #ff998c; transform: scale(1.14); }
 #ai-calc-hub-toggle svg { width: 7px; height: 7px; }
 .orbit-root.show-calc #ai-calc-hub-toggle { background: #ff6b5b; box-shadow: 0 0 12px #ff6b5b; opacity: 1; }
 
 #ai-collapse-toggle { bottom: -6px; left: 50%; transform: translateX(-50%); background: transparent; border: 1.5px solid rgba(255, 255, 255, 0.85); }
-#ai-collapse-toggle:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; transform: translateX(-50%) scale(1.35); }
+#ai-collapse-toggle:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; transform: translateX(-50%) scale(1.14); }
 
 #ai-undo-toggle { top: -8px; left: 50%; transform: translateX(-50%); width: 14px; height: 14px; background: rgba(107, 114, 128, 0.85); border: 1px solid rgba(255, 255, 255, 0.2); }
-#ai-undo-toggle:hover { transform: translateX(-50%) scale(1.35); filter: brightness(1.2); }
+#ai-undo-toggle:hover { transform: translateX(-50%) scale(1.14); filter: brightness(1.2); }
 #ai-undo-toggle svg { width: 9px; height: 9px; }
 #ai-undo-toggle.active-undo { background: rgba(245, 158, 11, 0.95) !important; border-color: var(--c-amber) !important; box-shadow: 0 0 12px rgba(245, 158, 11, 0.8) !important; animation: pulseOrange 1.5s infinite alternate ease-in-out; opacity: 1; }
 
@@ -670,6 +670,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 }
 /* --- کلید ارجاع هوشمند: یک دکمهٔ فشرده که با هاور به چرخِ انتخاب باز می‌شود --- */
 .ai-smart-send-wrapper {
+  --ai-active-color: var(--c-emerald); /* در JS با رنگ برند سرویس فعال بازنویسی می‌شود */
   flex: 3;
   position: relative;
   display: flex;
@@ -683,7 +684,10 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-smart-send-wrapper:hover,
 .ai-smart-send-wrapper:focus-within {
   background: var(--apple-surface-hover);
-  border-color: rgba(16, 185, 129, 0.32);
+  border-color: color-mix(in srgb, var(--ai-active-color) 45%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ai-active-color) 16%, transparent),
+    0 0 16px color-mix(in srgb, var(--ai-active-color) 22%, transparent);
 }
 .ai-send-action-btn {
   flex: 1;
@@ -706,19 +710,32 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   padding: 6px 8px;
 }
 .ai-send-action-btn:hover { background: var(--apple-surface-hover); }
-.ai-send-action-btn:active { background: var(--apple-surface-active); }
-.ai-send-action-btn.wheel-open { background: rgba(16, 185, 129, 0.16); }
+.ai-send-action-btn:active { background: var(--apple-surface-active); transform: scale(0.97); }
+.ai-send-action-btn.wheel-open { background: color-mix(in srgb, var(--ai-active-color) 18%, transparent); }
 
 .ai-send-dot {
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
   box-shadow: 0 0 6px currentColor;
-  transition: background 0.2s var(--ease-premium);
+  transition: background 0.2s var(--ease-premium), box-shadow 0.2s var(--ease-premium);
 }
 .ai-send-label {
   overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0;
 }
 .ai-send-method {
   flex-shrink: 0; font-size: 10px; opacity: 0.75;
+}
+.ai-send-chevron {
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1;
+  opacity: 0.5;
+  transform: translateY(0);
+  transition: transform 0.25s var(--ease-bounce), opacity 0.2s var(--ease-premium);
+}
+.ai-send-action-btn.wheel-open .ai-send-chevron {
+  transform: rotate(180deg);
+  opacity: 0.9;
+  color: var(--ai-active-color);
 }
 
 
@@ -1353,12 +1370,15 @@ backdrop-filter: blur(3px) saturate(120%); -webkit-backdrop-filter: blur(3px) sa
 
 /* Corner toggles: plain scale · mid-side toggles: keep translateY */
 #ai-note-toggle:hover, #ai-all-toggle:hover, #ai-clock-toggle:hover, #ai-calc-hub-toggle:hover {
-  background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35), inset 0 1px 1px rgba(255,255,255,.30); filter: none; transform: scale(1.22);
+  background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35), inset 0 1px 1px rgba(255,255,255,.30); filter: none; transform: scale(1.12);
 }
-#ai-todo-toggle:hover, #ai-search-toggle:hover {
-  transform: translateY(-50%) scale(1.22); background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35); filter: none;
+#ai-todo-toggle:hover {
+  transform: translateY(-50%) scale(1.12); background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35); filter: none;
 }
-#ai-collapse-toggle:hover, #ai-undo-toggle:hover { transform: translateX(-50%) scale(1.22); background: rgba(var(--toggle-rgb), .72); border-color: rgba(255,255,255,.52); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .10), 0 0 10px rgba(var(--toggle-rgb), .30); filter: none; }
+#ai-search-toggle:hover {
+  transform: translateY(-50%) scale(1.1); background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35); filter: none;
+}
+#ai-collapse-toggle:hover, #ai-undo-toggle:hover { transform: translateX(-50%) scale(1.12); background: rgba(var(--toggle-rgb), .72); border-color: rgba(255,255,255,.52); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .10), 0 0 10px rgba(var(--toggle-rgb), .30); filter: none; }
 
 .orbit-root.show-notepad #ai-note-toggle, .orbit-root.show-todo #ai-todo-toggle, .orbit-root.show-calc #ai-calc-hub-toggle, .orbit-root.show-clock #ai-clock-toggle, #ai-undo-toggle.active-undo {
 background: rgba(var(--toggle-rgb), .88) !important; border-color: rgba(255,255,255,.56) !important;
@@ -1497,42 +1517,44 @@ animation: pulseOrange 1.5s infinite alternate ease-in-out;
 }
 #ai-undo-toggle.active-undo svg { stroke: #fff !important; }
 #ai-undo-toggle.active-undo:hover {
-transform: translateX(-50%) scale(1.32);
+transform: translateX(-50%) scale(1.16);
 background: radial-gradient(circle at 32% 25%, rgba(255,255,255,.9) 0 11%, transparent 29%), rgb(251, 165, 40) !important;
 box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3), 0 0 20px rgba(245, 158, 11, 0.9), 0 3px 9px rgba(2, 6, 23, 0.42) !important;
 }
 @media (prefers-reduced-motion: reduce) {
 #ai-undo-toggle.active-undo { animation: none; }
 }
-/* === خوانایی بهتر آیکون تاگل‌ها روی هاور: بزرگ‌تر شدنِ محسوس‌تر آیکون و دایره === */
+/* === هاور تاگل‌ها: بزرگ‌شدن ملایم (کم‌دامنه) === */
 #ai-search-toggle svg, #ai-todo-toggle svg, #ai-calc-hub-toggle svg, #ai-clock-toggle svg, #ai-undo-toggle svg {
-transition: width 0.22s var(--ease-bounce), height 0.22s var(--ease-bounce);
+transition: width 0.2s var(--ease-premium), height 0.2s var(--ease-premium);
 }
 
-#ai-search-toggle:hover, #ai-note-toggle:hover, #ai-all-toggle:hover, #ai-todo-toggle:hover {
-transform: scale(1.55);
+#ai-note-toggle:hover, #ai-all-toggle:hover {
+transform: scale(1.12);
 }
-#ai-calc-hub-toggle:hover { transform: translateY(-50%) scale(1.55); }
-#ai-clock-toggle:hover { transform: translateY(-50%) scale(1.55); }
-#ai-collapse-toggle:hover { transform: translateX(-50%) scale(1.55); }
-#ai-undo-toggle:hover { transform: translateX(-50%) scale(1.55); }
-#ai-undo-toggle.active-undo:hover { transform: translateX(-50%) scale(1.55); }
+#ai-search-toggle:hover { transform: translateY(-50%) scale(1.1); }
+#ai-todo-toggle:hover { transform: translateY(-50%) scale(1.12); }
+#ai-calc-hub-toggle:hover { transform: scale(1.12); }
+#ai-clock-toggle:hover { transform: scale(1.12); }
+#ai-collapse-toggle:hover { transform: translateX(-50%) scale(1.12); }
+#ai-undo-toggle:hover { transform: translateX(-50%) scale(1.12); }
+#ai-undo-toggle.active-undo:hover { transform: translateX(-50%) scale(1.12); }
 
-#ai-search-toggle:hover svg { width: 11px; height: 11px; }
-#ai-todo-toggle:hover svg { width: 13px; height: 13px; }
-#ai-calc-hub-toggle:hover svg { width: 10px; height: 10px; }
-#ai-clock-toggle:hover svg { width: 10px; height: 10px; }
-#ai-undo-toggle:hover svg { width: 12px; height: 12px; }
+#ai-search-toggle:hover svg { width: 8.5px; height: 8.5px; }
+#ai-todo-toggle:hover svg { width: 10.5px; height: 10.5px; }
+#ai-calc-hub-toggle:hover svg { width: 7.5px; height: 7.5px; }
+#ai-clock-toggle:hover svg { width: 7.5px; height: 7.5px; }
+#ai-undo-toggle:hover svg { width: 9.5px; height: 9.5px; }
 
 /* آیکون‌های نویسه‌ای (glyph) برای تاگل‌های یادداشت، نمایش همه، و بستن منو */
 .ai-toggle-glyph {
 color: #fff; line-height: 1; font-size: 8px; user-select: none; pointer-events: none;
-transition: font-size 0.22s var(--ease-bounce);
+transition: font-size 0.2s var(--ease-premium);
 }
 #ai-collapse-toggle .ai-toggle-glyph { color: #111; }
 #ai-note-toggle:hover .ai-toggle-glyph,
 #ai-all-toggle:hover .ai-toggle-glyph,
-#ai-collapse-toggle:hover .ai-toggle-glyph { font-size: 11px; }
+#ai-collapse-toggle:hover .ai-toggle-glyph { font-size: 9px; }
 
 /* === مناسبت‌ها و نشانه‌گذاری روزهای خاص در کادر ساعت === */
 .ai-mark-dots-row { display: none; gap: 7px; margin-top: 6px; align-items: center; justify-content: center; }
@@ -2384,11 +2406,12 @@ body.rtl .ai-note-history-menu,
   height: 26px;
   margin-top: -13px;
   border-radius: 8px;
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(52, 211, 153, 0.3);
+  background: color-mix(in srgb, var(--ai-active-color, var(--c-emerald)) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ai-active-color, var(--c-emerald)) 38%, transparent);
   pointer-events: none;
   z-index: 0;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ai-active-color, var(--c-emerald)) 22%, transparent);
+  transition: background 0.2s var(--ease-premium), border-color 0.2s var(--ease-premium), box-shadow 0.2s var(--ease-premium);
 }
 
 .ai-wheel-list {
@@ -2438,7 +2461,7 @@ body.rtl .ai-note-history-menu,
 .ai-wheel-item.is-active {
   color: #ecfdf5;
   font-weight: 800;
-  text-shadow: 0 0 10px rgba(52, 211, 153, 0.45);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--ai-active-color, var(--c-emerald)) 55%, transparent);
 }
 
 .ai-wheel-item:not(.is-active):hover {
@@ -2777,4 +2800,211 @@ body.rtl .ai-note-history-menu,
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
   padding: 20px 0;
+}
+
+
+
+
+
+
+
+
+/* ==========================================================================
+   Constellation badge: side icon + micro text label under icon
+   ========================================================================== */
+#ai-search-toggle,
+#ai-note-toggle,
+#ai-all-toggle,
+#ai-collapse-toggle,
+#ai-undo-toggle,
+#ai-todo-toggle,
+#ai-calc-hub-toggle,
+#ai-clock-toggle {
+  overflow: visible;
+}
+
+.ai-constellation-badge {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+  z-index: 205;
+  opacity: 0;
+  transition: opacity 0.22s var(--ease-premium), transform 0.28s var(--ease-bounce);
+}
+.ai-constellation-icon-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+.ai-constellation-icon {
+  width: 26px;
+  height: 26px;
+  color: #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
+}
+.ai-constellation-icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+/* Search · Todo · Clock · Calc · Undo — larger constellation icons (~1.5×) */
+#ai-search-toggle .ai-constellation-icon,
+#ai-todo-toggle .ai-constellation-icon,
+#ai-clock-toggle .ai-constellation-icon,
+#ai-calc-hub-toggle .ai-constellation-icon,
+#ai-undo-toggle .ai-constellation-icon {
+  width: 39px;
+  height: 39px;
+}
+#ai-search-toggle .ai-constellation-icon svg,
+#ai-todo-toggle .ai-constellation-icon svg,
+#ai-clock-toggle .ai-constellation-icon svg,
+#ai-calc-hub-toggle .ai-constellation-icon svg,
+#ai-undo-toggle .ai-constellation-icon svg {
+  width: 36px;
+  height: 36px;
+}
+.ai-constellation-label {
+  display: block;
+  width: max-content;
+  max-width: 110px;
+  padding: 2px 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #334155;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  direction: auto;
+}
+
+.ai-constellation-badge.side-left {
+  right: calc(100% + 5px);
+  top: 50%;
+  flex-direction: row-reverse;
+  transform: translateY(-50%) translateX(4px);
+}
+.ai-constellation-badge.side-right {
+  left: calc(100% + 5px);
+  top: 50%;
+  flex-direction: row;
+  transform: translateY(-50%) translateX(-4px);
+}
+.ai-constellation-badge.side-top {
+  bottom: calc(100% + 5px);
+  left: 50%;
+  flex-direction: column-reverse;
+  transform: translateX(-50%) translateY(4px);
+}
+.ai-constellation-badge.side-bottom {
+  top: calc(100% + 5px);
+  left: 50%;
+  flex-direction: column;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+#ai-note-toggle:hover .ai-constellation-badge,
+#ai-todo-toggle:hover .ai-constellation-badge,
+#ai-clock-toggle:hover .ai-constellation-badge,
+#ai-all-toggle:hover .ai-constellation-badge,
+#ai-search-toggle:hover .ai-constellation-badge,
+#ai-calc-hub-toggle:hover .ai-constellation-badge,
+#ai-undo-toggle:hover .ai-constellation-badge,
+#ai-collapse-toggle:hover .ai-constellation-badge,
+#ai-note-toggle:focus-visible .ai-constellation-badge,
+#ai-todo-toggle:focus-visible .ai-constellation-badge,
+#ai-clock-toggle:focus-visible .ai-constellation-badge,
+#ai-all-toggle:focus-visible .ai-constellation-badge,
+#ai-search-toggle:focus-visible .ai-constellation-badge,
+#ai-calc-hub-toggle:focus-visible .ai-constellation-badge,
+#ai-undo-toggle:focus-visible .ai-constellation-badge,
+#ai-collapse-toggle:focus-visible .ai-constellation-badge {
+  opacity: 1;
+}
+#ai-note-toggle:hover .ai-constellation-badge.side-left,
+#ai-todo-toggle:hover .ai-constellation-badge.side-left,
+#ai-clock-toggle:hover .ai-constellation-badge.side-left,
+#ai-note-toggle:focus-visible .ai-constellation-badge.side-left,
+#ai-todo-toggle:focus-visible .ai-constellation-badge.side-left,
+#ai-clock-toggle:focus-visible .ai-constellation-badge.side-left {
+  transform: translateY(-50%) translateX(0);
+}
+#ai-all-toggle:hover .ai-constellation-badge.side-right,
+#ai-search-toggle:hover .ai-constellation-badge.side-right,
+#ai-calc-hub-toggle:hover .ai-constellation-badge.side-right,
+#ai-all-toggle:focus-visible .ai-constellation-badge.side-right,
+#ai-search-toggle:focus-visible .ai-constellation-badge.side-right,
+#ai-calc-hub-toggle:focus-visible .ai-constellation-badge.side-right {
+  transform: translateY(-50%) translateX(0);
+}
+#ai-undo-toggle:hover .ai-constellation-badge.side-top,
+#ai-undo-toggle:focus-visible .ai-constellation-badge.side-top {
+  transform: translateX(-50%) translateY(0);
+}
+#ai-collapse-toggle:hover .ai-constellation-badge.side-bottom,
+#ai-collapse-toggle:focus-visible .ai-constellation-badge.side-bottom {
+  transform: translateX(-50%) translateY(0);
+}
+
+#ai-note-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.8)); }
+#ai-todo-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.8)); }
+#ai-clock-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8)); }
+#ai-all-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(148, 163, 184, 0.7)); }
+#ai-search-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(0, 210, 255, 0.8)); }
+#ai-calc-hub-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(250, 128, 114, 0.8)); }
+#ai-undo-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.8)); }
+#ai-collapse-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(186, 230, 253, 0.7)); }
+
+/* Hold-to-bookmark hint — hub center only, delayed ~3s — two horizontal lines */
+.ai-hub-hold-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 14px);
+  transform: translateX(-50%) translateY(4px);
+  width: max-content;
+  max-width: 160px;
+  min-width: 0;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #334155;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  white-space: pre-line;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 210;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  direction: auto;
+  transition: opacity 0.2s var(--ease-premium), transform 0.22s var(--ease-bounce);
+}
+.ai-hub-hold-hint.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-constellation-badge {
+    transition: opacity 0.12s ease;
+  }
+  .ai-hub-hold-hint {
+    transition: opacity 0.12s ease;
+  }
 }
