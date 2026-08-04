@@ -3423,7 +3423,7 @@
     return true;
   }
   document.getElementById('ai-note-clear-btn').addEventListener('click', (e) => { e.stopPropagation(); clearNoteWithUndo(); });
-  document.getElementById('ai-note-copy-btn').addEventListener('click', (e) => { e.stopPropagation(); const textToCopy = noteTextarea ? noteTextarea.value : ''; if (!textToCopy.trim()) return; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(textToCopy).then(() => { clearNoteWithUndo({ focus: false, notify: false }); showToastNotification(t('toastCopied')); }).catch(() => { fallbackCopyText(textToCopy); }); } else fallbackCopyText(textToCopy); });
+  document.getElementById('ai-note-copy-btn').addEventListener('click', (e) => { e.stopPropagation(); const textToCopy = noteTextarea ? noteTextarea.value : ''; if (!textToCopy.trim()) return; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(textToCopy).then(() => { showToastNotification(t('toastCopied')); }).catch(() => { fallbackCopyText(textToCopy); }); } else fallbackCopyText(textToCopy); });
   document.getElementById('ai-save-txt-btn').addEventListener('click', (e) => { e.stopPropagation(); const textToSave = noteTextarea ? noteTextarea.value : ''; if (!textToSave.trim()) return; const blob = new Blob([textToSave], { type: 'text/plain;charset=utf-8' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'AI_Note_' + new Date().getTime() + '.txt'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); showToastNotification(t('toastDownloaded')); });
 
   // --- Smart Split Button + Ribbon Popover: pick which Core AI gets the prompt, remember the choice ---
@@ -4344,7 +4344,7 @@
     closeAiWheel();
   });
 
-  function fallbackCopyText(text) { const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.opacity = "0"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); try { document.execCommand('copy'); clearNoteWithUndo({ focus: false, notify: false }); showToastNotification(t('toastCopied')); } catch (err) {} document.body.removeChild(textArea); setTimeout(resetToggleTimeout, 100); }
+  function fallbackCopyText(text) { const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.opacity = "0"; document.body.appendChild(textArea); textArea.focus(); textArea.select(); try { document.execCommand('copy'); showToastNotification(t('toastCopied')); } catch (err) {} document.body.removeChild(textArea); setTimeout(resetToggleTimeout, 100); }
 
   function getFaviconUrl(urlStr) { try { const domain = new URL(urlStr).hostname; return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`; } catch(e) { return ''; } }
 

@@ -255,6 +255,11 @@ transition: opacity 0.2s var(--ease-premium); border: 1px solid rgba(255,255,255
 }
 #ai-spacing-arc.active-drag #ai-spacing-value { opacity: 1; }
 
+/* Layout V26 — semantic pairs around hub
+   Left arc  (content):   Note (TL) · Todo (mid-L) · Clock (BL)
+   Right arc (bookmark):  All  (TR) · Search (mid-R) · Calc (BR)
+   Axis fixed:            Undo (top) · Collapse (bottom)
+*/
 #ai-note-toggle { top: 2px; left: 2px; background: rgba(16, 185, 129, 0.8); box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
 #ai-note-toggle:hover { background: var(--c-emerald); transform: scale(1.35); }
 .orbit-root.show-notepad #ai-note-toggle { background: var(--c-emerald-light); box-shadow: 0 0 14px var(--c-emerald-light); opacity: 1; }
@@ -262,24 +267,24 @@ transition: opacity 0.2s var(--ease-premium); border: 1px solid rgba(255,255,255
 #ai-all-toggle { top: 2px; right: 2px; background: rgba(55, 65, 81, 0.9); box-shadow: 0 0 8px rgba(55, 65, 81, 0.4); }
 #ai-all-toggle:hover { background: #1f2937; transform: scale(1.35); box-shadow: 0 0 12px #1f2937; }
 
-#ai-todo-toggle { bottom: 2px; right: 2px; background: rgba(99, 102, 241, 0.85); box-shadow: 0 0 8px rgba(99, 102, 241, 0.4); }
-#ai-todo-toggle:hover { background: var(--c-indigo); transform: scale(1.35); filter: brightness(1.1); }
+#ai-todo-toggle { top: 50%; left: -6px; transform: translateY(-50%); background: rgba(99, 102, 241, 0.85); box-shadow: 0 0 8px rgba(99, 102, 241, 0.4); }
+#ai-todo-toggle:hover { background: var(--c-indigo); transform: translateY(-50%) scale(1.35); filter: brightness(1.1); }
 #ai-todo-toggle svg { width: 10px; height: 10px; stroke: none !important; fill: #fff; }
 .orbit-root.show-todo #ai-todo-toggle { background: var(--c-indigo-light); box-shadow: 0 0 12px var(--c-indigo-light); opacity: 1; }
 
-#ai-calc-hub-toggle { top: 50%; right: -6px; transform: translateY(-50%); background: var(--c-coral); box-shadow: 0 0 8px rgba(250, 128, 114, 0.5); }
-#ai-calc-hub-toggle:hover { background: #ff998c; transform: translateY(-50%) scale(1.35); }
-#ai-calc-hub-toggle svg { width: 7px; height: 7px; }
-.orbit-root.show-calc #ai-calc-hub-toggle { background: #ff6b5b; box-shadow: 0 0 12px #ff6b5b; opacity: 1; }
+#ai-search-toggle { top: 50%; right: -6px; transform: translateY(-50%); background: rgba(0, 180, 255, 0.8); box-shadow: 0 0 8px rgba(0, 180, 255, 0.4); }
+#ai-search-toggle:hover { background: #00d2ff; transform: translateY(-50%) scale(1.35); }
+.orbit-root.show-search #ai-search-toggle { background: #00d2ff; box-shadow: 0 0 12px #00d2ff; opacity: 1; }
 
-#ai-clock-toggle { top: 50%; left: -6px; transform: translateY(-50%); background: var(--c-blue); box-shadow: 0 0 8px rgba(59, 130, 246, 0.5); }
-#ai-clock-toggle:hover { background: var(--c-blue-light); transform: translateY(-50%) scale(1.35); }
+#ai-clock-toggle { bottom: 2px; left: 2px; background: var(--c-blue); box-shadow: 0 0 8px rgba(59, 130, 246, 0.5); }
+#ai-clock-toggle:hover { background: var(--c-blue-light); transform: scale(1.35); }
 #ai-clock-toggle svg { width: 7px; height: 7px; }
 .orbit-root.show-clock #ai-clock-toggle { background: #2563EB; box-shadow: 0 0 12px #2563EB; opacity: 1; }
 
-#ai-search-toggle { bottom: 2px; left: 2px; background: rgba(0, 180, 255, 0.8); box-shadow: 0 0 8px rgba(0, 180, 255, 0.4); }
-#ai-search-toggle:hover { background: #00d2ff; transform: scale(1.35); }
-.orbit-root.show-search #ai-search-toggle { background: #00d2ff; box-shadow: 0 0 12px #00d2ff; opacity: 1; }
+#ai-calc-hub-toggle { bottom: 2px; right: 2px; background: var(--c-coral); box-shadow: 0 0 8px rgba(250, 128, 114, 0.5); }
+#ai-calc-hub-toggle:hover { background: #ff998c; transform: scale(1.35); }
+#ai-calc-hub-toggle svg { width: 7px; height: 7px; }
+.orbit-root.show-calc #ai-calc-hub-toggle { background: #ff6b5b; box-shadow: 0 0 12px #ff6b5b; opacity: 1; }
 
 #ai-collapse-toggle { bottom: -6px; left: 50%; transform: translateX(-50%); background: transparent; border: 1.5px solid rgba(255, 255, 255, 0.85); }
 #ai-collapse-toggle:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; transform: translateX(-50%) scale(1.35); }
@@ -1346,9 +1351,13 @@ backdrop-filter: blur(3px) saturate(120%); -webkit-backdrop-filter: blur(3px) sa
 #ai-collapse-toggle { --toggle-rgb: 186, 230, 253; }
 #ai-undo-toggle { --toggle-rgb: 251, 191, 36; width: 12px; height: 12px; }
 
-#ai-search-toggle:hover, #ai-note-toggle:hover, #ai-all-toggle:hover, #ai-todo-toggle:hover { background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35), inset 0 1px 1px rgba(255,255,255,.30); filter: none; transform: scale(1.22); }
-#ai-calc-hub-toggle:hover { transform: translateY(-50%) scale(1.22); background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35); }
-#ai-clock-toggle:hover { transform: translateY(-50%) scale(1.22); background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35); }
+/* Corner toggles: plain scale · mid-side toggles: keep translateY */
+#ai-note-toggle:hover, #ai-all-toggle:hover, #ai-clock-toggle:hover, #ai-calc-hub-toggle:hover {
+  background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35), inset 0 1px 1px rgba(255,255,255,.30); filter: none; transform: scale(1.22);
+}
+#ai-todo-toggle:hover, #ai-search-toggle:hover {
+  transform: translateY(-50%) scale(1.22); background: rgba(var(--toggle-rgb), .78); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .12), 0 0 11px rgba(var(--toggle-rgb), .35); filter: none;
+}
 #ai-collapse-toggle:hover, #ai-undo-toggle:hover { transform: translateX(-50%) scale(1.22); background: rgba(var(--toggle-rgb), .72); border-color: rgba(255,255,255,.52); box-shadow: 0 0 0 3px rgba(var(--toggle-rgb), .10), 0 0 10px rgba(var(--toggle-rgb), .30); filter: none; }
 
 .orbit-root.show-notepad #ai-note-toggle, .orbit-root.show-todo #ai-todo-toggle, .orbit-root.show-calc #ai-calc-hub-toggle, .orbit-root.show-clock #ai-clock-toggle, #ai-undo-toggle.active-undo {
