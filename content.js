@@ -117,6 +117,25 @@
       noteTplSummary: "Summarize",
       noteTplCritic: "Critique",
       noteTplTranslate: "Translate",
+      noteTplSong: "Songwriter",
+      noteTplLogo: "Logo Maker",
+      noteTplAdd: "Add prompt",
+      noteTplEdit: "Manage prompts",
+      noteTplDone: "Done",
+      noteTplFormTitleNew: "New Prompt",
+      noteTplFormTitleEdit: "Edit Prompt",
+      noteTplFormName: "Title (English)",
+      noteTplFormBody: "Prompt text (English)",
+      noteTplFormUseNote: "Use notepad text",
+      noteTplFormSave: "Save",
+      noteTplFormCancel: "Cancel",
+      noteTplFormDelete: "Delete",
+      noteTplFormReset: "Reset default",
+      noteTplToastSaved: "Prompt saved",
+      noteTplToastReset: "Prompt restored to default",
+      noteTplToastDeleted: "Prompt deleted",
+      noteTplToastNeedFields: "Title and prompt text required",
+      noteTplToastLimit: "Custom prompt limit reached (12)",
       noteTokenMeter: "{chars} chars · ~{tokens} tokens",
       noteTokenEmpty: "0 chars · 0 tokens",
       noteHistoryTitle: "Recent prompts",
@@ -248,6 +267,25 @@
       noteTplSummary: "خلاصه‌سازی",
       noteTplCritic: "نقد",
       noteTplTranslate: "ترجمه",
+      noteTplSong: "ترانه‌ساز",
+      noteTplLogo: "لوگوساز",
+      noteTplAdd: "افزودن پرامپت",
+      noteTplEdit: "مدیریت پرامپت‌ها",
+      noteTplDone: "تمام",
+      noteTplFormTitleNew: "پرامپت جدید",
+      noteTplFormTitleEdit: "ویرایش پرامپت",
+      noteTplFormName: "عنوان (انگلیسی)",
+      noteTplFormBody: "متن پرامپت (انگلیسی)",
+      noteTplFormUseNote: "متن دفترچه",
+      noteTplFormSave: "ذخیره",
+      noteTplFormCancel: "لغو",
+      noteTplFormDelete: "حذف",
+      noteTplFormReset: "بازگردانی پیش‌فرض",
+      noteTplToastSaved: "پرامپت ذخیره شد",
+      noteTplToastReset: "پرامپت به پیش‌فرض برگشت",
+      noteTplToastDeleted: "پرامپت حذف شد",
+      noteTplToastNeedFields: "عنوان و متن پرامپت لازم است",
+      noteTplToastLimit: "حداکثر ۱۲ پرامپت سفارشی",
       noteTokenMeter: "{chars} نویسه · ≈{tokens} توکن",
       noteTokenEmpty: "۰ نویسه · ۰ توکن",
       noteHistoryTitle: "پرامپت‌های اخیر",
@@ -2599,14 +2637,14 @@
   // تایپ: اول ارتفاع رشد می‌کند؛ اگر محتوا حتی در حداکثر ارتفاع هم جا نشد،
   // عرض هم متناسب با میزان سرریز رشد می‌کند.
   const NOTE_MIN_W = 380;
-  const NOTE_MIN_H = 260;
+  const NOTE_MIN_H = 360; // enough for header + templates + full bottom toolbar
   const NOTE_DEFAULT_W = 500;
   const NOTE_TA_MIN_LINES = 4; // ارتفاع پیش‌فرضِ باز شدن، معادل ۴ خط تایپ
   const NOTE_TA_MAX_LINES = 10;
   // هر خط سرریزِ فراتر از حداکثر ارتفاع، عرض کادر را همین‌قدر پیکسل بیشتر می‌کند
   const NOTE_WIDTH_PER_OVERFLOW_LINE = 26;
-  // برآورد ثابت chrome (هدر+فرمت+قالب+وضعیت+تولبار+gap+padding) — بدون اندازه‌گیری ناپایدار
-  const NOTE_CHROME_H = 175;
+  // کفِ chrome (هدر+فرمت+قالب+وضعیت+تولبار+gap+padding) — اگر DOM در دسترس باشد دقیق‌تر اندازه گرفته می‌شود
+  const NOTE_CHROME_H = 230;
   let noteUserResized = false;
 
   function noteMaxW() { return Math.round(window.innerWidth * 0.9); }
@@ -2631,12 +2669,38 @@
     return { lineH, padY };
   }
 
-  // ارتفاع پیش‌فرض = chrome ثابت + جای ۴ خط تایپ (به‌جای عدد ثابتِ حدسی قبلی)
+  // Measure real chrome so bottom toolbar is never clipped
+  function measureNoteChromeH() {
+    if (!quickNoteForm) return NOTE_CHROME_H;
+    const selectors = [
+      '.ai-note-header',
+      '.ai-note-format-bar',
+      '.ai-note-tpl-bar',
+      '#ai-note-tpl-editor',
+      '.ai-note-status-row',
+      '.ai-note-toolbar'
+    ];
+    let sum = 0;
+    let visible = 0;
+    selectors.forEach((sel) => {
+      const el = quickNoteForm.querySelector(sel);
+      if (!el || el.hidden) return;
+      const h = el.offsetHeight || 0;
+      if (h > 0) { sum += h; visible += 1; }
+    });
+    // form padding (~28) + flex gaps between sections
+    const extras = 28 + Math.max(0, visible - 1) * 6;
+    const measured = sum + extras;
+    return Math.max(NOTE_CHROME_H, measured);
+  }
+
+  // ارتفاع پیش‌فرض = chrome واقعی + جای ۴ خط تایپ
   function computeNoteDefaultH() {
     const { lineH, padY } = measureNoteLineMetrics();
-    return Math.round(NOTE_CHROME_H + NOTE_TA_MIN_LINES * lineH + padY);
+    const chrome = measureNoteChromeH();
+    return Math.max(NOTE_MIN_H, Math.round(chrome + NOTE_TA_MIN_LINES * lineH + padY));
   }
-  const NOTE_DEFAULT_H = computeNoteDefaultH();
+  let NOTE_DEFAULT_H = computeNoteDefaultH();
 
   function autoGrowNotepad() {
     if (!noteTextarea || !quickNoteForm.classList.contains('active')) return;
@@ -2678,9 +2742,11 @@
     }
 
     const contentTaH = Math.max(minTaH, Math.min(maxTaH, scrollH));
-    let targetFormH = Math.round(NOTE_CHROME_H + contentTaH);
-    // کف: حداقل پیش‌فرض باز شدن؛ سقف: max viewport
-    targetFormH = Math.max(NOTE_DEFAULT_H, Math.min(noteMaxH(), targetFormH));
+    NOTE_DEFAULT_H = computeNoteDefaultH();
+    const chrome = measureNoteChromeH();
+    let targetFormH = Math.round(chrome + contentTaH);
+    // کف: حداقل پیش‌فرض باز شدن (با تولبار کامل)؛ سقف: max viewport
+    targetFormH = Math.max(NOTE_DEFAULT_H, NOTE_MIN_H, Math.min(noteMaxH(), targetFormH));
 
     // اگر متن خالی یا فقط ۱–۲ خط واقعی → ارتفاع/عرض پیش‌فرض، بدون رشد اضافه
     if (!plain) {
@@ -2897,28 +2963,56 @@
   }
   
   // --- Prompt Studio: templates, token meter, autosave, history ---
-  const PROMPT_TEMPLATES = [
+  // Built-in prompts: English title + English body only
+  const BUILTIN_PROMPTS = [
     {
-      key: 'noteTplRefactor',
-      textEn: 'Act as a Principal Software Architect. Review the following code for efficiency, security, and edge-case resilience:\n\n',
-      textFa: 'به‌عنوان یک معمار ارشد نرم‌افزار عمل کن. کد زیر را از نظر کارایی، امنیت و مقاومت در برابر حالت‌های لبه‌ای بررسی کن:\n\n'
+      id: 'builtin-refactor',
+      title: 'Code Review',
+      text: 'Act as a Principal Software Architect. Review the following code for efficiency, security, and edge-case resilience:\n\n',
+      builtIn: true
     },
     {
-      key: 'noteTplSummary',
-      textEn: 'Analyze the text below and provide a structured comparative table and bullet-point executive summary:\n\n',
-      textFa: 'متن زیر را تحلیل کن و یک جدول مقایسه‌ای ساخت‌یافته به‌همراه خلاصهٔ مدیریتی گلوله‌ای ارائه بده:\n\n'
+      id: 'builtin-summary',
+      title: 'Summarize',
+      text: 'Analyze the text below and provide a structured comparative table and bullet-point executive summary:\n\n',
+      builtIn: true
     },
     {
-      key: 'noteTplCritic',
-      textEn: 'Critique the following thesis from first principles. Identify logical fallacies and hidden assumptions:\n\n',
-      textFa: 'از اصول اولیه، تز زیر را نقد کن. مغالطات منطقی و فرض‌های پنهان را مشخص کن:\n\n'
+      id: 'builtin-critic',
+      title: 'Critique',
+      text: 'Critique the following thesis from first principles. Identify logical fallacies and hidden assumptions:\n\n',
+      builtIn: true
     },
     {
-      key: 'noteTplTranslate',
-      textEn: 'Translate the following text into clear, natural English while preserving technical meaning:\n\n',
-      textFa: 'متن زیر را به انگلیسی روان و طبیعی ترجمه کن و معنای فنی را حفظ کن:\n\n'
+      id: 'builtin-translate',
+      title: 'Translate',
+      text: 'Translate the following text into clear, natural English while preserving technical meaning:\n\n',
+      builtIn: true
+    },
+    {
+      id: 'builtin-song',
+      title: 'Songwriter',
+      text: 'Turn the following text into a beautiful song.\nThe song must not be a mere rewrite of the text; it should transform its feeling, meaning, and imagery into a musical work.\nUse rhyme and flowing words, and write the lyrics so a listener can easily remember them.\n\nText:\n',
+      builtIn: true
+    },
+    {
+      id: 'builtin-logo',
+      title: 'Logo Maker',
+      text: 'Act as an elite brand designer. Create a logo for [brand name] that captures [core value] and speaks directly to [audience]. Make it sophisticated, timeless, and instantly recognizable.\n\n',
+      builtIn: true
     }
   ];
+
+  const CUSTOM_PROMPT_MAX = 12;
+  const CUSTOM_PROMPT_KEY = 'aiTreeCustomPrompts';
+  const PROMPT_OVERRIDE_KEY = 'aiTreePromptOverrides';
+  const PROMPT_HIDDEN_KEY = 'aiTreePromptHidden';
+  let customPrompts = []; // [{ id, title, text }]
+  let promptOverrides = {}; // { [builtinId]: { title, text } }
+  let promptHiddenIds = []; // builtin ids removed by user
+  let tplEditMode = false;
+  let tplEditingId = null; // id being edited, or null for new
+  let tplEditingBuiltIn = false;
 
   let promptHistory = [];
   let noteDraftSaveTimer = null;
@@ -2956,15 +3050,48 @@
 
   function restoreNoteDraft() {
     try {
-      chrome.storage.local.get(['savedPromptDraft', 'aiTreePromptHistory'], (res) => {
+      chrome.storage.local.get(['savedPromptDraft', 'aiTreePromptHistory', CUSTOM_PROMPT_KEY, PROMPT_OVERRIDE_KEY, PROMPT_HIDDEN_KEY], (res) => {
         if (res && typeof res.savedPromptDraft === 'string' && noteTextarea && !noteTextarea.value) {
           noteTextarea.value = res.savedPromptDraft;
         }
         if (res && Array.isArray(res.aiTreePromptHistory)) {
           promptHistory = res.aiTreePromptHistory.slice(0, 10);
         }
+        if (res && Array.isArray(res[CUSTOM_PROMPT_KEY])) {
+          customPrompts = res[CUSTOM_PROMPT_KEY]
+            .filter(p => p && typeof p.title === 'string' && typeof p.text === 'string')
+            .slice(0, CUSTOM_PROMPT_MAX)
+            .map(p => ({
+              id: p.id || ('c-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
+              title: String(p.title).slice(0, 40),
+              text: String(p.text)
+            }));
+        }
+        if (res && res[PROMPT_OVERRIDE_KEY] && typeof res[PROMPT_OVERRIDE_KEY] === 'object') {
+          promptOverrides = res[PROMPT_OVERRIDE_KEY];
+        }
+        if (res && Array.isArray(res[PROMPT_HIDDEN_KEY])) {
+          promptHiddenIds = res[PROMPT_HIDDEN_KEY].filter(id => typeof id === 'string');
+        }
         updateNoteTokenMeter();
+        renderNoteTemplates();
       });
+    } catch (e) {}
+  }
+
+  function saveCustomPrompts() {
+    try {
+      if (chrome.runtime?.id) chrome.storage.local.set({ [CUSTOM_PROMPT_KEY]: customPrompts });
+    } catch (e) {}
+  }
+  function savePromptOverrides() {
+    try {
+      if (chrome.runtime?.id) chrome.storage.local.set({ [PROMPT_OVERRIDE_KEY]: promptOverrides });
+    } catch (e) {}
+  }
+  function savePromptHidden() {
+    try {
+      if (chrome.runtime?.id) chrome.storage.local.set({ [PROMPT_HIDDEN_KEY]: promptHiddenIds });
     } catch (e) {}
   }
 
@@ -2996,21 +3123,235 @@
     adjustNotepadPosition();
   }
 
+  function allPrompts() {
+    const hidden = new Set(promptHiddenIds || []);
+    const builtins = BUILTIN_PROMPTS
+      .filter((p) => !hidden.has(p.id))
+      .map((p) => {
+        const ov = promptOverrides && promptOverrides[p.id];
+        if (ov && (ov.title || ov.text)) {
+          return {
+            ...p,
+            title: (ov.title != null ? String(ov.title) : p.title).slice(0, 40),
+            text: ov.text != null ? String(ov.text) : p.text,
+            overridden: true
+          };
+        }
+        return { ...p, overridden: false };
+      });
+    return builtins.concat(customPrompts.map(p => ({ ...p, builtIn: false, overridden: false })));
+  }
+
+  function ensureTplEditorDom() {
+    if (!quickNoteForm) return null;
+    let ed = quickNoteForm.querySelector('#ai-note-tpl-editor');
+    if (ed) return ed;
+    ed = document.createElement('div');
+    ed.id = 'ai-note-tpl-editor';
+    ed.className = 'ai-note-tpl-editor';
+    ed.hidden = true;
+    ed.innerHTML = `
+      <div class="ai-tpl-ed-head">
+        <span class="ai-tpl-ed-title" id="ai-tpl-ed-title"></span>
+        <button type="button" class="ai-tpl-ed-close" id="ai-tpl-ed-close" aria-label="Close">✕</button>
+      </div>
+      <input type="text" id="ai-tpl-ed-name" class="ai-tpl-ed-input" dir="ltr" maxlength="40" autocomplete="off" />
+      <textarea id="ai-tpl-ed-body" class="ai-tpl-ed-textarea" dir="ltr" rows="5"></textarea>
+      <div class="ai-tpl-ed-actions">
+        <button type="button" id="ai-tpl-ed-use-note" class="ai-tpl-ed-btn ghost"></button>
+        <span class="ai-tpl-ed-spacer"></span>
+        <button type="button" id="ai-tpl-ed-delete" class="ai-tpl-ed-btn danger" hidden></button>
+        <button type="button" id="ai-tpl-ed-cancel" class="ai-tpl-ed-btn ghost"></button>
+        <button type="button" id="ai-tpl-ed-save" class="ai-tpl-ed-btn primary"></button>
+      </div>`;
+    // mount near tpl bar
+    if (uiEls.tplBar && uiEls.tplBar.parentNode) {
+      uiEls.tplBar.parentNode.insertBefore(ed, uiEls.tplBar.nextSibling);
+    } else {
+      quickNoteForm.appendChild(ed);
+    }
+    ed.querySelector('#ai-tpl-ed-close').addEventListener('click', (e) => { e.stopPropagation(); closeTplEditor(); });
+    ed.querySelector('#ai-tpl-ed-cancel').addEventListener('click', (e) => { e.stopPropagation(); closeTplEditor(); });
+    ed.querySelector('#ai-tpl-ed-save').addEventListener('click', (e) => { e.stopPropagation(); saveTplEditor(); });
+    ed.querySelector('#ai-tpl-ed-delete').addEventListener('click', (e) => { e.stopPropagation(); deleteFromTplEditor(); });
+    ed.querySelector('#ai-tpl-ed-use-note').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const body = ed.querySelector('#ai-tpl-ed-body');
+      if (!body || !noteTextarea) return;
+      const selStart = noteTextarea.selectionStart;
+      const selEnd = noteTextarea.selectionEnd;
+      let chunk = '';
+      if (typeof selStart === 'number' && typeof selEnd === 'number' && selEnd > selStart) {
+        chunk = noteTextarea.value.slice(selStart, selEnd);
+      } else {
+        chunk = noteTextarea.value || '';
+      }
+      body.value = chunk;
+      body.focus();
+    });
+    ['mousedown', 'click', 'keydown', 'keyup'].forEach(ev => {
+      ed.addEventListener(ev, (e) => e.stopPropagation());
+    });
+    return ed;
+  }
+
+  function openTplEditor(promptOrNull) {
+    const ed = ensureTplEditorDom();
+    if (!ed) return;
+    tplEditingId = promptOrNull ? promptOrNull.id : null;
+    tplEditingBuiltIn = !!(promptOrNull && promptOrNull.builtIn);
+    const isNew = !tplEditingId;
+    ed.querySelector('#ai-tpl-ed-title').textContent = isNew ? t('noteTplFormTitleNew') : t('noteTplFormTitleEdit');
+    const nameEl = ed.querySelector('#ai-tpl-ed-name');
+    const bodyEl = ed.querySelector('#ai-tpl-ed-body');
+    nameEl.placeholder = t('noteTplFormName');
+    bodyEl.placeholder = t('noteTplFormBody');
+    nameEl.value = promptOrNull ? (promptOrNull.title || '') : '';
+    bodyEl.value = promptOrNull ? (promptOrNull.text || '') : '';
+    ed.querySelector('#ai-tpl-ed-use-note').textContent = t('noteTplFormUseNote');
+    ed.querySelector('#ai-tpl-ed-cancel').textContent = t('noteTplFormCancel');
+    ed.querySelector('#ai-tpl-ed-save').textContent = t('noteTplFormSave');
+    const delBtn = ed.querySelector('#ai-tpl-ed-delete');
+    if (isNew) {
+      delBtn.hidden = true;
+    } else {
+      delBtn.hidden = false;
+      delBtn.textContent = t('noteTplFormDelete');
+    }
+    ed.hidden = false;
+    ed.classList.add('active');
+    nameEl.focus();
+  }
+
+  function closeTplEditor() {
+    const ed = quickNoteForm && quickNoteForm.querySelector('#ai-note-tpl-editor');
+    if (!ed) return;
+    ed.hidden = true;
+    ed.classList.remove('active');
+    tplEditingId = null;
+    tplEditingBuiltIn = false;
+  }
+
+  function saveTplEditor() {
+    const ed = quickNoteForm && quickNoteForm.querySelector('#ai-note-tpl-editor');
+    if (!ed) return;
+    const title = (ed.querySelector('#ai-tpl-ed-name').value || '').trim().slice(0, 40);
+    const body = (ed.querySelector('#ai-tpl-ed-body').value || '').trim();
+    if (!title || !body) {
+      showToastNotification(t('noteTplToastNeedFields'), true);
+      return;
+    }
+    if (tplEditingId && tplEditingBuiltIn) {
+      promptOverrides[tplEditingId] = { title, text: body };
+      savePromptOverrides();
+    } else if (tplEditingId) {
+      const idx = customPrompts.findIndex(p => p.id === tplEditingId);
+      if (idx >= 0) {
+        customPrompts[idx] = { ...customPrompts[idx], title, text: body };
+      } else {
+        customPrompts.push({ id: tplEditingId, title, text: body });
+      }
+      saveCustomPrompts();
+    } else {
+      if (customPrompts.length >= CUSTOM_PROMPT_MAX) {
+        showToastNotification(t('noteTplToastLimit'), true);
+        return;
+      }
+      customPrompts.push({
+        id: 'c-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        title,
+        text: body
+      });
+      saveCustomPrompts();
+    }
+    closeTplEditor();
+    renderNoteTemplates();
+    showToastNotification(t('noteTplToastSaved'));
+  }
+
+  function deleteFromTplEditor() {
+    if (!tplEditingId) return;
+    if (tplEditingBuiltIn) {
+      if (!promptHiddenIds.includes(tplEditingId)) {
+        promptHiddenIds.push(tplEditingId);
+        savePromptHidden();
+      }
+      if (promptOverrides[tplEditingId]) {
+        delete promptOverrides[tplEditingId];
+        savePromptOverrides();
+      }
+      closeTplEditor();
+      renderNoteTemplates();
+      showToastNotification(t('noteTplToastDeleted'));
+      return;
+    }
+    customPrompts = customPrompts.filter(p => p.id !== tplEditingId);
+    saveCustomPrompts();
+    closeTplEditor();
+    renderNoteTemplates();
+    showToastNotification(t('noteTplToastDeleted'));
+  }
+
   function renderNoteTemplates() {
     if (!uiEls.tplBar) return;
     uiEls.tplBar.innerHTML = '';
-    PROMPT_TEMPLATES.forEach((tpl) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'ai-note-tpl-chip';
-      btn.textContent = t(tpl.key);
-      btn.addEventListener('click', (e) => {
+    uiEls.tplBar.classList.toggle('is-editing', tplEditMode);
+
+    allPrompts().forEach((tpl) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'ai-note-tpl-chip' + (tpl.builtIn ? ' is-builtin' : ' is-custom');
+      if (tpl.overridden) chip.classList.add('is-overridden');
+      if (tplEditMode) chip.classList.add('is-editable');
+      chip.textContent = tpl.title;
+      chip.title = tplEditMode ? t('noteTplFormTitleEdit') : tpl.title;
+      chip.addEventListener('click', (e) => {
         e.stopPropagation();
-        const body = currentLang === 'fa' ? tpl.textFa : tpl.textEn;
-        insertNoteTemplate(body);
+        if (tplEditMode) {
+          openTplEditor(tpl);
+          return;
+        }
+        insertNoteTemplate(tpl.text);
       });
-      uiEls.tplBar.appendChild(btn);
+      uiEls.tplBar.appendChild(chip);
     });
+
+    // + add
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.className = 'ai-note-tpl-action ai-note-tpl-add';
+    addBtn.textContent = '+';
+    addBtn.title = t('noteTplAdd');
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (customPrompts.length >= CUSTOM_PROMPT_MAX) {
+        showToastNotification(t('noteTplToastLimit'), true);
+        return;
+      }
+      openTplEditor(null);
+    });
+    uiEls.tplBar.appendChild(addBtn);
+
+    // edit toggle
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'ai-note-tpl-action ai-note-tpl-edit' + (tplEditMode ? ' is-active' : '');
+    editBtn.textContent = tplEditMode ? '✓' : '✎';
+    editBtn.title = tplEditMode ? t('noteTplDone') : t('noteTplEdit');
+    editBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      tplEditMode = !tplEditMode;
+      if (!tplEditMode) closeTplEditor();
+      renderNoteTemplates();
+    });
+    uiEls.tplBar.appendChild(editBtn);
+
+    // Keep bottom toolbar fully visible after template bar height changes
+    if (quickNoteForm.classList.contains('active') && !noteUserResized && !noteSplitSide) {
+      requestAnimationFrame(() => {
+        if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+      });
+    }
   }
 
   function renderPromptHistoryMenu() {
