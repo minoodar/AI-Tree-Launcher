@@ -5,6 +5,94 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
+> **[فارسی (Persian Guide) ↓](#--ai-tree-launcher-v303--راهنمای-فارسی)**
+
+A progressive and impactful extension for Chromium-based browsers that replaces traditional bookmark clutter with a **floating, ergonomic, and multi-dimensional orbital system**. By combining smart data management, centralized AI cores, time management tools, and calming daily inspirations, AI Tree Launcher creates an exceptional workspace for power users.
+
+---
+
+## 🌟 Why AI Tree Launcher? (Design Philosophy)
+
+In today's web, managing hundreds of static bookmarks while needing quick access to daily productivity tools is a constant challenge. **AI Tree Launcher** harnesses a **Golden Angle Spiral (`137.51°`)** and galactic architecture to bring order to workspace chaos:
+
+- **Ergonomic & Fluid Structure:** Access up to 160 bookmarks across multiple galaxies and importance tiers without cluttering your screen.
+- **Frictionless Focus:** Core daily tools (Notepad, Clock, Calculator, Search, and To-Do list) are integrated into a single, minimalist floating widget.
+- **Mindfulness & Positive Energy:** Features 40 curated verses to promote mental balance and calm amidst busy workflows.
+
+---
+
+## ✨ Key Features & Capabilities
+
+### 🌌 1. Galactic Bookmark Management
+- **Massive Capacity (Up to 160 Bookmarks):** Organize your web resources across 3 distinct systems/galaxies (`Home` and `Extended Networks`).
+- **Dynamic Galactic Warp:** Seamlessly move bookmarks between different galaxies with a simple drag or inline edit.
+- **Smart Auto-Overflow:** When a star-rating tier (1★ to 5★) fills up, the extension automatically transfers new bookmarks to the next available galaxy.
+- **Hold-to-Bookmark:** Simply hold your click on the main hub to reveal star ratings and bookmark the active tab instantly without opening a form.
+- **Auto-Naming & Favicons:** Automatically extracts domain names and fetches metadata descriptions to remind you why a link was saved.
+- **Duplicate URL Warning:** Smart detection prevents saving duplicate websites.
+
+### 🤖 2. Centralized Multi-Core AI Studio
+- **3 Cores × 4 Slots (12 AI Slots):** Configure and simultaneously access your favorite AI models (such as ChatGPT, Claude, Gemini, DeepSeek, etc.).
+- **Smart Dispatch Ribbon:** Instantly copy or dispatch prompt drafts from the notepad directly to your selected AI platform for quick model comparison.
+- **Multi-Purpose Notepad:** Complete with window pinning, `.txt` file export, and an intelligent countdown timer for automatic closing.
+
+### 📝 3. Daily Planner & Goal Tracker
+- **24h Daily Tasks:** Daily to-do items automatically expire and clear after 24 hours to keep your workflow clean.
+- **Move to Tomorrow:** Easily postpone unfinished tasks to tomorrow's schedule with a single click.
+- **Goals & Wishes Tracker:** A dedicated space for long-term aspirations featuring subtle glowing visual effects.
+- **40 Hidden Daily Verses:** Displays randomized daily verses to bring positive energy and mindfulness to your workspace.
+
+### 📅 4. Bilingual Clock, Calendar & Special Days
+- **Smart Dual Calendar (Gregorian / Jalali):** Algorithmic date conversion without relying on heavy external libraries.
+- **NLP Date Parser:** Understands and parses verbal date inputs such as "today", "tomorrow", or standard date formats.
+- **Life Journey Visualization:** Visually represents your chronological age and life journey progress based on your birth year.
+- **Special Days Tracker:** Register birthdays or important events with countdown timers and visual indicator nodes on the clock widget.
+
+### 🔍 5. Fuzzy Search & Instant Calculation
+- **Algorithmic Fuzzy Search:** Instantly locate bookmarks by typing partial or imperfect queries.
+- **Built-in Calculator:** Perform quick math calculations without leaving your current tab.
+
+---
+
+## 🚀 Installation Guide (Developer Mode)
+
+Since this extension is open-source and distributed manually, follow these steps to install it on Chrome, Edge, or Brave:
+
+1. Download this repository and unzip the archive (or fetch via `git clone`).
+2. Open your browser and navigate to `chrome://extensions/`.
+3. Enable **Developer mode** in the top-right corner.
+4. Click the **Load unpacked** button.
+5. Select the project root directory (containing `manifest.json`).
+6. The extension is now installed, and the floating widget will appear on web pages!
+
+---
+
+## 🛠️ Built With
+
+- **Manifest V3:** Strictly adheres to Google Chrome's latest performance and security standards.
+- **Vanilla JavaScript (ES6+):** Zero external frameworks or heavy dependencies for maximum speed and lightweight execution.
+- **CSS3 Custom Properties & Glassmorphism:** Modern styling with lighting effects, blur, and smooth 60fps animations.
+- **Chrome Storage API (`sync` & `local`):** Cloud synchronization for core settings alongside safe local storage for backups.
+
+---
+
+## 📜 License
+
+This project is open-source and released under the **[MIT License](https://opensource.org/licenses/MIT)**.  
+You are free to copy, modify, and distribute this code for personal, educational, or commercial projects, provided that the original copyright and license notice are preserved.
+
+---
+<p align="center">
+  Designed with passion for productivity, aesthetics, and mindfulness. ✨
+</p>
+
+---
+---
+
+<a name="--ai-tree-launcher-v303--راهنمای-فارسی"></a>
+# 🌌 AI Tree Launcher (V30.3) | راهنمای فارسی
+> **منظومهٔ شناور کاری و سیستم مدیریت کهکشانی بوک‌مارک‌ها**
+
 یک افزونه پیشرفته و اثرگذار برای مرورگرهای مبتنی بر کرومیوم که انباشتگی بوک‌مارک‌های سنتی را با یک **منظومه شناور، ارگونومیک و چندبعدی** جایگزین می‌کند. این افزونه با تلفیق مدیریت هوشمند اطلاعات، هسته‌های متمرکز هوش مصنوعی، ابزارهای مدیریت زمان و پیام‌های آرامش‌بخش، یک فضای کاری بی‌نظیر برای کاربران حرفه‌ای می‌سازد.
 
 ---
@@ -76,10 +164,10 @@
 
 ## 📜 لایسنس (License)
 
-این پروژه تحت لایسنس **[MIT](https://opensource.org/licenses/MIT)** منتشر شده است. 
+این پروژه تحت لایسنس **[MIT](https://opensource.org/licenses/MIT)** منتشر شده است.  
 شما آزاد هستید این کد را برای استفاده‌های شخصی، آموزشی و حتی تجاری کپی کنید، تغییر دهید و به اشتراک بگذارید. تنها شرط این است که کپی‌رایت اصلی و متن لایسنس در پروژه‌های مشتق‌شده حفظ شود.
 
 ---
-<p center="align">
+<p align="center">
   Designed with passion for productivity, aesthetics, and mindfulness. ✨
 </p>
