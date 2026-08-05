@@ -130,9 +130,17 @@ stroke: #fff; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linej
 #ai-spacing-arc {
 position: absolute; top: 50%; left: 50%; width: 104px; height: 104px;
 transform: translate(-50%, -50%); pointer-events: none; z-index: 105;
-opacity: 0; transition: opacity 0.3s var(--ease-premium);
+opacity: 0; transition: opacity 0.3s var(--ease-premium), transform 0.3s var(--ease-premium);
 }
 .orbit-root.show-all-active #ai-spacing-arc { opacity: 1; }
+/* هاور روی هاب آن را ۱٫۱۲ برابر بزرگ می‌کند (transform: scale) و چون این هندل داخل هاب است،
+   همراهش بزرگ می‌شود و دقیقاً به سمت ردیف سه‌نقطهٔ ناوبری کهکشانی (بالای هاب) کشیده می‌شود —
+   خصوصاً چون ease-bounce حین انیمیشن هاور کمی از ۱٫۱۲ هم overshoot می‌کند. اینجا با یک اسکیل
+   معکوس، اندازهٔ واقعیِ این هندل روی صفحه را مستقل از هاور نگه می‌داریم. */
+.orbit-hub:hover #ai-spacing-arc,
+.orbit-hub.hub-collapsed:hover #ai-spacing-arc {
+  transform: translate(-50%, -50%) scale(0.8929); /* 1 / 1.12 */
+}
 
 /* Total bookmark + core counters — digital readout under hub (show-all only) */
 #ai-bookmark-count {

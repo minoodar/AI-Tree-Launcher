@@ -2132,7 +2132,9 @@
       let leftPos = rect.left + (rect.width / 2) - (navWidth / 2);
       leftPos = Math.max(8, Math.min(leftPos, window.innerWidth - navWidth - 8));
       // Prefer above the hub so it doesn't collide with the tier-dots row below.
-      let topPos = rect.top - 26;
+      // فاصله از ۲۶ به ۳۸ افزایش یافت: هندل فاصله‌گذاری (ai-spacing-arc) وقتی در حال کشیده‌شدن است
+      // برچسب مقدار را تا حدود ۳۰px بالاتر از لبهٔ هاب نشان می‌دهد؛ با ۳۸px همیشه فاصلهٔ امن دارد.
+      let topPos = rect.top - 38;
       if (topPos < 8) topPos = rect.bottom + 10;
       hubDotsNav.style.left = `${leftPos}px`; hubDotsNav.style.top = `${topPos}px`;
   }
@@ -4683,8 +4685,16 @@
     const spaceLeft = cx - EDGE_PAD; const spaceRight = (vw - EDGE_PAD) - cx;
     const spaceTop = cy - EDGE_PAD; const spaceBottom = (vh - EDGE_PAD) - cy;
     const biasAngleDeg = Math.atan2(-(spaceBottom - spaceTop), (spaceRight - spaceLeft)) * (180 / Math.PI);
-    const LEVER_ZONE_R = 88; 
-    while (validPositions.length < countToGenerate && attempt < MAX_ATTEMPTS) { const angle = biasAngleDeg + (attempt * GOLDEN_ANGLE); const radius = START_RADIUS + (SPACING * Math.sqrt(attempt - 1)); const rad = angle * (Math.PI / 180); const x = Math.cos(rad) * radius; const y = -Math.sin(rad) * radius; const absX = cx + x; const absY = cy + y; const normAngle = ((angle % 360) + 360) % 360; const inLeverZone = radius < LEVER_ZONE_R && (normAngle <= 100 || normAngle >= 350); const isSafe = !inLeverZone && (absX - SAFE_W > EDGE_PAD && absX + SAFE_W < vw - EDGE_PAD && absY - SAFE_H > EDGE_PAD && absY + SAFE_H < vh - EDGE_PAD); if (isSafe) validPositions.push({ x, y }); attempt++; } return validPositions;
+    const LEVER_ZONE_R = 88;
+    // بوک‌مارک اول (attempt=1) در فرمول اصلی چون Math.sqrt(attempt-1)=0 بود، هیچ‌وقت با اسلایدر فاصله
+    // جابه‌جا نمی‌شد و همیشه دقیقاً روی START_RADIUS+ثابت می‌ماند، بی‌ربط به SPACING.
+    // فیکس: به‌جای صفر کردنِ کامل جملهٔ SPACING، از یک «نیم‌قدم» مارپیچ استفاده می‌کنیم — یعنی
+    // بوک‌مارک اول هم دقیقاً روی همان منحنی مارپیچ طلایی می‌نشیند و با اسلایدر جابه‌جا می‌شود، فقط
+    // نزدیک‌تر از بوک‌مارک دوم (attempt=2) به هاب می‌ماند. FIRST_NODE_RADIUS_BOOST و ضریب نیم‌قدم
+    // طوری انتخاب شده‌اند که در کل بازهٔ MIN..MAX اسلایدر، ترتیبِ radius(اول) < radius(دوم) همیشه حفظ شود.
+    const FIRST_NODE_RADIUS_BOOST = 6;
+    const FIRST_NODE_SPIRAL_STEP = 0.5; // نصفِ فاصلهٔ بوک‌مارک دوم تا هاب — با MIN_SPACING=18 هم ترتیب را به‌هم نمی‌زند
+    while (validPositions.length < countToGenerate && attempt < MAX_ATTEMPTS) { const angle = biasAngleDeg + (attempt * GOLDEN_ANGLE); const radius = attempt === 1 ? START_RADIUS + FIRST_NODE_RADIUS_BOOST + (SPACING * FIRST_NODE_SPIRAL_STEP) : START_RADIUS + (SPACING * Math.sqrt(attempt - 1)); const rad = angle * (Math.PI / 180); const x = Math.cos(rad) * radius; const y = -Math.sin(rad) * radius; const absX = cx + x; const absY = cy + y; const normAngle = ((angle % 360) + 360) % 360; const inLeverZone = radius < LEVER_ZONE_R && (normAngle <= 100 || normAngle >= 350); const isSafe = !inLeverZone && (absX - SAFE_W > EDGE_PAD && absX + SAFE_W < vw - EDGE_PAD && absY - SAFE_H > EDGE_PAD && absY + SAFE_H < vh - EDGE_PAD); if (isSafe) validPositions.push({ x, y }); attempt++; } return validPositions;
   }
 
   function renderSpiral() {
@@ -5117,7 +5127,8 @@
     const { ring, targetHub } = findTargetHubForImportance(importance, startHub);
     if (targetHub > HUB_COUNT) { showToastNotification(t('toastTierFullEverywhere').replace('{tier}', ring.label), true); return; }
 
-    hubData(targetHub).push({ label, url: homeUrl, isCore: false, importance });
+    hubData(targetHub).push({ label, url: homeUrl, description: '', isCore: false, importance });
+    const newNodeIndex = hubData(targetHub).length - 1;
     saveLinksAll();
     
     closeAllPanelsExcept(''); 
@@ -5132,6 +5143,14 @@
     renderSpiral(); renderTierDots();
     
     showToastNotification(t('toastQuickAdded').replace('{label}', label).replace('{stars}', '★'.repeat(importance)));
+
+    // ثبتِ خودکار بوک‌مارک بدون توضیح ذخیره می‌شود؛ برای این‌که کاربر مجبور نباشد جداگانه روی نود
+    // کلیک کند تا توضیح اضافه کند، همان فرم ویرایش (که فیلد توضیحات را هم دارد) بلافاصله باز می‌شود
+    // — فقط با فوکوس روی خودِ فیلد توضیحات، چون عنوان/آدرس از قبل درست پر شده‌اند.
+    // بوک‌مارک از قبل با saveLinksAll() ذخیره شده؛ اگر کاربر این پنجره را لغو کند چیزی از دست نمی‌رود،
+    // فقط توضیح خالی می‌ماند و می‌تواند بعداً از روی خودِ نود دوباره اضافه‌اش کند.
+    openEditForm(newNodeIndex);
+    if (uiEls.formDescription) uiEls.formDescription.focus();
   }
 
   uiEls.formSave.addEventListener('click', (e) => { e.stopPropagation(); submitBookmarkForm(); });
