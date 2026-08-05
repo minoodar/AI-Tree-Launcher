@@ -43,7 +43,8 @@
       collapseTitle: "Collapse Menu",
       calcTitle: "Calculator",
       clockTitle: "Clock & Date",
-      undoTitle: "Restore last cleared text, task, or bookmark",
+      undoTitle: "Recover",
+      undoAria: "Recover last item or restore launcher",
       spacingTitle: "Drag to adjust spacing",
       addNodeTitle: "Add Bookmark",
       formAddTitle: "🔖 Add Bookmark",
@@ -87,6 +88,7 @@
       toastDeleted: "Deleted! Use Undo to restore it.",
       toastCoreCleared: "Reset to empty",
       toastRestored: "Restored!",
+      toastRevived: "Launcher recovered ⚡",
       toastTodoDeleted: "Task deleted! Use Undo to restore it.",
       toastTodoCopied: "Copied to clipboard",
       hubAll: "All",
@@ -95,8 +97,11 @@
       hubCore: "Core",
       portalForward: "Extended Network {n}",
       portalHome: "Home",
+      portalNews: "News",
       hubDotTitle: "Galaxy {n}",
       hubDotHome: "Home",
+      hubDotNews: "News",
+      hubNews: "News",
       toastOverflowed: "{tier} tier is full — saved to Extended Network {hub} instead.",
       toastTierFullEverywhere: "{tier} tier is full across all networks!",
       toastQuickAdded: "Bookmarked: {label} {stars}",
@@ -194,7 +199,8 @@
       collapseTitle: "بستن منو",
       calcTitle: "ماشین حساب",
       clockTitle: "ساعت و تاریخ",
-      undoTitle: "بازگردانی متن، وظیفه، یا بوک‌مارک پاک‌شده",
+      undoTitle: "بازیابی",
+      undoAria: "بازیابی آخرین مورد یا احیای لانچر",
       spacingTitle: "فاصله‌ی بوک‌مارک‌ها را با کشیدن تنظیم کنید",
       addNodeTitle: "افزودن بوک‌مارک",
       formAddTitle: "🔖 افزودن بوک‌مارک",
@@ -238,6 +244,7 @@
       toastDeleted: "حذف شد؛ با Undo بازگردانید.",
       toastCoreCleared: "به حالت خالی بازنشانی شد",
       toastRestored: "بازیابی شد!",
+      toastRevived: "لانچر بازیابی شد ⚡",
       toastTodoDeleted: "وظیفه حذف شد؛ با Undo بازگردانید.",
       toastTodoCopied: "متن کپی شد",
       hubAll: "همه",
@@ -246,8 +253,11 @@
       hubCore: "هسته",
       portalForward: "منظومه‌ی فرعی {n}",
       portalHome: "خانه",
+      portalNews: "اخبار",
       hubDotTitle: "کهکشان {n}",
       hubDotHome: "خانه",
+      hubDotNews: "اخبار",
+      hubNews: "اخبار",
       toastOverflowed: "رده‌ی {tier} پر شد؛ در منظومه‌ی فرعی {hub} ذخیره شد.",
       toastTierFullEverywhere: "رده‌ی {tier} در همه‌ی منظومه‌ها پر است!",
       toastQuickAdded: "بوک‌مارک شد: {label} {stars}",
@@ -317,8 +327,18 @@
   let linksData = []; 
   let linksData2 = []; 
   let linksData3 = [];
-  const HUB_COUNT = 3; 
-  function hubData(hubIdx) { return hubIdx === 1 ? linksData : hubIdx === 2 ? linksData2 : linksData3; }
+  let linksData4 = []; // کهکشان NEWS — فقط با انتخاب کاربر پر می‌شود
+  const HUB_COUNT = 4;
+  const OVERFLOW_HUB_MAX = 3; // سرریز خودکار فقط بین کهکشان‌های ۱–۳
+  const NEWS_HUB_INDEX = 4;
+  function isNewsHub(hubIdx) { return hubIdx === NEWS_HUB_INDEX; }
+  function hubData(hubIdx) {
+    if (hubIdx === 1) return linksData;
+    if (hubIdx === 2) return linksData2;
+    if (hubIdx === 3) return linksData3;
+    if (hubIdx === 4) return linksData4;
+    return linksData;
+  }
   let currentHubIndex = 1; 
   let hubNavDirection = 'forward'; // remembers last portal click direction so a "return trip" keeps showing 🌍 in the same slot
   let todosData = [];
@@ -428,10 +448,16 @@
   }
   function findTargetHubForImportance(importance, startHub) {
     const ring = tierRingForImportance(importance);
-    let targetHub = startHub;
-    while (targetHub <= HUB_COUNT && (tierCountInHub(targetHub, ring) >= ring.max || hubData(targetHub).length >= MAX_NODES)) {
+    // کهکشان NEWS هرگز مقصد سرریز خودکار نیست و خودش هم سرریز نمی‌کند
+    if (isNewsHub(startHub)) {
+      const full = tierCountInHub(NEWS_HUB_INDEX, ring) >= ring.max || hubData(NEWS_HUB_INDEX).length >= MAX_NODES;
+      return { ring, targetHub: full ? (HUB_COUNT + 1) : NEWS_HUB_INDEX };
+    }
+    let targetHub = Math.min(startHub, OVERFLOW_HUB_MAX);
+    while (targetHub <= OVERFLOW_HUB_MAX && (tierCountInHub(targetHub, ring) >= ring.max || hubData(targetHub).length >= MAX_NODES)) {
       targetHub++;
     }
+    if (targetHub > OVERFLOW_HUB_MAX) targetHub = HUB_COUNT + 1; // پر در همهٔ کهکشان‌های قابل‌سرریز
     return { ring, targetHub };
   }
   function hubHasTierItems(hubIdx, ring) { return tierCountInHub(hubIdx, ring) > 0; }
@@ -465,7 +491,10 @@
   const collapseToggleDot = document.createElement('div'); collapseToggleDot.id = 'ai-collapse-toggle'; collapseToggleDot.innerHTML = `<span class="ai-toggle-glyph">◉</span>`; hub.appendChild(collapseToggleDot);
   const calcToggleDot = document.createElement('div'); calcToggleDot.id = 'ai-calc-hub-toggle'; calcToggleDot.innerHTML = `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="16" y2="14"></line><line x1="8" y1="18" x2="16" y2="18"></line></svg>`; hub.appendChild(calcToggleDot);
   const clockToggleDot = document.createElement('div'); clockToggleDot.id = 'ai-clock-toggle'; clockToggleDot.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`; hub.appendChild(clockToggleDot);
-  const undoToggleDot = document.createElement('div'); undoToggleDot.id = 'ai-undo-toggle'; undoToggleDot.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>`; hub.appendChild(undoToggleDot);
+  const undoToggleDot = document.createElement('div'); undoToggleDot.id = 'ai-undo-toggle';
+  undoToggleDot.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/><path d="M16.2 5.2l0.7 1.5 1.5 0.7-1.5 0.7-0.7 1.5-0.7-1.5-1.5-0.7 1.5-0.7z" fill="#FBBF24" stroke="none"/></svg>`;
+  undoToggleDot.setAttribute('aria-label', 'Recover last item or restore launcher');
+  hub.appendChild(undoToggleDot);
 
   const spacingArc = document.createElement('div'); spacingArc.id = 'ai-spacing-arc';
   spacingArc.innerHTML = `
@@ -508,6 +537,7 @@
         <div class="ai-galaxy-stop" data-hub="1">🌌<b>۱</b></div>
         <div class="ai-galaxy-stop" data-hub="2">🌌<b>۲</b></div>
         <div class="ai-galaxy-stop" data-hub="3">🌌<b>۳</b></div>
+        <div class="ai-galaxy-stop" data-hub="4">📰<b>N</b></div>
         <div class="ai-galaxy-knob" id="ai-galaxy-knob">🪐</div>
       </div>
     </div>
@@ -779,7 +809,7 @@
     all: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.2" fill="#94A3B8" stroke="none"/><circle cx="12" cy="4.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="18.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="18.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="19.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="5.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="5.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><path d="M12 6.7v2.6M16.4 9.7l-2.2 1.3M16.4 14.3l-2.2-1.3M12 14.7v2.6M7.6 14.3l2.2-1.3M7.6 9.7l2.2 1.3" stroke-opacity="0.55"/></svg>`,
     calc: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6h12M6 12h12M6 18h12M8 6v12M16 6v12" stroke-opacity="0.55"/><circle cx="8" cy="6" r="1.45" fill="currentColor" stroke="none"/><circle cx="16" cy="6" r="1.45" fill="currentColor" stroke="none"/><circle cx="8" cy="12" r="1.7" fill="#FA8072" stroke="none"/><circle cx="16" cy="12" r="1.45" fill="currentColor" stroke="none"/><circle cx="8" cy="18" r="1.45" fill="currentColor" stroke="none"/><circle cx="16" cy="18" r="1.45" fill="currentColor" stroke="none"/></svg>`,
     clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8" stroke-opacity="0.55"/><path d="M12 12l3.2-2.4" stroke-opacity="0.85"/><path d="M12 4.5v1.4M19.5 12h-1.4M12 19.5v-1.4M4.5 12h1.4" stroke-opacity="0.4"/><circle cx="12" cy="12" r="1.55" fill="#3B82F6" stroke="none"/><circle cx="15.2" cy="9.6" r="1.2" fill="currentColor" stroke="none"/><circle cx="12" cy="4.5" r="1.1" fill="currentColor" stroke-opacity="0.7"/></svg>`,
-    undo: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8.2L5 11.7l3.5 3.5" stroke-opacity="0.85"/><path d="M5 11.7h9.2a5 5 0 0 1 0 10H11" stroke-opacity="0.55"/><circle cx="5" cy="11.7" r="1.55" fill="#FBBF24" stroke="none"/><circle cx="14.2" cy="11.7" r="1.2" fill="currentColor" stroke="none"/><circle cx="19.2" cy="16.7" r="1.15" fill="currentColor" stroke-opacity="0.75"/></svg>`,
+    undo: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8.2L5 11.7l3.5 3.5" stroke-opacity="0.85"/><path d="M5 11.7h9.2a5 5 0 0 1 0 10H11" stroke-opacity="0.55"/><circle cx="5" cy="11.7" r="1.55" fill="#FBBF24" stroke="none"/><path d="M17.2 5.4l0.85 1.75 1.75 0.85-1.75 0.85-0.85 1.75-0.85-1.75-1.75-0.85 1.75-0.85z" fill="#FBBF24" stroke="none"/><circle cx="14.2" cy="11.7" r="1.05" fill="currentColor" stroke="none"/><circle cx="19" cy="16.5" r="1" fill="currentColor" stroke-opacity="0.7"/></svg>`,
     collapse: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5" stroke-opacity="0.5"/><circle cx="12" cy="12" r="3.2" stroke-opacity="0.75"/><circle cx="12" cy="12" r="1.5" fill="#BAE6FD" stroke="none"/><circle cx="12" cy="4.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="19.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="19.5" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg>`
   };
 
@@ -894,6 +924,7 @@
     setGalaxyTooltip(searchToggleDot, t('searchTitle'), GALAXY_ICONS.search, 'right');
     setGalaxyTooltip(calcToggleDot, t('calcTitle'), GALAXY_ICONS.calc, 'right');
     setGalaxyTooltip(undoToggleDot, t('undoTitle'), GALAXY_ICONS.undo, 'top');
+    if (undoToggleDot) undoToggleDot.setAttribute('aria-label', t('undoAria'));
     setGalaxyTooltip(collapseToggleDot, t('collapseTitle'), GALAXY_ICONS.collapse, 'bottom');
     spacingArc.title = t('spacingTitle');
     addNodeBtn.title = t('addNodeTitle');
@@ -1922,7 +1953,7 @@
 
   function allBookmarksFlat() {
     const out = [];
-    [linksData, linksData2, linksData3].forEach((arr, hubIdx) => {
+    [linksData, linksData2, linksData3, linksData4].forEach((arr, hubIdx) => {
       for (let i = 0; i < arr.length; i++) { if (arr[i] && arr[i].url) out.push({ link: arr[i], hub: hubIdx + 1, idx: i }); }
     });
     return out;
@@ -1990,9 +2021,11 @@
 
         // بج کهکشان همیشه و جدا از بج ستاره نشان داده می‌شود تا هیچ‌وقت گم نشود
         const badges = document.createElement('span'); badges.className = 'ai-search-result-badges';
-        const hubStr = currentLang === 'fa' ? toPersianDigits(hub) : String(hub);
+        const hubStr = isNewsHub(hub)
+          ? t('hubNews')
+          : (currentLang === 'fa' ? toPersianDigits(hub) : String(hub));
         const galaxyBadge = document.createElement('span'); galaxyBadge.className = 'ai-search-result-galaxy';
-        galaxyBadge.textContent = t('searchMetaHubOnly').replace('{hub}', hubStr);
+        galaxyBadge.textContent = isNewsHub(hub) ? hubStr : t('searchMetaHubOnly').replace('{hub}', hubStr);
         badges.appendChild(galaxyBadge);
         if (link.importance != null) {
           const starBadge = document.createElement('span'); starBadge.className = 'ai-search-result-stars';
@@ -2113,8 +2146,9 @@
   function renderHubDots() {
       hubDotsNav.innerHTML = '';
       for (let i = 1; i <= HUB_COUNT; i++) {
-        const dot = document.createElement('div'); dot.className = 'hub-dot' + (i === currentHubIndex ? ' active' : '');
-        dot.title = i === 1 ? t('hubDotHome') : t('hubDotTitle').replace('{n}', i - 1);
+        const dot = document.createElement('div');
+        dot.className = 'hub-dot' + (i === currentHubIndex ? ' active' : '') + (isNewsHub(i) ? ' hub-dot-news' : '');
+        dot.title = i === 1 ? t('hubDotHome') : (isNewsHub(i) ? t('hubDotNews') : t('hubDotTitle').replace('{n}', i - 1));
         dot.addEventListener('click', (e) => {
           e.stopPropagation();
           if (i === currentHubIndex) { resetToggleTimeout(); resetAutoCollapseTimer(); return; }
@@ -2254,14 +2288,75 @@
           if (type === 'bookmark' || type === 'storage') { try { chrome.storage.sync.remove('lastDeletedLink'); } catch(err){} }
       }, duration); 
   }
+  function reviveLauncher() {
+      try {
+        if (!document.body.contains(root)) {
+          document.body.appendChild(root);
+          if (inlineForm && !document.body.contains(inlineForm)) document.body.appendChild(inlineForm);
+          if (quickNoteForm && !document.body.contains(quickNoteForm)) document.body.appendChild(quickNoteForm);
+          if (calcPanel && !document.body.contains(calcPanel)) document.body.appendChild(calcPanel);
+          if (clockPanel && !document.body.contains(clockPanel)) document.body.appendChild(clockPanel);
+          if (todoPanel && !document.body.contains(todoPanel)) document.body.appendChild(todoPanel);
+          if (searchPanel && !document.body.contains(searchPanel)) document.body.appendChild(searchPanel);
+          if (tierDotsNav && !document.body.contains(tierDotsNav)) document.body.appendChild(tierDotsNav);
+          if (hubDotsNav && !document.body.contains(hubDotsNav)) document.body.appendChild(hubDotsNav);
+          if (toastBox && !document.body.contains(toastBox)) document.body.appendChild(toastBox);
+          if (starEditorPopup && !document.body.contains(starEditorPopup)) document.body.appendChild(starEditorPopup);
+        }
+      } catch (err) {}
+
+      root.style.display = '';
+      if (!root.style.left && !root.style.bottom) {
+        root.style.left = WIDGET1_DEFAULT_LEFT;
+        root.style.top = 'auto';
+        root.style.bottom = WIDGET1_DEFAULT_BOTTOM;
+      }
+
+      hub.classList.remove('hub-collapsed');
+      root.classList.remove('hide-toggles');
+      isDragging = false;
+      dragMoved = false;
+      quickAddActive = false;
+      quickAddFired = false;
+      if (typeof closeStarEditor === 'function') closeStarEditor();
+      if (typeof closeInlineForm === 'function') closeInlineForm();
+      if (typeof abortNoteClosing === 'function') abortNoteClosing();
+
+      try {
+        if (typeof loadDataAndRender === 'function') loadDataAndRender();
+        else {
+          if (typeof renderSpiral === 'function' && isOpen) renderSpiral();
+          if (typeof renderTierDots === 'function') renderTierDots();
+          if (typeof renderHubDots === 'function') renderHubDots();
+        }
+        if (typeof restoreNoteDraft === 'function') restoreNoteDraft();
+      } catch (err) {}
+
+      try {
+        adjustNotepadPosition(); adjustCalcPosition(); adjustClockPosition();
+        adjustTodoPosition(); adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition();
+      } catch (err) {}
+
+      if (typeof resetAutoCollapseTimer === 'function') resetAutoCollapseTimer();
+      if (typeof resetToggleTimeout === 'function') resetToggleTimeout();
+
+      hub.classList.add('quickadd-flash');
+      setTimeout(() => hub.classList.remove('quickadd-flash'), 450);
+      showToastNotification(t('toastRevived'));
+  }
+
   undoToggleDot.addEventListener('click', (e) => {
-      e.stopPropagation(); if(!undoToggleDot.classList.contains('active-undo')) return;
+      e.stopPropagation();
+      // Pending undo → restore item; otherwise recover/revive the launcher
+      if (!undoToggleDot.classList.contains('active-undo')) {
+        reviveLauncher();
+        return;
+      }
       const undoneType = pendingUndoState.type;
       if(undoneType === 'text') {
           if (typeof endNoteEditSession === 'function') endNoteEditSession();
           const textState = pendingUndoState.data; const restoredText = typeof textState === 'string' ? textState : textState.value;
           noteTextarea.value = restoredText;
-          // Restore previous panel size if it was saved with the undo payload
           if (typeof textState === 'object') {
             if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
             if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
@@ -3534,20 +3629,26 @@
   updateNoteTokenMeter();
 
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
-    if (!noteTextarea || noteTextarea.value.trim() === '') return false;
-    endNoteEditSession();
-    setUndoState('text', snapshotNoteText(), currentHubIndex, 5000);
-    noteTextarea.value = '';
-    if (focus) noteTextarea.focus();
-    if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
-    else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
-    noteManuallyPositioned = false;
-    try { if (chrome.runtime?.id) chrome.storage.local.set({ savedPromptDraft: '' }); } catch (e) {}
-    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
-    adjustNotepadPosition();
-    resetToggleTimeout();
-    if (notify) showToastNotification(t('toastCleared'));
-    return true;
+    const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
+    if (hadText) {
+      endNoteEditSession();
+      setUndoState('text', snapshotNoteText(), currentHubIndex, 5000);
+      noteTextarea.value = '';
+      if (focus) noteTextarea.focus();
+      if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
+      else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
+      noteManuallyPositioned = false;
+      try { if (chrome.runtime?.id) chrome.storage.local.set({ savedPromptDraft: '' }); } catch (e) {}
+      if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+      adjustNotepadPosition();
+      resetToggleTimeout();
+      if (notify) showToastNotification(t('toastCleared'));
+    }
+    // Always start close countdown — even when notepad is already empty
+    isNotePinned = false;
+    if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
+    if (typeof startCollapseCountdown === 'function') startCollapseCountdown();
+    return hadText;
   }
   document.getElementById('ai-note-clear-btn').addEventListener('click', (e) => { e.stopPropagation(); clearNoteWithUndo(); });
   document.getElementById('ai-note-copy-btn').addEventListener('click', (e) => { e.stopPropagation(); const textToCopy = noteTextarea ? noteTextarea.value : ''; if (!textToCopy.trim()) return; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(textToCopy).then(() => { showToastNotification(t('toastCopied')); }).catch(() => { fallbackCopyText(textToCopy); }); } else fallbackCopyText(textToCopy); });
@@ -4549,7 +4650,7 @@
       }
       return 0;
     };
-    return findInArr(linksData, 1) || findInArr(linksData2, 2) || findInArr(linksData3, 3);
+    return findInArr(linksData, 1) || findInArr(linksData2, 2) || findInArr(linksData3, 3) || findInArr(linksData4, 4);
   }
 
   try {
@@ -4582,7 +4683,7 @@
   async function loadDataAndRender() {
     const [syncData, localData] = await Promise.all([
       storageGet('sync', ['orbitX', 'orbitY', 'linksData', 'coreAIConfig', 'lastDeletedLink', 'userBirthYear', 'nodeSpacing', 'aiTreeTodos', 'appLanguage', 'aiTreeMarkedDays', 'clockCustomX', 'clockCustomY']),
-      storageGet('local', ['linksData', 'linksData2', 'linksData3', 'activeNoteAIIndex'])
+      storageGet('local', ['linksData', 'linksData2', 'linksData3', 'linksData4', 'activeNoteAIIndex'])
     ]);
 
     if (typeof localData.activeNoteAIIndex === 'number') {
@@ -4612,6 +4713,7 @@
     const blankQuad = () => [ { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' } ];
     linksData2 = (localData.linksData2 && localData.linksData2.length >= 4) ? localData.linksData2 : blankQuad();
     linksData3 = (localData.linksData3 && localData.linksData3.length >= 4) ? localData.linksData3 : blankQuad();
+    linksData4 = (localData.linksData4 && localData.linksData4.length >= 4) ? localData.linksData4 : blankQuad();
 
     if(syncData.lastDeletedLink) setUndoState('storage', null);
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
@@ -4633,7 +4735,7 @@
   
   function saveLinksAll() { 
     try { 
-      if (chrome.runtime?.id) { chrome.storage.local.set({ linksData: linksData, linksData2: linksData2, linksData3: linksData3 }); } 
+      if (chrome.runtime?.id) { chrome.storage.local.set({ linksData: linksData, linksData2: linksData2, linksData3: linksData3, linksData4: linksData4 }); } 
       renderSmartRibbon();
       updateBookmarkCount();
     } catch (e) { showToastNotification(t('toastStorageErr'), true); } 
@@ -4736,9 +4838,14 @@
     if (!showAllOverride) {
         // Slot order follows the direction the user is currently traveling in, so clicking the
         // *same spot* repeatedly continues the trip (forward keeps 🌌 in that slot, backward keeps 🌍).
+        const nextHub = currentHubIndex + 1;
+        const forwardLabel = isNewsHub(nextHub)
+          ? t('portalNews')
+          : t('portalForward').replace('{n}', currentHubIndex);
+        const forwardIcon = isNewsHub(nextHub) ? '📰' : '🌌';
         const forwardPortal = (currentLayerMode === 0)
-            ? (currentHubIndex < HUB_COUNT ? { isPortal: true, target: currentHubIndex + 1, label: t('portalForward').replace('{n}', currentHubIndex), icon: '🌌' } : null)
-            : (currentHubIndex < HUB_COUNT && hubHasTierItems(currentHubIndex + 1, ring) ? { isPortal: true, target: currentHubIndex + 1, label: `${ring.label} · ${t('portalForward').replace('{n}', currentHubIndex)}`, icon: '🌌', keepLayer: true } : null);
+            ? (currentHubIndex < HUB_COUNT ? { isPortal: true, target: nextHub, label: forwardLabel, icon: forwardIcon } : null)
+            : (currentHubIndex < HUB_COUNT && hubHasTierItems(nextHub, ring) ? { isPortal: true, target: nextHub, label: `${ring.label} · ${forwardLabel}`, icon: forwardIcon, keepLayer: true } : null);
         const backPortal = (currentLayerMode === 0)
             ? (currentHubIndex > 1 ? { isPortal: true, target: 1, label: t('portalHome'), icon: '🌍' } : null)
             : (currentHubIndex > 1 && hubHasTierItems(1, ring) ? { isPortal: true, target: 1, label: `${ring.label} · ${t('portalHome')}`, icon: '🌍', keepLayer: true } : null);
@@ -4848,7 +4955,8 @@
       }
     } else addNodeBtn.style.display = 'none';
 
-    hub.classList.toggle('hub-infinity', currentHubIndex > 1);
+    hub.classList.toggle('hub-infinity', currentHubIndex > 1 && !isNewsHub(currentHubIndex));
+    hub.classList.toggle('hub-news', isNewsHub(currentHubIndex));
   }
 
   function switchHub(targetIndex, keepLayer) {
@@ -5306,7 +5414,6 @@
     }
     if (message.action === "refreshSpiralUI") {
       loadDataAndRender();
-      // پرامپت‌های دفترچه پس از import بکاپ هم باید از storage دوباره خوانده شوند
       if (typeof restoreNoteDraft === 'function') restoreNoteDraft();
     }
     if (message.action === "hideLauncherAnly") { root.style.display = 'none'; }
@@ -5321,6 +5428,8 @@
             linksData = JSON.parse(JSON.stringify(found.main || found.data || []));
             linksData2 = JSON.parse(JSON.stringify(found.w2 || []));
             linksData3 = JSON.parse(JSON.stringify(found.w3 || []));
+            linksData4 = JSON.parse(JSON.stringify(found.w4 || found.news || []));
+            if (!linksData4 || linksData4.length < 4) linksData4 = [{ label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }];
             saveLinksAll(); currentHubIndex = 1; renderSpiral(); renderTierDots(); showToastNotification(t('toastRestored')); sendResponse({ ok: true });
           } else sendResponse({ ok: false });
         });
@@ -5333,7 +5442,10 @@
   function setHubLabel(text) {
     const el = document.getElementById('ai-hub-text'); if (!el) return;
     let displayText = text;
-    if (currentHubIndex > 1 && text === 'AI') displayText = `∞${currentHubIndex}`;
+    if (isNewsHub(currentHubIndex)) {
+      if (text === 'AI' || text === t('hubCore')) displayText = t('hubNews');
+      else displayText = text;
+    } else if (currentHubIndex > 1 && text === 'AI') displayText = `∞${currentHubIndex}`;
     else if (currentHubIndex > 1 && text === t('hubCore')) displayText = `∞${currentHubIndex} Core`;
     el.textContent = displayText;
     el.classList.toggle('is-default-ai', text === 'AI' && currentHubIndex === 1);

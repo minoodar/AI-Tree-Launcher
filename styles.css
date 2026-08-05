@@ -90,10 +90,15 @@ animation: quantumSeed 4.8s ease-in-out infinite;
 @media (prefers-reduced-motion: reduce) { .orbit-hub.hub-collapsed, .orbit-hub.hub-collapsed::before { animation: none; } }
 @keyframes pulseOrange { 0% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.6); } 100% { box-shadow: 0 0 18px rgba(245, 158, 11, 0.95), 0 0 6px white; } }
 
-/* Visual shift when inside Hub 2 (Extended Network) */
+/* Visual shift when inside Hub 2/3 (Extended Network) */
 .orbit-hub.hub-infinity { border-color: rgba(139, 92, 246, 0.5); }
 .orbit-hub.hub-infinity svg.hub-main-icon text { fill: #C4B5FD !important; font-size: 16px; }
 .orbit-hub.hub-infinity:not(.hub-collapsed)::before { border-color: rgba(139, 92, 246, 0.35); box-shadow: 0 0 15px rgba(139, 92, 246, 0.1); }
+
+/* Hub 4 — News constellation */
+.orbit-hub.hub-news { border-color: rgba(248, 113, 113, 0.55); }
+.orbit-hub.hub-news svg.hub-main-icon text { fill: #FCA5A5 !important; font-size: 9px; }
+.orbit-hub.hub-news:not(.hub-collapsed)::before { border-color: rgba(248, 113, 113, 0.35); box-shadow: 0 0 15px rgba(239, 68, 68, 0.12); }
 
 /* افزودن سریع (نگه‌داشتن کلیک) */
 .orbit-hub.quickadd-flash { animation: quickAddFlash 0.45s ease-out; }
@@ -354,10 +359,55 @@ animation: portalPulse 3.2s infinite alternate ease-in-out;
 .ai-node.portal-node-home .portal-icon { font-size: 30px; filter: none; }
 @keyframes portalPulse { 0% { filter: brightness(0.92); } 100% { filter: brightness(1.15); } }
 
-/* Empty Node Styles (Hub 2 Cores) */
-.ai-node.ai-node-empty { border-style: dashed !important; background: rgba(255, 255, 255, 0.04) !important; color: rgba(255, 255, 255, 0.45); box-shadow: none !important; }
-.ai-node.ai-node-empty .ai-node-empty-plus { font-size: 18px; font-weight: 700; line-height: 1; color: rgba(167, 243, 208, 0.7); }
-.ai-node.ai-node-empty:hover { border-color: rgba(52, 211, 153, 0.6) !important; color: rgba(255,255,255,0.75); }
+/* Empty Node Styles — blank cores (AI slots / News cores)
+   High-contrast on white: dark glass plate + large deep-blue + */
+.ai-node.ai-node-empty {
+  border-style: dashed !important;
+  border-width: 2.5px !important;
+  border-color: rgba(37, 99, 235, 0.65) !important;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(37, 99, 235, 0.22) 0%, transparent 60%),
+    rgba(15, 23, 42, 0.82) !important;
+  color: #EFF6FF;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(37, 99, 235, 0.15) inset,
+    0 0 20px rgba(37, 99, 235, 0.22) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.ai-node.ai-node-empty .ai-node-empty-plus {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  color: #1D4ED8;
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 0.95),
+    0 0 1px rgba(255, 255, 255, 0.9),
+    0 1px 3px rgba(0, 0, 0, 0.55),
+    0 0 12px rgba(37, 99, 235, 0.45);
+  letter-spacing: 0;
+}
+.ai-node.ai-node-empty:hover {
+  border-color: rgba(37, 99, 235, 0.95) !important;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(37, 99, 235, 0.32) 0%, transparent 60%),
+    rgba(15, 23, 42, 0.9) !important;
+  color: #fff;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(59, 130, 246, 0.3) inset,
+    0 0 26px rgba(37, 99, 235, 0.4) !important;
+  transform: translate(-50%, -50%) scale(1.1) !important;
+}
+.ai-node.ai-node-empty:hover .ai-node-empty-plus {
+  color: #1E40AF;
+  text-shadow:
+    0 0 2px rgba(255, 255, 255, 1),
+    0 0 1px rgba(255, 255, 255, 0.95),
+    0 1px 3px rgba(0, 0, 0, 0.6),
+    0 0 16px rgba(59, 130, 246, 0.65);
+}
 
 .orbit-star-editor {
 position: fixed; display: flex; gap: 4px; align-items: center; justify-content: center; direction: ltr;
@@ -995,6 +1045,9 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
 .hub-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.28); cursor: pointer; transition: all 0.4s var(--ease-bounce); flex-shrink: 0; }
 .hub-dot:hover { background: rgba(250, 204, 21, 0.75); box-shadow: 0 0 6px rgba(250, 204, 21, 0.6); transform: scale(1.3); }
 .hub-dot.active { width: 7px; height: 7px; background: #facc15; box-shadow: 0 0 4px #facc15, 0 0 10px rgba(250, 204, 21, 0.7); cursor: default; animation: tierDotGrow 0.55s var(--ease-bounce) forwards, tierDotPulse 2.2s ease-in-out 0.55s infinite; }
+.hub-dot.hub-dot-news { background: rgba(248, 113, 113, 0.45); }
+.hub-dot.hub-dot-news:hover { background: rgba(248, 113, 113, 0.85); box-shadow: 0 0 6px rgba(239, 68, 68, 0.55); }
+.hub-dot.hub-dot-news.active { background: #f87171; box-shadow: 0 0 4px #f87171, 0 0 10px rgba(239, 68, 68, 0.65); }
 .tier-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.28); cursor: pointer; transition: all 0.4s var(--ease-bounce); flex-shrink: 0; }
 .tier-dot:hover { background: rgba(103, 232, 249, 0.75); box-shadow: 0 0 6px rgba(103, 232, 249, 0.6); transform: scale(1.3); }
 .tier-dot.active { width: 6px; height: 6px; background: #67e8f9; box-shadow: 0 0 4px #67e8f9, 0 0 10px rgba(103, 232, 249, 0.7); cursor: default; animation: tierDotGrow 0.55s var(--ease-bounce) forwards, tierDotPulse 2.2s ease-in-out 0.55s infinite; }

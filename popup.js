@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toastSaved: "Settings saved successfully!", toastExported: "JSON file downloaded!", toastImported: "Data imported successfully!", toastRestored: "Data restored successfully!",
         invalidFile: "Invalid file format.", errRead: "Error reading JSON file.",
         btnHide: "Hide", btnShow: "Show (Reset)",
-        backupHint: "🟢 Export saves bookmarks + notepad prompts &nbsp;·&nbsp; 🟠 Import restores both from a file",
+        backupHint: "🟢 Export saves bookmarks (incl. News) + notepad prompts &nbsp;·&nbsp; 🟠 Import restores both from a file",
         contactTitle: "✉︎ Contact Us", contactEmail: "Email:"
       },
       fa: {
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toastSaved: "تنظیمات با موفقیت ذخیره شد!", toastExported: "فایل خروجی دانلود شد!", toastImported: "اطلاعات فایل با موفقیت وارد شد!", toastRestored: "بکاپ با موفقیت بازیابی شد!",
         invalidFile: "فایل نامعتبر است.", errRead: "خطا در خواندن فایل JSON.",
         btnHide: "پنهان کردن", btnShow: "نمایش مجدد (ریست)",
-        backupHint: "🟢 دریافت بکاپ، بوک‌مارک‌ها و پرامپت‌های دفترچه را ذخیره می‌کند &nbsp;·&nbsp; 🟠 بازیابی، هر دو را از فایل برمی‌گرداند",
+        backupHint: "🟢 دریافت بکاپ، بوک‌مارک‌ها (شامل اخبار) و پرامپت‌های دفترچه را ذخیره می‌کند &nbsp;·&nbsp; 🟠 بازیابی، هر دو را از فایل برمی‌گرداند",
         contactTitle: "✉︎ ارتباط با ما", contactEmail: "ایمیل:"
       }
     };
@@ -117,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
     function countOf(arr) { return Array.isArray(arr) ? arr.length : 0; }
 
-    // کلیدهای پرامپت دفترچه (هم‌نام با content.js)
     const PROMPT_KEYS = {
       custom: 'aiTreeCustomPrompts',
       overrides: 'aiTreePromptOverrides',
@@ -127,15 +126,16 @@ document.addEventListener('DOMContentLoaded', () => {
   
     document.getElementById('exportJsonBtn').addEventListener('click', () => {
       chrome.storage.local.get([
-        'linksData', 'linksData2', 'linksData3',
+        'linksData', 'linksData2', 'linksData3', 'linksData4',
         PROMPT_KEYS.custom, PROMPT_KEYS.overrides, PROMPT_KEYS.hidden, PROMPT_KEYS.history
       ], (data) => {
         const payload = {
-          version: 2,
+          version: 3,
           exportedAt: new Date().toISOString(),
           main: data.linksData || [],
           w2: data.linksData2 || [],
           w3: data.linksData3 || [],
+          w4: data.linksData4 || [],
           prompts: {
             custom: Array.isArray(data[PROMPT_KEYS.custom]) ? data[PROMPT_KEYS.custom] : [],
             overrides: (data[PROMPT_KEYS.overrides] && typeof data[PROMPT_KEYS.overrides] === 'object')
@@ -168,17 +168,15 @@ document.addEventListener('DOMContentLoaded', () => {
           const importedData = JSON.parse(event.target.result);
           let updateObj = null;
 
-          // فرمت قدیمی: آرایهٔ خام بوک‌مارک
           if (Array.isArray(importedData)) {
             updateObj = { linksData: importedData };
-          }
-          // فرمت object با main (نسخه ۱ یا ۲)
-          else if (importedData && Array.isArray(importedData.main)) {
+          } else if (importedData && Array.isArray(importedData.main)) {
             updateObj = { linksData: importedData.main };
             if (Array.isArray(importedData.w2)) updateObj.linksData2 = importedData.w2;
             if (Array.isArray(importedData.w3)) updateObj.linksData3 = importedData.w3;
+            if (Array.isArray(importedData.w4)) updateObj.linksData4 = importedData.w4;
+            else if (Array.isArray(importedData.news)) updateObj.linksData4 = importedData.news;
 
-            // پرامپت‌ها (نسخه ۲ یا هر فایلی که فیلد prompts داشته باشد)
             const p = importedData.prompts;
             if (p && typeof p === 'object') {
               if (Array.isArray(p.custom)) {
