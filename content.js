@@ -5304,7 +5304,11 @@
       try { if (chrome.runtime?.id) chrome.storage.sync.remove(['clockCustomX', 'clockCustomY']); } catch (err) {}
       if (isOpen) renderSpiral(); adjustNotepadPosition(); adjustCalcPosition(); adjustClockPosition(); adjustTodoPosition(); adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition();
     }
-    if (message.action === "refreshSpiralUI") { loadDataAndRender(); }
+    if (message.action === "refreshSpiralUI") {
+      loadDataAndRender();
+      // پرامپت‌های دفترچه پس از import بکاپ هم باید از storage دوباره خوانده شوند
+      if (typeof restoreNoteDraft === 'function') restoreNoteDraft();
+    }
     if (message.action === "hideLauncherAnly") { root.style.display = 'none'; }
     if (message.action === "getBookmarkBackups") {
       try { chrome.storage.local.get(['aiTreeBookmarkBackups'], (data) => sendResponse({ backups: data.aiTreeBookmarkBackups || [] })); return true; } catch (e) { sendResponse({ backups: [] }); }
