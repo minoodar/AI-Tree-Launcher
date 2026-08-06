@@ -1,54 +1,94 @@
-/* AI Tree Launcher — Core Styles (V25.3 - Golden Ratio & Synced Drag) */
+/* AI Orbit Launcher — Visual System (V26 Quantum Seed) */
 :root {
 --orbit-size: 56px;
 
-/* Color Palette */
---c-emerald: #10B981;
---c-emerald-light: #34D399;
---c-blue: #3B82F6;
---c-blue-light: #60A5FA;
---c-coral: #FA8072;
---c-coral-light: #FF9284;
---c-amber: #F59E0B;
+/* Deep space surfaces */
+--space-0: #060C1A;
+--space-1: #08101F;
+--space-2: #0F172A;
+
+/* Typography tones */
+--text-primary: #F8FAFC;
+--text-secondary: #CBD5E1;
+--text-muted: #94A3B8;
+
+/* Core AI / quantum cyan */
+--c-cyan: #38BDF8;
+--c-cyan-light: #E0F2FE;
+--c-cyan-dark: #0C2D48;
+
+/* Productivity — emerald */
+--c-emerald: #34D399;
+--c-emerald-light: #A7F3D0;
+--c-emerald-dark: #073B35;
+
+/* Personal / time — indigo */
+--c-indigo: #818CF8;
+--c-indigo-light: #C4B5FD;
+--c-indigo-dark: #1E1B4B;
+
+/* News — amber (signal, not error) */
+--c-amber: #FBBF24;
+--c-amber-light: #FDE68A;
+--c-amber-dark: #451A03;
+
+/* Semantic reserved */
+--c-danger: #FB7185;
+--c-danger-strong: #EF4444;
+--c-warning: #F59E0B;
+--c-success: #34D399;
+
+/* Legacy aliases (keep existing component refs working) */
+--c-blue: #38BDF8;
+--c-blue-light: #7DD3FC;
+--c-coral: #FB7185;
+--c-coral-light: #FDA4AF;
 --c-red: #EF4444;
---c-indigo: #6366f1;
---c-indigo-light: #818cf8;
---c-cyan: #00D2FF;
---c-cyan-light: #67E8F9;
---c-neutral: #9CA3AF;
---c-neutral-dark: #6B7280;
+--c-neutral: #94A3B8;
+--c-neutral-dark: #64748B;
 
-/* Per-tool accent tokens (matched to toggle colors) */
---accent-note: 16, 185, 129;       /* emerald — notepad */
---accent-search: 0, 180, 255;      /* cyan — search */
---accent-todo: 99, 102, 241;       /* indigo — todo */
---accent-calc: 250, 128, 114;      /* coral — calculator */
---accent-clock: 59, 130, 246;      /* blue — clock */
---accent-form: 16, 185, 129;       /* emerald — bookmark form */
---accent-all: 148, 163, 184;       /* slate — show all */
+/* Per-tool accents (RGB triples for rgba()) */
+--accent-note: 52, 211, 153;       /* Productivity / notepad */
+--accent-search: 56, 189, 248;     /* Core cyan / search */
+--accent-todo: 129, 140, 248;      /* Personal indigo / todo */
+--accent-calc: 148, 163, 184;      /* Neutral slate / calc */
+--accent-clock: 129, 140, 248;     /* Personal / time */
+--accent-form: 52, 211, 153;       /* Productivity */
+--accent-all: 148, 163, 184;       /* Slate */
+--accent-news: 251, 191, 36;       /* News amber */
 
-/* Glassmorphism */
---glass-bg: rgba(15, 15, 27, 0.94);
---glass-blur: blur(16px);
+/* Glass — readable on white pages (high opacity) */
+--glass-bg: rgba(8, 16, 31, 0.94);
+--glass-blur: blur(18px) saturate(140%);
 --glass-radius: 16px;
---glass-shadow: 0 14px 36px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+--glass-border: rgba(186, 230, 253, 0.32);
+--glass-shadow:
+  0 14px 36px rgba(2, 6, 23, 0.55),
+  0 0 0 1px rgba(186, 230, 253, 0.12) inset;
 
-/* Matte elements */
+/* Matte chips */
 --matte-bg: rgba(255, 255, 255, 0.08);
---matte-bg-hover: rgba(255, 255, 255, 0.16);
---matte-border: rgba(255, 255, 255, 0.10);
+--matte-bg-hover: rgba(255, 255, 255, 0.14);
+--matte-border: rgba(186, 230, 253, 0.18);
 
-/* Dynamic Hub properties */
---hub-alpha: 0.25;
---hub-blur: 20px;
---hub-bg: rgba(15, 15, 25, var(--hub-alpha));
+/* Hub */
+--hub-alpha: 0.92;
+--hub-blur: 18px;
+--hub-bg: rgba(8, 16, 31, var(--hub-alpha));
 
-/* Animations */
+/* Motion */
 --space-sm: 8px;
 --space-md: 14px;
 --space-lg: 18px;
 --ease-premium: cubic-bezier(0.19, 1, 0.22, 1);
 --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+--motion-fast: 180ms;
+--motion-std: 240ms;
+--motion-orbit: 14s;
+
+/* Fonts */
+--font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif;
+--font-fa: "Vazirmatn", "IRANSansX", "Segoe UI", Tahoma, sans-serif;
 }
 
 .orbit-root { position: fixed; bottom: 28px; left: 28px; z-index: 2147483647; width: 0; height: 0; direction: ltr; }
@@ -103,9 +143,9 @@ animation: quantumSeed 4.8s ease-in-out infinite;
 .orbit-hub.hub-infinity:not(.hub-collapsed)::before { border-color: rgba(139, 92, 246, 0.35); box-shadow: 0 0 15px rgba(139, 92, 246, 0.1); }
 
 /* Hub 4 — News constellation */
-.orbit-hub.hub-news { border-color: rgba(248, 113, 113, 0.55); }
+.orbit-hub.hub-news { border-color: rgba(251, 191, 36, 0.50); }
 .orbit-hub.hub-news svg.hub-main-icon text { /* fill via #ai-hub-text for contrast */ }
-.orbit-hub.hub-news:not(.hub-collapsed)::before { border-color: rgba(248, 113, 113, 0.35); box-shadow: 0 0 15px rgba(239, 68, 68, 0.12); }
+.orbit-hub.hub-news:not(.hub-collapsed)::before { border-color: rgba(251, 191, 36, 0.35); box-shadow: 0 0 14px rgba(251, 191, 36, 0.12); }
 
 /* افزودن سریع (نگه‌داشتن کلیک) */
 .orbit-hub.quickadd-flash { animation: quickAddFlash 0.45s ease-out; }
@@ -1688,8 +1728,8 @@ transition-delay: 0s;
   stroke: rgba(15, 10, 30, 0.95);
 }
 .orbit-hub.hub-news #ai-hub-text {
-  fill: #FEE2E2 !important;
-  stroke: rgba(40, 10, 10, 0.95);
+  fill: #FDE68A !important;
+  stroke: rgba(40, 20, 0, 0.92);
 }
 
 .ai-node.priority-5 { filter: saturate(1.15) brightness(1.08); }
@@ -3337,5 +3377,235 @@ body.rtl .ai-note-history-menu,
   }
   .ai-hub-hold-hint {
     transition: opacity 0.12s ease;
+  }
+}
+
+
+/* ==========================================================================
+   V26 Quantum Seed — global visual polish (design system enforcement)
+   Calm · readable on white pages · restrained glow · reduced-motion safe
+   ========================================================================== */
+
+.orbit-root,
+.orbit-root button,
+.orbit-root input,
+.orbit-root textarea,
+.orbit-root select {
+  font-family: var(--font-ui);
+}
+
+.orbit-root[style*="direction: rtl"],
+.orbit-root[style*="direction: rtl"] button,
+.orbit-root[style*="direction: rtl"] input,
+.orbit-root[style*="direction: rtl"] textarea {
+  font-family: var(--font-fa);
+  letter-spacing: -0.01em;
+  line-height: 1.55;
+}
+
+/* Hub nucleus — dark glass, one thin ice border, soft cyan depth (not neon) */
+.orbit-hub:not(.hub-collapsed) {
+  background:
+    radial-gradient(circle at 30% 26%, rgba(224, 242, 254, 0.18) 0 5%, transparent 22%),
+    radial-gradient(circle at 68% 70%, rgba(56, 189, 248, 0.12), transparent 50%),
+    rgba(8, 16, 31, 0.92) !important;
+  border: 1px solid rgba(186, 230, 253, 0.36) !important;
+  box-shadow:
+    0 10px 28px rgba(2, 6, 23, 0.50),
+    0 0 0 1px rgba(2, 6, 23, 0.35),
+    inset 0 1px 0 rgba(224, 242, 254, 0.14),
+    0 0 22px rgba(56, 189, 248, 0.10) !important;
+}
+
+.orbit-hub:not(.hub-collapsed)::before {
+  animation-duration: var(--motion-orbit) !important;
+  border-color: rgba(125, 211, 252, 0.28) !important;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.06) !important;
+}
+
+/* Collapsed Quantum Seed — luminous particle, still readable on white */
+.orbit-hub.hub-collapsed {
+  background:
+    radial-gradient(circle at 34% 30%, rgba(255,255,255,.95) 0 7%, transparent 18%),
+    radial-gradient(circle at 50% 50%, #67e8f9 0%, #38bdf8 38%, #0c2d48 100%) !important;
+  border: 1px solid rgba(186, 230, 253, 0.55) !important;
+  box-shadow:
+    0 0 0 3px rgba(56, 189, 248, 0.10),
+    0 0 14px rgba(56, 189, 248, 0.32),
+    0 2px 8px rgba(2, 6, 23, 0.35),
+    inset -2px -2px 4px rgba(8, 47, 73, 0.55),
+    inset 1px 1px 3px rgba(255,255,255,0.45) !important;
+}
+
+/* Action particles — mostly opaque for white-page visibility */
+#ai-search-toggle,
+#ai-note-toggle,
+#ai-all-toggle,
+#ai-collapse-toggle,
+#ai-undo-toggle,
+#ai-todo-toggle,
+#ai-calc-hub-toggle,
+#ai-clock-toggle {
+  opacity: 0.95 !important;
+  border: 1px solid rgba(255, 255, 255, 0.55) !important;
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.28),
+    0 2px 8px rgba(2, 6, 23, 0.40),
+    inset 0 1px 1px rgba(255, 255, 255, 0.30) !important;
+}
+
+#ai-note-toggle {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.45) 0 12%, transparent 30%),
+    #34D399 !important;
+}
+#ai-todo-toggle {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.45) 0 12%, transparent 30%),
+    #818CF8 !important;
+}
+#ai-clock-toggle {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.45) 0 12%, transparent 30%),
+    #818CF8 !important;
+}
+#ai-search-toggle {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.45) 0 12%, transparent 30%),
+    #38BDF8 !important;
+}
+#ai-calc-hub-toggle {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.40) 0 12%, transparent 30%),
+    #94A3B8 !important;
+}
+#ai-all-toggle {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.35) 0 12%, transparent 30%),
+    #64748B !important;
+}
+#ai-undo-toggle {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.35) 0 12%, transparent 30%),
+    #64748B !important;
+}
+#ai-undo-toggle.active-undo {
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,0.40) 0 12%, transparent 30%),
+    #F59E0B !important;
+  border-color: rgba(253, 230, 138, 0.75) !important;
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.30),
+    0 0 12px rgba(245, 158, 11, 0.45),
+    inset 0 1px 1px rgba(255,255,255,0.30) !important;
+}
+
+/* Active tool — brighter core + restrained halo (no blink) */
+.orbit-root.show-notepad #ai-note-toggle {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.30),
+    0 0 12px rgba(52, 211, 153, 0.40),
+    inset 0 1px 1px rgba(255,255,255,0.35) !important;
+}
+.orbit-root.show-todo #ai-todo-toggle {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.30),
+    0 0 12px rgba(129, 140, 248, 0.40),
+    inset 0 1px 1px rgba(255,255,255,0.35) !important;
+}
+.orbit-root.show-clock #ai-clock-toggle {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.30),
+    0 0 12px rgba(129, 140, 248, 0.40),
+    inset 0 1px 1px rgba(255,255,255,0.35) !important;
+}
+.orbit-root.show-search #ai-search-toggle {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.30),
+    0 0 12px rgba(56, 189, 248, 0.40),
+    inset 0 1px 1px rgba(255,255,255,0.35) !important;
+}
+.orbit-root.show-calc #ai-calc-hub-toggle {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.30),
+    0 0 10px rgba(148, 163, 184, 0.35),
+    inset 0 1px 1px rgba(255,255,255,0.30) !important;
+}
+
+/* Panels — shared deep glass; accent only on border/glow */
+#ai-quick-note-form,
+#ai-todo-panel,
+#ai-clock-panel,
+#ai-calc-panel,
+#ai-search-panel,
+.orbit-inline-form {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  color: var(--text-primary);
+  transition: opacity var(--motion-std) var(--ease-premium), transform var(--motion-std) var(--ease-premium);
+}
+
+#ai-quick-note-form { border-color: rgba(52, 211, 153, 0.42) !important; }
+#ai-todo-panel { border-color: rgba(129, 140, 248, 0.40) !important; }
+#ai-clock-panel { border-color: rgba(129, 140, 248, 0.38) !important; }
+#ai-search-panel { border-color: rgba(56, 189, 248, 0.40) !important; }
+#ai-calc-panel { border-color: rgba(148, 163, 184, 0.38) !important; }
+
+/* Text hierarchy inside panels */
+.ai-note-header-title,
+#ai-todo-main-title,
+.ai-form-title {
+  color: var(--text-primary) !important;
+}
+.ai-note-token-meter,
+.ai-todo-count,
+.ai-clock-date-en,
+.ai-todo-quote-title {
+  color: var(--text-muted) !important;
+}
+
+/* Bookmark nodes — neutral body, accent rim only */
+.ai-node:not(.portal-node):not(.ai-node-empty) {
+  border-width: 1px !important;
+}
+.ai-node.portal-node {
+  border-color: rgba(251, 191, 36, 0.55) !important;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.10) !important;
+}
+
+/* Empty cores — deep blue + readable on white (already tuned; reinforce) */
+.ai-node.ai-node-empty .ai-node-empty-plus {
+  color: #1E3A8A !important;
+}
+
+/* Hub label always high-contrast on any host page */
+#ai-hub-text {
+  fill: #F8FAFC !important;
+  stroke: rgba(2, 6, 23, 0.92) !important;
+  stroke-width: 2.4px !important;
+  paint-order: stroke fill !important;
+}
+
+/* Reduced motion — keep state clarity, drop orbit/pulse */
+@media (prefers-reduced-motion: reduce) {
+  .orbit-hub:not(.hub-collapsed)::before,
+  .orbit-hub.hub-collapsed,
+  .orbit-hub.hub-collapsed::before,
+  .orbit-hub.quickadd-flash,
+  .ai-node.portal-node,
+  .ai-todo-quote.pulse,
+  .ai-clock-quote.pulse .ai-clock-quote-paper,
+  #ai-undo-toggle.active-undo {
+    animation: none !important;
+  }
+  .orbit-hub,
+  .ai-node,
+  #ai-quick-note-form,
+  #ai-todo-panel,
+  #ai-clock-panel,
+  #ai-calc-panel,
+  #ai-search-panel {
+    transition-duration: 0.01ms !important;
   }
 }

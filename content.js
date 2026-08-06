@@ -1,4 +1,4 @@
-// AI Tree Launcher — Core (V25.11 - Readable hub labels fa/en)
+// AI Orbit Launcher — Core (V26.0 - Quantum Seed visual system)
 (function () {
   'use strict';
 
