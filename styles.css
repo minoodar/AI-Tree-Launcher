@@ -898,6 +898,32 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   text-shadow: none;
 }
 
+/* Translation line — switches with the app language, same idea as the Rumi drawer:
+   fa mode shows the Persian meaning, en mode shows the English translation. */
+.ai-todo-quote-translation {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: rgba(241, 245, 249, 0.75);
+  white-space: pre-line;
+  line-height: 1.7;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  transition: color 0.3s;
+}
+.ai-todo-quote-translation.is-fa {
+  direction: rtl;
+  font-family: "Vazirmatn", Tahoma, sans-serif;
+}
+.ai-todo-quote-translation.is-en {
+  direction: ltr;
+  font-style: italic;
+  font-family: "Georgia", "Times New Roman", serif;
+}
+.ai-todo-quote:not(.is-collapsed) .ai-todo-quote-translation {
+  color: rgba(26, 26, 26, 0.72);
+  text-shadow: none;
+}
+
 /* Small ref under ayah */
 .ai-todo-quote-title {
   font-size: 10.5px;
@@ -905,7 +931,6 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   color: rgba(125, 211, 252, 0.7);
   letter-spacing: 0.2px;
   margin: 0;
-  direction: rtl;
   transition: color 0.3s;
 }
 .ai-todo-quote:not(.is-collapsed) .ai-todo-quote-title {

@@ -379,47 +379,287 @@
   }
 
   const DAILY_QUOTES = [
-    { text: "إِنَّ مَعِيَ رَبِّي سَيَهْدِينِ", ref: "شعراء: 62" },
-    { text: "هُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", ref: "حدید: 4" },
-    { text: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ", ref: "ق: 16" },
-    { text: "وَاللَّهُ خَيْرٌ حَافِظًا", ref: "یوسف: 64" },
-    { text: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", ref: "آل‌عمران: 173" },
-    { text: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", ref: "رعد: 28" },
-    { text: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", ref: "شرح: 5" },
-    { text: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", ref: "شرح: 6" },
-    { text: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", ref: "بقره: 153" },
-    { text: "لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ", ref: "بقره: 62" },
-    { text: "لَا تَقْنَطُوا مِنْ رَحْمَةِ اللَّهِ", ref: "زمر: 53" },
-    { text: "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ", ref: "اعراف: 156" },
-    { text: "إِنَّ رَبِّي رَحِيمٌ وَدُودٌ", ref: "هود: 90" },
-    { text: "إِنَّهُ هُوَ التَّوَّابُ الرَّحِيمُ", ref: "بقره: 37" },
-    { text: "إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ", ref: "ده‌ها آیه" },
-    { text: "إِنَّ اللَّهَ هُوَ الرَّزَّاقُ", ref: "ذاریات: 58" },
-    { text: "وَاللَّهُ خَيْرُ الرَّازِقِينَ", ref: "حج: 58" },
-    { text: "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ", ref: "طلاق: 3" },
-    { text: "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ اللَّهِ", ref: "نحل: 53" },
-    { text: "وَاللَّهُ ذُو الْفَضْلِ الْعَظِيمِ", ref: "بقره: 105" },
-    { text: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", ref: "طلاق: 3" },
-    { text: "وَعَلَى اللَّهِ فَلْيَتَوَكَّلِ الْمُؤْمِنُونَ", ref: "آل‌عمران: 122" },
-    { text: "إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ", ref: "آل‌عمران: 159" },
-    { text: "إِلَى اللَّهِ تُرْجَعُ الْأُمُورُ", ref: "آل‌عمران: 109" },
-    { text: "إِلَى اللَّهِ الْمَصِيرُ", ref: "نور: 42 و آیات دیگر" },
-    { text: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ", ref: "نور: 35" },
-    { text: "وَاللَّهُ يَهْدِي مَن يَشَاءُ", ref: "نور: 46" },
-    { text: "إِنَّ رَبِّي قَرِيبٌ مُجِيبٌ", ref: "هود: 61" },
-    { text: "رَبِّ زِدْنِي عِلْمًا", ref: "طه: 114" },
-    { text: "وَقُل رَّبِّ ارْحَمْهُمَا", ref: "اسراء: 24" },
-    { text: "وَهُوَ أَرْحَمُ الرَّاحِمِينَ", ref: "یوسف: 64" },
-    { text: "إِنَّ اللَّهَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", ref: "بقره: 20" },
-    { text: "إِنَّ اللَّهَ بِكُلِّ شَيْءٍ عَلِيمٌ", ref: "بقره: 282" },
-    { text: "إِنَّ اللَّهَ لَطِيفٌ خَبِيرٌ", ref: "لقمان: 16" },
-    { text: "إِنَّ اللَّهَ عَزِيزٌ حَكِيمٌ", ref: "ده‌ها آیه" },
-    { text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", ref: "فاتحه: 2" },
-    { text: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ", ref: "فاتحه: 5" },
-    { text: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ", ref: "فاتحه: 6" },
-    { text: "إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ", ref: "بقره: 156" },
-    { text: "فَاذْكُرُونِي أَذْكُرْكُمْ", ref: "بقره: 152" }
-  ];
+    { 
+        text: "إِنَّ مَعِيَ رَبِّي سَيَهْدِينِ", 
+        ref: "شعراء: 62", 
+        refEn: "Ash-Shu'ara: 62",
+        fa: "بی‌گمان پروردگارم با من است و مرا هدایت خواهد کرد.",
+        en: "Indeed, with me is my Lord; He will guide me." 
+    },
+    { 
+        text: "هُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", 
+        ref: "حدید: 4", 
+        refEn: "Al-Hadid: 4",
+        fa: "و او با شماست هر جا که باشید.",
+        en: "And He is with you wherever you are." 
+    },
+    { 
+        text: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ", 
+        ref: "ق: 16", 
+        refEn: "Qaf: 16",
+        fa: "و ما از رگ گردن به او نزدیک‌تریم.",
+        en: "And We are closer to him than [his] jugular vein." 
+    },
+    { 
+        text: "وَاللَّهُ خَيْرٌ حَافِظًا", 
+        ref: "یوسف: 64", 
+        refEn: "Yusuf: 64",
+        fa: "و خداوند بهترین نگهبان است.",
+        en: "But Allah is the best guardian." 
+    },
+    { 
+        text: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", 
+        ref: "آل‌عمران: 173", 
+        refEn: "Ali 'Imran: 173",
+        fa: "خداوند ما را بس است و او بهترین حامی و کارگزار است.",
+        en: "Sufficient for us is Allah, and [He is] the best Disposer of affairs." 
+    },
+    { 
+        text: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", 
+        ref: "رعد: 28", 
+        refEn: "Ar-Ra'd: 28",
+        fa: "آگاه باشید که تنها با یاد خدا دل‌ها آرام می‌گیرد.",
+        en: "Unquestionably, by the remembrance of Allah hearts are assured." 
+    },
+    { 
+        text: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", 
+        ref: "شرح: 5", 
+        refEn: "Ash-Sharh: 5",
+        fa: "پس یقیناً با هر سختی، آسانی است.",
+        en: "For indeed, with hardship [will be] ease." 
+    },
+    { 
+        text: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", 
+        ref: "شرح: 6", 
+        refEn: "Ash-Sharh: 6",
+        fa: "قطعاً با هر سختی، آسانی است.",
+        en: "Indeed, with hardship [will be] ease." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", 
+        ref: "بقره: 153", 
+        refEn: "Al-Baqarah: 153",
+        fa: "همانا خداوند با شکیبایان است.",
+        en: "Indeed, Allah is with the patient." 
+    },
+    { 
+        text: "لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ", 
+        ref: "بقره: 62", 
+        refEn: "Al-Baqarah: 62",
+        fa: "نه ترسی بر آنان است و نه اندوهگین می‌شوند.",
+        en: "No fear will there be concerning them, nor will they grieve." 
+    },
+    { 
+        text: "لَا تَقْنَطُوا مِنْ رَحْمَةِ اللَّهِ", 
+        ref: "زمر: 53", 
+        refEn: "Az-Zumar: 53",
+        fa: "از رحمت خداوند ناامید نشوید.",
+        en: "Do not despair of the mercy of Allah." 
+    },
+    { 
+        text: "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ", 
+        ref: "اعراف: 156", 
+        refEn: "Al-A'raf: 156",
+        fa: "و رحمت من همه چیز را فرا گرفته است.",
+        en: "But My mercy encompasses all things." 
+    },
+    { 
+        text: "إِنَّ رَبِّي رَحِيمٌ وَدُودٌ", 
+        ref: "هود: 90", 
+        refEn: "Hud: 90",
+        fa: "همانا پروردگار من مهربان و بسیار دوستدار (بندگان) است.",
+        en: "Indeed, my Lord is Merciful and Affectionate." 
+    },
+    { 
+        text: "إِنَّهُ هُوَ التَّوَّابُ الرَّحِيمُ", 
+        ref: "بقره: 37", 
+        refEn: "Al-Baqarah: 37",
+        fa: "همانا اوست بسیار توبه‌پذیر و مهربان.",
+        en: "Indeed, it is He who is the Accepting of repentance, the Merciful." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ", 
+        ref: "ده‌ها آیه", 
+        refEn: "Multiple Verses",
+        fa: "همانا خداوند بسیار آمرزنده و مهربان است.",
+        en: "Indeed, Allah is Forgiving and Merciful." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ هُوَ الرَّزَّاقُ", 
+        ref: "ذاریات: 58", 
+        refEn: "Adh-Dhariyat: 58",
+        fa: "همانا خداوند است که بسیار روزی‌دهنده است.",
+        en: "Indeed, it is Allah who is the [continual] Provider." 
+    },
+    { 
+        text: "وَاللَّهُ خَيْرُ الرَّازِقِينَ", 
+        ref: "حج: 58", 
+        refEn: "Al-Hajj: 58",
+        fa: "و خداوند بهترین روزی‌دهندگان است.",
+        en: "And indeed, Allah is the best of providers." 
+    },
+    { 
+        text: "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ", 
+        ref: "طلاق: 3", 
+        refEn: "At-Talaq: 3",
+        fa: "و او را از جایی که گمان نمی‌برد روزی می‌دهد.",
+        en: "And He will provide for him from where he does not expect." 
+    },
+    { 
+        text: "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ اللَّهِ", 
+        ref: "نحل: 53", 
+        refEn: "An-Nahl: 53",
+        fa: "و هر نعمتی که دارید، از سوی خداست.",
+        en: "And whatever you have of favor - it is from Allah." 
+    },
+    { 
+        text: "وَاللَّهُ ذُو الْفَضْلِ الْعَظِيمِ", 
+        ref: "بقره: 105", 
+        refEn: "Al-Baqarah: 105",
+        fa: "و خداوند صاحب فضل و بخشش بزرگ است.",
+        en: "And Allah is the possessor of great bounty." 
+    },
+    { 
+        text: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", 
+        ref: "طلاق: 3", 
+        refEn: "At-Talaq: 3",
+        fa: "و هر کس بر خدا توکل کند، خدا او را بس است.",
+        en: "And whoever relies upon Allah - then He is sufficient for him." 
+    },
+    { 
+        text: "وَعَلَى اللَّهِ فَلْيَتَوَكَّلِ الْمُؤْمِنُونَ", 
+        ref: "آل‌عمران: 122", 
+        refEn: "Ali 'Imran: 122",
+        fa: "و مؤمنان باید تنها بر خداوند توکل کنند.",
+        en: "And upon Allah let the believers rely." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ", 
+        ref: "آل‌عمران: 159", 
+        refEn: "Ali 'Imran: 159",
+        fa: "همانا خداوند توکل‌کنندگان را دوست می‌دارد.",
+        en: "Indeed, Allah loves those who rely [upon Him]." 
+    },
+    { 
+        text: "إِلَى اللَّهِ تُرْجَعُ الْأُمُورُ", 
+        ref: "آل‌عمران: 109", 
+        refEn: "Ali 'Imran: 109",
+        fa: "و همه کارها به سوی خدا بازگردانده می‌شود.",
+        en: "And to Allah all matters are returned." 
+    },
+    { 
+        text: "إِلَى اللَّهِ الْمَصِيرُ", 
+        ref: "نور: 42 و آیات دیگر", 
+        refEn: "An-Nur: 42 & Other Verses",
+        fa: "و بازگشت [همه] به سوی خداست.",
+        en: "And to Allah is the final destination." 
+    },
+    { 
+        text: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ", 
+        ref: "نور: 35", 
+        refEn: "An-Nur: 35",
+        fa: "خداوند نور آسمان‌ها و زمین است.",
+        en: "Allah is the Light of the heavens and the earth." 
+    },
+    { 
+        text: "وَاللَّهُ يَهْدِي مَن يَشَاءُ", 
+        ref: "نور: 46", 
+        refEn: "An-Nur: 46",
+        fa: "و خداوند هر کس را بخواهد هدایت می‌کند.",
+        en: "And Allah guides whom He wills." 
+    },
+    { 
+        text: "إِنَّ رَبِّي قَرِيبٌ مُجِيبٌ", 
+        ref: "هود: 61", 
+        refEn: "Hud: 61",
+        fa: "همانا پروردگار من نزدیک و اجابت‌کننده است.",
+        en: "Indeed, my Lord is near and responsive." 
+    },
+    { 
+        text: "رَبِّ زِدْنِي عِلْمًا", 
+        ref: "طه: 114", 
+        refEn: "Taha: 114",
+        fa: "پروردگارا، بر دانشم بیفزای.",
+        en: "My Lord, increase me in knowledge." 
+    },
+    { 
+        text: "وَقُل رَّبِّ ارْحَمْهُمَا", 
+        ref: "اسراء: 24", 
+        refEn: "Al-Isra: 24",
+        fa: "و بگو: پروردگارا، بر آن دو (پدر و مادر) رحمت آور.",
+        en: "And say: 'My Lord, have mercy upon them.'" 
+    },
+    { 
+        text: "وَهُوَ أَرْحَمُ الرَّاحِمِينَ", 
+        ref: "یوسف: 64", 
+        refEn: "Yusuf: 64",
+        fa: "و او مهربان‌ترین مهربانان است.",
+        en: "And He is the most merciful of the merciful." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", 
+        ref: "بقره: 20", 
+        refEn: "Al-Baqarah: 20",
+        fa: "همانا خداوند بر هر چیزی تواناست.",
+        en: "Indeed, Allah is over all things competent." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ بِكُلِّ شَيْءٍ عَلِيمٌ", 
+        ref: "بقره: 282", 
+        refEn: "Al-Baqarah: 282",
+        fa: "همانا خداوند به هر چیزی داناست.",
+        en: "And Allah is Knowing of all things." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ لَطِيفٌ خَبِيرٌ", 
+        ref: "لقمان: 16", 
+        refEn: "Luqman: 16",
+        fa: "همانا خداوند لطیف و آگاه است.",
+        en: "Indeed, Allah is Subtle and Acquainted." 
+    },
+    { 
+        text: "إِنَّ اللَّهَ عَزِيزٌ حَكِيمٌ", 
+        ref: "ده‌ها آیه", 
+        refEn: "Multiple Verses",
+        fa: "همانا خداوند شکست‌ناپذیر و حکیم است.",
+        en: "Indeed, Allah is Exalted in Might and Wise." 
+    },
+    { 
+        text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", 
+        ref: "فاتحه: 2", 
+        refEn: "Al-Fatihah: 2",
+        fa: "ستایش مخصوص خداوندی است که پروردگار جهانیان است.",
+        en: "[All] praise is [due] to Allah, Lord of the worlds." 
+    },
+    { 
+        text: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ", 
+        ref: "فاتحه: 5", 
+        refEn: "Al-Fatihah: 5",
+        fa: "تنها تو را می‌پرستیم و تنها از تو یاری می‌جوییم.",
+        en: "It is You we worship and You we ask for help." 
+    },
+    { 
+        text: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ", 
+        ref: "فاتحه: 6", 
+        refEn: "Al-Fatihah: 6",
+        fa: "ما را به راه راست هدایت فرما.",
+        en: "Guide us to the straight path." 
+    },
+    { 
+        text: "إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ", 
+        ref: "بقره: 156", 
+        refEn: "Al-Baqarah: 156",
+        fa: "ما از آنِ خداییم و به سوی او بازمی‌گردیم.",
+        en: "Indeed we belong to Allah, and indeed to Him we will return." 
+    },
+    { 
+        text: "فَاذْكُرُونِي أَذْكُرْكُمْ", 
+        ref: "بقره: 152", 
+        refEn: "Al-Baqarah: 152",
+        fa: "پس مرا یاد کنید تا شما را یاد کنم.",
+        en: "So remember Me; I will remember you." 
+    }
+];
   function getDailyQuoteIndex() {
     const today = new Date(); const dateStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
     let hash = 0; for (let i = 0; i < dateStr.length; i++) { hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0; }
@@ -740,6 +980,7 @@
       </button>
       <div class="ai-todo-quote-body" id="ai-todo-quote-body">
         <div class="ai-todo-quote-fa" id="ai-todo-quote-fa"></div>
+        <div class="ai-todo-quote-translation" id="ai-todo-quote-translation"></div>
         <div class="ai-todo-quote-title" id="ai-todo-quote-title"></div>
       </div>
     </div>
@@ -836,6 +1077,7 @@
     todoTabGoal: todoPanel.querySelector('#ai-todo-tab-goal'),
     todoQuoteTitle: todoPanel.querySelector('#ai-todo-quote-title'),
     todoQuoteFa: todoPanel.querySelector('#ai-todo-quote-fa'),
+    todoQuoteTranslation: todoPanel.querySelector('#ai-todo-quote-translation'),
     todoQuoteBody: todoPanel.querySelector('#ai-todo-quote-body'),
     todoQuoteTab: todoPanel.querySelector('#ai-quote-tab'),
     todoQuoteChevron: todoPanel.querySelector('#ai-quote-tab-chevron'),
@@ -1001,7 +1243,9 @@
     spacingArc.title = t('spacingTitle');
     addNodeBtn.title = t('addNodeTitle');
     if (typeof renderRumiQuote === 'function') renderRumiQuote();
+    if (typeof renderDailyQuote === 'function') renderDailyQuote();
     if (typeof adjustClockPosition === 'function') adjustClockPosition();
+    if (typeof adjustTodoPosition === 'function') adjustTodoPosition();
     hub.removeAttribute('title');
     hideHubHoldHint();
 
@@ -1862,13 +2106,26 @@
   function renderDailyQuote() {
     const idx = manualQuoteIndex !== null ? manualQuoteIndex : getDailyQuoteIndex();
     const q = DAILY_QUOTES[idx];
+    const isFa = currentLang === 'fa';
     if (uiEls.todoQuoteFa) {
       uiEls.todoQuoteFa.textContent = q.text || '';
       uiEls.todoQuoteFa.dir = 'rtl';
     }
+    // Bilingual translation line — Arabic verse above always stays as-is (the original text),
+    // only the translation underneath switches with the app language, same idea as the Rumi drawer.
+    if (uiEls.todoQuoteTranslation) {
+      const translation = isFa ? (q.fa || '') : (q.en || '');
+      uiEls.todoQuoteTranslation.textContent = translation;
+      uiEls.todoQuoteTranslation.dir = isFa ? 'rtl' : 'ltr';
+      uiEls.todoQuoteTranslation.classList.toggle('is-fa', isFa);
+      uiEls.todoQuoteTranslation.classList.toggle('is-en', !isFa);
+      uiEls.todoQuoteTranslation.style.display = translation ? '' : 'none';
+    }
     if (uiEls.todoQuoteTitle) {
-      uiEls.todoQuoteTitle.textContent = q.ref || '';
-      uiEls.todoQuoteTitle.style.display = q.ref ? '' : 'none';
+      const ref = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
+      uiEls.todoQuoteTitle.textContent = ref;
+      uiEls.todoQuoteTitle.dir = isFa ? 'rtl' : 'ltr';
+      uiEls.todoQuoteTitle.style.display = ref ? '' : 'none';
     }
     if (uiEls.todoQuote) uiEls.todoQuote.classList.toggle('is-collapsed', isQuoteCollapsed);
     if (uiEls.todoQuoteChevron) uiEls.todoQuoteChevron.textContent = isQuoteCollapsed ? '▼' : '▲';
