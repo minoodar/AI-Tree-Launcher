@@ -1,4 +1,4 @@
-// AI Tree Launcher — Core (V25.6 - Compact Clock + Special Days)
+// AI Tree Launcher — Core (V25.8 - Hybrid Notepad Undo Stack + Soft Relaunch)
 (function () {
   'use strict';
 
@@ -781,7 +781,7 @@
   const clockToggleDot = document.createElement('div'); clockToggleDot.id = 'ai-clock-toggle'; clockToggleDot.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`; hub.appendChild(clockToggleDot);
   const undoToggleDot = document.createElement('div'); undoToggleDot.id = 'ai-undo-toggle';
   undoToggleDot.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/><path d="M16.2 5.2l0.7 1.5 1.5 0.7-1.5 0.7-0.7 1.5-0.7-1.5-1.5-0.7 1.5-0.7z" fill="#FBBF24" stroke="none"/></svg>`;
-  undoToggleDot.setAttribute('aria-label', 'Recover last item or restore launcher');
+  undoToggleDot.setAttribute('aria-label', 'Undo last edit or deletion');
   hub.appendChild(undoToggleDot);
 
   const spacingArc = document.createElement('div'); spacingArc.id = 'ai-spacing-arc';
@@ -1022,8 +1022,15 @@
   const mountFragment = document.createDocumentFragment();
   mountFragment.append(root, inlineForm, quickNoteForm, calcPanel, clockPanel, todoPanel, searchPanel, tierDotsNav, hubDotsNav, toastBox, starEditorPopup);
 
-  function mountWidget() { document.body.appendChild(mountFragment); }
-  if (document.body) { mountWidget(); }
+  function getProtectedMountTarget() {
+    // Prefer <html> so React/Next route swaps of <body> children cannot wipe the launcher.
+    return document.documentElement || document.body;
+  }
+  function mountWidget() {
+    const target = getProtectedMountTarget();
+    if (target) target.appendChild(mountFragment);
+  }
+  if (document.body || document.documentElement) { mountWidget(); }
   else { document.addEventListener('DOMContentLoaded', mountWidget); }
 
   const noteTextarea = quickNoteForm.querySelector('#ai-note-text');
@@ -1360,7 +1367,8 @@
          ageEl.textContent = ''; ageEl.style.display = 'none'; if (journeyEl) journeyEl.style.display = 'none';
       }
   }
-  setInterval(updateClockAge, 1000);
+  // Registered with lifecycle controller once it is constructed (see below).
+  let clockAgeIntervalId = setInterval(updateClockAge, 1000);
 
   function saveMarkedDays() { try { if (chrome.runtime?.id) chrome.storage.sync.set({ aiTreeMarkedDays: markedDays }); } catch (e) {} }
 
@@ -2700,108 +2708,410 @@
   const uiToggles = ['ai-todo-toggle', 'ai-search-toggle', 'ai-note-toggle', 'ai-all-toggle', 'ai-collapse-toggle', 'ai-undo-toggle', 'ai-calc-hub-toggle', 'ai-clock-toggle', 'ai-spacing-arc', 'ai-spacing-thumb', 'ai-spacing-value'];
 
   let globalUndoTimeout = null; let pendingUndoState = { type: null, data: null, hub: 1 };
+  /**
+   * Global (TTL) undo is ONLY for bookmark / todo / storage recovery.
+   * Notepad text uses NotepadUndoManager (multi-step, zero-TTL, session-persisted).
+   * Calling setUndoState('text', ...) is kept as a thin compatibility shim that
+   * routes into the notepad stack when the manager exists.
+   */
   function setUndoState(type, data, targetHub = currentHubIndex, duration = 10000) {
-      const previousType = pendingUndoState.type; pendingUndoState = { type, data, hub: targetHub };
-      root.classList.remove('hide-toggles'); undoToggleDot.classList.add('active-undo'); clearTimeout(globalUndoTimeout);
-      if ((previousType === 'bookmark' || previousType === 'storage') && type !== previousType) { try { chrome.storage.sync.remove('lastDeletedLink'); } catch (err) {} }
-      globalUndoTimeout = setTimeout(() => {
-          undoToggleDot.classList.remove('active-undo'); pendingUndoState = { type: null, data: null, hub: 1 };
-          if (type === 'bookmark' || type === 'storage') { try { chrome.storage.sync.remove('lastDeletedLink'); } catch(err){} }
-      }, duration); 
-  }
-  function reviveLauncher() {
-      try {
-        if (!document.body.contains(root)) {
-          document.body.appendChild(root);
-          if (inlineForm && !document.body.contains(inlineForm)) document.body.appendChild(inlineForm);
-          if (quickNoteForm && !document.body.contains(quickNoteForm)) document.body.appendChild(quickNoteForm);
-          if (calcPanel && !document.body.contains(calcPanel)) document.body.appendChild(calcPanel);
-          if (clockPanel && !document.body.contains(clockPanel)) document.body.appendChild(clockPanel);
-          if (todoPanel && !document.body.contains(todoPanel)) document.body.appendChild(todoPanel);
-          if (searchPanel && !document.body.contains(searchPanel)) document.body.appendChild(searchPanel);
-          if (tierDotsNav && !document.body.contains(tierDotsNav)) document.body.appendChild(tierDotsNav);
-          if (hubDotsNav && !document.body.contains(hubDotsNav)) document.body.appendChild(hubDotsNav);
-          if (toastBox && !document.body.contains(toastBox)) document.body.appendChild(toastBox);
-          if (starEditorPopup && !document.body.contains(starEditorPopup)) document.body.appendChild(starEditorPopup);
-        }
-      } catch (err) {}
-      root.style.display = '';
-      if (!root.style.left && !root.style.bottom) {
-        root.style.left = WIDGET1_DEFAULT_LEFT;
-        root.style.top = 'auto';
-        root.style.bottom = WIDGET1_DEFAULT_BOTTOM;
+      if (type === 'text') {
+        // Compatibility bridge → dedicated multi-step notepad memory (no TTL).
+        try {
+          if (typeof notepadUndo !== 'undefined' && notepadUndo && data) {
+            notepadUndo.pushExternal(data);
+            syncUndoToggleVisual();
+            return;
+          }
+        } catch (err) {}
+        // Fallback if manager not ready yet: still avoid expiring text history.
+        pendingUndoState = { type: 'text', data, hub: targetHub };
+        root.classList.remove('hide-toggles');
+        undoToggleDot.classList.add('active-undo');
+        clearTimeout(globalUndoTimeout);
+        return;
       }
-      hub.classList.remove('hub-collapsed');
+      const previousType = pendingUndoState.type;
+      pendingUndoState = { type, data, hub: targetHub };
       root.classList.remove('hide-toggles');
-      isDragging = false;
-      dragMoved = false;
-      quickAddActive = false;
-      quickAddFired = false;
-      if (typeof closeStarEditor === 'function') closeStarEditor();
-      if (typeof closeInlineForm === 'function') closeInlineForm();
-      if (typeof abortNoteClosing === 'function') abortNoteClosing();
+      undoToggleDot.classList.add('active-undo');
+      clearTimeout(globalUndoTimeout);
+      if ((previousType === 'bookmark' || previousType === 'storage') && type !== previousType) {
+        try { chrome.storage.sync.remove('lastDeletedLink'); } catch (err) {}
+      }
+      globalUndoTimeout = setTimeout(() => {
+          // Only clear TTL-backed states; never touch notepad multi-step memory.
+          if (pendingUndoState.type === type) {
+            undoToggleDot.classList.remove('active-undo');
+            pendingUndoState = { type: null, data: null, hub: 1 };
+          }
+          if (type === 'bookmark' || type === 'storage') {
+            try { chrome.storage.sync.remove('lastDeletedLink'); } catch (err) {}
+          }
+          syncUndoToggleVisual();
+      }, duration);
+  }
+
+  function syncUndoToggleVisual() {
+    try {
+      const ttlActive = !!(pendingUndoState && pendingUndoState.type && pendingUndoState.type !== 'text');
+      const noteActive = (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
+      const legacyText = !!(pendingUndoState && pendingUndoState.type === 'text');
+      if (ttlActive || noteActive || legacyText) {
+        root.classList.remove('hide-toggles');
+        undoToggleDot.classList.add('active-undo');
+      } else if (!ttlActive) {
+        // Keep active-undo only when something is actually recoverable.
+        if (!noteActive && !legacyText) undoToggleDot.classList.remove('active-undo');
+      }
+    } catch (err) {}
+  }
+  // =========================================================================
+  // ExtensionLifecycleController — Zero-Page-Reload Soft Relaunch
+  // Teardown → Hydrate from chrome.storage → Protected remount + watchdog
+  // Undo toggle is dual-purpose: active-undo = restore last action;
+  // idle click = soft relaunch (no location.reload).
+  // =========================================================================
+  const EXTENSION_ROOT_IDS = [
+    'ai-orbit-root',
+    'ai-inline-form',
+    'ai-quick-note-form',
+    'ai-calc-panel',
+    'ai-clock-panel',
+    'ai-todo-panel',
+    'ai-search-panel',
+    'ai-tier-dots',
+    'ai-hub-dots',
+    'ai-star-editor-popup'
+  ];
+
+  class ExtensionLifecycleController {
+    constructor() {
+      this.activeTimers = new Set();
+      this.activeIntervals = new Set();
+      this.domWatchdog = null;
+      this.isRelaunching = false;
+      this._clockRegistered = false;
+    }
+
+    registerTimer(id) {
+      if (typeof id === 'number') this.activeTimers.add(id);
+      return id;
+    }
+    registerInterval(id) {
+      if (typeof id === 'number') this.activeIntervals.add(id);
+      return id;
+    }
+    clearTrackedTimers() {
+      this.activeTimers.forEach((id) => { try { clearTimeout(id); } catch (e) {} });
+      this.activeIntervals.forEach((id) => { try { clearInterval(id); } catch (e) {} });
+      this.activeTimers.clear();
+      this.activeIntervals.clear();
+    }
+
+    getMountTarget() {
+      return document.documentElement || document.body;
+    }
+
+    /**
+     * Soft detach of extension DOM from whatever parent currently holds them.
+     * Does NOT destroy in-memory element references or event listeners —
+     * listeners stay bound on the same Element nodes across relaunches.
+     */
+    detachDomArtifacts() {
+      const nodes = [
+        root, inlineForm, quickNoteForm, calcPanel, clockPanel,
+        todoPanel, searchPanel, tierDotsNav, hubDotsNav, toastBox, starEditorPopup
+      ];
+      nodes.forEach((el) => {
+        try {
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+        } catch (err) {}
+      });
+      // Sweep any orphaned duplicates left by SPA clones / prior bugs
+      EXTENSION_ROOT_IDS.forEach((id) => {
+        try {
+          const el = document.getElementById(id);
+          if (el && el.parentNode) el.parentNode.removeChild(el);
+        } catch (err) {}
+      });
       try {
-        if (typeof loadDataAndRender === 'function') loadDataAndRender();
-        else {
-          if (typeof renderSpiral === 'function' && isOpen) renderSpiral();
-          if (typeof renderTierDots === 'function') renderTierDots();
-          if (typeof renderHubDots === 'function') renderHubDots();
-        }
-        if (typeof restoreNoteDraft === 'function') restoreNoteDraft();
+        document.querySelectorAll('.ai-toast-notification').forEach((el) => {
+          if (el !== toastBox && el.parentNode) el.parentNode.removeChild(el);
+        });
       } catch (err) {}
+    }
+
+    attachDomArtifacts() {
+      const target = this.getMountTarget();
+      if (!target) return;
+      const nodes = [
+        root, inlineForm, quickNoteForm, calcPanel, clockPanel,
+        todoPanel, searchPanel, tierDotsNav, hubDotsNav, toastBox, starEditorPopup
+      ];
+      nodes.forEach((el) => {
+        try {
+          if (el && !target.contains(el)) target.appendChild(el);
+        } catch (err) {}
+      });
+    }
+
+    stopWatchdog() {
+      if (this.domWatchdog) {
+        try { this.domWatchdog.disconnect(); } catch (err) {}
+        this.domWatchdog = null;
+      }
+    }
+
+    startWatchdog() {
+      this.stopWatchdog();
+      const self = this;
+      try {
+        this.domWatchdog = new MutationObserver(() => {
+          if (self.isRelaunching) return;
+          if (!document.getElementById('ai-orbit-root')) {
+            // SPA wiped our root — soft re-attach without full storage round-trip
+            try { self.attachDomArtifacts(); } catch (err) {}
+            try {
+              root.style.display = '';
+              hub.classList.remove('hub-collapsed');
+              root.classList.remove('hide-toggles');
+              if (typeof resetAutoCollapseTimer === 'function') resetAutoCollapseTimer();
+              if (typeof resetToggleTimeout === 'function') resetToggleTimeout();
+            } catch (err) {}
+          }
+        });
+        const observeTarget = document.body || document.documentElement;
+        if (observeTarget) {
+          this.domWatchdog.observe(observeTarget, { childList: true, subtree: false });
+        }
+        // Also watch documentElement when body is the primary observe target
+        if (document.documentElement && observeTarget !== document.documentElement) {
+          try {
+            this.domWatchdog.observe(document.documentElement, { childList: true, subtree: false });
+          } catch (err) {}
+        }
+      } catch (err) {}
+    }
+
+    /** Clear transient UI interaction state without destroying data. */
+    resetTransientUi() {
+      try {
+        isDragging = false;
+        dragMoved = false;
+        quickAddActive = false;
+        quickAddFired = false;
+        if (typeof closeStarEditor === 'function') closeStarEditor();
+        if (typeof closeInlineForm === 'function') closeInlineForm();
+        if (typeof abortNoteClosing === 'function') abortNoteClosing();
+        hub.classList.remove('hub-collapsed', 'quickadd-flash');
+        root.classList.remove('hide-toggles', 'dragging');
+        root.style.display = '';
+        if (!root.style.left && !root.style.bottom) {
+          root.style.left = WIDGET1_DEFAULT_LEFT;
+          root.style.top = 'auto';
+          root.style.bottom = WIDGET1_DEFAULT_BOTTOM;
+        }
+      } catch (err) {}
+    }
+
+    /**
+     * PHASE 1 — Idempotent teardown of timers + DOM placement.
+     * Event listeners remain on live Element objects (no re-bind needed).
+     */
+    teardown() {
+      // Transient interaction timers (auto-collapse, toggle hide, undo expiry, etc.)
+      try { clearTimeout(globalUndoTimeout); } catch (e) {}
+      try { if (typeof autoCollapseTimeout !== 'undefined') clearTimeout(autoCollapseTimeout); } catch (e) {}
+      try { if (typeof toggleHideTimeout !== 'undefined') clearTimeout(toggleHideTimeout); } catch (e) {}
+      try { if (typeof treeAutoHideTimeout !== 'undefined') clearTimeout(treeAutoHideTimeout); } catch (e) {}
+      try { if (typeof holdGraceTimer !== 'undefined') clearTimeout(holdGraceTimer); } catch (e) {}
+      try { if (typeof noteCollapseInterval !== 'undefined') clearInterval(noteCollapseInterval); } catch (e) {}
+      try { if (typeof notepadIdleTimer !== 'undefined') clearTimeout(notepadIdleTimer); } catch (e) {}
+      try { if (typeof noteEditSessionTimer !== 'undefined') clearTimeout(noteEditSessionTimer); } catch (e) {}
+      try { if (typeof noteDraftSaveTimer !== 'undefined') clearTimeout(noteDraftSaveTimer); } catch (e) {}
+      this.clearTrackedTimers();
+      this.stopWatchdog();
+      this.detachDomArtifacts();
+    }
+
+    /**
+     * PHASE 2 — Authoritative hydration from chrome.storage via existing loader.
+     */
+    async hydrateState() {
+      try {
+        if (typeof loadDataAndRender === 'function') {
+          await Promise.resolve(loadDataAndRender());
+        }
+        if (typeof restoreNoteDraft === 'function') {
+          await Promise.resolve(restoreNoteDraft());
+        }
+        // Re-load multi-step notepad history after soft relaunch
+        try {
+          if (typeof notepadUndo !== 'undefined' && notepadUndo && chrome.runtime?.id) {
+            await new Promise((resolve) => {
+              try {
+                chrome.storage.local.get(['aiTreeNotepadHistory'], (res) => {
+                  try {
+                    if (res && res.aiTreeNotepadHistory) notepadUndo.loadFromStorage(res.aiTreeNotepadHistory);
+                  } catch (e) {}
+                  resolve();
+                });
+              } catch (e) { resolve(); }
+            });
+          }
+        } catch (e) {}
+      } catch (err) {
+        console.warn('[AI Tree] hydrateState:', err);
+      }
+    }
+
+    /**
+     * PHASE 3 — Protected mount + restart essential intervals + watchdog.
+     */
+    mountProtected() {
+      this.attachDomArtifacts();
+      this.resetTransientUi();
       try {
         adjustNotepadPosition(); adjustCalcPosition(); adjustClockPosition();
         adjustTodoPosition(); adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition();
       } catch (err) {}
-      if (typeof resetAutoCollapseTimer === 'function') resetAutoCollapseTimer();
-      if (typeof resetToggleTimeout === 'function') resetToggleTimeout();
-      hub.classList.add('quickadd-flash');
-      setTimeout(() => hub.classList.remove('quickadd-flash'), 450);
-      showToastNotification(t('toastRevived'));
+      try {
+        if (typeof renderSpiral === 'function' && isOpen) renderSpiral();
+        if (typeof renderTierDots === 'function') renderTierDots();
+        if (typeof renderHubDots === 'function') renderHubDots();
+        if (typeof updateBookmarkCount === 'function') updateBookmarkCount();
+      } catch (err) {}
+      // Restart clock age tick if the previous interval was cleared
+      try {
+        if (typeof clockAgeIntervalId === 'number') {
+          clearInterval(clockAgeIntervalId);
+        }
+        clockAgeIntervalId = setInterval(updateClockAge, 1000);
+        this.registerInterval(clockAgeIntervalId);
+      } catch (err) {}
+      try {
+        if (typeof resetAutoCollapseTimer === 'function') resetAutoCollapseTimer();
+        if (typeof resetToggleTimeout === 'function') resetToggleTimeout();
+      } catch (err) {}
+      this.startWatchdog();
+    }
+
+    /**
+     * Complete Zero-Reload Hot Restart (typically <80ms).
+     */
+    async relaunchSilently(reason, opts) {
+      const silent = !!(opts && opts.silent);
+      if (this.isRelaunching) return;
+      this.isRelaunching = true;
+      try {
+        this.teardown();
+        await this.hydrateState();
+        this.mountProtected();
+        if (!silent) {
+          try {
+            hub.classList.add('quickadd-flash');
+            setTimeout(() => hub.classList.remove('quickadd-flash'), 450);
+            showToastNotification(t('toastRevived'));
+          } catch (err) {}
+        }
+      } catch (error) {
+        console.error('[AI Tree] Soft relaunch failed:', error, reason || '');
+        // Best-effort recovery: ensure DOM is at least visible
+        try { this.attachDomArtifacts(); this.resetTransientUi(); this.startWatchdog(); } catch (e) {}
+      } finally {
+        this.isRelaunching = false;
+      }
+    }
+  }
+
+  const lifecycle = new ExtensionLifecycleController();
+  // Register the initial clock interval created at boot
+  try {
+    if (typeof clockAgeIntervalId === 'number') lifecycle.registerInterval(clockAgeIntervalId);
+  } catch (err) {}
+  lifecycle.startWatchdog();
+
+  /** @deprecated Prefer lifecycle.relaunchSilently — kept as stable call site for watchdog & messages */
+  function reviveLauncher(opts) {
+    const silent = !!(opts && opts.silent);
+    lifecycle.relaunchSilently(opts && opts.reason ? opts.reason : 'reviveLauncher', { silent });
   }
 
   undoToggleDot.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (!undoToggleDot.classList.contains('active-undo')) {
-        reviveLauncher();
+      // Hybrid priority:
+      //  1) TTL-backed bookmark / todo / storage recovery (existing 10s behaviour)
+      //  2) Multi-step notepad undo (zero-TTL, survives for the session)
+      //  3) Idle → soft relaunch
+      const undoneType = pendingUndoState && pendingUndoState.type;
+      const hasTtlUndo = undoneType === 'bookmark' || undoneType === 'storage' || undoneType === 'todo';
+      const hasNoteUndo = (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
+      const hasLegacyText = undoneType === 'text';
+
+      if (!hasTtlUndo && !hasNoteUndo && !hasLegacyText) {
+        lifecycle.relaunchSilently('undo_idle_click', { silent: false });
         return;
       }
-      const undoneType = pendingUndoState.type;
-      if(undoneType === 'text') {
-          if (typeof endNoteEditSession === 'function') endNoteEditSession();
-          const textState = pendingUndoState.data; const restoredText = typeof textState === 'string' ? textState : textState.value;
-          noteTextarea.value = restoredText;
-          if (typeof textState === 'object') {
-            if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
-            if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
-          }
-          quickNoteForm.classList.add('active'); root.classList.add('show-notepad');
-          if (typeof textState === 'object') {
-            const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length);
-            const caretEnd = Math.min(textState.selectionEnd ?? caret, restoredText.length);
-            noteTextarea.focus(); noteTextarea.setSelectionRange(caret, caretEnd);
-          }
-          if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
-          if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
-          adjustNotepadPosition(); showToastNotification(t('toastRestored'));
-      }
-      else if (undoneType === 'bookmark' || undoneType === 'storage') {
+
+      if (hasTtlUndo) {
+        if (undoneType === 'bookmark' || undoneType === 'storage') {
           let linkToRestore = pendingUndoState.data; let targetHub = pendingUndoState.hub;
-          if(!linkToRestore) { chrome.storage.sync.get(['lastDeletedLink'], (res) => { if(res.lastDeletedLink) restoreBookmark(res.lastDeletedLink, res.lastDeletedLink._hub || targetHub); }); } 
-          else restoreBookmark(linkToRestore, targetHub);
-      }
-      else if (undoneType === 'todo') {
+          if (!linkToRestore) {
+            chrome.storage.sync.get(['lastDeletedLink'], (res) => {
+              if (res.lastDeletedLink) restoreBookmark(res.lastDeletedLink, res.lastDeletedLink._hub || targetHub);
+            });
+          } else {
+            restoreBookmark(linkToRestore, targetHub);
+          }
+        } else if (undoneType === 'todo') {
           const { item, index } = pendingUndoState.data || {};
           if (item) {
             const insertAt = Math.min(index ?? todosData.length, todosData.length);
             todosData.splice(insertAt, 0, item);
             saveTodos();
-            if ((item.type || 'daily') !== activeTodoTab) switchTodoTab(item.type || 'daily'); else if (todoPanel.classList.contains('active')) renderTodos();
+            if ((item.type || 'daily') !== activeTodoTab) switchTodoTab(item.type || 'daily');
+            else if (todoPanel.classList.contains('active')) renderTodos();
             showToastNotification(t('toastRestored'));
           }
+        }
+        clearTimeout(globalUndoTimeout);
+        pendingUndoState = { type: null, data: null, hub: 1 };
+        if (undoneType === 'bookmark' || undoneType === 'storage') {
+          try { chrome.storage.sync.remove('lastDeletedLink'); } catch (err) {}
+        }
+        syncUndoToggleVisual();
+        return;
       }
-      clearTimeout(globalUndoTimeout); undoToggleDot.classList.remove('active-undo'); pendingUndoState = { type: null, data: null, hub: 1 };
-      if (undoneType === 'bookmark' || undoneType === 'storage') chrome.storage.sync.remove('lastDeletedLink');
+
+      // Notepad multi-step (preferred) or legacy single text snapshot
+      if (hasNoteUndo) {
+        notepadUndo.undo();
+        return;
+      }
+      if (hasLegacyText) {
+        if (typeof endNoteEditSession === 'function') endNoteEditSession();
+        const textState = pendingUndoState.data;
+        const restoredText = typeof textState === 'string' ? textState : (textState && textState.value) || '';
+        if (noteTextarea) {
+          noteTextarea.value = restoredText;
+          if (typeof textState === 'object' && textState) {
+            if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
+            if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
+            const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length);
+            const caretEnd = Math.min(textState.selectionEnd ?? caret, restoredText.length);
+            noteTextarea.focus();
+            try { noteTextarea.setSelectionRange(caret, caretEnd); } catch (err) {}
+          }
+        }
+        quickNoteForm.classList.add('active'); root.classList.add('show-notepad');
+        if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+        if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+        adjustNotepadPosition();
+        showToastNotification(t('toastRestored'));
+        pendingUndoState = { type: null, data: null, hub: 1 };
+        syncUndoToggleVisual();
+      }
   });
 
   function restoreBookmark(link, targetHub = 1) { 
@@ -3485,14 +3795,197 @@
     });
   } catch (e) {}
 
-  // Undo معنادار برای دفترچه: یک اسنپ‌شات در شروع «جلسهٔ ویرایش»، نه برای هر کاراکتر.
-  // جلسه با تایپ/حذف پیوسته ادامه دارد؛ بعد از سکوت کوتاه بسته می‌شود.
-  // Undo سراسری همان متن قبل از شروع جلسه (یا قبل از Clear/Paste بزرگ) را برمی‌گرداند.
-  let noteEditSessionOpen = false;
-  let noteEditSessionTimer = null;
+  // =========================================================================
+  // NotepadUndoManager — multi-step LIFO memory (5–15 snapshots), zero-TTL.
+  // Bookmark/todo recovery stays on pendingUndoState + 10s globalUndoTimeout.
+  // Session grouping: continuous typing shares one snapshot (pushed at start);
+  // paste / cut / bulk delete / clear each force a new boundary.
+  // =========================================================================
+  const NOTE_UNDO_MAX = 15;
+  const NOTE_UNDO_MIN_KEEP = 5;
   const NOTE_EDIT_SESSION_IDLE_MS = 1200;
+  const NOTE_HISTORY_STORAGE_KEY = 'aiTreeNotepadHistory';
+
+  class NotepadUndoManager {
+    constructor(textarea, opts) {
+      this.ta = textarea;
+      this.max = (opts && opts.max) || NOTE_UNDO_MAX;
+      this.undoStack = [];
+      this.redoStack = [];
+      this.sessionOpen = false;
+      this.sessionTimer = null;
+      this.applying = false; // suppress push while restoring
+      this.persistTimer = null;
+      this._lastPushedValue = null;
+    }
+
+    snapshot(extra) {
+      if (!this.ta) return null;
+      return Object.assign({
+        value: this.ta.value,
+        selectionStart: this.ta.selectionStart,
+        selectionEnd: this.ta.selectionEnd,
+        prevWidth: quickNoteForm.style.width || '',
+        prevHeight: quickNoteForm.style.height || '',
+        ts: Date.now()
+      }, extra || {});
+    }
+
+    _sameAsTop(snap) {
+      if (!snap || !this.undoStack.length) return false;
+      const top = this.undoStack[this.undoStack.length - 1];
+      return top && top.value === snap.value;
+    }
+
+    push(snap) {
+      if (!snap || this.applying) return false;
+      if (this._sameAsTop(snap)) return false;
+      this.undoStack.push(snap);
+      while (this.undoStack.length > this.max) this.undoStack.shift();
+      this.redoStack = [];
+      this._lastPushedValue = snap.value;
+      this.schedulePersist();
+      syncUndoToggleVisual();
+      return true;
+    }
+
+    /** External bridge used by setUndoState('text', data) compatibility path. */
+    pushExternal(data) {
+      if (!data) return;
+      const snap = typeof data === 'string'
+        ? { value: data, selectionStart: data.length, selectionEnd: data.length, prevWidth: '', prevHeight: '', ts: Date.now() }
+        : Object.assign({ ts: Date.now() }, data);
+      // Opening a new edit boundary
+      this.sessionOpen = true;
+      this._armSessionTimer();
+      this.push(snap);
+    }
+
+    canUndo() { return this.undoStack.length > 0; }
+    canRedo() { return this.redoStack.length > 0; }
+
+    applySnapshot(snap) {
+      if (!this.ta || !snap) return;
+      this.applying = true;
+      try {
+        this.ta.value = snap.value != null ? snap.value : '';
+        if (snap.prevWidth) { quickNoteForm.style.width = snap.prevWidth; noteManuallyPositioned = true; }
+        if (snap.prevHeight) { quickNoteForm.style.height = snap.prevHeight; noteManuallyPositioned = true; }
+        const len = this.ta.value.length;
+        const a = Math.min(Math.max(0, snap.selectionStart ?? len), len);
+        const b = Math.min(Math.max(0, snap.selectionEnd ?? a), len);
+        try { this.ta.focus(); this.ta.setSelectionRange(a, b); } catch (err) {}
+        quickNoteForm.classList.add('active');
+        root.classList.add('show-notepad');
+        if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+        if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+        if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+        else if (typeof adjustNotepadPosition === 'function') adjustNotepadPosition();
+      } finally {
+        this.applying = false;
+      }
+    }
+
+    undo() {
+      if (!this.canUndo()) return false;
+      this.endSession();
+      const current = this.snapshot();
+      const prev = this.undoStack.pop();
+      if (current) this.redoStack.push(current);
+      this.applySnapshot(prev);
+      this.schedulePersist();
+      syncUndoToggleVisual();
+      showToastNotification(t('toastRestored'));
+      return true;
+    }
+
+    redo() {
+      if (!this.canRedo()) return false;
+      this.endSession();
+      const current = this.snapshot();
+      const next = this.redoStack.pop();
+      if (current) this.undoStack.push(current);
+      this.applySnapshot(next);
+      this.schedulePersist();
+      syncUndoToggleVisual();
+      showToastNotification(t('toastRestored'));
+      return true;
+    }
+
+    beginSessionIfNeeded() {
+      if (!this.ta || this.applying) return;
+      if (!this.ta.value) return; // nothing meaningful to restore to
+      if (this.sessionOpen) {
+        this._armSessionTimer();
+        return;
+      }
+      this.sessionOpen = true;
+      this.push(this.snapshot());
+      this._armSessionTimer();
+    }
+
+    forceBoundary() {
+      if (!this.ta || this.applying) return;
+      // Always capture current state as a recoverable step (even if empty → clear recovery)
+      this.sessionOpen = true;
+      this.push(this.snapshot());
+      this._armSessionTimer();
+    }
+
+    endSession() {
+      this.sessionOpen = false;
+      clearTimeout(this.sessionTimer);
+      this.sessionTimer = null;
+    }
+
+    _armSessionTimer() {
+      clearTimeout(this.sessionTimer);
+      this.sessionTimer = setTimeout(() => this.endSession(), NOTE_EDIT_SESSION_IDLE_MS);
+    }
+
+    schedulePersist() {
+      clearTimeout(this.persistTimer);
+      this.persistTimer = setTimeout(() => this.persist(), 400);
+    }
+
+    persist() {
+      try {
+        if (!chrome.runtime?.id) return;
+        const payload = {
+          undo: this.undoStack.slice(-NOTE_UNDO_MAX),
+          redo: this.redoStack.slice(-NOTE_UNDO_MAX),
+          savedAt: Date.now()
+        };
+        chrome.storage.local.set({ [NOTE_HISTORY_STORAGE_KEY]: payload });
+      } catch (err) {}
+    }
+
+    loadFromStorage(data) {
+      try {
+        if (!data || !Array.isArray(data.undo)) return;
+        this.undoStack = data.undo.slice(-NOTE_UNDO_MAX).filter(s => s && typeof s.value === 'string');
+        this.redoStack = Array.isArray(data.redo)
+          ? data.redo.slice(-NOTE_UNDO_MAX).filter(s => s && typeof s.value === 'string')
+          : [];
+        syncUndoToggleVisual();
+      } catch (err) {}
+    }
+
+    clear() {
+      this.undoStack = [];
+      this.redoStack = [];
+      this.endSession();
+      this.schedulePersist();
+      syncUndoToggleVisual();
+    }
+  }
+
+  let noteEditSessionOpen = false; // legacy alias kept for external callers
+  let noteEditSessionTimer = null;
+  let notepadUndo = null;
 
   function snapshotNoteText(extra) {
+    if (notepadUndo) return notepadUndo.snapshot(extra);
     if (!noteTextarea) return null;
     return Object.assign({
       value: noteTextarea.value,
@@ -3504,75 +3997,83 @@
   }
 
   function beginNoteEditSessionIfNeeded() {
-    if (!noteTextarea) return;
-    // فقط وقتی متنی وجود دارد ارزش Undo دارد
-    if (!noteTextarea.value) return;
-    if (noteEditSessionOpen) {
-      // تمدید جلسهٔ جاری
-      clearTimeout(noteEditSessionTimer);
-      noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
-      return;
-    }
-    noteEditSessionOpen = true;
-    setUndoState('text', snapshotNoteText());
-    clearTimeout(noteEditSessionTimer);
-    noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
+    if (notepadUndo) notepadUndo.beginSessionIfNeeded();
+    noteEditSessionOpen = !!(notepadUndo && notepadUndo.sessionOpen);
   }
 
   function endNoteEditSession() {
+    if (notepadUndo) notepadUndo.endSession();
     noteEditSessionOpen = false;
     clearTimeout(noteEditSessionTimer);
     noteEditSessionTimer = null;
   }
 
-  // قبل از عملیات‌های بزرگ (Clear از قبل جداست؛ اینجا Paste / Cut / حذف انتخاب‌شده)
   function captureNoteUndoForBigChange(inputType, data) {
-    if (!noteTextarea || !noteTextarea.value) return;
+    if (!notepadUndo || !noteTextarea) return;
     const isDelete = inputType && inputType.startsWith('delete');
     const isInsert = inputType && (inputType.startsWith('insert') || inputType === 'historyUndo' || inputType === 'historyRedo');
     const selLen = Math.abs((noteTextarea.selectionEnd || 0) - (noteTextarea.selectionStart || 0));
     const incomingLen = (data && data.length) || 0;
-    // حذف بازه‌ای، Cut، یا Paste با جایگزینی متن موجود → Undo کامل
     const significant =
       (isDelete && (selLen > 1 || noteTextarea.value.length > 0)) ||
       (isInsert && (selLen > 0 || incomingLen > 20));
     if (!significant && !(isDelete && noteTextarea.value.length > 0)) return;
-    // اگر جلسه باز است اسنپ‌شات اول جلسه را نگه دار؛ وگرنه همین الان بگیر
-    if (!noteEditSessionOpen) {
-      setUndoState('text', snapshotNoteText());
-      noteEditSessionOpen = true;
-    }
-    clearTimeout(noteEditSessionTimer);
-    noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
+    if (!notepadUndo.sessionOpen) notepadUndo.forceBoundary();
+    else notepadUndo._armSessionTimer();
+    noteEditSessionOpen = notepadUndo.sessionOpen;
   }
 
   if (noteTextarea) {
+    notepadUndo = new NotepadUndoManager(noteTextarea, { max: NOTE_UNDO_MAX });
+    // Hydrate multi-step history from local storage (survives soft relaunch)
+    try {
+      if (chrome.runtime?.id) {
+        chrome.storage.local.get([NOTE_HISTORY_STORAGE_KEY], (res) => {
+          if (res && res[NOTE_HISTORY_STORAGE_KEY]) notepadUndo.loadFromStorage(res[NOTE_HISTORY_STORAGE_KEY]);
+        });
+      }
+    } catch (err) {}
+
     noteTextarea.addEventListener('beforeinput', function (e) {
-      if (!e.inputType) return;
-      // شروع جلسه روی اولین تغییر واقعی (insert یا delete)
+      if (!e.inputType || !notepadUndo || notepadUndo.applying) return;
       if (e.inputType.startsWith('delete') || e.inputType.startsWith('insert') || e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop') {
-        // برای Paste/حذف انتخاب‌شده: اسنپ‌شات قبل از تغییر
         const selLen = Math.abs((this.selectionEnd || 0) - (this.selectionStart || 0));
         if (e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || (e.inputType.startsWith('delete') && selLen > 1)) {
-          if (!noteEditSessionOpen && this.value) {
-            setUndoState('text', snapshotNoteText());
-            noteEditSessionOpen = true;
-          }
+          if (this.value || selLen > 0) notepadUndo.forceBoundary();
         } else if (e.inputType.startsWith('delete') || e.inputType.startsWith('insertText') || e.inputType === 'insertLineBreak') {
           beginNoteEditSessionIfNeeded();
         }
-        clearTimeout(noteEditSessionTimer);
-        noteEditSessionTimer = setTimeout(endNoteEditSession, NOTE_EDIT_SESSION_IDLE_MS);
+        noteEditSessionOpen = notepadUndo.sessionOpen;
       }
     });
     noteTextarea.addEventListener('keydown', function (e) {
       if (typeof abortNoteClosing === 'function') abortNoteClosing();
+      const mod = e.ctrlKey || e.metaKey;
+      // Multi-step undo / redo shortcuts (do not interfere with native when manager empty)
+      if (mod && !e.altKey && (e.key === 'z' || e.key === 'Z')) {
+        if (e.shiftKey) {
+          if (notepadUndo && notepadUndo.canRedo()) {
+            e.preventDefault(); e.stopPropagation();
+            notepadUndo.redo();
+            return;
+          }
+        } else if (notepadUndo && notepadUndo.canUndo()) {
+          e.preventDefault(); e.stopPropagation();
+          notepadUndo.undo();
+          return;
+        }
+      }
+      if (mod && !e.altKey && (e.key === 'y' || e.key === 'Y')) {
+        if (notepadUndo && notepadUndo.canRedo()) {
+          e.preventDefault(); e.stopPropagation();
+          notepadUndo.redo();
+          return;
+        }
+      }
       // Ctrl/Cmd+A سپس Delete/Backspace — اسنپ‌شات قبل از پاک شدن کل متن
       if ((e.key === 'Backspace' || e.key === 'Delete') && this.selectionStart === 0 && this.selectionEnd === this.value.length && this.value.length > 0) {
-        if (!noteEditSessionOpen) {
-          setUndoState('text', snapshotNoteText());
-          noteEditSessionOpen = true;
-        }
+        if (notepadUndo && !notepadUndo.sessionOpen) notepadUndo.forceBoundary();
+        noteEditSessionOpen = !!(notepadUndo && notepadUndo.sessionOpen);
       }
     });
     let lastNoteValueForEmoji = noteTextarea ? noteTextarea.value : '';
@@ -3585,12 +4086,13 @@
       if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
       else adjustNotepadPosition();
       resetToggleTimeout();
+      if (notepadUndo && notepadUndo.sessionOpen) notepadUndo._armSessionTimer();
     });
     noteTextarea.addEventListener('blur', function () {
-      // با ترک فیلد، جلسه بسته شود تا Undo بعدی معنای روشن داشته باشد
       endNoteEditSession();
     });
   }
+
   
   // --- Prompt Studio: templates, token meter, autosave, history ---
   // این ۶ پرامپتِ پیش‌فرض به‌عنوان محتوای اپ به انگلیسی نوشته شده‌اند، اما این یک قانون نیست:
@@ -4046,7 +4548,8 @@
     const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
     if (hadText) {
       endNoteEditSession();
-      setUndoState('text', snapshotNoteText(), currentHubIndex, 5000);
+      if (notepadUndo) notepadUndo.forceBoundary();
+      else setUndoState('text', snapshotNoteText());
       noteTextarea.value = '';
       if (focus) noteTextarea.focus();
       if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
@@ -5828,6 +6331,15 @@
     if (message.action === "refreshSpiralUI") {
       loadDataAndRender();
       if (typeof restoreNoteDraft === 'function') restoreNoteDraft();
+    }
+    if (message.action === "softRelaunchAnly" || message.action === "relaunchLauncher") {
+      try {
+        lifecycle.relaunchSilently(message.reason || message.action, { silent: !!message.silent });
+        sendResponse({ ok: true });
+      } catch (err) {
+        sendResponse({ ok: false, error: String(err && err.message || err) });
+      }
+      return true;
     }
     if (message.action === "hideLauncherAnly") { root.style.display = 'none'; }
     if (message.action === "getBookmarkBackups") {
