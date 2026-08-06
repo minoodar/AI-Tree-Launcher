@@ -57,11 +57,18 @@
 .orbit-hub {
 position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
 width: var(--orbit-size); height: var(--orbit-size); border-radius: 50%;
-background: var(--hub-bg);
-border: 1px solid rgba(255, 255, 255, 0.2);
+/* Opaque enough on white pages so label never blends into the host page */
+background:
+  radial-gradient(circle at 32% 28%, rgba(255,255,255,0.22) 0 5%, transparent 22%),
+  rgba(12, 16, 28, 0.92);
+border: 1px solid rgba(255, 255, 255, 0.28);
 backdrop-filter: blur(var(--hub-blur)) saturate(150%);
 -webkit-backdrop-filter: blur(var(--hub-blur)) saturate(150%);
-box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1), inset 0 2px 6px rgba(255,255,255,0.15);
+box-shadow:
+  0 8px 28px rgba(0,0,0,0.55),
+  0 0 0 1px rgba(0,0,0,0.25),
+  inset 0 0 0 1px rgba(255,255,255,0.12),
+  inset 0 2px 6px rgba(255,255,255,0.12);
 display: flex; align-items: center; justify-content: center; cursor: grab; z-index: 100;
 transition: transform 0.3s var(--ease-bounce), width 0.3s, height 0.3s, background 0.25s var(--ease-premium), backdrop-filter 0.25s var(--ease-premium), box-shadow 0.3s var(--ease-premium), border-color 0.3s, border-radius 0.3s, clip-path 0.3s, opacity 0.35s var(--ease-premium);
 }
@@ -92,12 +99,12 @@ animation: quantumSeed 4.8s ease-in-out infinite;
 
 /* Visual shift when inside Hub 2/3 (Extended Network) */
 .orbit-hub.hub-infinity { border-color: rgba(139, 92, 246, 0.5); }
-.orbit-hub.hub-infinity svg.hub-main-icon text { fill: #C4B5FD !important; font-size: 16px; }
+.orbit-hub.hub-infinity svg.hub-main-icon text { /* fill via #ai-hub-text for contrast */ }
 .orbit-hub.hub-infinity:not(.hub-collapsed)::before { border-color: rgba(139, 92, 246, 0.35); box-shadow: 0 0 15px rgba(139, 92, 246, 0.1); }
 
 /* Hub 4 — News constellation */
 .orbit-hub.hub-news { border-color: rgba(248, 113, 113, 0.55); }
-.orbit-hub.hub-news svg.hub-main-icon text { fill: #FCA5A5 !important; font-size: 9px; }
+.orbit-hub.hub-news svg.hub-main-icon text { /* fill via #ai-hub-text for contrast */ }
 .orbit-hub.hub-news:not(.hub-collapsed)::before { border-color: rgba(248, 113, 113, 0.35); box-shadow: 0 0 15px rgba(239, 68, 68, 0.12); }
 
 /* افزودن سریع (نگه‌داشتن کلیک) */
@@ -1662,8 +1669,28 @@ opacity: 1;
 transition-delay: 0s;
 }
 
-#ai-hub-text { fill: #94a3b8; transition: fill .18s ease, font-size 0.2s ease; }
-#ai-hub-text.is-default-ai { fill: #f8fafc; }
+#ai-hub-text {
+  fill: #F8FAFC !important;
+  stroke: rgba(2, 6, 23, 0.92);
+  stroke-width: 2.4px;
+  paint-order: stroke fill;
+  stroke-linejoin: round;
+  transition: fill .18s ease, font-size 0.2s ease, stroke 0.18s ease;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.65));
+}
+#ai-hub-text.is-default-ai {
+  fill: #FFFFFF !important;
+  stroke: rgba(2, 6, 23, 0.95);
+  stroke-width: 2.6px;
+}
+.orbit-hub.hub-infinity #ai-hub-text {
+  fill: #EDE9FE !important; /* soft violet on dark disc — still high contrast */
+  stroke: rgba(15, 10, 30, 0.95);
+}
+.orbit-hub.hub-news #ai-hub-text {
+  fill: #FEE2E2 !important;
+  stroke: rgba(40, 10, 10, 0.95);
+}
 
 .ai-node.priority-5 { filter: saturate(1.15) brightness(1.08); }
 .ai-node.priority-4 { filter: saturate(1.07) brightness(1.04); }
@@ -1674,10 +1701,10 @@ transition-delay: 0s;
 .orbit-hub:not(.hub-collapsed) {
 overflow: visible;
 background:
-radial-gradient(circle at 31% 25%, rgba(255,255,255,.34) 0 4%, transparent 19%),
-radial-gradient(circle at 63% 72%, rgba(34,211,238,.18), transparent 48%),
-radial-gradient(circle at 50% 50%, rgba(30,64,175,.20), transparent 69%),
-rgba(6, 12, 26, .34);
+radial-gradient(circle at 31% 25%, rgba(255,255,255,.28) 0 4%, transparent 19%),
+radial-gradient(circle at 63% 72%, rgba(34,211,238,.16), transparent 48%),
+radial-gradient(circle at 50% 50%, rgba(30,64,175,.22), transparent 69%),
+rgba(8, 12, 24, .88);
 border-color: rgba(186,230,253,.42);
 box-shadow: 0 10px 28px rgba(2,6,23,.42), 0 0 0 1px rgba(255,255,255,.12) inset, 0 0 26px rgba(56,189,248,.13);
 }

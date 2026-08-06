@@ -1,4 +1,4 @@
-// AI Tree Launcher — Core (V25.10 - Quote copy buttons + Clear/Close undo wipe)
+// AI Tree Launcher — Core (V25.11 - Readable hub labels fa/en)
 (function () {
   'use strict';
 
@@ -6471,18 +6471,64 @@
     }
   });
 
-  function mainAIIcon() { return `<svg class="hub-main-icon" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4" stroke="rgba(156,163,175,0.6)"></rect><text id="ai-hub-text" class="is-default-ai" x="12" y="16.5" font-family="sans-serif" font-size="11" font-weight="900" text-anchor="middle" fill="#E5E7EB" stroke="none">AI</text></svg>`; }
+  function mainAIIcon() { return `<svg class="hub-main-icon" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4" stroke="rgba(156,163,175,0.6)"></rect><text id="ai-hub-text" class="is-default-ai" x="12" y="16.5" font-family="sans-serif" font-size="11" font-weight="800" text-anchor="middle" dominant-baseline="middle" fill="#E5E7EB" stroke="none">AI</text></svg>`; }
+
+  /**
+   * Hub center label — must stay legible inside a 28×28 SVG for both fa/en
+   * and for short ("AI", "∞2") vs medium ("News", "اخبار", "5★") strings.
+   * CSS must NOT force a fixed font-size on hub-infinity (that caused overflow).
+   */
   function setHubLabel(text) {
     const el = document.getElementById('ai-hub-text'); if (!el) return;
-    let displayText = text;
+    const coreWord = t('hubCore');
+    const newsWord = t('hubNews');
+    const allWord = t('hubAll');
+    let displayText = text == null ? '' : String(text);
+
     if (isNewsHub(currentHubIndex)) {
-      if (text === 'AI' || text === t('hubCore')) displayText = t('hubNews');
-      else displayText = text;
-    } else if (currentHubIndex > 1 && text === 'AI') displayText = `∞${currentHubIndex}`;
-    else if (currentHubIndex > 1 && text === t('hubCore')) displayText = `∞${currentHubIndex} Core`;
+      if (displayText === 'AI' || displayText === coreWord || displayText === 'Core') {
+        displayText = newsWord;
+      }
+    } else if (currentHubIndex > 1) {
+      // Compact galaxy id only — avoid "∞2 Core" / "∞2 هسته" which never fits the disc
+      if (displayText === 'AI' || displayText === coreWord || displayText === 'Core') {
+        displayText = `∞${currentHubIndex}`;
+      }
+    }
+
     el.textContent = displayText;
-    el.classList.toggle('is-default-ai', text === 'AI' && currentHubIndex === 1);
-    el.setAttribute('font-size', displayText.length > 3 ? '7.5' : (displayText.length > 2 ? '9' : '11'));
+    el.classList.toggle('is-default-ai', displayText === 'AI' && currentHubIndex === 1);
+
+    // Visual length: CJK/Arabic glyphs read wider than Latin of the same char count
+    const rawLen = displayText.length;
+    const hasArabic = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(displayText);
+    const hasHeavy = /[★∞]/.test(displayText);
+    let units = rawLen + (hasArabic ? rawLen * 0.35 : 0) + (hasHeavy ? 0.4 : 0);
+
+    let size;
+    if (units <= 1.2) size = 11;
+    else if (units <= 2.2) size = 10;
+    else if (units <= 3.2) size = 8.5;
+    else if (units <= 4.2) size = 7.5;
+    else if (units <= 5.5) size = 6.8;
+    else size = 6.2;
+
+    // Persian UI: slightly tighter so «اخبار» / «همه» stay inside the ring
+    if (currentLang === 'fa') size = Math.max(6.2, size - 0.4);
+
+    // Known short tokens — keep a confident size
+    if (displayText === 'AI' || /^∞[1-9]$/.test(displayText)) {
+      size = currentLang === 'fa' ? 10 : 11;
+    } else if (displayText === newsWord || displayText === allWord) {
+      size = Math.min(size, currentLang === 'fa' ? 7.2 : 8);
+    } else if (/^[1-5]★$/.test(displayText) || displayText === '1-2★') {
+      size = 8.5;
+    }
+
+    el.setAttribute('font-size', String(size));
+    el.setAttribute('font-weight', units > 3.5 ? '700' : '800');
+    // Keep baseline optically centered as size changes
+    el.setAttribute('y', size >= 10 ? '16.5' : (size >= 8 ? '16.2' : '15.8'));
   }
 
 })();
