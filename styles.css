@@ -359,55 +359,10 @@ animation: portalPulse 3.2s infinite alternate ease-in-out;
 .ai-node.portal-node-home .portal-icon { font-size: 30px; filter: none; }
 @keyframes portalPulse { 0% { filter: brightness(0.92); } 100% { filter: brightness(1.15); } }
 
-/* Empty Node Styles — blank cores (AI slots / News cores)
-   High-contrast on white: dark glass plate + large deep-blue + */
-.ai-node.ai-node-empty {
-  border-style: dashed !important;
-  border-width: 2.5px !important;
-  border-color: rgba(37, 99, 235, 0.65) !important;
-  background:
-    radial-gradient(circle at 50% 40%, rgba(37, 99, 235, 0.22) 0%, transparent 60%),
-    rgba(15, 23, 42, 0.82) !important;
-  color: #EFF6FF;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(37, 99, 235, 0.15) inset,
-    0 0 20px rgba(37, 99, 235, 0.22) !important;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-.ai-node.ai-node-empty .ai-node-empty-plus {
-  font-size: 28px;
-  font-weight: 900;
-  line-height: 1;
-  color: #1D4ED8;
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 0.95),
-    0 0 1px rgba(255, 255, 255, 0.9),
-    0 1px 3px rgba(0, 0, 0, 0.55),
-    0 0 12px rgba(37, 99, 235, 0.45);
-  letter-spacing: 0;
-}
-.ai-node.ai-node-empty:hover {
-  border-color: rgba(37, 99, 235, 0.95) !important;
-  background:
-    radial-gradient(circle at 50% 40%, rgba(37, 99, 235, 0.32) 0%, transparent 60%),
-    rgba(15, 23, 42, 0.9) !important;
-  color: #fff;
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.45),
-    0 0 0 1px rgba(59, 130, 246, 0.3) inset,
-    0 0 26px rgba(37, 99, 235, 0.4) !important;
-  transform: translate(-50%, -50%) scale(1.1) !important;
-}
-.ai-node.ai-node-empty:hover .ai-node-empty-plus {
-  color: #1E40AF;
-  text-shadow:
-    0 0 2px rgba(255, 255, 255, 1),
-    0 0 1px rgba(255, 255, 255, 0.95),
-    0 1px 3px rgba(0, 0, 0, 0.6),
-    0 0 16px rgba(59, 130, 246, 0.65);
-}
+/* Empty Node Styles (Hub 2 Cores) */
+.ai-node.ai-node-empty { border-style: dashed !important; background: rgba(255, 255, 255, 0.04) !important; color: rgba(255, 255, 255, 0.45); box-shadow: none !important; }
+.ai-node.ai-node-empty .ai-node-empty-plus { font-size: 18px; font-weight: 700; line-height: 1; color: rgba(167, 243, 208, 0.7); }
+.ai-node.ai-node-empty:hover { border-color: rgba(52, 211, 153, 0.6) !important; color: rgba(255,255,255,0.75); }
 
 .orbit-star-editor {
 position: fixed; display: flex; gap: 4px; align-items: center; justify-content: center; direction: ltr;
@@ -2908,7 +2863,12 @@ body.rtl .ai-note-history-menu,
   display: flex;
   align-items: center;
   justify-content: center;
-  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.35));
+  /* Black halo for white-page contrast + soft light edge */
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 4px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 3px rgba(255, 255, 255, 0.25));
 }
 .ai-constellation-icon svg {
   width: 24px;
@@ -3021,14 +2981,55 @@ body.rtl .ai-note-history-menu,
   transform: translateX(-50%) translateY(0);
 }
 
-#ai-note-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.8)); }
-#ai-todo-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.8)); }
-#ai-clock-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.8)); }
-#ai-all-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(148, 163, 184, 0.7)); }
-#ai-search-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(0, 210, 255, 0.8)); }
-#ai-calc-hub-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(250, 128, 114, 0.8)); }
-#ai-undo-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.8)); }
-#ai-collapse-toggle:hover .ai-constellation-icon { filter: drop-shadow(0 0 5px rgba(186, 230, 253, 0.7)); }
+/* Keep black outline on hover so icons stay readable on white pages */
+#ai-note-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(16, 185, 129, 0.85));
+}
+#ai-todo-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(99, 102, 241, 0.85));
+}
+#ai-clock-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(59, 130, 246, 0.85));
+}
+#ai-all-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(148, 163, 184, 0.75));
+}
+#ai-search-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(0, 210, 255, 0.85));
+}
+#ai-calc-hub-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(250, 128, 114, 0.85));
+}
+#ai-undo-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(251, 191, 36, 0.85));
+}
+#ai-collapse-toggle:hover .ai-constellation-icon {
+  filter:
+    drop-shadow(0 0 1.5px rgba(0, 0, 0, 0.95))
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 5px rgba(186, 230, 253, 0.75));
+}
 
 /* Hold-to-bookmark hint — hub center only, delayed ~3s — two horizontal lines */
 .ai-hub-hold-hint {
