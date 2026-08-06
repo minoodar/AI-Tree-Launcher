@@ -1845,7 +1845,15 @@
             : `${j2.jd}/${j2.jm}`;
         } catch (e2) {}
       }
-      return { gregLine, secLine: (secLine || '').trim() };
+      // Line 3 — Hijri (lunar/Qamari) calendar, day + month name
+      let hijriLine = '';
+      try {
+        const dt = new Date(gy, gm - 1, gd);
+        const hijriOpts = { day: 'numeric', month: 'long' };
+        const hijriLocale = currentLang === 'fa' ? 'fa-IR-u-ca-islamic-umalqura' : 'en-US-u-ca-islamic-umalqura';
+        hijriLine = dt.toLocaleDateString(hijriLocale, hijriOpts);
+      } catch (e3) {}
+      return { gregLine, secLine: (secLine || '').trim(), hijriLine: (hijriLine || '').trim() };
     }
 
     for (let d = 1; d <= totalDays; d++) {
@@ -1857,9 +1865,9 @@
       const primary = preferJalali ? toPersianDigits(j.jd) : String(d);
       const sub = preferJalali ? String(d) : String(j.jd);
       const tip = dayHoverTip(y, m, d);
-      const tipAttr = tip.secLine
-        ? ` data-tip-greg="${tip.gregLine}" data-tip-sec="${tip.secLine}"`
-        : ` data-tip-greg="${tip.gregLine}"`;
+      let tipAttr = ` data-tip-greg="${tip.gregLine}"`;
+      if (tip.secLine) tipAttr += ` data-tip-sec="${tip.secLine}"`;
+      if (tip.hijriLine) tipAttr += ` data-tip-hijri="${tip.hijriLine}"`;
       const cls = ['day-cell'];
       if (isToday) cls.push('is-today');
       if (isMarked) cls.push('is-marked');

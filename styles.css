@@ -2138,31 +2138,25 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
 }
 .day-cell[data-tip-greg]:hover {
   z-index: 40;
-  background: transparent !important;
-  border-color: transparent !important;
-}
-.day-cell[data-tip-greg]:hover .primary-day,
-.day-cell[data-tip-greg]:hover .sub-day {
-  opacity: 0;
 }
 .day-cell[data-tip-greg]::after {
-  content: attr(data-tip-greg) "\A" attr(data-tip-sec);
-  white-space: pre;
+  content: attr(data-tip-greg) "\A" attr(data-tip-sec) "\A" attr(data-tip-hijri);
+  white-space: pre-wrap;
   position: absolute;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) scale(0.9);
-  width: 44px;
-  min-height: 56px;
-  padding: 8px 4px;
+  bottom: calc(100% + 8px);
+  transform: translate(-50%, 4px) scale(0.9);
+  width: 68px;
+  min-height: 72px;
+  padding: 8px 5px;
   box-sizing: border-box;
   border-radius: 8px;
   background: rgba(12, 18, 30, 0.98);
   border: 1px solid rgba(125, 211, 252, 0.42);
   color: #f1f5f9;
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1.3;
   letter-spacing: 0.02em;
   text-align: center;
   direction: ltr;
@@ -2181,7 +2175,7 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
 }
 .day-cell[data-tip-greg]:hover::after {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+  transform: translate(-50%, 0) scale(1);
 }
 .day-cell[data-tip-greg]::before {
   content: none;
