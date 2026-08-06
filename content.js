@@ -426,6 +426,54 @@
     return hash % DAILY_QUOTES.length;
   }
 
+  const RUMI_QUOTES = [
+    { fa: "بنمای رخ که باغ و گلستانم آرزوست\nبگشای لب که قند فراوانم آرزوست", en: "Show your face, for garden and rose-garden I long;\nOpen your lips, for abundant sugar I long.", ref: "مولانا #1" },
+    { fa: "ای آفتاب حسن! برون آ دمی ز ابر\nکآن چهرهٔ مشعشع تابانم آرزوست", en: "O sun of beauty! Come out for a moment from the cloud,\nFor that radiant, shining face I long.", ref: "مولانا #2" },
+    { fa: "بشنودم از هوای تو آواز طبل باز\nباز آمدم که ساعد سلطانم آرزوست", en: "I heard the drum of the falcon in your air;\nI came back, for the forearm of the Sultan I long.", ref: "مولانا #3" },
+    { fa: "گفتی ز ناز «بیش مرنجان مرا، برو»\nآن گفتنت که «بیش مرنجانم» آرزوست", en: "You said coquettishly, \"Do not torment me more, go away\";\nThat saying of yours, \"Do not torment me more,\" is what I long for.", ref: "مولانا #4" },
+    { fa: "وآن دفع گفتنت که «برو، شه به خانه نیست»\nوآن ناز و باز و تندی دربانم آرزوست", en: "And that repelling word of yours, \"Go, the King is not home\";\nAnd that coyness, return, and sharpness of the doorman I long for.", ref: "مولانا #5" },
+    { fa: "در دست هر که هست ز خوبی قراضه‌هاست\nآن معدن مَلات و آن کانم آرزوست", en: "Whatever scraps of beauty are in everyone's hand,\nThat mine of molten gold, that treasure-mine I long for.", ref: "مولانا #6" },
+    { fa: "این نان و آب چرخ، چو سیل است بی‌وفا\nمن ماهی‌ام، نهنگم، عُمّانم آرزوست", en: "This bread and water of the sphere are faithless like a flood;\nI am a fish, I am a whale, the deep ocean I long for.", ref: "مولانا #7" },
+    { fa: "یعقوب‌وار «وا اَسَفا»ها همی زنم\nدیدار خوب یوسفِ کنعانم آرزوست", en: "Like Jacob, I cry out \"Alas, my grief!\";\nThe sight of beautiful Joseph of Canaan I long for.", ref: "مولانا #8" },
+    { fa: "والله که شهر بیتو مرا حبس می‌شود\nآوارگی و کوه و بیابانم آرزوست", en: "By God, the city without you becomes a prison for me;\nWandering, the mountain, and the desert I long for.", ref: "مولانا #9" },
+    { fa: "زین همرهان سست‌عناصر دلم گرفت\nشیر خدا و رستم دستانم آرزوست", en: "I am weary of these faint-hearted companions;\nThe Lion of God (Ali) and Rustam-e Dastan I long for.", ref: "مولانا #10" },
+    { fa: "هر کسی از ظن خود شد یار من\nاز درون من نجست اسرار من", en: "Everyone became my friend according to their own fancy;\nThey did not seek my secrets from within me.", ref: "مولانا #11" },
+    { fa: "عالم این خاک و هوا گوهر کفر است و فنا\nدر دل کفر آمدهام تا که به ایمان برسم", en: "This world of dust and air is the essence of disbelief and annihilation;\nI have come into the heart of disbelief so that I may reach faith.", ref: "مولانا #12" },
+    { fa: "این جهان زندان و ما زندانیان\nحفره کن زندان و خود را وا رهان", en: "This world is a prison and we are the prisoners;\nDig a hole in the prison and free yourself!", ref: "مولانا #13" },
+    { fa: "خنک آن قمار بازی، که بباخت آنچه بودش\nبنماند هیچش الّا، هوس قمار دیگر", en: "Blessed is that gambler who lost all that he had;\nNothing remained for him except the desire for another gamble.", ref: "مولانا #14" },
+    { fa: "ساعتی میزان اینی، ساعتی میزان آن\nیک نفس میزان خود شو، تاشوی موزون خویش", en: "One moment you are the measure of this, another moment the measure of that;\nFor one breath, become your own measure, so that you may become your harmonious self.", ref: "مولانا #15" },
+    { fa: "هر خون که ز من روید با خاک تو می‌گوید\nبا مهر تو همرنگم با عشق تو هنبازم", en: "Every blood that flows from me speaks with your soil;\nI am the same color as your love, I gamble with your love.", ref: "مولانا #16" },
+    { fa: "بیا تا قدر همدیگر بدانیم\nکه تا ناگه ز یکدیگر نمانیم", en: "Come, let us know each other's worth,\nSo that we do not suddenly remain apart from one another.", ref: "مولانا #17" },
+    { fa: "عید آمد و عید آمد یاری که رمید آمد\nعیدانه فراوان شد تا باد چنین بادا", en: "The feast has come, the feast has come, the Beloved who had fled has come;\nThe feast-gifts are abundant, may it always be so!", ref: "مولانا #18" },
+    { fa: "زهی عشق، زهی عشق که ماراست خدایا\nچه نغز است و چه خوب است و چه زیباست خدایا", en: "Hail to love, hail to love that is ours, O God!\nHow delicate it is, how good it is, and how beautiful it is, O God!", ref: "مولانا #19" },
+    { fa: "من که حیران ز ملاقات توام\nچون خیالی ز خیالات توام", en: "I who am bewildered by my encounter with you,\nI am like a phantom among your phantoms.", ref: "مولانا #20" },
+    { fa: "من هم رباب عشقم و عشقم ربابیست\nوان لطف‌های زخمهٔ رحمانم آرزوست", en: "I too am the lute of love, and my love is lute-playing;\nAnd those gentle touches of the Merciful's plectrum I long for.", ref: "مولانا #21" },
+    { fa: "تا از خود ببریدم من عشق تو بگزیدم\nخود را چو فنا دیدم، آهسته که سرمستم", en: "Since I was cut off from myself, I chose your love;\nWhen I saw myself annihilated, softly—for I am drunk.", ref: "مولانا #22" },
+    { fa: "جفایی کز بر معشوق آید\nنثارش کن به شادی مرحبایی", en: "Whatever cruelty comes from the Beloved,\nScatter it joyfully with a welcome of \"Marhaba!\" (welcome).", ref: "مولانا #23" },
+    { fa: "نیست آگه آن کشش از جرم و داد\nلیک بس جادوست عشق و اعتقاد", en: "That attraction (of love) is unaware of sin and justice;\nBut how magical love and faith are!", ref: "مولانا #24" },
+    { fa: "مرغ باغ ملکوتم نیم از عالم خاک\nچند روزی قفسی ساخته‌ام از بدنم", en: "I am a bird of the heavenly garden, I am not of this world of dust;\nFor a few days, I have made a cage from my body.", ref: "مولانا #25" },
+    { fa: "هر کجا عشق آید و ساکن شود\nهر چه نا ممکن بود ممکن شود", en: "Wherever love comes and settles down,\nWhatever was impossible becomes possible.", ref: "مولانا #26" },
+    { fa: "مـــرده بدم زنده شدم، گـریه بـدم خنــده شدم\nدولت عشـق آمــد و مـــن دولت پـاینــــده شدم", en: "I was dead, I became alive; I was tears, I became laughter;\nThe fortune of love came, and I became lasting fortune.", ref: "مولانا #27" },
+    { fa: "آب دریا را اگـــــــر نتوان کشـید\nهم به قدر تشنگی باید چشید", en: "If one cannot drink the entire sea water,\nOne must taste it to the extent of one's thirst.", ref: "مولانا #28" },
+    { fa: "بی همگان به سر شود بیتو به سر نمی‌شود\nداغ تو دارد این دلم جای دگر نمی‌شود", en: "Life goes by without everyone, but without you it does not go by;\nMy heart carries your brand; it does not go elsewhere.", ref: "مولانا #29" },
+    { fa: "ما چو ناییم و نوا در ما ز توست\nما چو کوهیم و صدا در ما ز توست", en: "We are like the reed, and the melody in us is from You;\nWe are like the mountain, and the echo in us is from You.", ref: "مولانا #30" },
+    { fa: "دلا نزد کسی بنشین که او از دل خبر دارد\nبه زیر آن درختی رو که او گل‌های تر دارد", en: "O heart, sit with someone who has knowledge of the heart;\nGo under that tree that has fresh flowers.", ref: "مولانا #31" },
+    { fa: "من آنِ توام مرا به من باز مده", en: "I am Yours, do not give me back to myself.", ref: "مولانا #32" },
+    { fa: "همه را بیازمودم ز تو خوش‌ترم نیامد", en: "I tried everyone; none came sweeter to me than You.", ref: "مولانا #33" },
+    { fa: "اندر دل بی‌وفا غــم و ماتم باد\nآن را که وفا نیست ز عالم کم باد", en: "In the unfaithful heart, may there be grief and mourning;\nMay one who has no loyalty be diminished from the world.", ref: "مولانا #34" },
+    { fa: "آمد بهار جانها ای شاخ تر به رقص آ", en: "The spring of souls has come, O moist (living) branch, begin to dance!", ref: "مولانا #35" },
+    { fa: "من از عالم تو را تنها گزیدم\nروا داری که من غمگین نشینم؟", en: "I chose only You from all the world;\nDo you deem it right that I remain sorrowful?", ref: "مولانا #36" },
+    { fa: "صد نامه فرستادم و صد راه نشان دادم\nیا راه نمی‌دانی یا نامه نمی‌خوانی!", en: "I sent a hundred letters and showed a hundred paths;\nEither you don't know the way, or you don't read the letters!", ref: "مولانا #37" },
+    { fa: "مرا عهدیست با شادی که شادی آن من باشد\nمرا قولیست با جانان که جانان جان من باشد", en: "I have a covenant with joy that joy is mine;\nI have a promise with the Beloved that the Beloved is the life of my soul.", ref: "مولانا #38" },
+    { fa: "شاهیست که تو هرچه بپوشی داند\nبیکام و زبان گر بخروشی داند", en: "He is a King who knows whatever you conceal;\nIf you roar without mouth or tongue, He knows.", ref: "مولانا #39" },
+    { fa: "گویاترم ز بلبل امّا از رَشکِ عام\nمُهر است بر دهانم و افغانم آرزوست", en: "I am more eloquent than the nightingale, but due to the envy of the common folk,\nA seal is on my mouth, and yet lamenting is what I long for.", ref: "مولانا #40" },
+  ];
+  function getDailyRumiIndex() {
+    const today = new Date(); const dateStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}-rumi`;
+    let hash = 0; for (let i = 0; i < dateStr.length; i++) { hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0; }
+    return hash % RUMI_QUOTES.length;
+  }
+
   const RING_CONFIG = [
     { labelKey: 'hubCore', max: 4 },
     { label: '5★',   importance: 5,     max: 7  },
@@ -655,6 +703,23 @@
       <div class="ai-life-copy"><span id="ai-life-start">آغاز</span><span id="ai-life-caption"></span><span id="ai-life-now-label">اکنون</span></div>
     </div>
     <div class="ai-clock-age" id="ai-age" style="display: none;"></div>
+    <div class="ai-clock-quote" id="ai-clock-quote">
+      <button type="button" class="ai-rumi-tab" id="ai-rumi-tab" title="شعر روز">
+        <span class="ai-rumi-tab-chevron" id="ai-rumi-tab-chevron">▼</span>
+        <span class="ai-rumi-tab-label" id="ai-rumi-tab-label">🌙</span>
+      </button>
+      <div class="ai-clock-quote-body" id="ai-clock-quote-body">
+        <div class="ai-clock-quote-inner">
+          <div class="ai-clock-quote-paper">
+            <div class="ai-clock-quote-text" id="ai-clock-quote-text"></div>
+            <div class="ai-clock-quote-title" id="ai-clock-quote-title"></div>
+            <svg class="ai-torn-edge" viewBox="0 0 500 18" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M0,0 L0,6 L14,12 L31,5 L52,14 L73,4 L91,15 L118,6 L139,13 L162,3 L185,11 L209,4 L231,14 L258,7 L284,15 L312,5 L337,12 L361,4 L389,14 L413,6 L438,13 L464,5 L485,11 L500,4 L500,0 Z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 
   const searchPanel = document.createElement('div'); searchPanel.id = 'ai-search-panel';
@@ -798,6 +863,13 @@
     markGoldenCb: clockPanel.querySelector('#ai-mark-golden-cb'),
     markGoldenRow: clockPanel.querySelector('#ai-mark-golden-row'),
     markGoldenLabel: clockPanel.querySelector('#ai-mark-golden-label'),
+    clockQuote: clockPanel.querySelector('#ai-clock-quote'),
+    clockQuoteTab: clockPanel.querySelector('#ai-rumi-tab'),
+    clockQuoteChevron: clockPanel.querySelector('#ai-rumi-tab-chevron'),
+    clockQuoteLabel: clockPanel.querySelector('#ai-rumi-tab-label'),
+    clockQuoteBody: clockPanel.querySelector('#ai-clock-quote-body'),
+    clockQuoteText: clockPanel.querySelector('#ai-clock-quote-text'),
+    clockQuoteTitle: clockPanel.querySelector('#ai-clock-quote-title'),
   };
 
 
@@ -928,6 +1000,8 @@
     setGalaxyTooltip(collapseToggleDot, t('collapseTitle'), GALAXY_ICONS.collapse, 'bottom');
     spacingArc.title = t('spacingTitle');
     addNodeBtn.title = t('addNodeTitle');
+    if (typeof renderRumiQuote === 'function') renderRumiQuote();
+    if (typeof adjustClockPosition === 'function') adjustClockPosition();
     hub.removeAttribute('title');
     hideHubHoldHint();
 
@@ -1672,6 +1746,7 @@
         root.classList.add('show-clock');
         updateClockAge();
         renderMarkedDays();
+        renderRumiQuote();
         adjustClockPosition();
       }
       resetToggleTimeout();
@@ -1841,6 +1916,70 @@
     uiEls.todoQuoteBody.addEventListener('click', cycleToRandomQuote);
   }
 
+  // === Rumi couplet toggle for the clock/calendar panel — same sun/moon pattern as the Quran ===
+  // Difference: the Quran quote is single-language (Arabic) always; this one is bilingual —
+  // only the Persian text shows in fa mode, only the English translation shows in en mode.
+  let manualRumiIndex = null;
+  let isRumiCollapsed = true; // Hidden by default, same as the Quran tab
+
+  function renderRumiQuote() {
+    const idx = manualRumiIndex !== null ? manualRumiIndex : getDailyRumiIndex();
+    const q = RUMI_QUOTES[idx];
+    const isFa = currentLang === 'fa';
+    if (uiEls.clockQuoteText) {
+      uiEls.clockQuoteText.textContent = isFa ? (q.fa || '') : (q.en || '');
+      uiEls.clockQuoteText.dir = isFa ? 'rtl' : 'ltr';
+      uiEls.clockQuoteText.classList.toggle('is-fa', isFa);
+      uiEls.clockQuoteText.classList.toggle('is-en', !isFa);
+    }
+    if (uiEls.clockQuoteTitle) {
+      uiEls.clockQuoteTitle.textContent = isFa ? 'مولانا' : 'Rumi';
+      uiEls.clockQuoteTitle.dir = isFa ? 'rtl' : 'ltr';
+    }
+    if (uiEls.clockQuote) uiEls.clockQuote.classList.toggle('is-collapsed', isRumiCollapsed);
+    if (uiEls.clockQuoteChevron) uiEls.clockQuoteChevron.textContent = isRumiCollapsed ? '▼' : '▲';
+
+    if (uiEls.clockQuoteLabel) {
+      uiEls.clockQuoteLabel.textContent = isRumiCollapsed ? '🌙' : '☀️';
+    }
+    if (uiEls.clockQuoteTab) {
+      uiEls.clockQuoteTab.title = isRumiCollapsed
+        ? (isFa ? 'نمایش شعر' : 'Show poem')
+        : (isFa ? 'جمع کردن شعر' : 'Hide poem');
+    }
+  }
+
+  function toggleRumiQuoteCollapse(e) {
+    if (e) e.stopPropagation();
+    isRumiCollapsed = !isRumiCollapsed;
+    renderRumiQuote();
+    if (typeof adjustClockPosition === 'function') adjustClockPosition();
+  }
+
+  function cycleToRandomRumiQuote(e) {
+    if (e) e.stopPropagation();
+    if (isRumiCollapsed) return;
+    const currentIdx = manualRumiIndex !== null ? manualRumiIndex : getDailyRumiIndex();
+    let next = currentIdx;
+    if (RUMI_QUOTES.length > 1) {
+      while (next === currentIdx) next = Math.floor(Math.random() * RUMI_QUOTES.length);
+    }
+    manualRumiIndex = next;
+    uiEls.clockQuote.classList.remove('pulse');
+    void uiEls.clockQuote.offsetWidth;
+    uiEls.clockQuote.classList.add('pulse');
+    renderRumiQuote();
+    if (typeof adjustClockPosition === 'function') adjustClockPosition();
+  }
+
+  if (uiEls.clockQuoteTab) {
+    uiEls.clockQuoteTab.addEventListener('click', toggleRumiQuoteCollapse);
+  }
+  if (uiEls.clockQuoteBody) {
+    uiEls.clockQuoteBody.addEventListener('click', cycleToRandomRumiQuote);
+  }
+  renderRumiQuote();
+
   function renderTodos() {
     pruneExpiredDailyTodos();
     renderDailyQuote();
@@ -1934,10 +2073,35 @@
   
   function adjustTodoPosition() {
       if (!todoPanel.classList.contains('active')) return;
-      const rect = todoToggleDot.getBoundingClientRect(); const panelWidth = 280; const panelHeight = todoPanel.offsetHeight || 300; const vw = window.innerWidth; const vh = window.innerHeight;
-      let leftPos = rect.right + 30; if (leftPos + panelWidth > vw - 16) leftPos = rect.left - panelWidth - 30; 
-      let topPos = rect.top - (panelHeight / 2); if (topPos + panelHeight > vh - 16) topPos = vh - panelHeight - 16; if (topPos < 16) topPos = 16;
-      todoPanel.style.left = `${leftPos}px`; todoPanel.style.top = `${topPos}px`;
+      const rect = hub.getBoundingClientRect();
+      const panelWidth = todoPanel.offsetWidth || 280;
+      const panelHeight = todoPanel.offsetHeight || 300;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const hubCenterX = rect.left + rect.width / 2;
+      const hubCenterY = rect.top + rect.height / 2;
+      const GAP = 14;
+      const EDGE = 12;
+      let leftPos, topPos;
+      if (hubCenterX > vw * 0.55) {
+        leftPos = rect.left - panelWidth - GAP;
+        topPos = hubCenterY - panelHeight / 2;
+      } else if (hubCenterX < vw * 0.35) {
+        leftPos = rect.right + GAP;
+        topPos = hubCenterY - panelHeight / 2;
+      } else {
+        leftPos = rect.left - panelWidth - GAP;
+        topPos = hubCenterY - panelHeight / 2;
+        if (leftPos < EDGE) leftPos = rect.right + GAP;
+      }
+      if (leftPos < EDGE) leftPos = rect.right + GAP;
+      if (leftPos + panelWidth > vw - EDGE) leftPos = rect.left - panelWidth - GAP;
+      if (leftPos < EDGE) leftPos = EDGE;
+      if (leftPos + panelWidth > vw - EDGE) leftPos = vw - panelWidth - EDGE;
+      if (topPos < EDGE) topPos = EDGE;
+      if (topPos + panelHeight > vh - EDGE) topPos = vh - panelHeight - EDGE;
+      todoPanel.style.left = `${leftPos}px`;
+      todoPanel.style.top = `${topPos}px`;
   }
   todoToggleDot.addEventListener('click', (e) => {
       if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); const isActive = todoPanel.classList.contains('active'); closeAllPanelsExcept(''); 
@@ -2304,14 +2468,12 @@
           if (starEditorPopup && !document.body.contains(starEditorPopup)) document.body.appendChild(starEditorPopup);
         }
       } catch (err) {}
-
       root.style.display = '';
       if (!root.style.left && !root.style.bottom) {
         root.style.left = WIDGET1_DEFAULT_LEFT;
         root.style.top = 'auto';
         root.style.bottom = WIDGET1_DEFAULT_BOTTOM;
       }
-
       hub.classList.remove('hub-collapsed');
       root.classList.remove('hide-toggles');
       isDragging = false;
@@ -2321,7 +2483,6 @@
       if (typeof closeStarEditor === 'function') closeStarEditor();
       if (typeof closeInlineForm === 'function') closeInlineForm();
       if (typeof abortNoteClosing === 'function') abortNoteClosing();
-
       try {
         if (typeof loadDataAndRender === 'function') loadDataAndRender();
         else {
@@ -2331,15 +2492,12 @@
         }
         if (typeof restoreNoteDraft === 'function') restoreNoteDraft();
       } catch (err) {}
-
       try {
         adjustNotepadPosition(); adjustCalcPosition(); adjustClockPosition();
         adjustTodoPosition(); adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition();
       } catch (err) {}
-
       if (typeof resetAutoCollapseTimer === 'function') resetAutoCollapseTimer();
       if (typeof resetToggleTimeout === 'function') resetToggleTimeout();
-
       hub.classList.add('quickadd-flash');
       setTimeout(() => hub.classList.remove('quickadd-flash'), 450);
       showToastNotification(t('toastRevived'));
@@ -2347,7 +2505,6 @@
 
   undoToggleDot.addEventListener('click', (e) => {
       e.stopPropagation();
-      // Pending undo → restore item; otherwise recover/revive the launcher
       if (!undoToggleDot.classList.contains('active-undo')) {
         reviveLauncher();
         return;
@@ -3644,7 +3801,6 @@
       resetToggleTimeout();
       if (notify) showToastNotification(t('toastCleared'));
     }
-    // Always start close countdown — even when notepad is already empty
     isNotePinned = false;
     if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
     if (typeof startCollapseCountdown === 'function') startCollapseCountdown();
