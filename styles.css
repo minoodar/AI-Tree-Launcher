@@ -360,9 +360,33 @@ animation: portalPulse 3.2s infinite alternate ease-in-out;
 @keyframes portalPulse { 0% { filter: brightness(0.92); } 100% { filter: brightness(1.15); } }
 
 /* Empty Node Styles (Hub 2 Cores) */
-.ai-node.ai-node-empty { border-style: dashed !important; background: rgba(255, 255, 255, 0.04) !important; color: rgba(255, 255, 255, 0.45); box-shadow: none !important; }
-.ai-node.ai-node-empty .ai-node-empty-plus { font-size: 18px; font-weight: 700; line-height: 1; color: rgba(167, 243, 208, 0.7); }
-.ai-node.ai-node-empty:hover { border-color: rgba(52, 211, 153, 0.6) !important; color: rgba(255,255,255,0.75); }
+.ai-node.ai-node-empty {
+  border-style: dashed !important;
+  border-color: rgba(30, 64, 175, 0.55) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #1E3A8A;
+  box-shadow:
+    0 2px 8px rgba(30, 64, 175, 0.12),
+    0 0 0 1px rgba(30, 64, 175, 0.08) !important;
+}
+.ai-node.ai-node-empty .ai-node-empty-plus {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1;
+  color: #1E3A8A; /* آبی سیر — خوانا روی زمینه سفید */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.ai-node.ai-node-empty:hover {
+  border-color: rgba(37, 99, 235, 0.85) !important;
+  background: rgba(239, 246, 255, 0.95) !important;
+  color: #1D4ED8;
+  box-shadow:
+    0 4px 14px rgba(37, 99, 235, 0.22),
+    0 0 0 1px rgba(37, 99, 235, 0.15) !important;
+}
+.ai-node.ai-node-empty:hover .ai-node-empty-plus {
+  color: #1D4ED8;
+}
 
 .orbit-star-editor {
 position: fixed; display: flex; gap: 4px; align-items: center; justify-content: center; direction: ltr;
@@ -855,10 +879,11 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 
 /* Sliding body — soft height + opacity */
 .ai-todo-quote-body {
+  position: relative;
   display: grid;
   grid-template-rows: 1fr;
   opacity: 1;
-  padding: 12px 14px 16px;
+  padding: 12px 14px 36px; /* فضای دکمه کپی پایین-چپ */
   cursor: pointer;
   transition:
     grid-template-rows 0.4s var(--ease-premium),
@@ -936,6 +961,64 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-todo-quote:not(.is-collapsed) .ai-todo-quote-title {
   color: rgba(124, 90, 23, 0.75);
 }
+
+/* Minimal "copy code" style control for Quran / Rumi quote blocks */
+.ai-quote-copy-btn {
+  position: absolute;
+  bottom: 8px;
+  inset-inline-start: 8px; /* پایین سمت چپ — بدون تداخل با متن */
+  top: auto;
+  inset-inline-end: auto;
+  z-index: 5;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: #334155;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.55;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+.ai-todo-quote-body:hover .ai-quote-copy-btn,
+.ai-clock-quote-paper:hover .ai-quote-copy-btn,
+.ai-quote-copy-btn:focus-visible {
+  opacity: 1;
+}
+.ai-quote-copy-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  border-color: rgba(59, 130, 246, 0.45);
+  transform: scale(1.06);
+}
+.ai-quote-copy-btn:active {
+  transform: scale(0.96);
+}
+.ai-quote-copy-btn.is-copied {
+  opacity: 1;
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.55);
+  background: rgba(236, 253, 245, 0.95);
+}
+.ai-quote-copy-btn svg {
+  display: block;
+  pointer-events: none;
+}
+/* Collapsed: hide so it never peeks out of the zero-height drawer */
+.ai-todo-quote.is-collapsed .ai-quote-copy-btn,
+.ai-clock-quote.is-collapsed .ai-quote-copy-btn {
+  opacity: 0;
+  pointer-events: none;
+}
+
 
 .ai-todo-header {
   font-size: 14px; font-weight: 700; color: #fff;
@@ -1287,7 +1370,9 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
   text-align: center;
   user-select: none;
 }
-.ai-clock-quote.pulse .ai-clock-quote-paper { animation: quotePulse 0.45s var(--ease-bounce); }
+.ai-clock-quote.pulse .ai-clock-quote-paper {
+  animation: quotePulse 0.45s var(--ease-bounce);
+}
 
 /* Small always-visible pull-tab — stays the dark glass style regardless of open state */
 .ai-rumi-tab {
@@ -1361,7 +1446,7 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
   background-size: 24px 24px;
   background-position: 0 0, 12px 12px;
   filter: drop-shadow(0 6px 8px rgba(0,0,0,0.12)) drop-shadow(0 1px 2px rgba(0,0,0,0.08));
-  padding: 12px 16px 0;
+  padding: 12px 16px 34px; /* فضای دکمه کپی پایین-چپ */
   transition: filter 0.25s ease;
 }
 

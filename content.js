@@ -1,4 +1,4 @@
-// AI Tree Launcher — Core (V25.8 - Hybrid Notepad Undo Stack + Soft Relaunch)
+// AI Tree Launcher — Core (V25.10 - Quote copy buttons + Clear/Close undo wipe)
 (function () {
   'use strict';
 
@@ -61,7 +61,7 @@
       toastGalaxyMoved: "Moved to Galaxy {n}",
       formImportanceLabel: "Importance",
       noteInput: "Type prompt or note here...",
-      noteClearBtn: "Clear",
+      noteClearBtn: "Clear / Close",
       noteCopyBtn: "Copy",
       noteTxtBtn: "TXT",
       noteAskBtn: "✨ Ask AI",
@@ -76,7 +76,7 @@
       dockMethodCopy: "Copy & paste",
       calcError: "Error",
       ageLabel: "Age: {age} Years",
-      toastCleared: "Cleared! Use Undo to restore it.",
+      toastCleared: "Cleared & closed.",
       toastCopied: "Copied!",
       toastDownloaded: "TXT Downloaded!",
       toastStorageErr: "Storage Error!",
@@ -162,7 +162,9 @@
       emojiOnlineSearch: "Search… fire, heart, book",
       emojiOnlineLoading: "Loading vault…",
       emojiOnlineEmpty: "No emoji found",
-      emojiOnlineError: "Could not load online emojis"
+      emojiOnlineError: "Could not load online emojis",
+      quoteCopyTitle: "Copy full text",
+      quoteCopied: "Copied!"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -217,7 +219,7 @@
       toastGalaxyMoved: "به کهکشان {n} منتقل شد",
       formImportanceLabel: "اهمیت",
       noteInput: "متن یا درخواست خود را بنویسید...",
-      noteClearBtn: "پاک کردن",
+      noteClearBtn: "پاک / بستن",
       noteCopyBtn: "کپی",
       noteTxtBtn: "متنی",
       noteAskBtn: "✨ ارسال به هوش مصنوعی",
@@ -232,7 +234,7 @@
       dockMethodCopy: "کپی و سپس پیست",
       calcError: "خطا",
       ageLabel: "سن: {age} سال",
-      toastCleared: "پاک شد؛ با Undo بازگردانید.",
+      toastCleared: "پاک و بسته شد.",
       toastCopied: "کپی شد!",
       toastDownloaded: "فایل متنی دانلود شد!",
       toastStorageErr: "خطای فضای ذخیره‌سازی!",
@@ -318,7 +320,9 @@
       emojiOnlineSearch: "جستجو… آتش، قلب، کتاب",
       emojiOnlineLoading: "در حال بارگذاری گنجینه…",
       emojiOnlineEmpty: "ایموجی یافت نشد",
-      emojiOnlineError: "بارگذاری آنلاین ناموفق بود"
+      emojiOnlineError: "بارگذاری آنلاین ناموفق بود",
+      quoteCopyTitle: "کپی متن کامل",
+      quoteCopied: "کپی شد!"
     }
   };
 
@@ -951,6 +955,9 @@
       <div class="ai-clock-quote-body" id="ai-clock-quote-body">
         <div class="ai-clock-quote-inner">
           <div class="ai-clock-quote-paper">
+            <button type="button" class="ai-quote-copy-btn" id="ai-rumi-copy-btn" title="Copy full text" aria-label="Copy full text">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
             <div class="ai-clock-quote-text" id="ai-clock-quote-text"></div>
             <div class="ai-clock-quote-title" id="ai-clock-quote-title"></div>
             <svg class="ai-torn-edge" viewBox="0 0 500 18" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -979,6 +986,9 @@
         <span class="ai-quote-tab-chevron" id="ai-quote-tab-chevron">▲</span>
       </button>
       <div class="ai-todo-quote-body" id="ai-todo-quote-body">
+        <button type="button" class="ai-quote-copy-btn" id="ai-quote-copy-btn" title="Copy full text" aria-label="Copy full text">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        </button>
         <div class="ai-todo-quote-fa" id="ai-todo-quote-fa"></div>
         <div class="ai-todo-quote-translation" id="ai-todo-quote-translation"></div>
         <div class="ai-todo-quote-title" id="ai-todo-quote-title"></div>
@@ -1086,6 +1096,7 @@
     todoQuoteFa: todoPanel.querySelector('#ai-todo-quote-fa'),
     todoQuoteTranslation: todoPanel.querySelector('#ai-todo-quote-translation'),
     todoQuoteBody: todoPanel.querySelector('#ai-todo-quote-body'),
+    todoQuoteCopy: todoPanel.querySelector('#ai-quote-copy-btn'),
     todoQuoteTab: todoPanel.querySelector('#ai-quote-tab'),
     todoQuoteChevron: todoPanel.querySelector('#ai-quote-tab-chevron'),
     todoQuoteLabel: todoPanel.querySelector('#ai-quote-tab-label'),
@@ -1119,6 +1130,7 @@
     clockQuoteBody: clockPanel.querySelector('#ai-clock-quote-body'),
     clockQuoteText: clockPanel.querySelector('#ai-clock-quote-text'),
     clockQuoteTitle: clockPanel.querySelector('#ai-clock-quote-title'),
+    clockQuoteCopy: clockPanel.querySelector('#ai-rumi-copy-btn'),
   };
 
 
@@ -1309,8 +1321,16 @@
     todoPanel.style.direction = currentLang === 'fa' ? 'rtl' : 'ltr';
     searchPanel.style.direction = currentLang === 'fa' ? 'rtl' : 'ltr';
     
+    if (uiEls.todoQuoteCopy) {
+      uiEls.todoQuoteCopy.title = t('quoteCopyTitle');
+      uiEls.todoQuoteCopy.setAttribute('aria-label', t('quoteCopyTitle'));
+    }
+    if (uiEls.clockQuoteCopy) {
+      uiEls.clockQuoteCopy.title = t('quoteCopyTitle');
+      uiEls.clockQuoteCopy.setAttribute('aria-label', t('quoteCopyTitle'));
+    }
     if(todoPanel.classList.contains('active')) renderTodos();
-    if(clockPanel.classList.contains('active')) { updateClockAge(); renderMarkedDays(); }
+    if(clockPanel.classList.contains('active')) { updateClockAge(); renderMarkedDays(); if (typeof renderRumiQuote === 'function') renderRumiQuote(); }
     if(searchPanel.classList.contains('active')) renderSearchResults(uiEls.searchInput.value);
     renderTierDots();
     if(isOpen) setHubLabel(currentLayerMode === 0 ? t('hubCore') : RING_CONFIG[currentLayerMode].label);
@@ -2181,6 +2201,48 @@
     uiEls.todoQuoteBody.addEventListener('click', cycleToRandomQuote);
   }
 
+  function buildDailyQuoteCopyText() {
+    const idx = manualQuoteIndex !== null ? manualQuoteIndex : getDailyQuoteIndex();
+    const q = DAILY_QUOTES[idx];
+    if (!q) return '';
+    const isFa = currentLang === 'fa';
+    const lines = [];
+    if (q.text) lines.push(q.text);
+    const translation = isFa ? (q.fa || '') : (q.en || '');
+    if (translation) lines.push(translation);
+    const ref = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
+    if (ref) lines.push(ref);
+    return lines.join('\n\n');
+  }
+
+  function copyQuoteText(text, btn) {
+    if (!text || !String(text).trim()) return;
+    const finish = () => {
+      showToastNotification(t('quoteCopied') || t('toastCopied'));
+      if (btn) {
+        btn.classList.add('is-copied');
+        setTimeout(() => btn.classList.remove('is-copied'), 1200);
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(finish).catch(() => {
+        try { fallbackCopyText(text); } catch (e) { finish(); }
+      });
+    } else {
+      try { fallbackCopyText(text); } catch (e) { finish(); }
+    }
+  }
+
+  if (uiEls.todoQuoteCopy) {
+    uiEls.todoQuoteCopy.title = t('quoteCopyTitle');
+    uiEls.todoQuoteCopy.setAttribute('aria-label', t('quoteCopyTitle'));
+    uiEls.todoQuoteCopy.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      copyQuoteText(buildDailyQuoteCopyText(), uiEls.todoQuoteCopy);
+    });
+  }
+
   // === Rumi couplet toggle for the clock/calendar panel — same sun/moon pattern as the Quran ===
   // Difference: the Quran quote is single-language (Arabic) always; this one is bilingual —
   // only the Persian text shows in fa mode, only the English translation shows in en mode.
@@ -2242,6 +2304,33 @@
   }
   if (uiEls.clockQuoteBody) {
     uiEls.clockQuoteBody.addEventListener('click', cycleToRandomRumiQuote);
+  }
+
+  function buildRumiQuoteCopyText() {
+    const idx = manualRumiIndex !== null ? manualRumiIndex : getDailyRumiIndex();
+    const q = RUMI_QUOTES[idx];
+    if (!q) return '';
+    const isFa = currentLang === 'fa';
+    const lines = [];
+    const body = isFa ? (q.fa || '') : (q.en || '');
+    if (body) lines.push(body);
+    // Include the other language when available for a complete shareable block
+    const other = isFa ? (q.en || '') : (q.fa || '');
+    if (other && other !== body) lines.push(other);
+    const attr = isFa ? 'مولانا' : 'Rumi';
+    if (q.ref) lines.push(q.ref);
+    else lines.push(attr);
+    return lines.join('\n\n');
+  }
+
+  if (uiEls.clockQuoteCopy) {
+    uiEls.clockQuoteCopy.title = t('quoteCopyTitle');
+    uiEls.clockQuoteCopy.setAttribute('aria-label', t('quoteCopyTitle'));
+    uiEls.clockQuoteCopy.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      copyQuoteText(buildRumiQuoteCopyText(), uiEls.clockQuoteCopy);
+    });
   }
   renderRumiQuote();
 
@@ -3975,7 +4064,13 @@
       this.undoStack = [];
       this.redoStack = [];
       this.endSession();
-      this.schedulePersist();
+      clearTimeout(this.persistTimer);
+      this.persistTimer = null;
+      try {
+        if (chrome.runtime?.id) {
+          chrome.storage.local.remove([NOTE_HISTORY_STORAGE_KEY]);
+        }
+      } catch (err) {}
       syncUndoToggleVisual();
     }
   }
@@ -4546,21 +4641,34 @@
 
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
-    if (hadText) {
-      endNoteEditSession();
-      if (notepadUndo) notepadUndo.forceBoundary();
-      else setUndoState('text', snapshotNoteText());
-      noteTextarea.value = '';
-      if (focus) noteTextarea.focus();
-      if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
-      else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
-      noteManuallyPositioned = false;
-      try { if (chrome.runtime?.id) chrome.storage.local.set({ savedPromptDraft: '' }); } catch (e) {}
-      if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
-      adjustNotepadPosition();
-      resetToggleTimeout();
-      if (notify) showToastNotification(t('toastCleared'));
+    endNoteEditSession();
+    // Explicit Clear/Close: permanently discard notepad undo/redo memory.
+    // User intent is "done with this note" — no silent restore from old history.
+    if (notepadUndo) {
+      try { notepadUndo.clear(); } catch (err) {}
     }
+    // Drop any legacy single-shot text undo so the global toggle won't revive text either.
+    if (pendingUndoState && pendingUndoState.type === 'text') {
+      pendingUndoState = { type: null, data: null, hub: 1 };
+    }
+    try {
+      if (chrome.runtime?.id) {
+        chrome.storage.local.remove(['aiTreeNotepadHistory']);
+        chrome.storage.local.set({ savedPromptDraft: '' });
+      }
+    } catch (e) {}
+    if (noteTextarea) {
+      noteTextarea.value = '';
+      if (focus && quickNoteForm.classList.contains('active')) noteTextarea.focus();
+    }
+    if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
+    else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
+    noteManuallyPositioned = false;
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    adjustNotepadPosition();
+    resetToggleTimeout();
+    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+    if (notify && hadText) showToastNotification(t('toastCleared'));
     isNotePinned = false;
     if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
     if (typeof startCollapseCountdown === 'function') startCollapseCountdown();
