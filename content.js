@@ -2017,7 +2017,8 @@
   }
   
   clockToggleDot.addEventListener('click', (e) => {
-      e.stopPropagation(); closeTree(); const isActive = clockPanel.classList.contains('active'); closeAllPanelsExcept(''); 
+      e.stopPropagation(); closeTree(); const isActive = clockPanel.classList.contains('active'); closeAllPanelsExcept('');
+      if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes();
       if (!isActive) {
         // هر بار باز شدن: مثل یادداشت کنار هاب لنگر شود (موقعیت ذخیره‌شدهٔ دور قبلی نادیده)
         clockManuallyPositioned = false;
@@ -2341,6 +2342,22 @@
     });
   }
   renderRumiQuote();
+
+  // Both motivational drawers (Quran verse / Rumi couplet) keep their own open/closed
+  // state independent of the panels that host them, so if the user leaves one expanded
+  // and its panel then closes (via its own toggle, switching to another panel, or the
+  // whole widget collapsing), it would silently stay "open" underneath and reappear
+  // expanded next time. These force each one back to its default collapsed/hidden state.
+  function collapseDailyQuote() {
+    if (!isQuoteCollapsed) { isQuoteCollapsed = true; renderDailyQuote(); }
+  }
+  function collapseRumiQuote() {
+    if (!isRumiCollapsed) { isRumiCollapsed = true; renderRumiQuote(); }
+  }
+  function collapseMotivationalQuotes() {
+    collapseDailyQuote();
+    collapseRumiQuote();
+  }
 
   function renderTodos() {
     pruneExpiredDailyTodos();
@@ -3275,8 +3292,13 @@
           if (uiEls.markToggle) uiEls.markToggle.classList.remove('is-open');
         }
         if (typeof closeDualPicker === 'function') { try { closeDualPicker(); } catch (_) {} }
+        if (typeof collapseRumiQuote === 'function') collapseRumiQuote();
       }
-      if (exceptStr !== 'todo') { todoPanel.classList.remove('active'); root.classList.remove('show-todo'); }
+      if (exceptStr !== 'todo') {
+        todoPanel.classList.remove('active');
+        root.classList.remove('show-todo');
+        if (typeof collapseDailyQuote === 'function') collapseDailyQuote();
+      }
       if (exceptStr !== 'search') { searchPanel.classList.remove('active'); root.classList.remove('show-search'); }
   }
 
@@ -3286,6 +3308,7 @@
     if (isNotePinned) return;
     if (!isHoveringWidget && !isDragging && !inlineForm.classList.contains('active') && !quickNoteForm.classList.contains('active') && !calcPanel.classList.contains('active') && !clockPanel.classList.contains('active') && !todoPanel.classList.contains('active') && !searchPanel.classList.contains('active')) {
       isInitialReveal = false; root.classList.remove('initial-reveal'); closeTree(); hub.classList.add('hub-collapsed');
+      if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes();
     }
   }
   function resetAutoCollapseTimer() { clearTimeout(autoCollapseTimeout); if (!hub.classList.contains('hub-collapsed') && !isHoveringWidget && !isNotePinned) autoCollapseTimeout = setTimeout(triggerAutoCollapse, AUTO_COLLAPSE_DELAY); }
@@ -3377,8 +3400,20 @@
   const NOTE_SPLIT_EDGE_PX = 48;
   const NOTE_SPLIT_TOP = 0;
   const NOTE_SPLIT_BOTTOM_GAP = 48; // keep toolbar above Windows taskbar
+  const NOTE_SPLIT_EDGE_GAP = 20; // fixed breathing room on BOTH sides, always — same fixed-size idea as the bottom gap.
+  // Sites like X/Twitter use virtualized, custom-scrolled layouts where the page's real
+  // scrollbar gutter can't be reliably measured from documentElement/body/scrollingElement
+  // (their scroll container is some inner div, not the page root). Rather than trying to
+  // detect the exact scrollbar width per site, just always keep a comfortably large fixed
+  // gap from both edges — simple, and correct everywhere regardless of the host page's
+  // internal layout quirks.
   const NOTE_SPLIT_WIDTH_DEFAULT = 380;
   let noteSplitWidth = NOTE_SPLIT_WIDTH_DEFAULT; // user-adjustable while split
+
+  function getNoteSplitLeftPos(side, vw, width) {
+    if (side === 'left') return NOTE_SPLIT_EDGE_GAP;
+    return vw - width - NOTE_SPLIT_EDGE_GAP;
+  }
 
   function getNoteSplitMetrics() {
     const vw = window.innerWidth;
@@ -3389,6 +3424,7 @@
     const height = Math.max(280, vh - NOTE_SPLIT_TOP - NOTE_SPLIT_BOTTOM_GAP);
     return { vw, vh, width, height, minW, maxW };
   }
+
 
   function syncNoteSplitBtn() {
     const btn = document.getElementById('ai-note-split-btn');
@@ -3436,7 +3472,7 @@
     quickNoteForm.style.width = width + 'px';
     quickNoteForm.style.height = height + 'px';
     quickNoteForm.style.top = NOTE_SPLIT_TOP + 'px';
-    quickNoteForm.style.left = (side === 'left' ? 0 : (vw - width)) + 'px';
+    quickNoteForm.style.left = getNoteSplitLeftPos(side, vw, width) + 'px';
     syncNoteSplitBtn();
   }
 
@@ -3563,6 +3599,7 @@
         closeAllPanelsExcept('', true);
         closeTree();
         hub.classList.add('hub-collapsed');
+        if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes();
       }
     }, 1000);
   }
@@ -3848,11 +3885,7 @@
       // While split: keep tall docked height (above taskbar) and stick to edge
       if (noteSplitSide) {
         newH = Math.max(280, window.innerHeight - NOTE_SPLIT_TOP - NOTE_SPLIT_BOTTOM_GAP);
-        if (noteSplitSide === 'left') {
-          newLeft = 0;
-        } else if (noteSplitSide === 'right') {
-          newLeft = window.innerWidth - newW;
-        }
+        newLeft = getNoteSplitLeftPos(noteSplitSide, window.innerWidth, newW);
         noteSplitWidth = newW;
       }
 
@@ -4650,6 +4683,16 @@
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
     endNoteEditSession();
+    // If currently split/docked, undock immediately — Clear/Close means "done with this
+    // note", not "stay pinned to the edge". Drop the split state/classes first so the
+    // size reset just below (which split-docked's CSS !important rules would otherwise
+    // block) can actually take the panel back to its normal floating size. Non-split
+    // states are untouched — they fall through to the same behavior as before.
+    if (noteSplitSide) {
+      noteSplitSide = null;
+      quickNoteForm.classList.remove('split-docked', 'split-left', 'split-right', 'split-preview-left', 'split-preview-right');
+      if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
+    }
     // Explicit Clear/Close: permanently discard notepad undo/redo memory.
     // User intent is "done with this note" — no silent restore from old history.
     if (notepadUndo) {
@@ -6334,7 +6377,7 @@
     updateBookmarkCount();
   }
 
-  collapseToggleDot.addEventListener('click', (e) => { if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); closeAllPanelsExcept(''); hub.classList.add('hub-collapsed'); });
+  collapseToggleDot.addEventListener('click', (e) => { if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); closeAllPanelsExcept(''); hub.classList.add('hub-collapsed'); if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes(); });
 
   let clickTimeout = null;
   let quickAddFired = false; let quickAddActive = false; let quickAddStars = 0;
