@@ -860,6 +860,11 @@
       <button type="button" id="ai-align-left-btn" class="ai-format-btn ai-align-icon ai-align-icon-left" title="Left"><span></span><span></span><span></span></button>
       <button type="button" id="ai-align-center-btn" class="ai-format-btn ai-align-icon ai-align-icon-center" title="Center"><span></span><span></span><span></span></button>
       <button type="button" id="ai-align-right-btn" class="ai-format-btn ai-align-icon ai-align-icon-right" title="Right"><span></span><span></span><span></span></button>
+      <div class="ai-note-fontsize-wrap" id="ai-note-fontsize-wrap" title="Font size">
+        <button type="button" id="ai-font-dec-btn" class="ai-format-btn ai-font-btn" aria-label="Decrease font size">A-</button>
+        <span class="ai-font-size-label" id="ai-font-size-label">14</span>
+        <button type="button" id="ai-font-inc-btn" class="ai-format-btn ai-font-btn" aria-label="Increase font size">A+</button>
+      </div>
       <div class="ai-note-emoji-wrap" id="ai-note-emoji-wrap">
         <button type="button" id="ai-emoji-toggle-btn" class="ai-emoji-toggle-btn" title="Emojis">😀</button>
         <button type="button" id="ai-emoji-online-btn" class="ai-emoji-online-btn" title="Online">🌐</button>
@@ -1075,6 +1080,9 @@
     alignRightBtn: quickNoteForm.querySelector('#ai-align-right-btn'),
     alignCenterBtn: quickNoteForm.querySelector('#ai-align-center-btn'),
     alignLeftBtn: quickNoteForm.querySelector('#ai-align-left-btn'),
+    fontDecBtn: quickNoteForm.querySelector('#ai-font-dec-btn'),
+    fontIncBtn: quickNoteForm.querySelector('#ai-font-inc-btn'),
+    fontSizeLabel: quickNoteForm.querySelector('#ai-font-size-label'),
     emojiWrap: quickNoteForm.querySelector('#ai-note-emoji-wrap'),
     emojiToggleBtn: quickNoteForm.querySelector('#ai-emoji-toggle-btn'),
     emojiOnlineBtn: quickNoteForm.querySelector('#ai-emoji-online-btn'),
@@ -3938,6 +3946,39 @@
       if (data.noteTextAlign) setNoteAlign(data.noteTextAlign);
     });
   } catch (e) {}
+
+  // --- Notepad font size (persisted, clamped, drives autoGrow via computed style) ---
+  const NOTE_FONT_MIN = 11;
+  const NOTE_FONT_MAX = 24;
+  const NOTE_FONT_DEFAULT = 14;
+  const NOTE_FONT_STEP = 1;
+  let noteFontSize = NOTE_FONT_DEFAULT;
+  function applyNoteFontSize(size, opts) {
+    const silent = opts && opts.silent;
+    noteFontSize = Math.min(NOTE_FONT_MAX, Math.max(NOTE_FONT_MIN, Math.round(size)));
+    if (noteTextarea) noteTextarea.style.fontSize = noteFontSize + 'px';
+    if (uiEls.fontSizeLabel) uiEls.fontSizeLabel.textContent = String(noteFontSize);
+    if (uiEls.fontDecBtn) uiEls.fontDecBtn.disabled = noteFontSize <= NOTE_FONT_MIN;
+    if (uiEls.fontIncBtn) uiEls.fontIncBtn.disabled = noteFontSize >= NOTE_FONT_MAX;
+    if (!silent) {
+      try { if (chrome.runtime?.id) chrome.storage.local.set({ noteFontSize: noteFontSize }); } catch (e) {}
+    }
+    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+    else if (typeof adjustNotepadPosition === 'function') adjustNotepadPosition();
+  }
+  if (uiEls.fontIncBtn) uiEls.fontIncBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    applyNoteFontSize(noteFontSize + NOTE_FONT_STEP);
+  });
+  if (uiEls.fontDecBtn) uiEls.fontDecBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    applyNoteFontSize(noteFontSize - NOTE_FONT_STEP);
+  });
+  try {
+    chrome.storage.local.get(['noteFontSize'], (data) => {
+      applyNoteFontSize((data && data.noteFontSize) ? data.noteFontSize : NOTE_FONT_DEFAULT, { silent: true });
+    });
+  } catch (e) { applyNoteFontSize(NOTE_FONT_DEFAULT, { silent: true }); }
 
   // =========================================================================
   // NotepadUndoManager — multi-step LIFO memory (5–15 snapshots), zero-TTL.

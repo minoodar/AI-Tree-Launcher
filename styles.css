@@ -653,8 +653,9 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 #ai-align-left-btn { order: 1; }
 #ai-align-center-btn { order: 2; }
 #ai-align-right-btn { order: 3; }
-.ai-note-emoji-wrap { order: 4; }
-#ai-note-extract-doc-btn { order: 5; }
+.ai-note-fontsize-wrap { order: 4; }
+.ai-note-emoji-wrap { order: 5; }
+#ai-note-extract-doc-btn { order: 6; }
 #ai-align-left-btn,
 #ai-align-center-btn,
 #ai-align-right-btn {
@@ -697,6 +698,37 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-align-icon-center { align-items: center; }
 .ai-align-icon-left { align-items: flex-start; }
 .ai-align-icon.active span { background: #34D399; }
+
+/* Notepad font-size control (format bar) */
+.ai-note-fontsize-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 2px;
+  margin: 0 2px;
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+.ai-font-btn {
+  width: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(229,231,235,0.85);
+  letter-spacing: -0.5px;
+}
+.ai-font-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ai-font-btn:disabled:hover { background: rgba(255,255,255,0.05); }
+.ai-font-size-label {
+  min-width: 16px;
+  text-align: center;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(156,163,175,0.85);
+  user-select: none;
+}
 
 /* Page → LLM Markdown extract (format bar) */
 .ai-extract-doc-btn {
