@@ -164,7 +164,11 @@
       emojiOnlineEmpty: "No emoji found",
       emojiOnlineError: "Could not load online emojis",
       quoteCopyTitle: "Copy full text",
-      quoteCopied: "Copied!"
+      quoteCopied: "Copied!",
+      noteExtractBtn: "Extract page",
+      noteExtractTitle: "Convert current page to LLM-ready Markdown",
+      toastExtracted: "Page extracted as Markdown 📄",
+      toastExtractEmpty: "No readable content found on this page"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -322,7 +326,11 @@
       emojiOnlineEmpty: "ایموجی یافت نشد",
       emojiOnlineError: "بارگذاری آنلاین ناموفق بود",
       quoteCopyTitle: "کپی متن کامل",
-      quoteCopied: "کپی شد!"
+      quoteCopied: "کپی شد!",
+      noteExtractBtn: "استخراج صفحه",
+      noteExtractTitle: "تبدیل صفحهٔ فعلی به Markdown مناسب LLM",
+      toastExtracted: "صفحه به‌صورت Markdown استخراج شد 📄",
+      toastExtractEmpty: "محتوای قابل‌خواندن در این صفحه پیدا نشد"
     }
   };
 
@@ -857,6 +865,7 @@
         <button type="button" id="ai-emoji-online-btn" class="ai-emoji-online-btn" title="Online">🌐</button>
         <div id="ai-emoji-popover" class="ai-emoji-popover" role="dialog"></div>
       </div>
+      <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown">📄</button>
     </div>
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
     <div class="ai-note-text-wrap" id="ai-note-text-wrap">
@@ -1070,6 +1079,7 @@
     emojiToggleBtn: quickNoteForm.querySelector('#ai-emoji-toggle-btn'),
     emojiOnlineBtn: quickNoteForm.querySelector('#ai-emoji-online-btn'),
     emojiPopover: quickNoteForm.querySelector('#ai-emoji-popover'),
+    extractDocBtn: quickNoteForm.querySelector('#ai-note-extract-doc-btn'),
     socialWrap: quickNoteForm.querySelector('#ai-social-share-wrap'),
     socialToggleBtn: quickNoteForm.querySelector('#ai-social-toggle-btn'),
     socialToggleLabel: quickNoteForm.querySelector('#ai-social-toggle-label'),
@@ -1290,6 +1300,10 @@
     if (uiEls.socialToggleBtn) uiEls.socialToggleBtn.title = t('shareTitle');
     if (uiEls.emojiToggleBtn) uiEls.emojiToggleBtn.title = t('emojiMoreTitle');
     if (uiEls.emojiOnlineBtn) uiEls.emojiOnlineBtn.title = t('emojiOnlineBtn');
+    if (uiEls.extractDocBtn) {
+      uiEls.extractDocBtn.title = t('noteExtractTitle');
+      uiEls.extractDocBtn.setAttribute('aria-label', t('noteExtractTitle'));
+    }
     if (typeof renderEmojiTray === 'function' && Array.isArray(favoriteEmojis)) renderEmojiTray();
     if (typeof renderSocialPopover === 'function') renderSocialPopover();
     if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
@@ -4680,6 +4694,179 @@
   renderNoteTemplates();
   updateNoteTokenMeter();
 
+  /**
+   * DOM-to-LLM-Ready-Markdown Extractor
+   *
+   * Lightweight client-side parser: strips noise and converts structural HTML
+   * (headings, code, lists, tables, paragraphs) to Markdown suitable for LLMs.
+   *
+   * Acknowledgment & Attribution:
+   * The DOM cleaning and Markdown conversion logic in this module is inspired by
+   * and adapted from the 'anydoc' open-source project by Firecrawl.
+   *
+   * @source https://github.com/firecrawl/anydoc
+   * @license MIT (or applicable open-source license of the original repository)
+   */
+  function extractPageToLLMMarkdown() {
+    // 1. Target the primary content container (fallback to body)
+    const candidateSelectors = ['article', 'main', '[role="main"]', '.post-content', '.article-body', '#content', '.entry-content', '.markdown-body'];
+    let rootElement = null;
+    for (const sel of candidateSelectors) {
+      const found = document.querySelector(sel);
+      if (found && found.innerText && found.innerText.trim().length > 300) {
+        rootElement = found;
+        break;
+      }
+    }
+    if (!rootElement) rootElement = document.body;
+
+    // 2. Clone DOM to avoid mutating the live web page
+    const clone = rootElement.cloneNode(true);
+
+    // 3. Strip noise & extension artifacts
+    const removeSelectors = [
+      'script', 'style', 'noscript', 'iframe', 'svg', 'canvas', 'video', 'audio',
+      'nav', 'footer', 'aside', 'header', '[role="banner"]', '[role="navigation"]', '[role="complementary"]',
+      '#ai-orbit-root', '.ai-toast-notification', '.orbit-root',
+      '.advertisement', '.ads', '.ad', '[class*="cookie"]', '[id*="cookie"]'
+    ];
+    try {
+      clone.querySelectorAll(removeSelectors.join(', ')).forEach(el => el.remove());
+    } catch (err) {}
+
+    // 4. Recursive DOM to Markdown converter
+    function parseNode(node) {
+      if (!node) return '';
+      if (node.nodeType === Node.TEXT_NODE) {
+        return (node.textContent || '').replace(/\s+/g, ' ');
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const tag = node.tagName.toLowerCase();
+      // Skip hidden nodes
+      try {
+        const style = node.getAttribute && node.getAttribute('style');
+        if (style && /display\s*:\s*none|visibility\s*:\s*hidden/i.test(style)) return '';
+        if (node.getAttribute && node.getAttribute('hidden') != null) return '';
+        if (node.getAttribute && node.getAttribute('aria-hidden') === 'true') return '';
+      } catch (err) {}
+
+      if (tag === 'pre') {
+        const codeEl = node.querySelector && node.querySelector('code');
+        const raw = (codeEl ? codeEl.textContent : node.textContent) || '';
+        return `\n\n\`\`\`\n${raw.trim()}\n\`\`\`\n\n`;
+      }
+
+      const childrenMarkdown = Array.from(node.childNodes).map(parseNode).join('');
+
+      switch (tag) {
+        case 'h1': return `\n\n# ${childrenMarkdown.trim()}\n\n`;
+        case 'h2': return `\n\n## ${childrenMarkdown.trim()}\n\n`;
+        case 'h3': return `\n\n### ${childrenMarkdown.trim()}\n\n`;
+        case 'h4': case 'h5': case 'h6':
+          return `\n\n#### ${childrenMarkdown.trim()}\n\n`;
+        case 'p': return `\n\n${childrenMarkdown.trim()}\n\n`;
+        case 'strong': case 'b':
+          return childrenMarkdown.trim() ? ` **${childrenMarkdown.trim()}** ` : '';
+        case 'em': case 'i':
+          return childrenMarkdown.trim() ? ` *${childrenMarkdown.trim()}* ` : '';
+        case 'a': {
+          const href = node.getAttribute('href');
+          const linkText = childrenMarkdown.trim();
+          if (href && linkText && !/^javascript:/i.test(href)) {
+            return ` [${linkText}](${href}) `;
+          }
+          return linkText ? ` ${linkText} ` : '';
+        }
+        case 'code':
+          // Inline code only when not inside pre (pre handled above)
+          return childrenMarkdown.trim() ? ` \`${childrenMarkdown.trim()}\` ` : '';
+        case 'ul': case 'ol':
+          return `\n\n${childrenMarkdown.trim()}\n\n`;
+        case 'li':
+          return `\n* ${childrenMarkdown.trim()}`;
+        case 'blockquote':
+          return `\n\n> ${childrenMarkdown.trim().replace(/\n/g, '\n> ')}\n\n`;
+        case 'br':
+          return '\n';
+        case 'hr':
+          return '\n\n---\n\n';
+        case 'img': {
+          const alt = (node.getAttribute('alt') || '').trim();
+          const src = node.getAttribute('src') || '';
+          if (src && !src.startsWith('data:')) return alt ? ` ![${alt}](${src}) ` : ` ![](${src}) `;
+          return alt ? ` ${alt} ` : '';
+        }
+        case 'table': {
+          const rows = Array.from(node.querySelectorAll('tr'));
+          if (!rows.length) return childrenMarkdown;
+          const lines = [];
+          rows.forEach((tr, ri) => {
+            const cells = Array.from(tr.querySelectorAll('th, td')).map(c => (c.textContent || '').replace(/\s+/g, ' ').trim());
+            if (!cells.length) return;
+            lines.push('| ' + cells.join(' | ') + ' |');
+            if (ri === 0) lines.push('| ' + cells.map(() => '---').join(' | ') + ' |');
+          });
+          return lines.length ? `\n\n${lines.join('\n')}\n\n` : childrenMarkdown;
+        }
+        case 'tr': case 'td': case 'th': case 'thead': case 'tbody': case 'tfoot':
+          return childrenMarkdown;
+        default:
+          return childrenMarkdown;
+      }
+    }
+
+    // 5. Clean and format metadata header
+    const title = document.title || 'Untitled Document';
+    const url = window.location.href;
+    const rawMarkdown = parseNode(clone);
+
+    // Normalize excessive line breaks and spaced punctuation
+    const cleanMarkdown = rawMarkdown
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/[ \t]{2,}/g, ' ')
+      .replace(/[ \t]+$/gm, '')
+      .trim();
+
+    if (!cleanMarkdown) {
+      return `### Document: ${title}\n**Source:** ${url}\n\n---\n\n`;
+    }
+
+    return `### Document: ${title}\n**Source:** ${url}\n\n---\n\n${cleanMarkdown}`;
+  }
+
+  function insertExtractedMarkdownToNotepad() {
+    if (!noteTextarea) return;
+    let md = '';
+    try {
+      md = extractPageToLLMMarkdown();
+    } catch (err) {
+      showToastNotification(t('toastExtractEmpty'), true);
+      return;
+    }
+    const body = (md || '').split(/\n---\n/).slice(1).join('\n---\n').trim();
+    if (!body) {
+      showToastNotification(t('toastExtractEmpty'), true);
+      return;
+    }
+    // Capture undo boundary so Ctrl+Z / Undo toggle can restore previous note
+    if (notepadUndo) {
+      try { notepadUndo.forceBoundary(); } catch (err) {}
+    }
+    noteTextarea.value = md;
+    try {
+      const end = noteTextarea.value.length;
+      noteTextarea.setSelectionRange(end, end);
+      noteTextarea.focus();
+    } catch (err) {}
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+    showToastNotification(t('toastExtracted'));
+  }
+
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
     endNoteEditSession();
@@ -4724,6 +4911,13 @@
     if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
     if (typeof startCollapseCountdown === 'function') startCollapseCountdown();
     return hadText;
+  }
+  if (uiEls.extractDocBtn) {
+    uiEls.extractDocBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      insertExtractedMarkdownToNotepad();
+    });
   }
   document.getElementById('ai-note-clear-btn').addEventListener('click', (e) => { e.stopPropagation(); clearNoteWithUndo(); });
   document.getElementById('ai-note-copy-btn').addEventListener('click', (e) => { e.stopPropagation(); const textToCopy = noteTextarea ? noteTextarea.value : ''; if (!textToCopy.trim()) return; if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(textToCopy).then(() => { showToastNotification(t('toastCopied')); }).catch(() => { fallbackCopyText(textToCopy); }); } else fallbackCopyText(textToCopy); });

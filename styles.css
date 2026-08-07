@@ -654,6 +654,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 #ai-align-center-btn { order: 2; }
 #ai-align-right-btn { order: 3; }
 .ai-note-emoji-wrap { order: 4; }
+#ai-note-extract-doc-btn { order: 5; }
 #ai-align-left-btn,
 #ai-align-center-btn,
 #ai-align-right-btn {
@@ -696,6 +697,34 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-align-icon-center { align-items: center; }
 .ai-align-icon-left { align-items: flex-start; }
 .ai-align-icon.active span { background: #34D399; }
+
+/* Page → LLM Markdown extract (format bar) */
+.ai-extract-doc-btn {
+  width: auto !important;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px !important;
+  font-size: 13px;
+  line-height: 1;
+  background: rgba(56, 189, 248, 0.14) !important;
+  border: 1px solid rgba(56, 189, 248, 0.32) !important;
+  color: #7DD3FC;
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+.ai-extract-doc-btn:hover {
+  background: rgba(56, 189, 248, 0.26) !important;
+  border-color: rgba(125, 211, 252, 0.55) !important;
+  color: #E0F2FE;
+  filter: none;
+}
+.ai-extract-doc-btn:active {
+  transform: scale(0.96);
+}
+.ai-extract-doc-btn:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.85);
+  outline-offset: 2px;
+}
 
 .ai-note-text-wrap {
   flex: 1 1 auto;
@@ -874,7 +903,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-todo-quote:not(.is-collapsed) {
   background: linear-gradient(180deg, #fdfaf3 0%, #f7f1e3 100%);
   border-color: rgba(202, 164, 92, 0.45);
-  box-shadow: 0 10px 28px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.6);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.5);
 }
 .ai-todo-quote.pulse { animation: quotePulse 0.45s var(--ease-bounce); }
 
@@ -930,7 +959,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   display: grid;
   grid-template-rows: 1fr;
   opacity: 1;
-  padding: 12px 14px 36px; /* فضای دکمه کپی پایین-چپ */
+  padding: 8px 12px 30px; /* فضای دکمه کپی پایین-چپ */
   cursor: pointer;
   transition:
     grid-template-rows 0.4s var(--ease-premium),
@@ -954,15 +983,15 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 
 /* Large readable ayah */
 .ai-todo-quote-fa {
-  font-size: 20px;
+  font-size: 15px;
   font-weight: 700;
   color: #f1f5f9;
   white-space: pre-line;
-  line-height: 2.05;
+  line-height: 1.55;
   direction: rtl;
   font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", "Traditional Arabic", serif;
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   transition: color 0.3s;
 }
 .ai-todo-quote:not(.is-collapsed) .ai-todo-quote-fa {
@@ -973,12 +1002,12 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 /* Translation line — switches with the app language, same idea as the Rumi drawer:
    fa mode shows the Persian meaning, en mode shows the English translation. */
 .ai-todo-quote-translation {
-  font-size: 12.5px;
+  font-size: 11px;
   font-weight: 500;
   color: rgba(241, 245, 249, 0.75);
   white-space: pre-line;
-  line-height: 1.7;
-  margin-bottom: 8px;
+  line-height: 1.45;
+  margin-bottom: 5px;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   transition: color 0.3s;
 }
@@ -998,7 +1027,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 
 /* Small ref under ayah */
 .ai-todo-quote-title {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(125, 211, 252, 0.7);
   letter-spacing: 0.2px;
@@ -1492,8 +1521,8 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
     radial-gradient(rgba(0,0,0,0.02) 1px, transparent 0);
   background-size: 24px 24px;
   background-position: 0 0, 12px 12px;
-  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.12)) drop-shadow(0 1px 2px rgba(0,0,0,0.08));
-  padding: 12px 16px 34px; /* فضای دکمه کپی پایین-چپ */
+  filter: drop-shadow(0 3px 5px rgba(0,0,0,0.1)) drop-shadow(0 1px 2px rgba(0,0,0,0.06));
+  padding: 8px 14px 28px; /* فضای دکمه کپی پایین-چپ */
   transition: filter 0.25s ease;
 }
 
@@ -1501,15 +1530,15 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
    Text always sits on the cream paper (only visible while the drawer is open), so no dark-mode
    variant is needed here — unlike the pull-tab above. */
 .ai-clock-quote-text {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 600;
   color: #1a1a1a;
   white-space: pre-line;
-  line-height: 1.85;
-  margin-bottom: 6px;
+  line-height: 1.5;
+  margin-bottom: 4px;
 }
 .ai-clock-quote-text.is-fa {
-  font-size: 17px;
+  font-size: 13.5px;
   direction: rtl;
   font-family: "Vazirmatn", "Amiri", "Noto Naskh Arabic", "Traditional Arabic", serif;
 }
@@ -1520,11 +1549,11 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 }
 
 .ai-clock-quote-title {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   color: rgba(124, 90, 23, 0.75);
   letter-spacing: 0.2px;
-  margin: 0 0 4px;
+  margin: 0 0 3px;
 }
 
 /* Irregular torn edge — hand-authored jagged path, not a repeating zig-zag, fixed height so it
@@ -1532,7 +1561,7 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-torn-edge {
   display: block;
   width: 100%;
-  height: 16px;
+  height: 10px;
   fill: #fdfaf3;
   margin-bottom: -1px; /* guards against a hairline gap in some Chromium sub-pixel rounding */
 }
