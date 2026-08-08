@@ -238,7 +238,7 @@ opacity: 0; transition: opacity 0.3s var(--ease-premium), transform 0.3s var(--e
     0 1px 2px rgba(0, 0, 0, 0.65);
 }
 
-/* Notepad edge-snap split view (left / right dock) */
+/* Notepad edge-snap split view (left / right / top / bottom dock) */
 #ai-quick-note-form.split-preview-left {
   box-shadow:
     var(--apple-shadow, var(--glass-shadow)),
@@ -251,11 +251,21 @@ opacity: 0; transition: opacity 0.3s var(--ease-premium), transform 0.3s var(--e
     6px 0 0 2px rgba(16, 185, 129, 0.55),
     0 0 36px rgba(16, 185, 129, 0.22) !important;
 }
+#ai-quick-note-form.split-preview-top {
+  box-shadow:
+    var(--apple-shadow, var(--glass-shadow)),
+    0 -6px 0 2px rgba(16, 185, 129, 0.55),
+    0 0 36px rgba(16, 185, 129, 0.22) !important;
+}
+#ai-quick-note-form.split-preview-bottom {
+  box-shadow:
+    var(--apple-shadow, var(--glass-shadow)),
+    0 6px 0 2px rgba(16, 185, 129, 0.55),
+    0 0 36px rgba(16, 185, 129, 0.22) !important;
+}
 #ai-quick-note-form.split-docked {
   max-width: none !important;
   max-height: none !important;
-  min-height: calc(100vh - 48px) !important;
-  height: calc(100vh - 48px) !important;
   min-width: 380px !important;
   border-radius: 0 !important;
   transition:
@@ -269,6 +279,12 @@ opacity: 0; transition: opacity 0.3s var(--ease-premium), transform 0.3s var(--e
     0 0 0 1px rgba(16, 185, 129, 0.28) inset,
     0 0 40px rgba(16, 185, 129, 0.16) !important;
 }
+/* Vertical dock (left/right): full viewport height, adjustable width */
+#ai-quick-note-form.split-docked.split-left,
+#ai-quick-note-form.split-docked.split-right {
+  min-height: calc(100vh - 48px) !important;
+  height: calc(100vh - 48px) !important;
+}
 #ai-quick-note-form.split-docked.split-left {
   border-left: 3px solid rgba(16, 185, 129, 0.75) !important;
   border-radius: 0 12px 12px 0 !important;
@@ -276,6 +292,19 @@ opacity: 0; transition: opacity 0.3s var(--ease-premium), transform 0.3s var(--e
 #ai-quick-note-form.split-docked.split-right {
   border-right: 3px solid rgba(16, 185, 129, 0.75) !important;
   border-radius: 12px 0 0 12px !important;
+}
+/* Horizontal dock (top/bottom): full width, adjustable height (inline JS style controls it) */
+#ai-quick-note-form.split-docked.split-top,
+#ai-quick-note-form.split-docked.split-bottom {
+  min-height: 200px !important;
+}
+#ai-quick-note-form.split-docked.split-top {
+  border-top: 3px solid rgba(16, 185, 129, 0.75) !important;
+  border-radius: 0 0 12px 12px !important;
+}
+#ai-quick-note-form.split-docked.split-bottom {
+  border-bottom: 3px solid rgba(16, 185, 129, 0.75) !important;
+  border-radius: 12px 12px 0 0 !important;
 }
 #ai-quick-note-form.split-docked .ai-note-text-wrap {
   min-height: 120px;
@@ -553,12 +582,44 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   transition: opacity 0.15s, background 0.15s;
 }
 .ai-note-resize-l:hover::after, .ai-note-resize-r:hover::after,
-#ai-quick-note-form.split-docked .ai-note-resize-l::after,
-#ai-quick-note-form.split-docked .ai-note-resize-r::after {
+#ai-quick-note-form.split-docked.split-left .ai-note-resize-l::after,
+#ai-quick-note-form.split-docked.split-right .ai-note-resize-r::after {
   opacity: 0.85;
 }
-#ai-quick-note-form.split-docked .ai-note-resize-l:hover::after,
-#ai-quick-note-form.split-docked .ai-note-resize-r:hover::after {
+#ai-quick-note-form.split-docked.split-left .ai-note-resize-l:hover::after,
+#ai-quick-note-form.split-docked.split-right .ai-note-resize-r:hover::after {
+  background: rgba(52, 211, 153, 0.85);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+/* Top / bottom edges — height only (horizontal dock control) */
+.ai-note-resize-t, .ai-note-resize-b {
+  left: 18px;
+  right: 18px;
+  height: 8px;
+  cursor: ns-resize;
+}
+.ai-note-resize-t { top: 0; }
+.ai-note-resize-b { bottom: 0; }
+.ai-note-resize-t::after, .ai-note-resize-b::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  height: 3px;
+  width: 36px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.22);
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+.ai-note-resize-t:hover::after, .ai-note-resize-b:hover::after,
+#ai-quick-note-form.split-docked.split-top .ai-note-resize-t::after,
+#ai-quick-note-form.split-docked.split-bottom .ai-note-resize-b::after {
+  opacity: 0.85;
+}
+#ai-quick-note-form.split-docked.split-top .ai-note-resize-t:hover::after,
+#ai-quick-note-form.split-docked.split-bottom .ai-note-resize-b:hover::after {
   background: rgba(52, 211, 153, 0.85);
   box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
 }
@@ -592,6 +653,19 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
+}
+.ai-note-newtab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #9CA3AF;
+  width: 28px; height: 26px; padding: 0; border-radius: 6px; cursor: pointer;
+  font-size: 13px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ai-note-newtab-btn:hover {
+  color: #7DD3FC;
+  background: rgba(56, 189, 248, 0.14);
 }
 .ai-note-split-btn {
   background: transparent;
@@ -2661,13 +2735,34 @@ body.rtl .ai-note-history-menu,
 #ai-quick-note-form:hover .ai-note-resize-handle {
   opacity: 0.5;
 }
-#ai-quick-note-form.split-docked .ai-note-resize-l,
-#ai-quick-note-form.split-docked .ai-note-resize-r {
+#ai-quick-note-form.split-docked.split-left .ai-note-resize-l,
+#ai-quick-note-form.split-docked.split-right .ai-note-resize-r {
   opacity: 0.65;
 }
-#ai-quick-note-form.split-docked:hover .ai-note-resize-l,
-#ai-quick-note-form.split-docked:hover .ai-note-resize-r {
+#ai-quick-note-form.split-docked.split-left:hover .ai-note-resize-l,
+#ai-quick-note-form.split-docked.split-right:hover .ai-note-resize-r {
   opacity: 1;
+}
+#ai-quick-note-form.split-docked.split-top .ai-note-resize-t,
+#ai-quick-note-form.split-docked.split-bottom .ai-note-resize-b {
+  opacity: 0.65;
+}
+#ai-quick-note-form.split-docked.split-top:hover .ai-note-resize-t,
+#ai-quick-note-form.split-docked.split-bottom:hover .ai-note-resize-b {
+  opacity: 1;
+}
+/* Docked in one axis: hide handles that don't apply (that axis is locked to the edge/full-span) */
+#ai-quick-note-form.split-docked.split-left .ai-note-resize-t,
+#ai-quick-note-form.split-docked.split-left .ai-note-resize-b,
+#ai-quick-note-form.split-docked.split-right .ai-note-resize-t,
+#ai-quick-note-form.split-docked.split-right .ai-note-resize-b,
+#ai-quick-note-form.split-docked.split-top .ai-note-resize-l,
+#ai-quick-note-form.split-docked.split-top .ai-note-resize-r,
+#ai-quick-note-form.split-docked.split-bottom .ai-note-resize-l,
+#ai-quick-note-form.split-docked.split-bottom .ai-note-resize-r,
+#ai-quick-note-form.split-docked .ai-note-resize-bl,
+#ai-quick-note-form.split-docked .ai-note-resize-br {
+  display: none;
 }
 
 /* Format bar: soft matte chip tray */

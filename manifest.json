@@ -12,6 +12,10 @@
 "<all_urls>"
 ],
 
+"background": {
+"service_worker": "background.js"
+},
+
 "action": {
 "default_popup": "popup.html",
 "default_title": "AI Tree Launcher",

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Tree — Notepad</title>
+<style>
+  :root {
+    --bg: #0F0F1B;
+    --surface: rgba(255, 255, 255, 0.05);
+    --surface-hover: rgba(255, 255, 255, 0.1);
+    --primary: #10B981;
+    --primary-hover: #34D399;
+    --text: #F3F4F6;
+    --text-muted: #9CA3AF;
+    --border: rgba(255, 255, 255, 0.1);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+    direction: ltr;
+    overflow: hidden;
+  }
+  body.rtl { direction: rtl; }
+
+  .page {
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 20px 16px;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+  }
+  .page-header h1 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--primary-hover);
+    margin: 0;
+  }
+  .page-header .sub {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(52, 211, 153, 0.35);
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--primary-hover);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: 0.15s;
+  }
+  .back-btn:hover { background: rgba(16, 185, 129, 0.22); }
+  .back-arrow { font-size: 14px; line-height: 1; }
+  body.rtl .back-arrow { display: inline-block; transform: scaleX(-1); }
+
+  /* ---- Toolbar ---- */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .fmt-group { display: flex; align-items: center; gap: 2px; direction: ltr; }
+  .fmt-btn {
+    min-width: 28px;
+    height: 26px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+    font-size: 12px;
+    padding: 0 6px;
+  }
+  .fmt-btn:hover { background: var(--surface-hover); color: var(--text); }
+  .fmt-btn.active { background: rgba(16, 185, 129, 0.24); color: var(--primary-hover); }
+  .fmt-btn:disabled { opacity: 0.35; cursor: default; }
+  .fmt-btn:disabled:hover { background: transparent; }
+  .align-icon { flex-direction: column; gap: 2px; padding: 0 5px; }
+  .align-icon span { display: block; height: 2px; border-radius: 1px; background: rgba(229,231,235,0.8); width: 100%; }
+  .align-icon span:nth-child(2) { width: 70%; }
+  .align-icon span:nth-child(3) { width: 85%; }
+  .align-icon-right { align-items: flex-end; }
+  .align-icon-center { align-items: center; }
+  .align-icon-left { align-items: flex-start; }
+  .align-icon.active span { background: var(--primary-hover); }
+  .font-label { min-width: 18px; text-align: center; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .toolbar-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 2px; }
+  .toolbar-spacer { flex: 1 1 auto; }
+
+  /* ---- Prompts bar ---- */
+  .prompts-btn, .emoji-btn, .ai-select-wrap {
+    position: relative;
+  }
+  .prompts-bar {
+    display: none;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .prompts-bar.open { display: flex; }
+  .tpl-chip {
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    border-radius: 16px;
+    padding: 5px 12px;
+    font-size: 11.5px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.15s;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tpl-chip:hover { background: var(--surface-hover); border-color: rgba(255,255,255,0.2); }
+  .tpl-chip.is-custom { border-color: rgba(56, 189, 248, 0.35); color: #7DD3FC; }
+  .tpl-chip.is-overridden { border-color: rgba(245, 158, 11, 0.4); }
+  .tpl-chip.is-editable { border-style: dashed; }
+  .tpl-action {
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 16px;
+    width: 26px; height: 26px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .tpl-action:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+  .tpl-action.is-active { color: var(--primary-hover); border-color: rgba(16,185,129,0.4); }
+
+  /* ---- Emoji popover ---- */
+  .emoji-popover {
+    display: none;
+    position: absolute;
+    top: 32px;
+    z-index: 40;
+    background: #171726;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px;
+    width: 260px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+  }
+  body:not(.rtl) .emoji-popover { left: 0; }
+  body.rtl .emoji-popover { right: 0; }
+  .emoji-popover.open { display: block; }
+  .emoji-popover-title { font-size: 10.5px; color: var(--text-muted); margin: 4px 0; font-weight: 700; }
+  .emoji-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; margin-bottom: 6px; }
+  .emoji-item {
+    border: none; background: transparent; cursor: pointer;
+    font-size: 16px; border-radius: 6px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .emoji-item:hover { background: var(--surface-hover); }
+
+  /* ---- AI dispatch ---- */
+  .ai-select {
+    background: rgba(0,0,0,0.35);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 6px;
+    font-family: inherit;
+    font-size: 11.5px;
+    max-width: 130px;
+  }
+  .send-btn {
+    display: flex; align-items: center; gap: 5px;
+    background: linear-gradient(135deg, #34D399, #059669);
+    color: white; border: none; border-radius: 7px;
+    padding: 6px 12px; font-weight: 700; font-size: 11.5px;
+    cursor: pointer; font-family: inherit;
+  }
+  .send-btn:hover { filter: brightness(1.08); }
+
+  /* ---- Editor ---- */
+  .editor-wrap {
+    flex: 1 1 auto;
+    display: flex;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #fff;
+    min-height: 0;
+  }
+  .editor-wrap:focus-within { border-color: rgba(16, 185, 129, 0.55); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+  textarea#note-text {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 100%;
+    background: #FFFFFF;
+    color: #111111;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 18px 20px;
+    font-size: 15px;
+    line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight: 500;
+  }
+
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .bottom-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  .btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    transition: 0.15s;
+  }
+  .btn:hover { background: var(--surface-hover); }
+  .btn-clear { background: rgba(217, 119, 87, 0.14); color: #E8A088; border-color: rgba(217, 119, 87, 0.35); }
+  .btn-clear:hover { background: rgba(217, 119, 87, 0.24); }
+  .btn-copy { background: rgba(16, 185, 129, 0.14); color: #34D399; border-color: rgba(16, 185, 129, 0.35); }
+  .btn-copy:hover { background: rgba(16, 185, 129, 0.24); }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--primary);
+    color: white;
+    padding: 9px 18px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---- Template editor modal ---- */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    width: 420px;
+    max-width: 90vw;
+    background: #171726;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .modal-box h3 { margin: 0 0 10px; font-size: 13px; color: var(--primary-hover); }
+  .modal-box input, .modal-box textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-family: inherit;
+    font-size: 12.5px;
+    margin-bottom: 8px;
+  }
+  .modal-box textarea { resize: vertical; min-height: 90px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+  .modal-actions .btn-danger { background: rgba(217, 119, 87, 0.14); color: #E8A088; border-color: rgba(217, 119, 87, 0.35); margin-right: auto; }
+  .modal-actions .btn-primary { background: linear-gradient(135deg, #34D399, #059669); color: white; border: none; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-header">
+      <div>
+        <h1 id="title">NOTEPAD</h1>
+        <div class="sub" id="subtitle">Synced live with the AI Tree Launcher widget on your pages</div>
+      </div>
+      <button type="button" class="back-btn" id="back-btn" style="display:none;">
+        <span class="back-arrow">←</span><span id="back-label">Back to widget</span>
+      </button>
+    </div>
+
+    <div class="toolbar">
+      <div class="fmt-group">
+        <button type="button" class="fmt-btn align-icon align-icon-left" id="align-left" title="Left"><span></span><span></span><span></span></button>
+        <button type="button" class="fmt-btn align-icon align-icon-center" id="align-center" title="Center"><span></span><span></span><span></span></button>
+        <button type="button" class="fmt-btn align-icon align-icon-right" id="align-right" title="Right"><span></span><span></span><span></span></button>
+      </div>
+      <div class="toolbar-sep"></div>
+      <div class="fmt-group">
+        <button type="button" class="fmt-btn" id="font-dec" aria-label="Decrease font size">A-</button>
+        <span class="font-label" id="font-label">14</span>
+        <button type="button" class="fmt-btn" id="font-inc" aria-label="Increase font size">A+</button>
+      </div>
+      <div class="toolbar-sep"></div>
+      <button type="button" class="fmt-btn" id="prompts-toggle-btn">📑 <span id="prompts-toggle-label">Prompts</span></button>
+      <div class="emoji-btn">
+        <button type="button" class="fmt-btn" id="emoji-toggle-btn">😀</button>
+        <div class="emoji-popover" id="emoji-popover"></div>
+      </div>
+      <div class="toolbar-spacer"></div>
+      <div class="ai-select-wrap">
+        <select class="ai-select" id="ai-select"></select>
+      </div>
+      <button type="button" class="send-btn" id="send-btn">▶ <span id="send-label">Send</span></button>
+    </div>
+
+    <div class="prompts-bar" id="prompts-bar"></div>
+
+    <div class="editor-wrap">
+      <textarea id="note-text" dir="auto" placeholder=""></textarea>
+    </div>
+
+    <div class="status-row">
+      <span id="token-meter">0 chars · 0 tokens</span>
+    </div>
+
+    <div class="bottom-toolbar">
+      <button type="button" class="btn btn-clear" id="clear-btn">Clear</button>
+      <button type="button" class="btn btn-copy" id="copy-btn">Copy</button>
+      <button type="button" class="btn" id="save-btn">Save as .txt</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="tpl-modal">
+    <div class="modal-box">
+      <h3 id="tpl-modal-title">New prompt</h3>
+      <input type="text" id="tpl-modal-name" maxlength="40" dir="auto" autocomplete="off">
+      <textarea id="tpl-modal-body" dir="auto" rows="5"></textarea>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-danger" id="tpl-modal-delete" style="display:none;">Delete</button>
+        <button type="button" class="btn" id="tpl-modal-cancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="tpl-modal-save">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copied!</div>
+
+  <script src="notepad.js"></script>
+</body>
+</html>

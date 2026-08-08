@@ -168,7 +168,8 @@
       noteExtractBtn: "Extract page",
       noteExtractTitle: "Convert current page to LLM-ready Markdown",
       toastExtracted: "Page extracted as Markdown 📄",
-      toastExtractEmpty: "No readable content found on this page"
+      toastExtractEmpty: "No readable content found on this page",
+      noteNewTabTitle: "Open notepad in new tab"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -330,7 +331,8 @@
       noteExtractBtn: "استخراج صفحه",
       noteExtractTitle: "تبدیل صفحهٔ فعلی به Markdown مناسب LLM",
       toastExtracted: "صفحه به‌صورت Markdown استخراج شد 📄",
-      toastExtractEmpty: "محتوای قابل‌خواندن در این صفحه پیدا نشد"
+      toastExtractEmpty: "محتوای قابل‌خواندن در این صفحه پیدا نشد",
+      noteNewTabTitle: "باز کردن دفترچه در تب جدید"
     }
   };
 
@@ -852,6 +854,7 @@
     <div class="ai-note-header" id="ai-note-header">
       <span class="ai-note-header-title">NOTEPAD & AI</span>
       <div class="ai-note-header-actions">
+        <button type="button" id="ai-note-newtab-btn" class="ai-note-newtab-btn" title="Open in new tab">⧉</button>
         <button type="button" id="ai-note-split-btn" class="ai-note-split-btn" title="Split view">▦</button>
         <button type="button" id="ai-note-pin-btn" class="ai-note-pin-btn" title="Pin Window">📌</button>
       </div>
@@ -909,6 +912,8 @@
 
     <div class="ai-note-resize-handle ai-note-resize-l" id="ai-note-resize-l" title="Resize width"></div>
     <div class="ai-note-resize-handle ai-note-resize-r" id="ai-note-resize-r" title="Resize width"></div>
+    <div class="ai-note-resize-handle ai-note-resize-t" id="ai-note-resize-t" title="Resize height"></div>
+    <div class="ai-note-resize-handle ai-note-resize-b" id="ai-note-resize-b" title="Resize height"></div>
     <div class="ai-note-resize-handle ai-note-resize-bl" id="ai-note-resize-bl" title="Resize"></div>
     <div class="ai-note-resize-handle ai-note-resize-br" id="ai-note-resize-br" title="Resize"></div>
   `;
@@ -1074,6 +1079,7 @@
     formDelete: inlineForm.querySelector('#ai-form-delete'),
     formSave: inlineForm.querySelector('#ai-form-save'),
     noteText: quickNoteForm.querySelector('#ai-note-text'),
+    noteNewTabBtn: quickNoteForm.querySelector('#ai-note-newtab-btn'),
     noteClearBtn: quickNoteForm.querySelector('#ai-note-clear-btn'),
     noteCopyBtn: quickNoteForm.querySelector('#ai-note-copy-btn'),
     saveTxtBtn: quickNoteForm.querySelector('#ai-save-txt-btn'),
@@ -1311,6 +1317,10 @@
     if (uiEls.extractDocBtn) {
       uiEls.extractDocBtn.title = t('noteExtractTitle');
       uiEls.extractDocBtn.setAttribute('aria-label', t('noteExtractTitle'));
+    }
+    if (uiEls.noteNewTabBtn) {
+      uiEls.noteNewTabBtn.title = t('noteNewTabTitle');
+      uiEls.noteNewTabBtn.setAttribute('aria-label', t('noteNewTabTitle'));
     }
     if (typeof renderEmojiTray === 'function' && Array.isArray(favoriteEmojis)) renderEmojiTray();
     if (typeof renderSocialPopover === 'function') renderSocialPopover();
@@ -3418,7 +3428,7 @@
   let noteManuallyPositioned = false;
   let isNoteDragging = false, noteDragMoved = false;
   let noteStartX, noteStartY, noteStartLeft, noteStartTop;
-  let noteSplitSide = null; // null | 'left' | 'right'
+  let noteSplitSide = null; // null | 'left' | 'right' | 'top' | 'bottom'
   const NOTE_SPLIT_EDGE_PX = 48;
   const NOTE_SPLIT_TOP = 0;
   const NOTE_SPLIT_BOTTOM_GAP = 48; // keep toolbar above Windows taskbar
@@ -3430,16 +3440,35 @@
   // gap from both edges — simple, and correct everywhere regardless of the host page's
   // internal layout quirks.
   const NOTE_SPLIT_WIDTH_DEFAULT = 380;
-  let noteSplitWidth = NOTE_SPLIT_WIDTH_DEFAULT; // user-adjustable while split
+  let noteSplitWidth = NOTE_SPLIT_WIDTH_DEFAULT; // user-adjustable while split left/right
+  // Horizontal dock (top/bottom): full width, adjustable height instead of adjustable width.
+  const NOTE_HDOCK_HEIGHT_DEFAULT = 340; // "acceptable" default height requested
+  const NOTE_HDOCK_MIN_H = 200;
+  let noteDockHeight = NOTE_HDOCK_HEIGHT_DEFAULT; // user-adjustable while docked top/bottom
+
+  function isNoteHDock(side) { return side === 'top' || side === 'bottom'; }
 
   function getNoteSplitLeftPos(side, vw, width) {
     if (side === 'left') return NOTE_SPLIT_EDGE_GAP;
-    return vw - width - NOTE_SPLIT_EDGE_GAP;
+    if (side === 'right') return vw - width - NOTE_SPLIT_EDGE_GAP;
+    return NOTE_SPLIT_EDGE_GAP; // top/bottom: always flush to the fixed side gap
   }
 
-  function getNoteSplitMetrics() {
+  function getNoteDockTopPos(side, vh, height) {
+    if (side === 'top') return NOTE_SPLIT_TOP;
+    return vh - height - NOTE_SPLIT_BOTTOM_GAP; // bottom: keep the bottom edge fixed
+  }
+
+  function getNoteSplitMetrics(side) {
+    const s = side || noteSplitSide;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    if (isNoteHDock(s)) {
+      const maxH = Math.max(NOTE_HDOCK_MIN_H, Math.round(vh * 0.85));
+      const height = Math.max(NOTE_HDOCK_MIN_H, Math.min(maxH, noteDockHeight || NOTE_HDOCK_HEIGHT_DEFAULT));
+      const width = Math.max(NOTE_MIN_W || NOTE_SPLIT_WIDTH_DEFAULT, vw - NOTE_SPLIT_EDGE_GAP * 2);
+      return { vw, vh, width, height, minH: NOTE_HDOCK_MIN_H, maxH };
+    }
     const minW = (typeof NOTE_MIN_W === 'number' ? NOTE_MIN_W : NOTE_SPLIT_WIDTH_DEFAULT);
     const maxW = Math.max(minW, Math.round(vw * 0.7));
     const width = Math.max(minW, Math.min(maxW, noteSplitWidth || minW));
@@ -3455,14 +3484,17 @@
     btn.classList.toggle('is-active', on);
     btn.title = on
       ? (currentLang === 'fa' ? 'خروج از اسپلیت' : 'Exit split view')
-      : (currentLang === 'fa' ? 'اسپلیت چپ/راست' : 'Split view');
+      : (currentLang === 'fa' ? 'اسپلیت / داک به نزدیک‌ترین لبه' : 'Split / dock to nearest edge');
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
 
   function exitNoteSplit(keepSize) {
     if (!noteSplitSide) { syncNoteSplitBtn(); return; }
     noteSplitSide = null;
-    quickNoteForm.classList.remove('split-docked', 'split-left', 'split-right', 'split-preview-left', 'split-preview-right');
+    quickNoteForm.classList.remove(
+      'split-docked', 'split-left', 'split-right', 'split-top', 'split-bottom',
+      'split-preview-left', 'split-preview-right', 'split-preview-top', 'split-preview-bottom'
+    );
     // Return to normal open state: unpin (same as first open)
     isNotePinned = false;
     quickNoteForm.classList.remove('is-pinned');
@@ -3479,9 +3511,10 @@
   }
 
   function enterNoteSplit(side) {
-    const { vw, vh, width, height } = getNoteSplitMetrics();
+    const isH = isNoteHDock(side);
+    const { vw, vh, width, height } = getNoteSplitMetrics(side);
     noteSplitSide = side;
-    noteSplitWidth = width;
+    if (isH) noteDockHeight = height; else noteSplitWidth = width;
     noteManuallyPositioned = true;
     // Prevent autoGrowNotepad from collapsing split height back to content size
     if (typeof noteUserResized !== 'undefined') noteUserResized = true;
@@ -3490,11 +3523,18 @@
     quickNoteForm.classList.add('is-pinned', 'split-docked');
     quickNoteForm.classList.toggle('split-left', side === 'left');
     quickNoteForm.classList.toggle('split-right', side === 'right');
-    quickNoteForm.classList.remove('split-preview-left', 'split-preview-right');
+    quickNoteForm.classList.toggle('split-top', side === 'top');
+    quickNoteForm.classList.toggle('split-bottom', side === 'bottom');
+    quickNoteForm.classList.remove('split-preview-left', 'split-preview-right', 'split-preview-top', 'split-preview-bottom');
     quickNoteForm.style.width = width + 'px';
     quickNoteForm.style.height = height + 'px';
-    quickNoteForm.style.top = NOTE_SPLIT_TOP + 'px';
-    quickNoteForm.style.left = getNoteSplitLeftPos(side, vw, width) + 'px';
+    if (isH) {
+      quickNoteForm.style.left = NOTE_SPLIT_EDGE_GAP + 'px';
+      quickNoteForm.style.top = getNoteDockTopPos(side, vh, height) + 'px';
+    } else {
+      quickNoteForm.style.top = NOTE_SPLIT_TOP + 'px';
+      quickNoteForm.style.left = getNoteSplitLeftPos(side, vw, width) + 'px';
+    }
     syncNoteSplitBtn();
   }
 
@@ -3504,24 +3544,41 @@
       exitNoteSplit(false);
       return;
     }
-    // Prefer the side closer to the current notepad position
+    // Pick whichever edge (left/right/top/bottom) the notepad currently sits closest to,
+    // measured as a fraction of the viewport so top/bottom aren't unfairly favored — this way
+    // a notepad parked centrally (e.g. near a centered hub) can still reach a top/bottom dock
+    // with one click, not just by dragging all the way to that exact edge.
     const r = quickNoteForm.getBoundingClientRect();
-    const mid = r.left + r.width / 2;
-    const side = mid < window.innerWidth / 2 ? 'left' : 'right';
-    enterNoteSplit(side);
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const candidates = [
+      { side: 'left', d: cx / vw },
+      { side: 'right', d: 1 - cx / vw },
+      { side: 'top', d: cy / vh },
+      { side: 'bottom', d: 1 - cy / vh }
+    ];
+    candidates.sort((a, b) => a.d - b.d);
+    enterNoteSplit(candidates[0].side);
   }
 
   function detectNoteSplitSide(rect) {
     const vw = window.innerWidth;
-    if (rect.left <= NOTE_SPLIT_EDGE_PX) return 'left';
-    if (rect.right >= vw - NOTE_SPLIT_EDGE_PX) return 'right';
-    return null;
+    const vh = window.innerHeight;
+    const candidates = [
+      { side: 'left', d: rect.left },
+      { side: 'right', d: vw - rect.right },
+      { side: 'top', d: rect.top },
+      { side: 'bottom', d: vh - rect.bottom }
+    ].filter(c => c.d <= NOTE_SPLIT_EDGE_PX);
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => a.d - b.d);
+    return candidates[0].side;
   }
 
   const noteHeaderEl = quickNoteForm.querySelector('#ai-note-header');
   if (noteHeaderEl) {
     noteHeaderEl.addEventListener('mousedown', (e) => {
-      if (e.target.closest('#ai-note-pin-btn') || e.target.closest('#ai-note-split-btn')) return;
+      if (e.target.closest('#ai-note-pin-btn') || e.target.closest('#ai-note-split-btn') || e.target.closest('#ai-note-newtab-btn')) return;
       e.stopPropagation(); e.preventDefault();
       // Leaving split mode when user starts dragging again
       if (noteSplitSide) {
@@ -3547,6 +3604,8 @@
       const side = detectNoteSplitSide(r);
       quickNoteForm.classList.toggle('split-preview-left', side === 'left');
       quickNoteForm.classList.toggle('split-preview-right', side === 'right');
+      quickNoteForm.classList.toggle('split-preview-top', side === 'top');
+      quickNoteForm.classList.toggle('split-preview-bottom', side === 'bottom');
     }
   });
   document.addEventListener('mouseup', () => {
@@ -3558,10 +3617,10 @@
       const side = detectNoteSplitSide(r);
       if (side) enterNoteSplit(side);
       else {
-        quickNoteForm.classList.remove('split-preview-left', 'split-preview-right');
+        quickNoteForm.classList.remove('split-preview-left', 'split-preview-right', 'split-preview-top', 'split-preview-bottom');
       }
     } else {
-      quickNoteForm.classList.remove('split-preview-left', 'split-preview-right');
+      quickNoteForm.classList.remove('split-preview-left', 'split-preview-right', 'split-preview-top', 'split-preview-bottom');
     }
   });
 
@@ -3579,6 +3638,23 @@
   const IDLE_GRACE_PERIOD = 5000;
   const pinBtn = quickNoteForm.querySelector('#ai-note-pin-btn');
   const splitBtn = quickNoteForm.querySelector('#ai-note-split-btn');
+  const newTabBtn = quickNoteForm.querySelector('#ai-note-newtab-btn');
+  if (newTabBtn) {
+    newTabBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      try {
+        if (!chrome.runtime?.id) return;
+        const flush = { savedPromptDraft: noteTextarea ? noteTextarea.value : '' };
+        chrome.storage.local.set(flush, () => {
+          chrome.runtime.sendMessage({ action: 'openNotepadTab' }, () => {
+            // No response handler needed; swallow "no receiver" errors when SW is asleep/waking.
+            void chrome.runtime.lastError;
+          });
+        });
+      } catch (err) {}
+    });
+  }
   if (splitBtn) {
     splitBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -3690,7 +3766,21 @@
   quickNoteForm.addEventListener('mouseenter', abortNoteClosing);
   // mousemove only resets silent idle grace, never kills countdown
   quickNoteForm.addEventListener('mousemove', stopNotepadIdleTimer);
-  quickNoteForm.addEventListener('mouseleave', startNotepadIdleTimer);
+  // Chrome resyncs :hover state with a synthetic mouseleave/mouseenter pair when a tab
+  // regains visibility (e.g. returning from the standalone notepad tab, or just alt-tabbing
+  // back) — this has nothing to do with the user's real cursor, so it must not start the
+  // idle-close countdown. Cancel any timer it may have started and briefly ignore mouseleave.
+  let noteSuppressIdleUntil = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      stopNotepadIdleTimer();
+      noteSuppressIdleUntil = Date.now() + 500;
+    }
+  });
+  quickNoteForm.addEventListener('mouseleave', () => {
+    if (Date.now() < noteSuppressIdleUntil) return;
+    startNotepadIdleTimer();
+  });
 
   noteToggleDot.addEventListener('click', (e) => {
     if (!chrome.runtime?.id) return;
@@ -3884,6 +3974,7 @@
       let newW = startW;
       let newH = startH;
       let newLeft = startLeft;
+      let newTop = startTop;
 
       if (corner === 'br') {
         newW = startW + dx;
@@ -3897,18 +3988,34 @@
       } else if (corner === 'l') {
         newW = startW - dx;
         newLeft = startLeft + (startW - Math.max(minW, Math.min(maxW, newW)));
+      } else if (corner === 'b') {
+        newH = startH + dy;
+      } else if (corner === 't') {
+        newH = startH - dy;
+        newTop = startTop + dy;
       }
 
       newW = Math.max(minW, Math.min(maxW, newW));
       if (corner === 'br' || corner === 'bl') {
         newH = Math.max(NOTE_MIN_H, Math.min(noteMaxH(), newH));
+      } else if (corner === 't' || corner === 'b') {
+        const maxHD = Math.max(NOTE_HDOCK_MIN_H, Math.round(window.innerHeight * 0.85));
+        newH = Math.max(NOTE_HDOCK_MIN_H, Math.min(maxHD, newH));
       }
 
-      // While split: keep tall docked height (above taskbar) and stick to edge
-      if (noteSplitSide) {
+      // While docked: one axis is locked to the edge(s), only the other is user-adjustable
+      if (noteSplitSide === 'left' || noteSplitSide === 'right') {
+        // Vertical dock: full height, adjustable width
         newH = Math.max(280, window.innerHeight - NOTE_SPLIT_TOP - NOTE_SPLIT_BOTTOM_GAP);
         newLeft = getNoteSplitLeftPos(noteSplitSide, window.innerWidth, newW);
+        newTop = NOTE_SPLIT_TOP;
         noteSplitWidth = newW;
+      } else if (isNoteHDock(noteSplitSide)) {
+        // Horizontal dock: full width, adjustable height
+        newW = Math.max(NOTE_MIN_W, window.innerWidth - NOTE_SPLIT_EDGE_GAP * 2);
+        newLeft = NOTE_SPLIT_EDGE_GAP;
+        newTop = getNoteDockTopPos(noteSplitSide, window.innerHeight, newH);
+        noteDockHeight = newH;
       }
 
       noteManuallyPositioned = true;
@@ -3916,7 +4023,7 @@
       quickNoteForm.style.width = `${newW}px`;
       quickNoteForm.style.height = `${newH}px`;
       quickNoteForm.style.left = `${newLeft}px`;
-      if (noteSplitSide) quickNoteForm.style.top = '0px';
+      quickNoteForm.style.top = `${newTop}px`;
     });
     document.addEventListener('mouseup', () => {
       if (!dragging) return;
@@ -3927,6 +4034,8 @@
   }
   setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-l'), 'l');
   setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-r'), 'r');
+  setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-t'), 't');
+  setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-b'), 'b');
   setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-bl'), 'bl');
   setupNoteResizeHandle(quickNoteForm.querySelector('#ai-note-resize-br'), 'br');
 
@@ -4918,7 +5027,10 @@
     // states are untouched — they fall through to the same behavior as before.
     if (noteSplitSide) {
       noteSplitSide = null;
-      quickNoteForm.classList.remove('split-docked', 'split-left', 'split-right', 'split-preview-left', 'split-preview-right');
+      quickNoteForm.classList.remove(
+        'split-docked', 'split-left', 'split-right', 'split-top', 'split-bottom',
+        'split-preview-left', 'split-preview-right', 'split-preview-top', 'split-preview-bottom'
+      );
       if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
     }
     // Explicit Clear/Close: permanently discard notepad undo/redo memory.
@@ -5979,6 +6091,41 @@
               }
           }
           if (langChanged) { updateUITexts(); }
+      }
+      if (area === 'local') {
+        // Two-way live sync with the standalone notepad tab (see notepad.js).
+        // Only overwrite when this widget's textarea isn't the one being typed in.
+        if (changes.savedPromptDraft && noteTextarea && document.activeElement !== noteTextarea) {
+          const newVal = changes.savedPromptDraft.newValue || '';
+          if (newVal !== noteTextarea.value) {
+            noteTextarea.value = newVal;
+            if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+            if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+          }
+        }
+        if (changes.noteTextAlign && changes.noteTextAlign.newValue && typeof setNoteAlign === 'function') {
+          setNoteAlign(changes.noteTextAlign.newValue);
+        }
+        if (changes.noteFontSize && changes.noteFontSize.newValue && typeof applyNoteFontSize === 'function') {
+          applyNoteFontSize(changes.noteFontSize.newValue, { silent: true });
+        }
+        // Prompts / emoji memory can also be edited from the standalone notepad tab.
+        if (changes[CUSTOM_PROMPT_KEY]) {
+          customPrompts = Array.isArray(changes[CUSTOM_PROMPT_KEY].newValue) ? changes[CUSTOM_PROMPT_KEY].newValue : [];
+          if (typeof renderNoteTemplates === 'function') renderNoteTemplates();
+        }
+        if (changes[PROMPT_OVERRIDE_KEY]) {
+          promptOverrides = (changes[PROMPT_OVERRIDE_KEY].newValue && typeof changes[PROMPT_OVERRIDE_KEY].newValue === 'object') ? changes[PROMPT_OVERRIDE_KEY].newValue : {};
+          if (typeof renderNoteTemplates === 'function') renderNoteTemplates();
+        }
+        if (changes[PROMPT_HIDDEN_KEY]) {
+          promptHiddenIds = Array.isArray(changes[PROMPT_HIDDEN_KEY].newValue) ? changes[PROMPT_HIDDEN_KEY].newValue : [];
+          if (typeof renderNoteTemplates === 'function') renderNoteTemplates();
+        }
+        if (changes.aiTreeEmojiMemory && Array.isArray(changes.aiTreeEmojiMemory.newValue)) {
+          favoriteEmojis = changes.aiTreeEmojiMemory.newValue.filter(e => typeof e === 'string' && e).slice(0, 12);
+          if (typeof renderEmojiTray === 'function') renderEmojiTray();
+        }
       }
     });
   } catch (e) {}
