@@ -4657,6 +4657,9 @@
     ed.hidden = false;
     ed.classList.add('active');
     nameEl.focus();
+    // The editor adds a chunk of height inside the panel (name + textarea + actions row) —
+    // grow the notepad now so the Save/Cancel/Delete buttons are visible without a manual resize.
+    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
   }
 
   function closeTplEditor() {
@@ -4666,6 +4669,7 @@
     ed.classList.remove('active');
     tplEditingId = null;
     tplEditingBuiltIn = false;
+    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
   }
 
   function saveTplEditor() {
