@@ -91,6 +91,34 @@
 --font-fa: "Vazirmatn", "IRANSansX", "Segoe UI", Tahoma, sans-serif;
 }
 
+/* V27 final cascade: keep compositor-first seed and SVG icon rhythm above legacy rules. */
+.orbit-hub.hub-collapsed {
+  animation: quantumSeedFloat 4.8s var(--ease-premium) infinite !important;
+}
+.orbit-hub.hub-collapsed::before { animation: quantumOrbit 9s linear infinite !important; }
+#ai-note-toggle svg,
+#ai-all-toggle svg,
+#ai-collapse-toggle svg {
+  width: 8px !important;
+  height: 8px !important;
+  fill: none !important;
+  stroke: #fff !important;
+  stroke-width: 2.2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+#ai-collapse-toggle svg { stroke: #082f49 !important; }
+@media (pointer: coarse) {
+  #ai-search-toggle, #ai-note-toggle, #ai-all-toggle, #ai-collapse-toggle,
+  #ai-undo-toggle, #ai-todo-toggle, #ai-calc-hub-toggle, #ai-clock-toggle {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  #ai-note-toggle svg, #ai-all-toggle svg, #ai-collapse-toggle svg,
+  #ai-todo-toggle svg, #ai-calc-hub-toggle svg, #ai-clock-toggle svg,
+  #ai-search-toggle svg, #ai-undo-toggle svg { width: 13px !important; height: 13px !important; }
+}
+
 .orbit-root { position: fixed; bottom: 28px; left: 28px; z-index: 2147483647; width: 0; height: 0; direction: ltr; }
 .orbit-root[style*="direction: rtl"] { direction: rtl; }
 
@@ -1830,6 +1858,199 @@ animation: quantumActive 2.8s ease-in-out infinite;
 @keyframes quantumActive { 0%, 100% { opacity: 1; } 50% { opacity: .78; } }
 @media (prefers-reduced-motion: reduce) {
 .orbit-hub:not(.hub-collapsed)::before, .orbit-root.show-notepad #ai-note-toggle, .orbit-root.show-todo #ai-todo-toggle, .orbit-root.show-calc #ai-calc-hub-toggle, .orbit-root.show-clock #ai-clock-toggle, #ai-undo-toggle.active-undo { animation: none; }
+}
+
+/* ========================================================================== 
+   V27 Quantum Seed — compositor-first finishing layer
+   Transforms/opacity only animate continuously; paint-heavy glows remain static.
+   ========================================================================== */
+.orbit-root {
+  isolation: isolate;
+  contain: layout style;
+}
+
+/* Seed bloom: a single energy ring and four departing photons, all transform/opacity only. */
+.ai-quantum-bloom {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(125, 211, 252, .75);
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(.35);
+  z-index: 95;
+}
+.ai-quantum-bloom i {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  box-shadow: 0 0 7px rgba(125, 211, 252, .9);
+  opacity: 0;
+}
+.ai-quantum-bloom i:nth-child(1) { --qx: 39px; --qy: -25px; }
+.ai-quantum-bloom i:nth-child(2) { --qx: 30px; --qy: 33px; }
+.ai-quantum-bloom i:nth-child(3) { --qx: -34px; --qy: 27px; }
+.ai-quantum-bloom i:nth-child(4) { --qx: -28px; --qy: -35px; }
+.orbit-root.quantum-blooming .ai-quantum-bloom { animation: quantumBloomRing 680ms var(--ease-premium) both; }
+.orbit-root.quantum-blooming .ai-quantum-bloom i { animation: quantumBloomPhoton 560ms var(--ease-premium) both; }
+.orbit-root.quantum-blooming .ai-quantum-bloom i:nth-child(2) { animation-delay: 40ms; }
+.orbit-root.quantum-blooming .ai-quantum-bloom i:nth-child(3) { animation-delay: 75ms; }
+.orbit-root.quantum-blooming .ai-quantum-bloom i:nth-child(4) { animation-delay: 110ms; }
+@keyframes quantumBloomRing {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.35); }
+  18% { opacity: .92; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(7.2); }
+}
+@keyframes quantumBloomPhoton {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--qx)), calc(-50% + var(--qy))) scale(.45); }
+}
+
+/* The tools do not simply appear: they settle into orbit from the seed in sequence. */
+.orbit-root.quantum-blooming.open .ai-node {
+  animation: quantumNodeArrival 520ms var(--ease-bounce) both;
+  animation-delay: var(--quantum-bloom-delay, 0ms);
+}
+@keyframes quantumNodeArrival {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(.16); filter: saturate(.55) brightness(1.35); }
+  64% { opacity: 1; transform: translate(-50%, -50%) scale(1.07); filter: saturate(1.15) brightness(1.12); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: saturate(1) brightness(1); }
+}
+
+/* V28 Aurora Glass: layered midnight-blue, not a flat black slab. */
+#ai-quick-note-form,
+#ai-todo-panel,
+#ai-clock-panel,
+#ai-calc-panel,
+#ai-search-panel,
+.orbit-inline-form {
+  background:
+    radial-gradient(ellipse 95% 74% at 8% -12%, rgba(125, 211, 252, .16), transparent 53%),
+    radial-gradient(ellipse 72% 66% at 106% 106%, rgba(129, 140, 248, .13), transparent 58%),
+    linear-gradient(145deg, rgba(20, 34, 55, .97), rgba(7, 15, 30, .98)) !important;
+  border-color: rgba(186, 230, 253, .38) !important;
+  box-shadow:
+    0 24px 65px rgba(2, 6, 23, .50),
+    0 1px 0 rgba(255,255,255,.15) inset,
+    0 0 0 1px rgba(15, 23, 42, .35) !important;
+  overflow: hidden;
+}
+#ai-quick-note-form::after,
+#ai-todo-panel::after,
+#ai-calc-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,.13), transparent 28%, transparent 72%, rgba(125,211,252,.07));
+  opacity: .72;
+}
+#ai-quick-note-form.active,
+#ai-todo-panel.active,
+#ai-clock-panel.active,
+#ai-calc-panel.active,
+#ai-search-panel.active,
+.orbit-inline-form.active {
+  animation: quantumPanelArrival 420ms var(--ease-premium) both;
+}
+@keyframes quantumPanelArrival {
+  0% { opacity: 0; transform: translateY(14px) scale(.94); }
+  68% { opacity: 1; transform: translateY(-2px) scale(1.012); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.orbit-hub,
+.orbit-hub::before,
+.orbit-hub::after,
+#ai-search-toggle,
+#ai-note-toggle,
+#ai-all-toggle,
+#ai-collapse-toggle,
+#ai-undo-toggle,
+#ai-todo-toggle,
+#ai-calc-hub-toggle,
+#ai-clock-toggle {
+  will-change: transform, opacity;
+}
+
+/* The seed keeps its living quality without repainting a blurred box-shadow per frame. */
+.orbit-hub.hub-collapsed {
+  animation: quantumSeedFloat 4.8s var(--ease-premium) infinite !important;
+}
+.orbit-hub.hub-collapsed::before {
+  animation: quantumOrbit 9s linear infinite !important;
+}
+@keyframes quantumSeedFloat {
+  0%, 100% { opacity: .88; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+/* One icon language: 1.9px rounded Lucide-style strokes, optically centered. */
+#ai-note-toggle svg,
+#ai-all-toggle svg,
+#ai-collapse-toggle svg {
+  width: 8px;
+  height: 8px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+#ai-collapse-toggle svg { stroke: #082f49; }
+
+/* Keyboard users receive the same clear affordance as pointer users. */
+.orbit-root [role="button"]:focus-visible,
+.orbit-root button:focus-visible,
+#ai-search-toggle:focus-visible,
+#ai-note-toggle:focus-visible,
+#ai-all-toggle:focus-visible,
+#ai-collapse-toggle:focus-visible,
+#ai-undo-toggle:focus-visible,
+#ai-todo-toggle:focus-visible,
+#ai-calc-hub-toggle:focus-visible,
+#ai-clock-toggle:focus-visible {
+  outline: 2px solid #f8fafc;
+  outline-offset: 3px;
+}
+
+/* Preserve the compact desktop constellation but make touch targets viable. */
+@media (pointer: coarse) {
+  #ai-search-toggle, #ai-note-toggle, #ai-all-toggle, #ai-collapse-toggle,
+  #ai-undo-toggle, #ai-todo-toggle, #ai-calc-hub-toggle, #ai-clock-toggle {
+    width: 22px;
+    height: 22px;
+  }
+  #ai-note-toggle svg, #ai-all-toggle svg, #ai-collapse-toggle svg,
+  #ai-todo-toggle svg, #ai-calc-hub-toggle svg, #ai-clock-toggle svg,
+  #ai-search-toggle svg, #ai-undo-toggle svg { width: 13px; height: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-hub.hub-collapsed,
+  .orbit-hub.hub-collapsed::before,
+  .orbit-root.quantum-blooming .ai-quantum-bloom,
+  .orbit-root.quantum-blooming .ai-quantum-bloom i,
+  .orbit-root.quantum-blooming.open .ai-node,
+  #ai-quick-note-form.active,
+  #ai-todo-panel.active,
+  #ai-clock-panel.active,
+  #ai-calc-panel.active,
+  #ai-search-panel.active,
+  .orbit-inline-form.active { animation: none !important; }
+  .orbit-hub,
+  .orbit-hub::before,
+  .orbit-hub::after { will-change: auto; }
 }
 
 .orbit-root.initial-reveal #ai-search-toggle,
@@ -3759,3 +3980,478 @@ body.rtl .ai-note-history-menu,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* V29 Control guidance: one optical scale for every tooltip and one clear hover response. */
+.ai-constellation-icon,
+#ai-search-toggle .ai-constellation-icon,
+#ai-todo-toggle .ai-constellation-icon,
+#ai-clock-toggle .ai-constellation-icon,
+#ai-calc-hub-toggle .ai-constellation-icon {
+  width: 32px;
+  height: 32px;
+}
+.ai-constellation-icon svg,
+#ai-search-toggle .ai-constellation-icon svg,
+#ai-todo-toggle .ai-constellation-icon svg,
+#ai-clock-toggle .ai-constellation-icon svg,
+#ai-calc-hub-toggle .ai-constellation-icon svg {
+  width: 30px;
+  height: 30px;
+}
+/* Undo is intentionally quieter: it is contextual recovery, not a primary destination. */
+#ai-undo-toggle .ai-constellation-icon { width: 28px; height: 28px; }
+#ai-undo-toggle .ai-constellation-icon svg { width: 26px; height: 26px; }
+.ai-constellation-label {
+  max-width: 118px;
+  padding: 3px 6px;
+  font-size: 9px;
+  line-height: 1.2;
+  border: 1px solid rgba(148, 163, 184, .28);
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .34);
+}
+
+/* Restore a perceptible, restrained response when a user targets an action particle. */
+#ai-note-toggle:hover, #ai-all-toggle:hover, #ai-clock-toggle:hover, #ai-calc-hub-toggle:hover {
+  transform: scale(1.18) !important;
+}
+#ai-todo-toggle:hover, #ai-search-toggle:hover {
+  transform: translateY(-50%) scale(1.18) !important;
+}
+#ai-collapse-toggle:hover, #ai-undo-toggle:hover {
+  transform: translateX(-50%) scale(1.16) !important;
+}
+#ai-note-toggle:hover, #ai-all-toggle:hover, #ai-clock-toggle:hover, #ai-calc-hub-toggle:hover,
+#ai-todo-toggle:hover, #ai-search-toggle:hover, #ai-collapse-toggle:hover, #ai-undo-toggle:hover {
+  z-index: 220;
+}
+@media (prefers-reduced-motion: reduce) {
+  #ai-note-toggle:hover, #ai-all-toggle:hover, #ai-clock-toggle:hover, #ai-calc-hub-toggle:hover { transform: none !important; }
+  #ai-todo-toggle:hover, #ai-search-toggle:hover { transform: translateY(-50%) !important; }
+  #ai-collapse-toggle:hover, #ai-undo-toggle:hover { transform: translateX(-50%) !important; }
+}
+
+/* Clock positioning is calculated live in JS; never let a decorative keyframe own its transform. */
+#ai-clock-panel.active {
+  animation: none !important;
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+/* The special-days drawer is a sibling layer of the clock content, so it must not be clipped. */
+#ai-clock-panel { overflow: visible !important; }
+
+/* Clear calendar-plus affordance: it reads as "add/mark a day", not an ambiguous pin. */
+#ai-clock-marks-toggle {
+  top: 9px;
+  right: 9px;
+  width: 30px;
+  height: 28px;
+  border-radius: 9px;
+  border: 1px solid rgba(125, 211, 252, .32);
+  background: linear-gradient(145deg, rgba(30, 58, 96, .72), rgba(14, 27, 48, .90));
+  color: #bae6fd;
+  opacity: 1;
+  box-shadow: 0 3px 10px rgba(2, 6, 23, .38), inset 0 1px 0 rgba(255,255,255,.12);
+  transition: transform 180ms var(--ease-bounce), background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+#ai-clock-marks-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#ai-clock-marks-toggle .ai-marks-plus {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 11px;
+  height: 11px;
+  border: 1px solid rgba(254, 243, 199, .9);
+  border-radius: 50%;
+  background: #f59e0b;
+  color: #fff;
+  font: 800 10px/1 var(--font-ui);
+  box-shadow: 0 2px 6px rgba(245,158,11,.45);
+}
+#ai-clock-marks-toggle:hover,
+#ai-clock-marks-toggle:focus-visible {
+  transform: translateY(-1px) scale(1.08);
+  border-color: rgba(186, 230, 253, .75);
+  background: linear-gradient(145deg, rgba(49, 95, 148, .88), rgba(18, 40, 69, .96));
+  box-shadow: 0 6px 16px rgba(2, 6, 23, .42), 0 0 14px rgba(125,211,252,.22);
+  outline: none;
+}
+#ai-clock-marks-toggle.is-open {
+  background: linear-gradient(145deg, rgba(180, 112, 10, .94), rgba(120, 60, 7, .96));
+  border-color: rgba(253, 230, 138, .88);
+  color: #fef3c7;
+  box-shadow: 0 0 0 3px rgba(245,158,11,.14), 0 6px 16px rgba(2,6,23,.42);
+}
+
+/* V30 Northern Seasons — readable calendar first, seasonal art second. */
+#ai-clock-panel[data-season] {
+  --season-ink: #e0f2fe;
+  --season-soft: rgba(224, 242, 254, .72);
+  --season-line: rgba(186, 230, 253, .36);
+  --season-today: #7dd3fc;
+  --season-today-bg: rgba(56, 189, 248, .18);
+}
+#ai-clock-panel[data-season="spring"] {
+  --season-ink: #d1fae5; --season-soft: rgba(209,250,229,.76); --season-line: rgba(110,231,183,.40);
+  --season-today: #6ee7b7; --season-today-bg: rgba(16,185,129,.18);
+  background: radial-gradient(circle at 13% 5%, rgba(110,231,183,.26), transparent 36%), radial-gradient(circle at 91% 88%, rgba(251,191,36,.12), transparent 38%), linear-gradient(145deg, #113a37, #081d28 72%) !important;
+}
+#ai-clock-panel[data-season="summer"] {
+  --season-ink: #fef3c7; --season-soft: rgba(254,243,199,.78); --season-line: rgba(253,230,138,.40);
+  --season-today: #fbbf24; --season-today-bg: rgba(245,158,11,.19);
+  background: radial-gradient(circle at 14% 5%, rgba(251,191,36,.28), transparent 35%), radial-gradient(circle at 91% 92%, rgba(56,189,248,.15), transparent 42%), linear-gradient(145deg, #24334a, #0d1d35 72%) !important;
+}
+#ai-clock-panel[data-season="autumn"] {
+  --season-ink: #ffedd5; --season-soft: rgba(255,237,213,.78); --season-line: rgba(251,146,60,.42);
+  --season-today: #fb923c; --season-today-bg: rgba(234,88,12,.20);
+  background: radial-gradient(circle at 14% 6%, rgba(251,146,60,.28), transparent 37%), radial-gradient(circle at 94% 94%, rgba(190,24,93,.14), transparent 43%), linear-gradient(145deg, #40251e, #1d1220 72%) !important;
+}
+#ai-clock-panel[data-season="winter"] {
+  --season-ink: #e0f2fe; --season-soft: rgba(224,242,254,.78); --season-line: rgba(125,211,252,.40);
+  --season-today: #7dd3fc; --season-today-bg: rgba(14,165,233,.20);
+  background: radial-gradient(circle at 13% 4%, rgba(125,211,252,.23), transparent 36%), radial-gradient(circle at 90% 88%, rgba(129,140,248,.17), transparent 42%), linear-gradient(145deg, #132b4b, #090f25 72%) !important;
+}
+/* Fine grain is static and clipped to the card: artistic depth without a paint loop. */
+#ai-clock-panel[data-season] .ai-clock-halo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--season-line) 0 1px, transparent 1.4px);
+  background-size: 23px 23px;
+  opacity: .16;
+  pointer-events: none;
+}
+#ai-clock-panel[data-season] .ai-clock-kicker,
+#ai-clock-panel[data-season] .ai-clock-date-en { color: var(--season-soft); }
+#ai-clock-panel[data-season] .ai-clock-kicker span:first-child,
+#ai-clock-panel[data-season] .ai-clock-kicker span:last-child { background: linear-gradient(90deg, transparent, var(--season-line), transparent); }
+#ai-clock-panel[data-season] .ai-clock-time { color: var(--season-ink); text-shadow: 0 0 14px var(--season-line); }
+#ai-clock-panel[data-season] .ai-clock-date-fa { color: var(--season-ink); }
+#ai-clock-panel[data-season] .ai-clock-marks-panel { border-color: var(--season-line); }
+#ai-clock-panel[data-season] .day-cell:not(.empty):hover { background: var(--season-today-bg); }
+#ai-clock-panel[data-season] .day-cell.is-today { border-color: var(--season-today); background: var(--season-today-bg); box-shadow: 0 0 0 1px var(--season-line), 0 0 12px var(--season-line); }
+#ai-clock-panel[data-season] .day-cell.is-today .primary-day { color: var(--season-ink); }
+#ai-clock-panel[data-season] #ai-dual-month-label { color: var(--season-ink); }
+#ai-clock-panel[data-season] .ai-dual-wd { color: var(--season-soft); }
+
+/* The event drawer starts with context, so three calendars teach the season instead of floating on black. */
+.ai-season-context {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 9px;
+  padding: 10px 11px 9px;
+  border: 1px solid var(--season-line, rgba(186,230,253,.28));
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.11);
+}
+.ai-season-context::after {
+  content: "";
+  position: absolute;
+  width: 78px;
+  height: 78px;
+  right: -33px;
+  top: -43px;
+  border: 1px solid var(--season-line, rgba(186,230,253,.28));
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px rgba(255,255,255,.025), 0 0 0 21px rgba(255,255,255,.018);
+  pointer-events: none;
+}
+.ai-season-context-head { display: flex; align-items: center; gap: 6px; position: relative; z-index: 1; }
+.ai-season-context-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--season-today, #7dd3fc); box-shadow: 0 0 10px var(--season-line, rgba(125,211,252,.5)); }
+.ai-season-context strong { color: var(--season-ink, #e0f2fe); font-size: 13px; letter-spacing: .01em; }
+#ai-season-hemisphere { color: var(--season-soft, rgba(224,242,254,.7)); font-size: 8.5px; font-weight: 700; }
+.ai-season-range { position: relative; z-index: 1; margin-top: 5px; color: var(--season-ink, #e0f2fe); font-size: 10.5px; font-weight: 650; direction: ltr; }
+.ai-season-lesson { position: relative; z-index: 1; margin: 5px 0 0; color: var(--season-soft, rgba(224,242,254,.7)); font-size: 9.5px; line-height: 1.45; }
+body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-season-range { direction: rtl; }
+
+/* Seasonal ring: empty means closed; the softly filled core means the event drawer is open. */
+#ai-clock-marks-toggle {
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--season-line, rgba(125,211,252,.42));
+  border-radius: 50%;
+  background: rgba(2, 6, 23, .32);
+  color: var(--season-ink, #bae6fd);
+  box-shadow: 0 0 0 3px rgba(2,6,23,.20), inset 0 1px 0 rgba(255,255,255,.13);
+}
+#ai-clock-marks-toggle::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--season-today, #7dd3fc);
+  opacity: 0;
+  transform: scale(.42);
+  transition: opacity 220ms ease, transform 280ms var(--ease-bounce);
+}
+#ai-clock-marks-toggle svg, #ai-clock-marks-toggle .ai-marks-plus { position: relative; z-index: 1; }
+#ai-clock-marks-toggle.is-open {
+  border-color: var(--season-ink, #e0f2fe);
+  color: #071525;
+  background: rgba(2, 6, 23, .30);
+  box-shadow: 0 0 0 4px rgba(2,6,23,.20), 0 0 16px var(--season-line, rgba(125,211,252,.42));
+}
+#ai-clock-marks-toggle.is-open::before { opacity: .92; transform: scale(1); }
+
+/* The event calendar is an external neon page-tab, deliberately outside the clock surface. */
+#ai-clock-marks-toggle {
+  top: 50%;
+  right: -25px;
+  width: 38px;
+  height: 38px;
+  transform: translateY(-50%);
+  border-width: 1px;
+  border-color: var(--season-line, rgba(125,211,252,.50));
+  background: radial-gradient(circle at 32% 27%, rgba(255,255,255,.26), transparent 24%), rgba(8, 18, 36, .94);
+  box-shadow: 0 0 0 3px rgba(2,6,23,.34), 0 0 14px var(--season-line, rgba(125,211,252,.28)), inset 0 1px 0 rgba(255,255,255,.16);
+  z-index: 35;
+}
+#ai-clock-panel.marks-open-left #ai-clock-marks-toggle { left: -25px; right: auto; }
+#ai-clock-marks-toggle:hover,
+#ai-clock-marks-toggle:focus-visible { transform: translateY(-50%) scale(1.10); }
+#ai-clock-marks-toggle.is-open { transform: translateY(-50%) scale(1.04); }
+#ai-clock-marks-toggle::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  right: 3px;
+  top: 3px;
+  border-top: 1px solid var(--season-ink, #e0f2fe);
+  border-right: 1px solid var(--season-ink, #e0f2fe);
+  opacity: .55;
+  transform: rotate(45deg) scale(.66);
+  transition: transform 260ms var(--ease-bounce), opacity 180ms ease;
+}
+#ai-clock-marks-toggle.is-open::after { opacity: 1; transform: rotate(45deg) scale(1); }
+
+/* The external drawer presents itself as the second page of a small calendar book. */
+.ai-clock-marks-panel.active {
+  display: block;
+  transform-origin: left center;
+  animation: calendarPageFold 430ms cubic-bezier(.16, 1, .3, 1) both;
+}
+.ai-clock-marks-panel.side-left.active { transform-origin: right center; animation-name: calendarPageFoldLeft; }
+.ai-clock-marks-panel.active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 22px;
+  height: 22px;
+  background: linear-gradient(135deg, rgba(255,255,255,.20), rgba(255,255,255,0) 52%);
+  clip-path: polygon(0 0, 100% 100%, 100% 0);
+  pointer-events: none;
+  opacity: .7;
+}
+.ai-clock-marks-panel.side-left.active::before { left: 0; right: auto; transform: scaleX(-1); }
+@keyframes calendarPageFold {
+  0% { opacity: 0; transform: perspective(680px) rotateY(-56deg) translateX(-12px) scale(.96); clip-path: inset(0 96% 0 0); }
+  58% { opacity: 1; transform: perspective(680px) rotateY(5deg) translateX(0) scale(1.01); clip-path: inset(0 0 0 0); }
+  100% { opacity: 1; transform: perspective(680px) rotateY(0) translateX(0) scale(1); clip-path: inset(0); }
+}
+@keyframes calendarPageFoldLeft {
+  0% { opacity: 0; transform: perspective(680px) rotateY(56deg) translateX(12px) scale(.96); clip-path: inset(0 0 0 96%); }
+  58% { opacity: 1; transform: perspective(680px) rotateY(-5deg) translateX(0) scale(1.01); clip-path: inset(0); }
+  100% { opacity: 1; transform: perspective(680px) rotateY(0) translateX(0) scale(1); clip-path: inset(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-clock-marks-panel.active, .ai-clock-marks-panel.side-left.active { animation: none; }
+}
+
+/* ==========================================================================
+   V31 — Minimal neon marks toggle · spaced page-2 · event sheet ABOVE clock
+   ========================================================================== */
+
+.ai-mark-dot-popup { display: none !important; }
+
+.ai-mark-dot.is-active {
+  background: rgba(251, 191, 36, 0.5) !important;
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5) !important;
+  color: #fff !important;
+}
+
+/* Minimal neon disc — empty inside, no icon, no plus, no inner ring */
+#ai-clock-marks-toggle {
+  position: absolute !important;
+  top: 50% !important;
+  right: -20px !important;
+  left: auto !important;
+  width: 18px !important;
+  height: 18px !important;
+  transform: translateY(-50%) !important;
+  border-radius: 50% !important;
+  border: 1.5px solid rgba(125, 211, 252, 0.65) !important;
+  background: rgba(8, 18, 36, 0.35) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.3),
+    0 0 10px rgba(56, 189, 248, 0.28) !important;
+  z-index: 40 !important;
+  overflow: hidden !important;
+  transition: transform 180ms var(--ease-bounce), border-color 180ms ease, box-shadow 180ms ease, background 180ms ease !important;
+}
+#ai-clock-panel.marks-open-left #ai-clock-marks-toggle {
+  left: -20px !important;
+  right: auto !important;
+}
+/* Force-hide every possible inner glyph from older cascades */
+#ai-clock-marks-toggle > *,
+#ai-clock-marks-toggle svg,
+#ai-clock-marks-toggle .ai-marks-plus,
+#ai-clock-marks-toggle .ai-marks-ring {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}
+#ai-clock-marks-toggle::before,
+#ai-clock-marks-toggle::after {
+  content: none !important;
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  border: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+#ai-clock-marks-toggle:hover,
+#ai-clock-marks-toggle:focus-visible {
+  transform: translateY(-50%) scale(1.18) !important;
+  border-color: rgba(186, 230, 253, 0.95) !important;
+  background: rgba(14, 30, 55, 0.5) !important;
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.3),
+    0 0 14px rgba(56, 189, 248, 0.45) !important;
+  outline: none !important;
+}
+#ai-clock-marks-toggle.is-open {
+  border-color: rgba(251, 191, 36, 0.9) !important;
+  background: rgba(251, 191, 36, 0.18) !important;
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.3),
+    0 0 14px rgba(251, 191, 36, 0.45) !important;
+}
+
+/* Page-2 panel: keep original dark glass graphics; only widen the gap from the opener */
+.ai-clock-marks-panel {
+  left: calc(100% + 28px) !important;
+  right: auto;
+}
+.ai-clock-marks-panel.side-left {
+  left: auto !important;
+  right: calc(100% + 28px) !important;
+}
+
+/* Event sheet ABOVE calendar — paper like Rumi quote */
+.ai-mark-event-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 6px;
+  z-index: 30;
+  text-align: center;
+  user-select: none;
+  pointer-events: none;
+}
+.ai-mark-event-sheet:not(.is-collapsed) {
+  pointer-events: auto;
+}
+.ai-mark-event-tab {
+  display: none;
+  width: 100%;
+  margin: 0;
+  padding: 3px 10px 4px;
+  border: none;
+  border-radius: 0 0 12px 12px;
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0.06));
+  border-bottom: 1px solid rgba(251, 191, 36, 0.2);
+  color: rgba(253, 230, 138, 0.9);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.ai-mark-event-sheet:not(.is-collapsed) .ai-mark-event-tab {
+  display: flex;
+}
+.ai-mark-event-tab:hover {
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.28), rgba(251, 191, 36, 0.1));
+  color: #fef3c7;
+}
+.ai-mark-event-tab-label { font-size: 13px; line-height: 1; }
+.ai-mark-event-tab-chevron { font-size: 8px; opacity: 0.75; }
+.ai-mark-event-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition:
+    grid-template-rows 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.32s ease;
+}
+.ai-mark-event-sheet.is-collapsed .ai-mark-event-body {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+}
+.ai-mark-event-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.ai-mark-event-paper {
+  position: relative;
+  background-color: #fdfaf3;
+  background-image:
+    radial-gradient(rgba(0, 0, 0, 0.035) 1px, transparent 0),
+    radial-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 0);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.18)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.08));
+  padding: 12px 16px 14px;
+  border-radius: 12px 12px 4px 4px;
+  border: 1px solid rgba(202, 164, 92, 0.28);
+}
+.ai-mark-event-badge {
+  font-size: 18px;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+.ai-mark-event-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.45;
+  margin-bottom: 4px;
+  direction: auto;
+}
+.ai-mark-event-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(124, 90, 23, 0.8);
+  letter-spacing: 0.15px;
+}
+
+#ai-clock-panel { overflow: visible !important; }

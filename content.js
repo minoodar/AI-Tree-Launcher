@@ -785,12 +785,21 @@
 
   const root = document.createElement('div'); root.id = 'ai-orbit-root';
   const hub = document.createElement('div'); hub.id = 'ai-orbit-hub'; hub.innerHTML = mainAIIcon();
+  const quantumBloom = document.createElement('div'); quantumBloom.className = 'ai-quantum-bloom'; quantumBloom.setAttribute('aria-hidden', 'true');
+  quantumBloom.innerHTML = '<i></i><i></i><i></i><i></i>';
   
   const todoToggleDot = document.createElement('div'); todoToggleDot.id = 'ai-todo-toggle'; todoToggleDot.innerHTML = `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>`; hub.appendChild(todoToggleDot);
   const searchToggleDot = document.createElement('div'); searchToggleDot.id = 'ai-search-toggle'; searchToggleDot.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`; hub.appendChild(searchToggleDot);
-  const noteToggleDot = document.createElement('div'); noteToggleDot.id = 'ai-note-toggle'; noteToggleDot.innerHTML = `<span class="ai-toggle-glyph">✦</span>`; hub.appendChild(noteToggleDot);
-  const allToggleDot = document.createElement('div'); allToggleDot.id = 'ai-all-toggle'; allToggleDot.innerHTML = `<span class="ai-toggle-glyph">❂</span>`; hub.appendChild(allToggleDot);
-  const collapseToggleDot = document.createElement('div'); collapseToggleDot.id = 'ai-collapse-toggle'; collapseToggleDot.innerHTML = `<span class="ai-toggle-glyph">◉</span>`; hub.appendChild(collapseToggleDot);
+  // Consistent 24px Lucide-style SVGs keep the action particles legible at any zoom.
+  // Inline paths avoid a network dependency and are MIT-compatible icon geometry.
+  const noteToggleDot = document.createElement('div'); noteToggleDot.id = 'ai-note-toggle'; noteToggleDot.setAttribute('role', 'button'); noteToggleDot.tabIndex = 0; noteToggleDot.setAttribute('aria-label', 'Quick note'); noteToggleDot.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>`; hub.appendChild(noteToggleDot);
+  const allToggleDot = document.createElement('div'); allToggleDot.id = 'ai-all-toggle'; allToggleDot.setAttribute('role', 'button'); allToggleDot.tabIndex = 0; allToggleDot.setAttribute('aria-label', 'Show all'); allToggleDot.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>`; hub.appendChild(allToggleDot);
+  const collapseToggleDot = document.createElement('div'); collapseToggleDot.id = 'ai-collapse-toggle'; collapseToggleDot.setAttribute('role', 'button'); collapseToggleDot.tabIndex = 0; collapseToggleDot.setAttribute('aria-label', 'Collapse launcher'); collapseToggleDot.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`; hub.appendChild(collapseToggleDot);
+  [noteToggleDot, allToggleDot, collapseToggleDot].forEach((control) => {
+    control.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); control.click(); }
+    });
+  });
   const calcToggleDot = document.createElement('div'); calcToggleDot.id = 'ai-calc-hub-toggle'; calcToggleDot.innerHTML = `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><line x1="8" y1="10" x2="16" y2="10"></line><line x1="8" y1="14" x2="16" y2="14"></line><line x1="8" y1="18" x2="16" y2="18"></line></svg>`; hub.appendChild(calcToggleDot);
   const clockToggleDot = document.createElement('div'); clockToggleDot.id = 'ai-clock-toggle'; clockToggleDot.innerHTML = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`; hub.appendChild(clockToggleDot);
   const undoToggleDot = document.createElement('div'); undoToggleDot.id = 'ai-undo-toggle';
@@ -930,13 +939,33 @@
   const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-panel';
   clockPanel.innerHTML = `
     <div class="ai-clock-halo"></div>
+    <div class="ai-mark-event-sheet is-collapsed" id="ai-mark-event-sheet">
+      <div class="ai-mark-event-body" id="ai-mark-event-body">
+        <div class="ai-mark-event-inner">
+          <div class="ai-mark-event-paper">
+            <div class="ai-mark-event-badge" id="ai-mark-event-badge"></div>
+            <div class="ai-mark-event-text" id="ai-mark-event-text"></div>
+            <div class="ai-mark-event-meta" id="ai-mark-event-meta"></div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="ai-mark-event-tab" id="ai-mark-event-tab" title="Event">
+        <span class="ai-mark-event-tab-label" id="ai-mark-event-tab-label">📌</span>
+        <span class="ai-mark-event-tab-chevron">▲</span>
+      </button>
+    </div>
     <div class="ai-clock-kicker"><span></span><span id="ai-clock-kicker-text">اکنون</span><span></span></div>
     <div class="ai-clock-time" id="ai-time">--:--</div>
     <div class="ai-clock-date-fa" id="ai-date-fa">...</div>
     <div class="ai-clock-date-en" id="ai-date-en">...</div>
     <div class="ai-mark-dots-row" id="ai-mark-dots-row" style="display:none;"></div>
-    <button type="button" class="ai-clock-marks-toggle-btn" id="ai-clock-marks-toggle">📌</button>
+    <button type="button" class="ai-clock-marks-toggle-btn" id="ai-clock-marks-toggle" aria-label="Special days" aria-expanded="false"></button>
     <div class="ai-clock-marks-panel" id="ai-clock-marks-panel">
+      <section class="ai-season-context" aria-live="polite">
+        <div class="ai-season-context-head"><span class="ai-season-context-dot" aria-hidden="true"></span><strong id="ai-season-name"></strong><span id="ai-season-hemisphere"></span></div>
+        <div class="ai-season-range" id="ai-season-range"></div>
+        <p class="ai-season-lesson" id="ai-season-lesson"></p>
+      </section>
       <ul class="ai-clock-marks-list" id="ai-clock-marks-list"></ul>
       <div class="ai-clock-marks-form">
         <input type="text" id="ai-mark-label-input" dir="auto" />
@@ -1043,6 +1072,7 @@
     <span class="ai-star-edit" data-value="5">★</span>`;
 
   root.classList.add('orbit-root'); hub.classList.add('orbit-hub');
+  root.appendChild(quantumBloom);
   addNodeBtn.classList.add('orbit-add-node'); inlineForm.classList.add('orbit-inline-form');
   starEditorPopup.classList.add('orbit-star-editor');
 
@@ -1147,6 +1177,11 @@
     markGoldenCb: clockPanel.querySelector('#ai-mark-golden-cb'),
     markGoldenRow: clockPanel.querySelector('#ai-mark-golden-row'),
     markGoldenLabel: clockPanel.querySelector('#ai-mark-golden-label'),
+    markEventSheet: clockPanel.querySelector('#ai-mark-event-sheet'),
+    markEventTab: clockPanel.querySelector('#ai-mark-event-tab'),
+    markEventBadge: clockPanel.querySelector('#ai-mark-event-badge'),
+    markEventText: clockPanel.querySelector('#ai-mark-event-text'),
+    markEventMeta: clockPanel.querySelector('#ai-mark-event-meta'),
     clockQuote: clockPanel.querySelector('#ai-clock-quote'),
     clockQuoteTab: clockPanel.querySelector('#ai-rumi-tab'),
     clockQuoteChevron: clockPanel.querySelector('#ai-rumi-tab-chevron'),
@@ -1337,6 +1372,7 @@
     uiEls.todoWhenTomorrow.textContent = t('todoWhenTomorrow');
 
     uiEls.markToggle.title = t('markToggleTitle');
+    uiEls.markToggle.setAttribute('aria-label', t('markToggleTitle'));
     uiEls.markLabelInput.placeholder = t('markAddPlaceholder');
     uiEls.markAddBtn.textContent = t('markAddBtn');
     if (uiEls.markGoldenRow) uiEls.markGoldenRow.title = t('markGoldenTitle');
@@ -1372,6 +1408,35 @@
   function updateClockAge() {
       const timeEl = document.getElementById('ai-time'); if (!timeEl) return; 
       const now = new Date();
+      // Northern hemisphere is the default audience. This is a visual theme only;
+      // dates and calendar calculations remain locale-accurate.
+      const monthDay = (now.getMonth() + 1) * 100 + now.getDate();
+      const season = monthDay >= 321 && monthDay <= 620 ? 'spring'
+        : monthDay <= 922 ? 'summer' : monthDay <= 1220 ? 'autumn' : 'winter';
+      const seasonCopy = currentLang === 'fa'
+        ? {
+            spring: ['بهار', 'نیم‌کرهٔ شمالی', '۱ فروردین تا ۳۱ خرداد · تقریباً 21 Mar–20 Jun', 'بهار در نیم‌کرهٔ شمالی از حوالی ۲۱ مارس آغاز می‌شود.'],
+            summer: ['تابستان', 'نیم‌کرهٔ شمالی', '۱ تیر تا ۳۱ شهریور · تقریباً 21 Jun–22 Sep', 'تابستان تا حوالی ۲۲ سپتامبر ادامه دارد.'],
+            autumn: ['پاییز', 'نیم‌کرهٔ شمالی', '۱ مهر تا ۳۰ آذر · تقریباً 23 Sep–20 Dec', 'پاییز از حوالی ۲۳ سپتامبر آغاز می‌شود.'],
+            winter: ['زمستان', 'نیم‌کرهٔ شمالی', '۱ دی تا پایان اسفند · تقریباً 21 Dec–20 Mar', 'زمستان از حوالی ۲۱ دسامبر آغاز می‌شود.']
+          }
+        : {
+            spring: ['Spring', 'Northern Hemisphere', '21 Mar–20 Jun · Farvardin–Khordad', 'Spring begins around 21 March in the Northern Hemisphere.'],
+            summer: ['Summer', 'Northern Hemisphere', '21 Jun–22 Sep · Tir–Shahrivar', 'Summer lasts until around 22 September.'],
+            autumn: ['Autumn', 'Northern Hemisphere', '23 Sep–20 Dec · Mehr–Azar', 'Autumn begins around 23 September.'],
+            winter: ['Winter', 'Northern Hemisphere', '21 Dec–20 Mar · Dey–Esfand', 'Winter begins around 21 December.']
+          };
+      const copy = seasonCopy[season];
+      if (clockPanel.dataset.season !== season || clockPanel.dataset.seasonLang !== currentLang) {
+        clockPanel.dataset.season = season;
+        clockPanel.dataset.seasonLang = currentLang;
+        const [nameEl, hemisphereEl, rangeEl, lessonEl] = ['ai-season-name', 'ai-season-hemisphere', 'ai-season-range', 'ai-season-lesson']
+          .map(id => clockPanel.querySelector('#' + id));
+        if (nameEl) nameEl.textContent = copy[0];
+        if (hemisphereEl) hemisphereEl.textContent = copy[1];
+        if (rangeEl) rangeEl.textContent = copy[2];
+        if (lessonEl) lessonEl.textContent = copy[3];
+      }
       timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute:'2-digit', hour12: false });
       const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       const primaryDateEl = document.getElementById('ai-date-fa');   
@@ -1529,13 +1594,43 @@
     return true;
   }
 
+  function openMarkEventSheet(m) {
+    if (!uiEls.markEventSheet || !m) return;
+    const dd = String(m.day).padStart(2, '0');
+    const mm = String(m.month).padStart(2, '0');
+    const isJ = m.cal === 'j' || m.cal === 'jalali';
+    const dateStr = (isJ && currentLang === 'fa') ? toPersianDigits(`${dd}/${mm}`) : `${dd}/${mm}`;
+    const calHint = isJ ? (currentLang === 'fa' ? 'شمسی' : 'Jalali') : (currentLang === 'fa' ? 'میلادی' : 'Gregorian');
+    if (uiEls.markEventBadge) {
+      uiEls.markEventBadge.textContent = m.days === 0 ? '🎉' : (m.golden ? '★' : '📌');
+    }
+    if (uiEls.markEventText) uiEls.markEventText.textContent = m.label;
+    if (uiEls.markEventMeta) {
+      uiEls.markEventMeta.textContent = m.days === 0
+        ? (currentLang === 'fa' ? `امروز · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
+        : (currentLang === 'fa'
+            ? `${m.days} روز مانده · ${dateStr} · ${calHint}`
+            : `in ${m.days}d · ${dateStr} · ${calHint}`);
+    }
+    uiEls.markEventSheet.classList.remove('is-collapsed');
+  }
+
+  function closeMarkEventSheet() {
+    if (!uiEls.markEventSheet) return;
+    uiEls.markEventSheet.classList.add('is-collapsed');
+    if (uiEls.markDotsRow) {
+      uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
+    }
+  }
+
   function renderMarkedDays() {
     pruneExpiredMarkedDays();
     if (!uiEls.markDotsRow) return;
-    // ردیف بالای ساعت: تا ۳ مناسبت نزدیک (امروز یا آینده)، هر کدوم یه تاگل دایره‌ای
+    // تا ۵ مناسبت نزدیک — کلیک → کشوی کاغذی بالای تقویم
     uiEls.markDotsRow.innerHTML = '';
     if (markedDays.length === 0) {
       uiEls.markDotsRow.style.display = 'none';
+      closeMarkEventSheet();
     } else {
       const nearestMarks = markedDays
         .map(m => ({ ...m, days: daysUntilNext(m.day, m.month, m.cal) }))
@@ -1547,18 +1642,20 @@
         const dot = document.createElement('button'); dot.type = 'button';
         dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? ' is-golden' : '');
         dot.textContent = String(idx + 1);
-        const popup = document.createElement('div'); popup.className = 'ai-mark-dot-popup';
-        popup.textContent = m.days === 0
-          ? t('markTodayLine').replace('{label}', m.label)
-          : t('markUpcomingLine').replace('{label}', m.label).replace('{days}', m.days);
+        dot.title = m.label;
         dot.addEventListener('mousedown', (e) => e.stopPropagation());
         dot.addEventListener('click', (e) => {
           e.stopPropagation();
-          const wasActive = popup.classList.contains('active');
-          uiEls.markDotsRow.querySelectorAll('.ai-mark-dot-popup.active').forEach(p => p.classList.remove('active'));
-          if (!wasActive) popup.classList.add('active');
+          const already = dot.classList.contains('is-active');
+          uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
+          if (already) {
+            closeMarkEventSheet();
+          } else {
+            dot.classList.add('is-active');
+            openMarkEventSheet(m);
+          }
         });
-        wrap.appendChild(dot); wrap.appendChild(popup);
+        wrap.appendChild(dot);
         uiEls.markDotsRow.appendChild(wrap);
       });
       uiEls.markDotsRow.style.display = 'flex';
@@ -1597,7 +1694,7 @@
   function positionMarksPanelSide() {
     if (!uiEls.markPanel || !uiEls.markPanel.classList.contains('active')) return;
     const rect = clockPanel.getBoundingClientRect();
-    const panelW = (uiEls.markPanel.offsetWidth || 244) + 2; // marks panel actual width + tiny gap
+    const panelW = (uiEls.markPanel.offsetWidth || 320) + 36; // gap so opener toggle never collides with page-2
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const spaceRight = vw - rect.right;
@@ -1617,6 +1714,7 @@
     }
 
     uiEls.markPanel.classList.toggle('side-left', openLeft);
+    clockPanel.classList.toggle('marks-open-left', openLeft);
 
     // Vertical clamp: the panel defaults to top-aligned with the clock (CSS top:0), but if the
     // clock sits low/high on screen the (now taller) panel can run off the viewport — shift it
@@ -1634,13 +1732,22 @@
     uiEls.markPanel.classList.toggle('active');
     const isOpen = uiEls.markPanel.classList.contains('active');
     uiEls.markToggle.classList.toggle('is-open', isOpen);
+    uiEls.markToggle.setAttribute('aria-expanded', String(isOpen));
     if (!isOpen) {
       closeDualPicker();
       uiEls.markPanel.classList.remove('side-left');
+      clockPanel.classList.remove('marks-open-left');
     } else {
       positionMarksPanelSide();
     }
   });
+
+  if (uiEls.markEventTab) {
+    uiEls.markEventTab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeMarkEventSheet();
+    });
+  }
 
   // --- Smart Dual-Calendar: single omni-input + NLP + dual grid picker ---
   let smartDateISO = ''; // hidden canonical YYYY-MM-DD (Gregorian)
@@ -3322,6 +3429,8 @@
         if (uiEls.markPanel) {
           uiEls.markPanel.classList.remove('active', 'side-left');
           if (uiEls.markToggle) uiEls.markToggle.classList.remove('is-open');
+          if (uiEls.markToggle) uiEls.markToggle.setAttribute('aria-expanded', 'false');
+          clockPanel.classList.remove('marks-open-left');
         }
         if (typeof closeDualPicker === 'function') { try { closeDualPicker(); } catch (_) {} }
         if (typeof collapseRumiQuote === 'function') collapseRumiQuote();
@@ -6230,9 +6339,22 @@
     bookmarkCountEl.classList.toggle('visible', !!showAllOverride);
   }
 
+  // A short, compositor-friendly "seed blooming" signature whenever the orbit opens.
+  function triggerQuantumBloom() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    root.querySelectorAll('.ai-node').forEach((node, index) => {
+      node.style.setProperty('--quantum-bloom-delay', `${Math.min(index, 10) * 46}ms`);
+    });
+    root.classList.remove('quantum-blooming');
+    void root.offsetWidth; // restart the one-shot animation without a timer race
+    root.classList.add('quantum-blooming');
+    clearTimeout(triggerQuantumBloom.timeout);
+    triggerQuantumBloom.timeout = setTimeout(() => root.classList.remove('quantum-blooming'), 780);
+  }
+
   allToggleDot.addEventListener('click', (e) => {
     if (!chrome.runtime?.id) return; e.stopPropagation(); 
-    if (showAllOverride) { closeTree(); } else { closeAllPanelsExcept(''); isOpen = true; showAllOverride = true; root.classList.add('open', 'show-all-active'); setHubLabel(t('hubAll')); renderSpiral(); updateBookmarkCount(); resetToggleTimeout(); }
+    if (showAllOverride) { closeTree(); } else { closeAllPanelsExcept(''); isOpen = true; showAllOverride = true; root.classList.add('open', 'show-all-active'); setHubLabel(t('hubAll')); renderSpiral(); triggerQuantumBloom(); updateBookmarkCount(); resetToggleTimeout(); }
   });
   
   function cycleLayer() { 
@@ -6798,12 +6920,12 @@
   hub.addEventListener('click', (e) => {
     e.stopPropagation(); 
     if (quickAddFired) { quickAddFired = false; return; } 
-    if (hub.classList.contains('hub-collapsed')) { hub.classList.remove('hub-collapsed'); resetAutoCollapseTimer(); return; }
+    if (hub.classList.contains('hub-collapsed')) { hub.classList.remove('hub-collapsed'); triggerQuantumBloom(); resetAutoCollapseTimer(); return; }
     if (dragMoved) { dragMoved = false; return; } 
     if (uiToggles.includes(e.target.id)) return;
     if (e.detail === 1) {
       clickTimeout = setTimeout(() => {
-        if (!isOpen) { closeAllPanelsExcept(''); isOpen = true; currentLayerMode = 0; root.classList.add('open'); renderSpiral(); } 
+        if (!isOpen) { closeAllPanelsExcept(''); isOpen = true; currentLayerMode = 0; root.classList.add('open'); renderSpiral(); triggerQuantumBloom(); } 
         else { cycleLayer(); }
         resetToggleTimeout(); resetAutoCollapseTimer(); 
       }, 220); 
