@@ -3008,14 +3008,18 @@
   function syncUndoToggleVisual() {
     try {
       const ttlActive = !!(pendingUndoState && pendingUndoState.type && pendingUndoState.type !== 'text');
-      const noteActive = (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
+      // Gate multi-step notepad history the same way as the click handler so a
+      // stale aiTreeNotepadHistory never leaves the Recover button stuck gold
+      // and unable to soft-relaunch the launcher.
+      const noteActive = (typeof canUseNotepadMultiStepUndo === 'function')
+        ? canUseNotepadMultiStepUndo()
+        : (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
       const legacyText = !!(pendingUndoState && pendingUndoState.type === 'text');
       if (ttlActive || noteActive || legacyText) {
         root.classList.remove('hide-toggles');
         undoToggleDot.classList.add('active-undo');
-      } else if (!ttlActive) {
-        // Keep active-undo only when something is actually recoverable.
-        if (!noteActive && !legacyText) undoToggleDot.classList.remove('active-undo');
+      } else {
+        undoToggleDot.classList.remove('active-undo');
       }
     } catch (err) {}
   }
@@ -3291,24 +3295,68 @@
     lifecycle.relaunchSilently(opts && opts.reason ? opts.reason : 'reviveLauncher', { silent });
   }
 
+  function canUseNotepadMultiStepUndo() {
+      // Only claim the Recover button for multi-step notepad history while the
+      // notepad is actually in play. Stale storage history must NOT block soft relaunch.
+      try {
+        if (typeof notepadUndo === 'undefined' || !notepadUndo || !notepadUndo.canUndo()) return false;
+        const noteOpen = !!(quickNoteForm && quickNoteForm.classList.contains('active'));
+        const hasLiveText = !!(noteTextarea && noteTextarea.value && noteTextarea.value.trim() !== '');
+        return noteOpen || hasLiveText;
+      } catch (err) {
+        return false;
+      }
+  }
+
+  function restoreClearedNote(textState) {
+      if (typeof endNoteEditSession === 'function') endNoteEditSession();
+      const restoredText = typeof textState === 'string' ? textState : (textState && textState.value) || '';
+      if (noteTextarea) {
+        noteTextarea.value = restoredText;
+        if (typeof textState === 'object' && textState) {
+          if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
+          if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
+          const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length);
+          const caretEnd = Math.min(textState.selectionEnd ?? caret, restoredText.length);
+          try { noteTextarea.focus(); noteTextarea.setSelectionRange(caret, caretEnd); } catch (err) {}
+        } else {
+          try { noteTextarea.focus(); } catch (err) {}
+        }
+      }
+      quickNoteForm.classList.add('active');
+      root.classList.add('show-notepad');
+      if (typeof abortNoteClosing === 'function') abortNoteClosing();
+      if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+      if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+      if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+      else if (typeof adjustNotepadPosition === 'function') adjustNotepadPosition();
+      showToastNotification(t('toastRestored'));
+  }
+
   undoToggleDot.addEventListener('click', (e) => {
       e.stopPropagation();
       // Hybrid priority:
-      //  1) TTL-backed bookmark / todo / storage recovery (existing 10s behaviour)
-      //  2) Multi-step notepad undo (zero-TTL, survives for the session)
-      //  3) Idle → soft relaunch
+      //  1) TTL-backed bookmark / todo / storage / note-clear recovery
+      //  2) Multi-step notepad undo only while notepad is active or has live text
+      //  3) Idle → soft relaunch (must stay reachable)
       const undoneType = pendingUndoState && pendingUndoState.type;
-      const hasTtlUndo = undoneType === 'bookmark' || undoneType === 'storage' || undoneType === 'todo';
-      const hasNoteUndo = (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
+      const hasTtlUndo = undoneType === 'bookmark' || undoneType === 'storage' || undoneType === 'todo' || undoneType === 'note-clear';
+      const hasNoteUndo = canUseNotepadMultiStepUndo();
       const hasLegacyText = undoneType === 'text';
 
       if (!hasTtlUndo && !hasNoteUndo && !hasLegacyText) {
-        lifecycle.relaunchSilently('undo_idle_click', { silent: false });
+        try {
+          lifecycle.relaunchSilently('undo_idle_click', { silent: false });
+        } catch (err) {
+          try { reviveLauncher({ reason: 'undo_idle_click_fallback' }); } catch (e) {}
+        }
         return;
       }
 
       if (hasTtlUndo) {
-        if (undoneType === 'bookmark' || undoneType === 'storage') {
+        if (undoneType === 'note-clear') {
+          restoreClearedNote(pendingUndoState.data);
+        } else if (undoneType === 'bookmark' || undoneType === 'storage') {
           let linkToRestore = pendingUndoState.data; let targetHub = pendingUndoState.hub;
           if (!linkToRestore) {
             chrome.storage.sync.get(['lastDeletedLink'], (res) => {
@@ -3339,30 +3387,13 @@
 
       // Notepad multi-step (preferred) or legacy single text snapshot
       if (hasNoteUndo) {
-        notepadUndo.undo();
+        try { notepadUndo.undo(); } catch (err) {}
         return;
       }
       if (hasLegacyText) {
-        if (typeof endNoteEditSession === 'function') endNoteEditSession();
-        const textState = pendingUndoState.data;
-        const restoredText = typeof textState === 'string' ? textState : (textState && textState.value) || '';
-        if (noteTextarea) {
-          noteTextarea.value = restoredText;
-          if (typeof textState === 'object' && textState) {
-            if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
-            if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
-            const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length);
-            const caretEnd = Math.min(textState.selectionEnd ?? caret, restoredText.length);
-            noteTextarea.focus();
-            try { noteTextarea.setSelectionRange(caret, caretEnd); } catch (err) {}
-          }
-        }
-        quickNoteForm.classList.add('active'); root.classList.add('show-notepad');
-        if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
-        if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
-        adjustNotepadPosition();
-        showToastNotification(t('toastRestored'));
+        restoreClearedNote(pendingUndoState.data);
         pendingUndoState = { type: null, data: null, hub: 1 };
+        clearTimeout(globalUndoTimeout);
         syncUndoToggleVisual();
       }
   });
@@ -4280,7 +4311,6 @@
         try { this.ta.focus(); this.ta.setSelectionRange(a, b); } catch (err) {}
         quickNoteForm.classList.add('active');
         root.classList.add('show-notepad');
-        // Restoring text means the user is back in the note — kill close countdown/idle.
         if (typeof abortNoteClosing === 'function') abortNoteClosing();
         if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
         if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
@@ -5134,6 +5164,13 @@
 
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
+    const clearSnap = (hadText && noteTextarea) ? {
+      value: noteTextarea.value,
+      selectionStart: noteTextarea.selectionStart || 0,
+      selectionEnd: noteTextarea.selectionEnd || 0,
+      prevWidth: quickNoteForm.style.width || '',
+      prevHeight: quickNoteForm.style.height || ''
+    } : null;
     endNoteEditSession();
     // If currently split/docked, undock immediately — Clear/Close means "done with this
     // note", not "stay pinned to the edge". Drop the split state/classes first so the
@@ -5148,27 +5185,14 @@
       );
       if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
     }
-    // Snapshot the note BEFORE wiping so Clear is recoverable via the global Undo toggle
-    // (and Ctrl/Cmd+Z). Do NOT call notepadUndo.clear() — that used to make recovery impossible.
-    if (hadText) {
-      try {
-        if (notepadUndo) {
-          notepadUndo.forceBoundary();
-          notepadUndo.endSession();
-        } else if (noteTextarea) {
-          setUndoState('text', {
-            value: noteTextarea.value,
-            selectionStart: noteTextarea.selectionStart || 0,
-            selectionEnd: noteTextarea.selectionEnd || 0,
-            prevWidth: quickNoteForm.style.width || '',
-            prevHeight: quickNoteForm.style.height || ''
-          });
-        }
-      } catch (err) {}
+    // Drop multi-step typing history so it cannot hijack Recover / soft relaunch.
+    // Cleared text is recovered via a TTL-backed 'note-clear' pendingUndoState instead.
+    if (notepadUndo) {
+      try { notepadUndo.clear(); } catch (err) {}
     }
     try {
       if (chrome.runtime?.id) {
-        // Clear only the live draft; keep aiTreeNotepadHistory so Undo can restore the text.
+        chrome.storage.local.remove(['aiTreeNotepadHistory']);
         chrome.storage.local.set({ savedPromptDraft: '' });
       }
     } catch (e) {}
@@ -5182,12 +5206,20 @@
     if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
     adjustNotepadPosition();
     resetToggleTimeout();
-    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+    // TTL recovery window for Clear (same Recover button as bookmarks/todos).
+    // After expiry, Recover returns to soft-relaunch duty.
+    if (clearSnap) {
+      setUndoState('note-clear', clearSnap, currentHubIndex, 20000);
+    } else {
+      if (pendingUndoState && (pendingUndoState.type === 'text' || pendingUndoState.type === 'note-clear')) {
+        pendingUndoState = { type: null, data: null, hub: 1 };
+      }
+      if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+    }
     if (notify && hadText) showToastNotification(t('toastCleared'));
     isNotePinned = false;
     if (typeof applyPinVisual === 'function') applyPinVisual(false);
-    // Stop idle + visual close timers — Clear must not start a collapse countdown.
-    // User can still close manually; Undo brings the text back with timers already aborted.
+    // Stop idle + visual close timers — do not start collapse countdown after Clear.
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
     else {
       if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
