@@ -4280,6 +4280,8 @@
         try { this.ta.focus(); this.ta.setSelectionRange(a, b); } catch (err) {}
         quickNoteForm.classList.add('active');
         root.classList.add('show-notepad');
+        // Restoring text means the user is back in the note — kill close countdown/idle.
+        if (typeof abortNoteClosing === 'function') abortNoteClosing();
         if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
         if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
         if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
@@ -5146,18 +5148,27 @@
       );
       if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
     }
-    // Explicit Clear/Close: permanently discard notepad undo/redo memory.
-    // User intent is "done with this note" — no silent restore from old history.
-    if (notepadUndo) {
-      try { notepadUndo.clear(); } catch (err) {}
-    }
-    // Drop any legacy single-shot text undo so the global toggle won't revive text either.
-    if (pendingUndoState && pendingUndoState.type === 'text') {
-      pendingUndoState = { type: null, data: null, hub: 1 };
+    // Snapshot the note BEFORE wiping so Clear is recoverable via the global Undo toggle
+    // (and Ctrl/Cmd+Z). Do NOT call notepadUndo.clear() — that used to make recovery impossible.
+    if (hadText) {
+      try {
+        if (notepadUndo) {
+          notepadUndo.forceBoundary();
+          notepadUndo.endSession();
+        } else if (noteTextarea) {
+          setUndoState('text', {
+            value: noteTextarea.value,
+            selectionStart: noteTextarea.selectionStart || 0,
+            selectionEnd: noteTextarea.selectionEnd || 0,
+            prevWidth: quickNoteForm.style.width || '',
+            prevHeight: quickNoteForm.style.height || ''
+          });
+        }
+      } catch (err) {}
     }
     try {
       if (chrome.runtime?.id) {
-        chrome.storage.local.remove(['aiTreeNotepadHistory']);
+        // Clear only the live draft; keep aiTreeNotepadHistory so Undo can restore the text.
         chrome.storage.local.set({ savedPromptDraft: '' });
       }
     } catch (e) {}
@@ -5174,8 +5185,14 @@
     if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
     if (notify && hadText) showToastNotification(t('toastCleared'));
     isNotePinned = false;
-    if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
-    if (typeof startCollapseCountdown === 'function') startCollapseCountdown();
+    if (typeof applyPinVisual === 'function') applyPinVisual(false);
+    // Stop idle + visual close timers — Clear must not start a collapse countdown.
+    // User can still close manually; Undo brings the text back with timers already aborted.
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    else {
+      if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
+      if (typeof stopCollapseCountdown === 'function') stopCollapseCountdown();
+    }
     return hadText;
   }
   if (uiEls.extractDocBtn) {
