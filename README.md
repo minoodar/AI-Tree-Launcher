@@ -1,8 +1,8 @@
-# 🌌 AI Tree Launcher (V31.0)
+# 🌌 AI Tree Launcher (V31.8)
 > **Floating Orbital Workspace, 4-Ring Galactic Vault & Anydoc LLM Studio**
 
 ![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
-![License: MIT](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)
+![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
 > **[فارسی (Persian Guide) ↓](#--ai-tree-launcher-v310--راهنمای-فارسی)**
@@ -87,8 +87,22 @@ A progressive, self-healing extension for Chromium-based browsers that replaces 
 
 ## 📜 License & Attribution
 
-This project is open-source and released under the **[MIT License](https://opensource.org/licenses/MIT)**.
-You are free to copy, modify, and distribute this code for personal, educational, or commercial projects, provided that the original copyright and license notice are preserved.
+This project is open-source and released under the **[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)**.
+You are free to use, modify, and distribute this code for personal, educational, or commercial projects, provided that you comply with the terms of the license — including preserving copyright and license notices and stating significant changes made to the code.
+
+```
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
 
 **Third-Party Acknowledgments:**
 
@@ -186,7 +200,22 @@ You are free to copy, modify, and distribute this code for personal, educational
 
 ## 📜 لایسنس و ارجاعات (License & Attribution)
 
-این پروژه تحت لایسنس **[MIT](https://opensource.org/licenses/MIT)** منتشر شده است.
+این پروژه تحت لایسنس **[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)** منتشر شده است.
+استفاده، تغییر و توزیع این کد برای پروژه‌های شخصی، آموزشی یا تجاری آزاد است، به شرط رعایت مفاد این لایسنس — از جمله حفظ اعلامیه‌های کپی‌رایت و لایسنس و ذکر تغییرات مهمی که در کد اعمال می‌کنید.
+
+```
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
 
 **تقدیر و ارجاع به پروژه‌های متن‌باز:**
 
