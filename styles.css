@@ -2262,17 +2262,6 @@ transition: opacity 0.18s var(--ease-premium), transform 0.18s var(--ease-premiu
 }
 .ai-mark-dot-popup.active { opacity: 1; pointer-events: auto; transform: translate(-50%, 0); }
 
-#ai-clock-marks-toggle {
-position: absolute; top: 8px; right: 8px; width: 19px; height: 19px; border-radius: 50%;
-border: none; background: rgba(255,255,255,0.08); font-size: 9.5px; cursor: pointer;
-display: flex; align-items: center; justify-content: center; opacity: .65; transition: 0.2s;
-z-index: 6;
-}
-#ai-clock-marks-toggle:hover { opacity: 1; background: rgba(251, 191, 36, 0.22); transform: scale(1.12); }
-#ai-clock-marks-toggle.is-open {
-opacity: 1; background: rgba(251, 191, 36, 0.35); box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
-}
-
 /* پنل مناسبت‌ها: کنار کادر ساعت (چپ/راست) باز می‌شود، نه بالا/پایین */
 .ai-clock-marks-panel {
 display: none;
@@ -3232,6 +3221,40 @@ body.rtl .ai-note-history-menu,
   transform: scale(1.18);
 }
 /* Online vault — independent */
+/* Inline translate (format bar) */
+.ai-translate-btn {
+  width: auto !important;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px !important;
+  font-size: 13px;
+  line-height: 1;
+  background: rgba(167, 139, 250, 0.14) !important;
+  border: 1px solid rgba(167, 139, 250, 0.34) !important;
+  color: #C4B5FD;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
+}
+.ai-translate-btn:hover {
+  background: rgba(167, 139, 250, 0.28) !important;
+  border-color: rgba(196, 181, 253, 0.55) !important;
+  color: #EDE9FE;
+  filter: none;
+}
+.ai-translate-btn:active { transform: scale(0.96); }
+.ai-translate-btn:focus-visible {
+  outline: 2px solid rgba(196, 181, 253, 0.85);
+  outline-offset: 2px;
+}
+.ai-translate-btn.is-busy,
+.ai-translate-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+#ai-note-translate-btn { order: 6; }
+#ai-note-extract-doc-btn { order: 7; }
+
 .ai-emoji-online-btn {
   flex: 0 0 auto;
   background: rgba(56, 189, 248, 0.12);
@@ -4042,59 +4065,6 @@ body.rtl .ai-note-history-menu,
 /* The special-days drawer is a sibling layer of the clock content, so it must not be clipped. */
 #ai-clock-panel { overflow: visible !important; }
 
-/* Clear calendar-plus affordance: it reads as "add/mark a day", not an ambiguous pin. */
-#ai-clock-marks-toggle {
-  top: 9px;
-  right: 9px;
-  width: 30px;
-  height: 28px;
-  border-radius: 9px;
-  border: 1px solid rgba(125, 211, 252, .32);
-  background: linear-gradient(145deg, rgba(30, 58, 96, .72), rgba(14, 27, 48, .90));
-  color: #bae6fd;
-  opacity: 1;
-  box-shadow: 0 3px 10px rgba(2, 6, 23, .38), inset 0 1px 0 rgba(255,255,255,.12);
-  transition: transform 180ms var(--ease-bounce), background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-}
-#ai-clock-marks-toggle svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.85;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-#ai-clock-marks-toggle .ai-marks-plus {
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  display: grid;
-  place-items: center;
-  width: 11px;
-  height: 11px;
-  border: 1px solid rgba(254, 243, 199, .9);
-  border-radius: 50%;
-  background: #f59e0b;
-  color: #fff;
-  font: 800 10px/1 var(--font-ui);
-  box-shadow: 0 2px 6px rgba(245,158,11,.45);
-}
-#ai-clock-marks-toggle:hover,
-#ai-clock-marks-toggle:focus-visible {
-  transform: translateY(-1px) scale(1.08);
-  border-color: rgba(186, 230, 253, .75);
-  background: linear-gradient(145deg, rgba(49, 95, 148, .88), rgba(18, 40, 69, .96));
-  box-shadow: 0 6px 16px rgba(2, 6, 23, .42), 0 0 14px rgba(125,211,252,.22);
-  outline: none;
-}
-#ai-clock-marks-toggle.is-open {
-  background: linear-gradient(145deg, rgba(180, 112, 10, .94), rgba(120, 60, 7, .96));
-  border-color: rgba(253, 230, 138, .88);
-  color: #fef3c7;
-  box-shadow: 0 0 0 3px rgba(245,158,11,.14), 0 6px 16px rgba(2,6,23,.42);
-}
-
 /* V30 Northern Seasons — readable calendar first, seasonal art second. */
 #ai-clock-panel[data-season] {
   --season-ink: #e0f2fe;
@@ -4177,67 +4147,6 @@ body.rtl .ai-note-history-menu,
 .ai-season-lesson { position: relative; z-index: 1; margin: 5px 0 0; color: var(--season-soft, rgba(224,242,254,.7)); font-size: 9.5px; line-height: 1.45; }
 body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-season-range { direction: rtl; }
 
-/* Seasonal ring: empty means closed; the softly filled core means the event drawer is open. */
-#ai-clock-marks-toggle {
-  width: 36px;
-  height: 36px;
-  border: 2px solid var(--season-line, rgba(125,211,252,.42));
-  border-radius: 50%;
-  background: rgba(2, 6, 23, .32);
-  color: var(--season-ink, #bae6fd);
-  box-shadow: 0 0 0 3px rgba(2,6,23,.20), inset 0 1px 0 rgba(255,255,255,.13);
-}
-#ai-clock-marks-toggle::before {
-  content: "";
-  position: absolute;
-  inset: 3px;
-  border-radius: 50%;
-  background: var(--season-today, #7dd3fc);
-  opacity: 0;
-  transform: scale(.42);
-  transition: opacity 220ms ease, transform 280ms var(--ease-bounce);
-}
-#ai-clock-marks-toggle svg, #ai-clock-marks-toggle .ai-marks-plus { position: relative; z-index: 1; }
-#ai-clock-marks-toggle.is-open {
-  border-color: var(--season-ink, #e0f2fe);
-  color: #071525;
-  background: rgba(2, 6, 23, .30);
-  box-shadow: 0 0 0 4px rgba(2,6,23,.20), 0 0 16px var(--season-line, rgba(125,211,252,.42));
-}
-#ai-clock-marks-toggle.is-open::before { opacity: .92; transform: scale(1); }
-
-/* The event calendar is an external neon page-tab, deliberately outside the clock surface. */
-#ai-clock-marks-toggle {
-  top: 50%;
-  right: -25px;
-  width: 38px;
-  height: 38px;
-  transform: translateY(-50%);
-  border-width: 1px;
-  border-color: var(--season-line, rgba(125,211,252,.50));
-  background: radial-gradient(circle at 32% 27%, rgba(255,255,255,.26), transparent 24%), rgba(8, 18, 36, .94);
-  box-shadow: 0 0 0 3px rgba(2,6,23,.34), 0 0 14px var(--season-line, rgba(125,211,252,.28)), inset 0 1px 0 rgba(255,255,255,.16);
-  z-index: 35;
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle { left: -25px; right: auto; }
-#ai-clock-marks-toggle:hover,
-#ai-clock-marks-toggle:focus-visible { transform: translateY(-50%) scale(1.10); }
-#ai-clock-marks-toggle.is-open { transform: translateY(-50%) scale(1.04); }
-#ai-clock-marks-toggle::after {
-  content: "";
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  right: 3px;
-  top: 3px;
-  border-top: 1px solid var(--season-ink, #e0f2fe);
-  border-right: 1px solid var(--season-ink, #e0f2fe);
-  opacity: .55;
-  transform: rotate(45deg) scale(.66);
-  transition: transform 260ms var(--ease-bounce), opacity 180ms ease;
-}
-#ai-clock-marks-toggle.is-open::after { opacity: 1; transform: rotate(45deg) scale(1); }
-
 /* The external drawer presents itself as the second page of a small calendar book. */
 .ai-clock-marks-panel.active {
   display: block;
@@ -4274,83 +4183,99 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 
 /* ==========================================================================
    V31 — Minimal neon marks toggle · spaced page-2 · event sheet ABOVE clock
+   Consolidated: this used to be 3 stacked generations of rules (a 36px
+   "seasonal ring", then a 38px "page-tab", then this !important override
+   on top of both). The two dead generations were removed above, so this
+   is now the single source of truth — no !important needed anywhere.
    ========================================================================== */
 
-.ai-mark-dot-popup { display: none !important; }
+.ai-mark-dot-popup { display: none; }
 
 .ai-mark-dot.is-active {
-  background: rgba(251, 191, 36, 0.5) !important;
-  border-color: #fbbf24 !important;
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5) !important;
-  color: #fff !important;
+  background: rgba(251, 191, 36, 0.5);
+  border-color: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+  color: #fff;
 }
 
-/* Minimal neon disc — empty inside, no icon, no plus, no inner ring */
+/* Neon orb — empty inside, no icon, no plus, no inner ring.
+   Radial highlight gives it glass depth instead of a flat tinted disc;
+   a slow idle "breathe" on the glow makes it read as tappable without
+   needing a label or icon. */
 #ai-clock-marks-toggle {
-  position: absolute !important;
-  top: 50% !important;
-  right: -20px !important;
-  left: auto !important;
-  width: 18px !important;
-  height: 18px !important;
-  transform: translateY(-50%) !important;
-  border-radius: 50% !important;
-  border: 1.5px solid rgba(125, 211, 252, 0.65) !important;
-  background: rgba(8, 18, 36, 0.35) !important;
-  color: transparent !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  opacity: 1 !important;
+  position: absolute;
+  top: 50%;
+  right: -20px;
+  left: auto;
+  width: 20px;
+  height: 20px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  border: 1.5px solid rgba(125, 211, 252, 0.65);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,.30), transparent 55%),
+    rgba(8, 18, 36, 0.45);
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+  overflow: hidden;
+  z-index: 40;
+  cursor: pointer;
   box-shadow:
     0 0 0 2px rgba(2, 6, 23, 0.3),
-    0 0 10px rgba(56, 189, 248, 0.28) !important;
-  z-index: 40 !important;
-  overflow: hidden !important;
-  transition: transform 180ms var(--ease-bounce), border-color 180ms ease, box-shadow 180ms ease, background 180ms ease !important;
+    0 0 10px rgba(56, 189, 248, 0.28);
+  animation: aiMarksToggleBreathe 3.6s ease-in-out infinite;
+  transition: transform 180ms var(--ease-bounce), border-color 180ms ease,
+    box-shadow 180ms ease, background 180ms ease;
 }
 #ai-clock-panel.marks-open-left #ai-clock-marks-toggle {
-  left: -20px !important;
-  right: auto !important;
+  left: -20px;
+  right: auto;
 }
-/* Force-hide every possible inner glyph from older cascades */
+/* Hide any inner glyph a future markup change might add — keeps the orb pure */
 #ai-clock-marks-toggle > *,
 #ai-clock-marks-toggle svg,
 #ai-clock-marks-toggle .ai-marks-plus,
 #ai-clock-marks-toggle .ai-marks-ring {
-  display: none !important;
-  visibility: hidden !important;
-  width: 0 !important;
-  height: 0 !important;
-  opacity: 0 !important;
+  display: none;
 }
 #ai-clock-marks-toggle::before,
 #ai-clock-marks-toggle::after {
-  content: none !important;
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  border: none !important;
-  background: none !important;
-  box-shadow: none !important;
+  content: none;
 }
 #ai-clock-marks-toggle:hover,
 #ai-clock-marks-toggle:focus-visible {
-  transform: translateY(-50%) scale(1.18) !important;
-  border-color: rgba(186, 230, 253, 0.95) !important;
-  background: rgba(14, 30, 55, 0.5) !important;
+  animation-play-state: paused;
+  transform: translateY(-50%) scale(1.18);
+  border-color: rgba(186, 230, 253, 0.95);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,.38), transparent 55%),
+    rgba(14, 30, 55, 0.55);
   box-shadow:
     0 0 0 2px rgba(2, 6, 23, 0.3),
-    0 0 14px rgba(56, 189, 248, 0.45) !important;
-  outline: none !important;
+    0 0 14px rgba(56, 189, 248, 0.45);
+  outline: none;
 }
 #ai-clock-marks-toggle.is-open {
-  border-color: rgba(251, 191, 36, 0.9) !important;
-  background: rgba(251, 191, 36, 0.18) !important;
+  animation: none;
+  transform: translateY(-50%) scale(1.04);
+  border-color: rgba(251, 191, 36, 0.9);
+  background:
+    radial-gradient(circle at 32% 28%, rgba(255,255,255,.28), transparent 55%),
+    rgba(251, 191, 36, 0.18);
   box-shadow:
     0 0 0 2px rgba(2, 6, 23, 0.3),
-    0 0 14px rgba(251, 191, 36, 0.45) !important;
+    0 0 14px rgba(251, 191, 36, 0.45);
+}
+@keyframes aiMarksToggleBreathe {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(2,6,23,.3), 0 0 10px rgba(56,189,248,.28); }
+  50%      { box-shadow: 0 0 0 2px rgba(2,6,23,.3), 0 0 16px rgba(56,189,248,.5); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ai-clock-marks-toggle { animation: none; }
 }
 
 /* Page-2 panel: keep original dark glass graphics; only widen the gap from the opener */

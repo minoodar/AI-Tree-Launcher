@@ -5601,10 +5601,12 @@
   // نیاز به host_permissions برای CDN در manifest.json
   // ============================================================================
   const EMOJI_CDN_URLS = [
+    'https://cdn.jsdelivr.net/npm/@emoji-mart/data@1.2.1/sets/14/native.json',
+    'https://unpkg.com/@emoji-mart/data@1.2.1/sets/14/native.json',
     'https://cdn.jsdelivr.net/npm/unicode-emoji-json@0.8.0/data-by-group.json',
     'https://unpkg.com/unicode-emoji-json@0.8.0/data-by-group.json'
   ];
-  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v2';
+  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v3';
   const EMOJI_CACHE_MAX_ITEMS = 2500;
   let cachedOnlineEmojis = null; // [{ e, n }]
   let onlineEmojiLoadPromise = null;
@@ -5635,26 +5637,46 @@
   function flattenEmojiCdnData(data) {
     const out = [];
     const seen = new Set();
-    const pushItem = (emoji, name) => {
+    const pushItem = (emoji, primaryName, extraTags) => {
       if (!emoji || seen.has(emoji)) return;
       seen.add(emoji);
-      out.push({ e: emoji, n: String(name || '').toLowerCase() });
+      const primary = String(primaryName || '').trim();
+      const tags = Array.isArray(extraTags) ? extraTags.filter(Boolean).join(' ') : String(extraTags || '');
+      const blob = (primary + ' ' + tags).toLowerCase().replace(/\s+/g, ' ').trim();
+      out.push({ e: emoji, n: blob });
     };
+    // emoji-mart native.json: { emojis: { id: { name, keywords, skins:[{native}] } } }
+    if (data && data.emojis && typeof data.emojis === 'object' && !Array.isArray(data.emojis)) {
+      Object.keys(data.emojis).forEach((id) => {
+        const entry = data.emojis[id];
+        if (!entry || typeof entry !== 'object') return;
+        const native = (entry.skins && entry.skins[0] && (entry.skins[0].native || entry.skins[0].emoji))
+          || entry.native || entry.emoji || entry.char;
+        const keywords = [].concat(entry.keywords || [], entry.emoticons || [], id, entry.name || []);
+        pushItem(native, entry.name || id, keywords);
+      });
+      return out.slice(0, EMOJI_CACHE_MAX_ITEMS);
+    }
     const walkGroup = (group) => {
       if (!group) return;
-      const list = group.emojis || group.emoji || group;
+      const list = group.emojis || group.emoji || (Array.isArray(group) ? group : null);
       if (!Array.isArray(list)) return;
       list.forEach((item) => {
-        if (typeof item === 'string') pushItem(item, '');
+        if (typeof item === 'string') pushItem(item, '', '');
         else if (item && typeof item === 'object') {
-          pushItem(item.emoji || item.char || item.e, item.name || item.slug || item.n || '');
+          pushItem(item.emoji || item.char || item.e || item.native, item.name || item.slug || item.n || '', [].concat(item.slug || [], item.group || []));
         }
       });
     };
     if (Array.isArray(data)) {
       data.forEach(walkGroup);
     } else if (data && typeof data === 'object') {
-      Object.keys(data).forEach((k) => walkGroup(data[k]));
+      Object.keys(data).forEach((k) => {
+        const v = data[k];
+        if (v && typeof v === 'object' && (v.emoji || v.char || v.native) && !v.emojis) {
+          pushItem(v.emoji || v.char || v.native, v.description || v.name || k, [].concat(v.aliases || [], v.tags || [], k));
+        } else walkGroup(v);
+      });
     }
     return out.slice(0, EMOJI_CACHE_MAX_ITEMS);
   }
