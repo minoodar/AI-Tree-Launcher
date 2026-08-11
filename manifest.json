@@ -1,46 +1,58 @@
 {
-"manifest_version": 3,
-"name": "AI Tree Launcher",
-"version": "31.1",
-"description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, calculator, clock and to-do.",
-
-"permissions": [
-"storage",
-"tabs"
-],
-"host_permissions": [
-"<all_urls>"
-],
-
-"background": {
-"service_worker": "background.js"
-},
-
-"action": {
-"default_popup": "popup.html",
-"default_title": "AI Tree Launcher",
-"default_icon": {
-"16": "icons/icon16.png",
-"48": "icons/icon48.png",
-"128": "icons/icon128.png"
-}
-},
-
-"icons": {
-"16": "icons/icon16.png",
-"48": "icons/icon48.png",
-"128": "icons/icon128.png"
-},
-
-"content_scripts": [
-{
-"matches": ["<all_urls>"],
-"css": ["styles.css"],
-"js": ["content.js"],
-"run_at": "document_idle",
-"all_frames": false
-}
-],
-
-"minimum_chrome_version": "102"
+  "manifest_version": 3,
+  "name": "AI Tree Launcher",
+  "version": "31.2",
+  "description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, calculator, clock and to-do.",
+  "permissions": [
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "AI Tree Launcher",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "minimum_chrome_version": "102",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "notepad.html",
+        "notepad.js",
+        "icons/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

@@ -10,7 +10,14 @@ document.addEventListener('DOMContentLoaded', () => {
       toastLimit: 'Custom prompt limit reached (12)', toastNeedFields: 'Title and text are required',
       dockOpenedFilled: 'Opened {name} with your prompt', dockCopiedOpen: 'Copied — paste it into {name}',
       tplNew: 'New prompt', tplEdit: 'Edit prompt', tplNamePh: 'Title', tplBodyPh: 'Prompt text…',
-      tplAdd: 'Add prompt', tplEditMode: 'Edit prompts', tplDoneMode: 'Done editing'
+      tplAdd: 'Add prompt', tplEditMode: 'Edit prompts', tplDoneMode: 'Done editing',
+      translate: 'Translate', translateTitle: 'Translate note (FA ↔ EN, auto-detect)',
+      toastTranslated: 'Translated 🌐', toastTranslateFail: 'Translation failed',
+      toastTranslateBusy: 'Translating…', toastTranslateLong: 'Text is too long (max ~4500 chars)',
+      emojiOnline: 'Online vault', emojiOnlineTitle: 'Online emoji vault',
+      emojiOnlineSearch: 'Search… fire, heart, book',
+      emojiOnlineLoading: 'Loading vault…', emojiOnlineEmpty: 'No emoji found',
+      emojiOnlineError: 'Could not load online emojis'
     },
     fa: {
       title: 'دفترچه یادداشت', subtitle: 'به‌صورت زنده با ویجت AI Tree Launcher روی صفحات هماهنگ است',
@@ -22,7 +29,14 @@ document.addEventListener('DOMContentLoaded', () => {
       toastLimit: 'به سقف ۱۲ پرامپت سفارشی رسیدید', toastNeedFields: 'عنوان و متن هر دو لازم است',
       dockOpenedFilled: '{name} با پرامپت شما باز شد', dockCopiedOpen: 'کپی شد — در {name} پیست کنید',
       tplNew: 'پرامپت جدید', tplEdit: 'ویرایش پرامپت', tplNamePh: 'عنوان', tplBodyPh: 'متن پرامپت…',
-      tplAdd: 'افزودن پرامپت', tplEditMode: 'ویرایش پرامپت‌ها', tplDoneMode: 'پایان ویرایش'
+      tplAdd: 'افزودن پرامپت', tplEditMode: 'ویرایش پرامپت‌ها', tplDoneMode: 'پایان ویرایش',
+      translate: 'ترجمه', translateTitle: 'ترجمه یادداشت (خودکار فارسی ↔ انگلیسی)',
+      toastTranslated: 'ترجمه شد 🌐', toastTranslateFail: 'ترجمه ناموفق بود',
+      toastTranslateBusy: 'در حال ترجمه…', toastTranslateLong: 'متن خیلی بلند است (حداکثر حدود ۴۵۰۰ نویسه)',
+      emojiOnline: 'گنجینه آنلاین', emojiOnlineTitle: 'گنجینه آنلاین ایموجی',
+      emojiOnlineSearch: 'جستجو… آتش، قلب، کتاب',
+      emojiOnlineLoading: 'در حال بارگذاری…', emojiOnlineEmpty: 'ایموجی یافت نشد',
+      emojiOnlineError: 'بارگذاری آنلاین ناموفق بود'
     }
   };
   let lang = 'en';
@@ -53,6 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
     aiSelect: document.getElementById('ai-select'),
     sendBtn: document.getElementById('send-btn'),
     sendLabel: document.getElementById('send-label'),
+    translateBtn: document.getElementById('translate-btn'),
+    emojiOnlineBtn: document.getElementById('emoji-online-btn'),
+    emojiOnlineModal: document.getElementById('emoji-online-modal'),
+    emojiOnlineTitle: document.getElementById('emoji-online-title'),
+    emojiOnlineClose: document.getElementById('emoji-online-close'),
+    emojiOnlineSearch: document.getElementById('emoji-online-search'),
+    emojiOnlineGrid: document.getElementById('emoji-online-grid'),
     tplModal: document.getElementById('tpl-modal'),
     tplModalTitle: document.getElementById('tpl-modal-title'),
     tplModalName: document.getElementById('tpl-modal-name'),
@@ -72,6 +93,16 @@ document.addEventListener('DOMContentLoaded', () => {
     els.backLabel.textContent = t('back');
     els.promptsToggleLabel.textContent = t('prompts');
     els.sendLabel.textContent = t('send');
+    if (els.translateBtn) {
+      els.translateBtn.title = t('translateTitle');
+      els.translateBtn.setAttribute('aria-label', t('translateTitle'));
+    }
+    if (els.emojiOnlineBtn) {
+      els.emojiOnlineBtn.title = t('emojiOnline');
+      els.emojiOnlineBtn.setAttribute('aria-label', t('emojiOnline'));
+    }
+    if (els.emojiOnlineTitle) els.emojiOnlineTitle.textContent = t('emojiOnlineTitle');
+    if (els.emojiOnlineSearch) els.emojiOnlineSearch.placeholder = t('emojiOnlineSearch');
     updateTokenMeter();
     renderPrompts();
   }
@@ -383,6 +414,344 @@ document.addEventListener('DOMContentLoaded', () => {
       els.emojiPopover.classList.remove('open');
     }
   });
+
+  // ============================= Translate (background SW) =============================
+  let translateBusy = false;
+  function detectTranslateTarget(text) {
+    const fa = (text.match(/[\u0600-\u06FF]/g) || []).length;
+    const la = (text.match(/[A-Za-z]/g) || []).length;
+    if (fa > la) return 'en';
+    if (la > 0) return 'fa';
+    return lang === 'fa' ? 'en' : 'fa';
+  }
+  function requestTranslation(text, targetLang) {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!chrome.runtime || !chrome.runtime.id) {
+          reject(new Error('no_extension_runtime'));
+          return;
+        }
+        chrome.runtime.sendMessage(
+          { action: 'translateText', text: text, targetLang: targetLang },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message || 'no_receiver'));
+              return;
+            }
+            if (response && response.success && typeof response.text === 'string') resolve(response.text);
+            else reject(new Error((response && response.error) || 'translate_failed'));
+          }
+        );
+      } catch (err) { reject(err); }
+    });
+  }
+  async function runTranslate() {
+    if (translateBusy) return;
+    const textVal = (els.textarea.value || '').trim();
+    if (!textVal) { showToast(t('toastEmptyPrompt')); return; }
+    if (textVal.length > 4500) { showToast(t('toastTranslateLong')); return; }
+    const targetLang = detectTranslateTarget(textVal);
+    translateBusy = true;
+    if (els.translateBtn) {
+      els.translateBtn.classList.add('is-busy');
+      els.translateBtn.disabled = true;
+    }
+    showToast(t('toastTranslateBusy'));
+    try {
+      const translated = await requestTranslation(textVal, targetLang);
+      els.textarea.value = translated;
+      try {
+        const end = els.textarea.value.length;
+        els.textarea.setSelectionRange(end, end);
+        els.textarea.focus();
+      } catch (e) {}
+      updateTokenMeter();
+      saveDraftDebounced();
+      showToast(t('toastTranslated'));
+    } catch (err) {
+      console.warn('[notepad] translate failed:', err);
+      showToast(t('toastTranslateFail'));
+    } finally {
+      translateBusy = false;
+      if (els.translateBtn) {
+        els.translateBtn.classList.remove('is-busy');
+        els.translateBtn.disabled = false;
+      }
+    }
+  }
+  if (els.translateBtn) {
+    els.translateBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      runTranslate();
+    });
+  }
+
+  // ============================= Online emoji vault =============================
+  const EMOJI_CDN_URLS = [
+    'https://cdn.jsdelivr.net/npm/@emoji-mart/data@1.2.1/sets/14/native.json',
+    'https://unpkg.com/@emoji-mart/data@1.2.1/sets/14/native.json',
+    'https://cdn.jsdelivr.net/npm/unicode-emoji-json@0.8.0/data-by-group.json',
+    'https://unpkg.com/unicode-emoji-json@0.8.0/data-by-group.json'
+  ];
+  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v3';
+  const EMOJI_CACHE_MAX = 4000;
+  const EMOJI_FA_HINTS = {
+    'آتش': 'fire', 'شعله': 'fire', 'قلب': 'heart', 'عشق': 'heart',
+    'خنده': 'grin laugh', 'لبخند': 'smile', 'گریه': 'cry', 'کتاب': 'book',
+    'ستاره': 'star', 'ماه': 'moon', 'خورشید': 'sun', 'گل': 'flower',
+    'درخت': 'tree', 'ماشین': 'car', 'هواپیما': 'airplane', 'موشک': 'rocket',
+    'کامپیوتر': 'computer', 'تلفن': 'phone', 'موسیقی': 'music',
+    'غذا': 'food', 'قهوه': 'coffee', 'چای': 'tea', 'کیک': 'cake',
+    'ورزش': 'sport', 'فوتبال': 'soccer', 'برنده': 'trophy', 'هدیه': 'gift',
+    'تیک': 'check', 'خطا': 'cross', 'هشدار': 'warning', 'ایده': 'bulb',
+    'پین': 'pushpin', 'یادداشت': 'memo', 'چشم': 'eye', 'دست': 'hand',
+    'سلام': 'wave', 'تشویق': 'clap', 'آفرین': 'thumbs up', 'پول': 'money',
+    'خانه': 'house', 'سگ': 'dog', 'گربه': 'cat', 'جشن': 'party tada',
+    'تولد': 'birthday cake', 'ایران': 'flag'
+  };
+
+  let cachedOnlineEmojis = null;
+  let onlineEmojiPromise = null;
+
+  function normalizeEmojiQuery(raw) {
+    let q = String(raw || '').trim().toLowerCase();
+    if (!q) return '';
+    Object.keys(EMOJI_FA_HINTS).forEach((fa) => {
+      if (q.includes(fa)) q += ' ' + EMOJI_FA_HINTS[fa];
+    });
+    return q.replace(/\s+/g, ' ').trim();
+  }
+
+  function fuzzyTokenScore(hay, token) {
+    if (!token) return 1;
+    if (!hay) return 0;
+    if (hay === token) return 100;
+    if (hay.startsWith(token)) return 90;
+    const idx = hay.indexOf(token);
+    if (idx >= 0) return 70 - Math.min(idx, 40);
+    let hi = 0;
+    for (let ti = 0; ti < token.length; ti++) {
+      const ch = token.charCodeAt(ti);
+      let found = false;
+      while (hi < hay.length) {
+        if (hay.charCodeAt(hi++) === ch) { found = true; break; }
+      }
+      if (!found) return 0;
+    }
+    return 35;
+  }
+
+  function scoreEmojiItem(item, parts) {
+    if (!parts.length) return 1;
+    const primary = (item.p || '').toLowerCase();
+    const hay = (item.n || '').toLowerCase();
+    let total = 0;
+    for (let i = 0; i < parts.length; i++) {
+      const tok = parts[i];
+      const best = Math.max(
+        fuzzyTokenScore(primary, tok) * 1.6,
+        fuzzyTokenScore(hay, tok),
+        (item.e && item.e.includes(tok)) ? 50 : 0
+      );
+      if (best <= 0) return 0;
+      total += best;
+    }
+    return total;
+  }
+
+  function flattenEmojiCdnData(data) {
+    const out = [];
+    const seen = new Set();
+    const pushItem = (emoji, primaryName, extraTags) => {
+      if (!emoji || seen.has(emoji)) return;
+      seen.add(emoji);
+      const primary = String(primaryName || '').trim();
+      const tags = Array.isArray(extraTags) ? extraTags.filter(Boolean).join(' ') : String(extraTags || '');
+      const blob = (primary + ' ' + tags).toLowerCase().replace(/\s+/g, ' ').trim();
+      out.push({ e: emoji, n: blob, p: primary.toLowerCase() });
+    };
+    if (data && data.emojis && typeof data.emojis === 'object' && !Array.isArray(data.emojis)) {
+      Object.keys(data.emojis).forEach((id) => {
+        const entry = data.emojis[id];
+        if (!entry || typeof entry !== 'object') return;
+        const native = (entry.skins && entry.skins[0] && (entry.skins[0].native || entry.skins[0].emoji))
+          || entry.native || entry.emoji || entry.char;
+        const keywords = [].concat(entry.keywords || [], entry.emoticons || [], id, entry.name || []);
+        pushItem(native, entry.name || id, keywords);
+      });
+      return out.slice(0, EMOJI_CACHE_MAX);
+    }
+    const walkGroup = (group) => {
+      if (!group) return;
+      const list = group.emojis || group.emoji || (Array.isArray(group) ? group : null);
+      if (!Array.isArray(list)) return;
+      list.forEach((item) => {
+        if (typeof item === 'string') pushItem(item, '', '');
+        else if (item && typeof item === 'object') {
+          pushItem(item.emoji || item.char || item.e || item.native, item.name || item.slug || item.n || '', [].concat(item.slug || [], item.group || []));
+        }
+      });
+    };
+    if (Array.isArray(data)) data.forEach(walkGroup);
+    else if (data && typeof data === 'object') {
+      Object.keys(data).forEach((k) => {
+        const v = data[k];
+        if (v && typeof v === 'object' && (v.emoji || v.char || v.native) && !v.emojis) {
+          pushItem(v.emoji || v.char || v.native, v.description || v.name || k, [].concat(v.aliases || [], v.tags || [], k));
+        } else walkGroup(v);
+      });
+    }
+    return out.slice(0, EMOJI_CACHE_MAX);
+  }
+
+  function loadOnlineEmojisFromStorage() {
+    return new Promise((resolve) => {
+      try {
+        chrome.storage.local.get([EMOJI_CACHE_KEY], (res) => {
+          const pack = res && res[EMOJI_CACHE_KEY];
+          if (pack && Array.isArray(pack.items) && pack.items.length > 50) resolve(pack.items);
+          else resolve(null);
+        });
+      } catch (e) { resolve(null); }
+    });
+  }
+
+  function saveOnlineEmojisToStorage(items) {
+    try {
+      chrome.storage.local.set({ [EMOJI_CACHE_KEY]: { ts: Date.now(), items: items.slice(0, EMOJI_CACHE_MAX) } });
+    } catch (e) {}
+  }
+
+  async function fetchOnlineEmojis() {
+    if (cachedOnlineEmojis && cachedOnlineEmojis.length) return cachedOnlineEmojis;
+    if (onlineEmojiPromise) return onlineEmojiPromise;
+    onlineEmojiPromise = (async () => {
+      const fromStore = await loadOnlineEmojisFromStorage();
+      if (fromStore && fromStore.length) {
+        cachedOnlineEmojis = fromStore.map((it) => ({ e: it.e, n: it.n || '', p: it.p || (it.n ? String(it.n).split(' ')[0] : '') }));
+        return cachedOnlineEmojis;
+      }
+      let lastErr = null;
+      for (let i = 0; i < EMOJI_CDN_URLS.length; i++) {
+        try {
+          const res = await fetch(EMOJI_CDN_URLS[i], { credentials: 'omit', cache: 'force-cache' });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          const data = await res.json();
+          const flat = flattenEmojiCdnData(data);
+          if (flat.length < 20) throw new Error('empty catalog');
+          cachedOnlineEmojis = flat;
+          saveOnlineEmojisToStorage(flat);
+          return cachedOnlineEmojis;
+        } catch (err) { lastErr = err; }
+      }
+      console.warn('[notepad] online emoji fetch failed:', lastErr);
+      cachedOnlineEmojis = EMOJI_PICKER_GRID.map((e) => ({ e, n: '', p: '' }));
+      return cachedOnlineEmojis;
+    })();
+    try { return await onlineEmojiPromise; }
+    finally {
+      if (!cachedOnlineEmojis || !cachedOnlineEmojis.length) onlineEmojiPromise = null;
+    }
+  }
+
+  function searchOnlineEmojis(queryRaw, limit) {
+    const source = cachedOnlineEmojis || [];
+    const q = normalizeEmojiQuery(queryRaw);
+    const cap = Math.min(limit || 400, source.length);
+    if (!q) return source.slice(0, Math.min(200, source.length));
+    const parts = q.split(/\s+/).filter(Boolean);
+    const scored = [];
+    for (let i = 0; i < source.length; i++) {
+      const s = scoreEmojiItem(source[i], parts);
+      if (s > 0) scored.push({ s, item: source[i] });
+    }
+    scored.sort((a, b) => b.s - a.s);
+    return scored.slice(0, cap).map((x) => x.item);
+  }
+
+  function renderOnlineEmojiGrid(queryRaw) {
+    if (!els.emojiOnlineGrid) return;
+    const filtered = searchOnlineEmojis(queryRaw, 400);
+    els.emojiOnlineGrid.innerHTML = '';
+    if (!filtered.length) {
+      const empty = document.createElement('div');
+      empty.className = 'emoji-online-status';
+      empty.textContent = t('emojiOnlineEmpty');
+      els.emojiOnlineGrid.appendChild(empty);
+      return;
+    }
+    const frag = document.createDocumentFragment();
+    filtered.forEach((item) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'emoji-online-cell';
+      btn.textContent = item.e;
+      btn.title = item.p || item.n || item.e;
+      btn.addEventListener('click', () => {
+        insertEmojiAtCursor(item.e);
+        closeOnlineEmojiModal();
+      });
+      frag.appendChild(btn);
+    });
+    els.emojiOnlineGrid.appendChild(frag);
+  }
+
+  function closeOnlineEmojiModal() {
+    if (els.emojiOnlineModal) els.emojiOnlineModal.classList.remove('open');
+  }
+
+  async function openOnlineEmojiModal() {
+    if (!els.emojiOnlineModal) return;
+    els.emojiPopover.classList.remove('open');
+    if (els.emojiOnlineTitle) els.emojiOnlineTitle.textContent = t('emojiOnlineTitle');
+    if (els.emojiOnlineSearch) {
+      els.emojiOnlineSearch.placeholder = t('emojiOnlineSearch');
+      els.emojiOnlineSearch.value = '';
+    }
+    if (els.emojiOnlineGrid) {
+      els.emojiOnlineGrid.innerHTML = '<div class="emoji-online-status">' + t('emojiOnlineLoading') + '</div>';
+    }
+    els.emojiOnlineModal.classList.add('open');
+    try {
+      await fetchOnlineEmojis();
+      renderOnlineEmojiGrid('');
+      if (els.emojiOnlineSearch) setTimeout(() => els.emojiOnlineSearch.focus(), 40);
+    } catch (err) {
+      if (els.emojiOnlineGrid) {
+        els.emojiOnlineGrid.innerHTML = '<div class="emoji-online-status">' + t('emojiOnlineError') + '</div>';
+      }
+    }
+  }
+
+  if (els.emojiOnlineBtn) {
+    els.emojiOnlineBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (els.emojiOnlineModal && els.emojiOnlineModal.classList.contains('open')) closeOnlineEmojiModal();
+      else openOnlineEmojiModal();
+    });
+  }
+  if (els.emojiOnlineClose) {
+    els.emojiOnlineClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeOnlineEmojiModal();
+    });
+  }
+  if (els.emojiOnlineModal) {
+    els.emojiOnlineModal.addEventListener('click', (e) => {
+      if (e.target === els.emojiOnlineModal) closeOnlineEmojiModal();
+    });
+  }
+  if (els.emojiOnlineSearch) {
+    let searchTimer = null;
+    els.emojiOnlineSearch.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => renderOnlineEmojiGrid(els.emojiOnlineSearch.value), 80);
+    });
+    els.emojiOnlineSearch.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Escape') { e.preventDefault(); closeOnlineEmojiModal(); }
+    });
+  }
 
   // ============================= AI dispatch =============================
   const AI_DISPATCH_CATALOG = [

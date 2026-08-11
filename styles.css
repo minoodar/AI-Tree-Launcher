@@ -757,7 +757,8 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 #ai-align-right-btn { order: 3; }
 .ai-note-fontsize-wrap { order: 4; }
 .ai-note-emoji-wrap { order: 5; }
-#ai-note-extract-doc-btn { order: 6; }
+#ai-note-translate-btn { order: 6; }
+#ai-note-extract-doc-btn { order: 7; }
 #ai-align-left-btn,
 #ai-align-center-btn,
 #ai-align-right-btn {
@@ -830,6 +831,38 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   font-variant-numeric: tabular-nums;
   color: rgba(156,163,175,0.85);
   user-select: none;
+}
+
+/* Inline translate (format bar) */
+.ai-translate-btn {
+  width: auto !important;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px !important;
+  font-size: 13px;
+  line-height: 1;
+  background: rgba(167, 139, 250, 0.14) !important;
+  border: 1px solid rgba(167, 139, 250, 0.34) !important;
+  color: #C4B5FD;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
+}
+.ai-translate-btn:hover {
+  background: rgba(167, 139, 250, 0.28) !important;
+  border-color: rgba(196, 181, 253, 0.55) !important;
+  color: #EDE9FE;
+  filter: none;
+}
+.ai-translate-btn:active { transform: scale(0.96); }
+.ai-translate-btn:focus-visible {
+  outline: 2px solid rgba(196, 181, 253, 0.85);
+  outline-offset: 2px;
+}
+.ai-translate-btn.is-busy,
+.ai-translate-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
 /* Page → LLM Markdown extract (format bar) */
@@ -4455,215 +4488,3 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 }
 
 #ai-clock-panel { overflow: visible !important; }
-
-/* ==========================================================================
-   V32 — Turquoise gem marks toggle · tangent to clock + dual frame rail
-   دایره مماس کادر · خط دوم ادامهٔ لبهٔ قاب تا نگین در لولا حل شود
-   ========================================================================== */
-
-#ai-clock-marks-toggle {
-  position: absolute !important;
-  top: 50% !important;
-  /* 16px disc → center 8px outside = left edge flush with panel right edge */
-  right: -8px !important;
-  left: auto !important;
-  width: 16px !important;
-  height: 16px !important;
-  transform: translateY(-50%) !important;
-  border-radius: 50% !important;
-  border: 1.5px solid rgba(94, 234, 212, 0.78) !important;
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.58) 0 18%, transparent 42%),
-    radial-gradient(circle at 68% 72%, rgba(45, 212, 191, 0.38) 0 40%, transparent 70%),
-    linear-gradient(145deg, rgba(18, 78, 88, 0.62), rgba(8, 28, 42, 0.82)) !important;
-  color: transparent !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  opacity: 1 !important;
-  overflow: visible !important;
-  z-index: 40 !important;
-  cursor: pointer !important;
-  box-shadow:
-    0 0 0 1px rgba(2, 6, 23, 0.32),
-    0 0 7px rgba(45, 212, 191, 0.20),
-    0 0 14px rgba(45, 212, 191, 0.08),
-    inset 0 1px 2px rgba(255, 255, 255, 0.30),
-    inset 0 -2px 3px rgba(8, 47, 55, 0.32) !important;
-  transition:
-    transform 180ms var(--ease-bounce),
-    border-color 200ms ease,
-    box-shadow 220ms ease,
-    background 220ms ease !important;
-}
-
-/*
- * Primary bridge (::before): short hard contact line at the tangent point.
- * Sits under the disc edge so the gem reads as hinged, not floating.
- */
-#ai-clock-marks-toggle::before {
-  content: "" !important;
-  display: block !important;
-  position: absolute !important;
-  top: 50% !important;
-  right: calc(100% - 1px) !important;
-  left: auto !important;
-  width: 9px !important;
-  height: 2px !important;
-  transform: translateY(-50%) !important;
-  border-radius: 1px 0 0 1px !important;
-  background: linear-gradient(
-    90deg,
-    rgba(94, 234, 212, 0.15) 0%,
-    rgba(94, 234, 212, 0.55) 40%,
-    rgba(153, 246, 228, 0.88) 100%
-  ) !important;
-  box-shadow: 0 0 5px rgba(45, 212, 191, 0.22) !important;
-  pointer-events: none !important;
-  opacity: 1 !important;
-  z-index: -1 !important;
-}
-
-/*
- * Secondary rail (::after): two-part frame continuation —
- * horizontal rails above & below the stem that cup the gem,
- * so the circle is “dissolved” into the panel border language.
- * Drawn as a rounded bracket opening toward the panel.
- */
-#ai-clock-marks-toggle::after {
-  content: "" !important;
-  display: block !important;
-  position: absolute !important;
-  top: 50% !important;
-  right: calc(100% - 2px) !important;
-  left: auto !important;
-  width: 11px !important;
-  height: 22px !important;
-  transform: translateY(-50%) !important;
-  box-sizing: border-box !important;
-  border: 1.25px solid rgba(94, 234, 212, 0.38) !important;
-  border-right: none !important;
-  border-radius: 10px 0 0 10px !important;
-  background: transparent !important;
-  box-shadow:
-    inset 0 0 0 0 transparent,
-    -2px 0 8px rgba(45, 212, 191, 0.08) !important;
-  pointer-events: none !important;
-  opacity: 1 !important;
-  z-index: -2 !important;
-}
-
-/* Left-side open: mirror stem + bracket */
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle {
-  left: -8px !important;
-  right: auto !important;
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle::before {
-  left: calc(100% - 1px) !important;
-  right: auto !important;
-  border-radius: 0 1px 1px 0 !important;
-  background: linear-gradient(
-    90deg,
-    rgba(153, 246, 228, 0.88) 0%,
-    rgba(94, 234, 212, 0.55) 60%,
-    rgba(94, 234, 212, 0.15) 100%
-  ) !important;
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle::after {
-  left: calc(100% - 2px) !important;
-  right: auto !important;
-  border: 1.25px solid rgba(94, 234, 212, 0.38) !important;
-  border-left: none !important;
-  border-radius: 0 10px 10px 0 !important;
-  box-shadow: 2px 0 8px rgba(45, 212, 191, 0.08) !important;
-}
-
-/* Hide legacy inner glyphs */
-#ai-clock-marks-toggle > *,
-#ai-clock-marks-toggle svg,
-#ai-clock-marks-toggle .ai-marks-plus,
-#ai-clock-marks-toggle .ai-marks-ring {
-  display: none !important;
-  visibility: hidden !important;
-  width: 0 !important;
-  height: 0 !important;
-  opacity: 0 !important;
-}
-
-#ai-clock-marks-toggle:hover,
-#ai-clock-marks-toggle:focus-visible {
-  transform: translateY(-50%) scale(1.10) !important;
-  border-color: rgba(153, 246, 228, 0.95) !important;
-  background:
-    radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.68) 0 20%, transparent 45%),
-    radial-gradient(circle at 68% 72%, rgba(45, 212, 191, 0.48) 0 42%, transparent 72%),
-    linear-gradient(145deg, rgba(28, 98, 108, 0.72), rgba(10, 36, 52, 0.86)) !important;
-  box-shadow:
-    0 0 0 1px rgba(2, 6, 23, 0.32),
-    0 0 9px rgba(45, 212, 191, 0.28),
-    0 0 18px rgba(45, 212, 191, 0.12),
-    inset 0 1px 2px rgba(255, 255, 255, 0.36),
-    inset 0 -2px 3px rgba(8, 47, 55, 0.28) !important;
-  outline: none !important;
-}
-#ai-clock-marks-toggle:hover::before,
-#ai-clock-marks-toggle:focus-visible::before {
-  box-shadow: 0 0 7px rgba(45, 212, 191, 0.32) !important;
-}
-#ai-clock-marks-toggle:hover::after,
-#ai-clock-marks-toggle:focus-visible::after {
-  border-color: rgba(153, 246, 228, 0.55) !important;
-  box-shadow: -2px 0 10px rgba(45, 212, 191, 0.14) !important;
-}
-
-#ai-clock-marks-toggle.is-open {
-  border-color: rgba(94, 234, 212, 0.98) !important;
-  background:
-    radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.52) 0 22%, transparent 48%),
-    radial-gradient(circle at 50% 50%, rgba(45, 212, 191, 0.58) 0 55%, transparent 80%),
-    linear-gradient(145deg, rgba(18, 92, 98, 0.78), rgba(8, 32, 48, 0.88)) !important;
-  box-shadow:
-    0 0 0 1px rgba(2, 6, 23, 0.32),
-    0 0 10px rgba(45, 212, 191, 0.34),
-    0 0 20px rgba(45, 212, 191, 0.14),
-    inset 0 1px 2px rgba(255, 255, 255, 0.32),
-    inset 0 -2px 3px rgba(8, 47, 55, 0.28) !important;
-}
-#ai-clock-marks-toggle.is-open::before {
-  background: linear-gradient(
-    90deg,
-    rgba(94, 234, 212, 0.22) 0%,
-    rgba(94, 234, 212, 0.65) 45%,
-    rgba(153, 246, 228, 0.95) 100%
-  ) !important;
-  box-shadow: 0 0 7px rgba(45, 212, 191, 0.36) !important;
-}
-#ai-clock-marks-toggle.is-open::after {
-  border-color: rgba(94, 234, 212, 0.55) !important;
-  box-shadow: -2px 0 10px rgba(45, 212, 191, 0.16) !important;
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle.is-open::before {
-  background: linear-gradient(
-    90deg,
-    rgba(153, 246, 228, 0.95) 0%,
-    rgba(94, 234, 212, 0.65) 55%,
-    rgba(94, 234, 212, 0.22) 100%
-  ) !important;
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle.is-open::after {
-  border-color: rgba(94, 234, 212, 0.55) !important;
-  box-shadow: 2px 0 10px rgba(45, 212, 191, 0.16) !important;
-}
-
-#ai-clock-panel[data-season] #ai-clock-marks-toggle {
-  border-color: color-mix(in srgb, var(--season-line, rgba(94, 234, 212, 0.7)) 30%, rgba(94, 234, 212, 0.78)) !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #ai-clock-marks-toggle,
-  #ai-clock-marks-toggle::before,
-  #ai-clock-marks-toggle::after {
-    transition-duration: 0.01ms !important;
-  }
-}

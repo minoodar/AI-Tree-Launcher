@@ -1,11 +1,12 @@
 // AI Tree Launcher — background service worker (MV3)
-// Two jobs:
-// 1) Open the standalone notepad page in a new browser tab, remembering which
-//    tab/window asked for it (so the notepad can offer a "back to widget" button).
-// 2) On request, refocus that original tab/window and close the notepad tab.
+// 1) Open standalone notepad tab (with return-to-widget context)
+// 2) Refocus parent tab and close notepad tab
+// 3) Inline translation (CSP-safe for content scripts + notepad)
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message && message.action === 'openNotepadTab') {
+  if (!message || !message.action) return;
+
+  if (message.action === 'openNotepadTab') {
     const fromTabId = sender.tab && typeof sender.tab.id === 'number' ? sender.tab.id : null;
     const fromWindowId = sender.tab && typeof sender.tab.windowId === 'number' ? sender.tab.windowId : null;
     let url = chrome.runtime.getURL('notepad.html');
@@ -18,10 +19,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.tabs.create({ url })
       .then((tab) => sendResponse({ ok: true, tabId: tab && tab.id }))
       .catch((err) => sendResponse({ ok: false, error: String(err && err.message || err) }));
-    return true; // keep the message channel open for the async sendResponse above
+    return true;
   }
 
-  if (message && message.action === 'returnToParentTab') {
+  if (message.action === 'returnToParentTab') {
     const targetTabId = Number(message.tabId);
     const targetWindowId = message.windowId != null ? Number(message.windowId) : null;
     const notepadTabId = sender.tab && typeof sender.tab.id === 'number' ? sender.tab.id : null;
@@ -36,14 +37,52 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           await chrome.tabs.update(targetTabId, { active: true });
           focused = true;
         }
-      } catch (e) {
-        // Original tab/window no longer exists — nothing to focus, still close the notepad tab.
-      }
+      } catch (e) {}
       if (notepadTabId != null) {
         try { await chrome.tabs.remove(notepadTabId); } catch (e) {}
       }
       sendResponse({ ok: true, focused });
     })();
+    return true;
+  }
+
+  if (message.action === 'translateText') {
+    const targetLang = String(message.targetLang || 'en').slice(0, 8);
+    const text = String(message.text || '');
+    if (!text) {
+      sendResponse({ success: false, error: 'empty' });
+      return;
+    }
+    if (text.length > 4500) {
+      sendResponse({ success: false, error: 'too_long' });
+      return;
+    }
+
+    const url =
+      'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
+      encodeURIComponent(targetLang) +
+      '&dt=t&q=' +
+      encodeURIComponent(text);
+
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then((data) => {
+        let translatedText = '';
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+          data[0].forEach((item) => {
+            if (item && item[0]) translatedText += item[0];
+          });
+        }
+        if (!translatedText) throw new Error('empty_translation');
+        sendResponse({ success: true, text: translatedText });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: String((error && error.message) || error) });
+      });
+
     return true;
   }
 });

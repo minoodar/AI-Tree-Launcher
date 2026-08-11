@@ -332,6 +332,126 @@
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
   .modal-actions .btn-danger { background: rgba(217, 119, 87, 0.14); color: #E8A088; border-color: rgba(217, 119, 87, 0.35); margin-right: auto; }
   .modal-actions .btn-primary { background: linear-gradient(135deg, #34D399, #059669); color: white; border: none; }
+
+  /* Translate */
+  .fmt-btn.translate-btn {
+    background: rgba(167, 139, 250, 0.14);
+    border: 1px solid rgba(167, 139, 250, 0.34);
+    color: #C4B5FD;
+    min-width: 30px;
+  }
+  .fmt-btn.translate-btn:hover {
+    background: rgba(167, 139, 250, 0.28);
+    color: #EDE9FE;
+  }
+  .fmt-btn.translate-btn.is-busy,
+  .fmt-btn.translate-btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+
+  /* Online emoji vault modal */
+  .fmt-btn.emoji-online-btn {
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.32);
+    color: #7DD3FC;
+    min-width: 30px;
+  }
+  .fmt-btn.emoji-online-btn:hover {
+    background: rgba(56, 189, 248, 0.24);
+    color: #E0F2FE;
+  }
+  .emoji-online-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    background: rgba(0, 0, 0, 0.55);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .emoji-online-modal.open { display: flex; }
+  .emoji-online-box {
+    width: min(420px, 96vw);
+    max-height: min(520px, 88vh);
+    background: #171726;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .emoji-online-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 14px 8px;
+    flex-shrink: 0;
+  }
+  .emoji-online-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #BAE6FD;
+  }
+  .emoji-online-close {
+    border: none;
+    background: rgba(255,255,255,0.06);
+    color: var(--text-muted);
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .emoji-online-close:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+  .emoji-online-search {
+    margin: 0 14px 10px;
+    width: calc(100% - 28px);
+    box-sizing: border-box;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+  }
+  .emoji-online-search:focus { border-color: #38BDF8; }
+  .emoji-online-grid {
+    overflow-y: auto;
+    padding: 4px 12px 14px;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    flex: 1 1 auto;
+    min-height: 180px;
+  }
+  .emoji-online-grid::-webkit-scrollbar { width: 5px; }
+  .emoji-online-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 4px; }
+  .emoji-online-cell {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 6px 0;
+    border-radius: 8px;
+    line-height: 1.2;
+  }
+  .emoji-online-cell:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.12);
+  }
+  .emoji-online-status {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 28px 8px;
+  }
 </style>
 </head>
 <body>
@@ -361,9 +481,11 @@
       <div class="toolbar-sep"></div>
       <button type="button" class="fmt-btn" id="prompts-toggle-btn">📑 <span id="prompts-toggle-label">Prompts</span></button>
       <div class="emoji-btn">
-        <button type="button" class="fmt-btn" id="emoji-toggle-btn">😀</button>
+        <button type="button" class="fmt-btn" id="emoji-toggle-btn" title="Emojis">😀</button>
         <div class="emoji-popover" id="emoji-popover"></div>
       </div>
+      <button type="button" class="fmt-btn emoji-online-btn" id="emoji-online-btn" title="Online emoji vault">🌐</button>
+      <button type="button" class="fmt-btn translate-btn" id="translate-btn" title="Translate (FA ↔ EN)">🔤</button>
       <div class="toolbar-spacer"></div>
       <div class="ai-select-wrap">
         <select class="ai-select" id="ai-select"></select>
@@ -398,6 +520,17 @@
         <button type="button" class="btn" id="tpl-modal-cancel">Cancel</button>
         <button type="button" class="btn btn-primary" id="tpl-modal-save">Save</button>
       </div>
+    </div>
+  </div>
+
+  <div class="emoji-online-modal" id="emoji-online-modal" role="dialog" aria-modal="true">
+    <div class="emoji-online-box">
+      <div class="emoji-online-head">
+        <span class="emoji-online-title" id="emoji-online-title">Online emoji vault</span>
+        <button type="button" class="emoji-online-close" id="emoji-online-close" aria-label="Close">✕</button>
+      </div>
+      <input type="search" class="emoji-online-search" id="emoji-online-search" autocomplete="off" spellcheck="false" placeholder="Search… fire, heart, کتاب">
+      <div class="emoji-online-grid" id="emoji-online-grid"></div>
     </div>
   </div>
 

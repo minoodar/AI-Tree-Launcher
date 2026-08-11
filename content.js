@@ -169,7 +169,13 @@
       noteExtractTitle: "Convert current page to LLM-ready Markdown",
       toastExtracted: "Page extracted as Markdown 📄",
       toastExtractEmpty: "No readable content found on this page",
-      noteNewTabTitle: "Open notepad in new tab"
+      noteNewTabTitle: "Open notepad in new tab",
+      noteTranslateBtn: "Translate",
+      noteTranslateTitle: "Translate note (FA ↔ EN, auto-detect)",
+      toastTranslated: "Translated 🌐",
+      toastTranslateFail: "Translation failed",
+      toastTranslateEmpty: "Type something first",
+      toastTranslateBusy: "Translating…"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -332,7 +338,13 @@
       noteExtractTitle: "تبدیل صفحهٔ فعلی به Markdown مناسب LLM",
       toastExtracted: "صفحه به‌صورت Markdown استخراج شد 📄",
       toastExtractEmpty: "محتوای قابل‌خواندن در این صفحه پیدا نشد",
-      noteNewTabTitle: "باز کردن دفترچه در تب جدید"
+      noteNewTabTitle: "باز کردن دفترچه در تب جدید",
+      noteTranslateBtn: "ترجمه",
+      noteTranslateTitle: "ترجمه یادداشت (خودکار فارسی ↔ انگلیسی)",
+      toastTranslated: "ترجمه شد 🌐",
+      toastTranslateFail: "ترجمه ناموفق بود",
+      toastTranslateEmpty: "اول یه متن بنویس",
+      toastTranslateBusy: "در حال ترجمه…"
     }
   };
 
@@ -882,6 +894,7 @@
         <button type="button" id="ai-emoji-online-btn" class="ai-emoji-online-btn" title="Online">🌐</button>
         <div id="ai-emoji-popover" class="ai-emoji-popover" role="dialog"></div>
       </div>
+      <button type="button" id="ai-note-translate-btn" class="ai-format-btn ai-translate-btn" title="Translate (Auto-detect)" aria-label="Translate text">🔤</button>
       <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown">📄</button>
     </div>
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
@@ -1123,6 +1136,7 @@
     emojiToggleBtn: quickNoteForm.querySelector('#ai-emoji-toggle-btn'),
     emojiOnlineBtn: quickNoteForm.querySelector('#ai-emoji-online-btn'),
     emojiPopover: quickNoteForm.querySelector('#ai-emoji-popover'),
+    translateBtn: quickNoteForm.querySelector('#ai-note-translate-btn'),
     extractDocBtn: quickNoteForm.querySelector('#ai-note-extract-doc-btn'),
     socialWrap: quickNoteForm.querySelector('#ai-social-share-wrap'),
     socialToggleBtn: quickNoteForm.querySelector('#ai-social-toggle-btn'),
@@ -1349,6 +1363,10 @@
     if (uiEls.socialToggleBtn) uiEls.socialToggleBtn.title = t('shareTitle');
     if (uiEls.emojiToggleBtn) uiEls.emojiToggleBtn.title = t('emojiMoreTitle');
     if (uiEls.emojiOnlineBtn) uiEls.emojiOnlineBtn.title = t('emojiOnlineBtn');
+    if (uiEls.translateBtn) {
+      uiEls.translateBtn.title = t('noteTranslateTitle');
+      uiEls.translateBtn.setAttribute('aria-label', t('noteTranslateTitle'));
+    }
     if (uiEls.extractDocBtn) {
       uiEls.extractDocBtn.title = t('noteExtractTitle');
       uiEls.extractDocBtn.setAttribute('aria-label', t('noteExtractTitle'));
@@ -3008,18 +3026,14 @@
   function syncUndoToggleVisual() {
     try {
       const ttlActive = !!(pendingUndoState && pendingUndoState.type && pendingUndoState.type !== 'text');
-      // Gate multi-step notepad history the same way as the click handler so a
-      // stale aiTreeNotepadHistory never leaves the Recover button stuck gold
-      // and unable to soft-relaunch the launcher.
-      const noteActive = (typeof canUseNotepadMultiStepUndo === 'function')
-        ? canUseNotepadMultiStepUndo()
-        : (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
+      const noteActive = (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
       const legacyText = !!(pendingUndoState && pendingUndoState.type === 'text');
       if (ttlActive || noteActive || legacyText) {
         root.classList.remove('hide-toggles');
         undoToggleDot.classList.add('active-undo');
-      } else {
-        undoToggleDot.classList.remove('active-undo');
+      } else if (!ttlActive) {
+        // Keep active-undo only when something is actually recoverable.
+        if (!noteActive && !legacyText) undoToggleDot.classList.remove('active-undo');
       }
     } catch (err) {}
   }
@@ -3295,68 +3309,24 @@
     lifecycle.relaunchSilently(opts && opts.reason ? opts.reason : 'reviveLauncher', { silent });
   }
 
-  function canUseNotepadMultiStepUndo() {
-      // Only claim the Recover button for multi-step notepad history while the
-      // notepad is actually in play. Stale storage history must NOT block soft relaunch.
-      try {
-        if (typeof notepadUndo === 'undefined' || !notepadUndo || !notepadUndo.canUndo()) return false;
-        const noteOpen = !!(quickNoteForm && quickNoteForm.classList.contains('active'));
-        const hasLiveText = !!(noteTextarea && noteTextarea.value && noteTextarea.value.trim() !== '');
-        return noteOpen || hasLiveText;
-      } catch (err) {
-        return false;
-      }
-  }
-
-  function restoreClearedNote(textState) {
-      if (typeof endNoteEditSession === 'function') endNoteEditSession();
-      const restoredText = typeof textState === 'string' ? textState : (textState && textState.value) || '';
-      if (noteTextarea) {
-        noteTextarea.value = restoredText;
-        if (typeof textState === 'object' && textState) {
-          if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
-          if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
-          const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length);
-          const caretEnd = Math.min(textState.selectionEnd ?? caret, restoredText.length);
-          try { noteTextarea.focus(); noteTextarea.setSelectionRange(caret, caretEnd); } catch (err) {}
-        } else {
-          try { noteTextarea.focus(); } catch (err) {}
-        }
-      }
-      quickNoteForm.classList.add('active');
-      root.classList.add('show-notepad');
-      if (typeof abortNoteClosing === 'function') abortNoteClosing();
-      if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
-      if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
-      if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
-      else if (typeof adjustNotepadPosition === 'function') adjustNotepadPosition();
-      showToastNotification(t('toastRestored'));
-  }
-
   undoToggleDot.addEventListener('click', (e) => {
       e.stopPropagation();
       // Hybrid priority:
-      //  1) TTL-backed bookmark / todo / storage / note-clear recovery
-      //  2) Multi-step notepad undo only while notepad is active or has live text
-      //  3) Idle → soft relaunch (must stay reachable)
+      //  1) TTL-backed bookmark / todo / storage recovery (existing 10s behaviour)
+      //  2) Multi-step notepad undo (zero-TTL, survives for the session)
+      //  3) Idle → soft relaunch
       const undoneType = pendingUndoState && pendingUndoState.type;
-      const hasTtlUndo = undoneType === 'bookmark' || undoneType === 'storage' || undoneType === 'todo' || undoneType === 'note-clear';
-      const hasNoteUndo = canUseNotepadMultiStepUndo();
+      const hasTtlUndo = undoneType === 'bookmark' || undoneType === 'storage' || undoneType === 'todo';
+      const hasNoteUndo = (typeof notepadUndo !== 'undefined' && notepadUndo && notepadUndo.canUndo());
       const hasLegacyText = undoneType === 'text';
 
       if (!hasTtlUndo && !hasNoteUndo && !hasLegacyText) {
-        try {
-          lifecycle.relaunchSilently('undo_idle_click', { silent: false });
-        } catch (err) {
-          try { reviveLauncher({ reason: 'undo_idle_click_fallback' }); } catch (e) {}
-        }
+        lifecycle.relaunchSilently('undo_idle_click', { silent: false });
         return;
       }
 
       if (hasTtlUndo) {
-        if (undoneType === 'note-clear') {
-          restoreClearedNote(pendingUndoState.data);
-        } else if (undoneType === 'bookmark' || undoneType === 'storage') {
+        if (undoneType === 'bookmark' || undoneType === 'storage') {
           let linkToRestore = pendingUndoState.data; let targetHub = pendingUndoState.hub;
           if (!linkToRestore) {
             chrome.storage.sync.get(['lastDeletedLink'], (res) => {
@@ -3387,13 +3357,30 @@
 
       // Notepad multi-step (preferred) or legacy single text snapshot
       if (hasNoteUndo) {
-        try { notepadUndo.undo(); } catch (err) {}
+        notepadUndo.undo();
         return;
       }
       if (hasLegacyText) {
-        restoreClearedNote(pendingUndoState.data);
+        if (typeof endNoteEditSession === 'function') endNoteEditSession();
+        const textState = pendingUndoState.data;
+        const restoredText = typeof textState === 'string' ? textState : (textState && textState.value) || '';
+        if (noteTextarea) {
+          noteTextarea.value = restoredText;
+          if (typeof textState === 'object' && textState) {
+            if (textState.prevWidth) { quickNoteForm.style.width = textState.prevWidth; noteManuallyPositioned = true; }
+            if (textState.prevHeight) { quickNoteForm.style.height = textState.prevHeight; noteManuallyPositioned = true; }
+            const caret = Math.min(textState.selectionStart ?? restoredText.length, restoredText.length);
+            const caretEnd = Math.min(textState.selectionEnd ?? caret, restoredText.length);
+            noteTextarea.focus();
+            try { noteTextarea.setSelectionRange(caret, caretEnd); } catch (err) {}
+          }
+        }
+        quickNoteForm.classList.add('active'); root.classList.add('show-notepad');
+        if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+        if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+        adjustNotepadPosition();
+        showToastNotification(t('toastRestored'));
         pendingUndoState = { type: null, data: null, hub: 1 };
-        clearTimeout(globalUndoTimeout);
         syncUndoToggleVisual();
       }
   });
@@ -4311,7 +4298,6 @@
         try { this.ta.focus(); this.ta.setSelectionRange(a, b); } catch (err) {}
         quickNoteForm.classList.add('active');
         root.classList.add('show-notepad');
-        if (typeof abortNoteClosing === 'function') abortNoteClosing();
         if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
         if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
         if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
@@ -5164,13 +5150,6 @@
 
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
     const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
-    const clearSnap = (hadText && noteTextarea) ? {
-      value: noteTextarea.value,
-      selectionStart: noteTextarea.selectionStart || 0,
-      selectionEnd: noteTextarea.selectionEnd || 0,
-      prevWidth: quickNoteForm.style.width || '',
-      prevHeight: quickNoteForm.style.height || ''
-    } : null;
     endNoteEditSession();
     // If currently split/docked, undock immediately — Clear/Close means "done with this
     // note", not "stay pinned to the edge". Drop the split state/classes first so the
@@ -5185,10 +5164,14 @@
       );
       if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
     }
-    // Drop multi-step typing history so it cannot hijack Recover / soft relaunch.
-    // Cleared text is recovered via a TTL-backed 'note-clear' pendingUndoState instead.
+    // Explicit Clear/Close: permanently discard notepad undo/redo memory.
+    // User intent is "done with this note" — no silent restore from old history.
     if (notepadUndo) {
       try { notepadUndo.clear(); } catch (err) {}
+    }
+    // Drop any legacy single-shot text undo so the global toggle won't revive text either.
+    if (pendingUndoState && pendingUndoState.type === 'text') {
+      pendingUndoState = { type: null, data: null, hub: 1 };
     }
     try {
       if (chrome.runtime?.id) {
@@ -5206,26 +5189,114 @@
     if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
     adjustNotepadPosition();
     resetToggleTimeout();
-    // TTL recovery window for Clear (same Recover button as bookmarks/todos).
-    // After expiry, Recover returns to soft-relaunch duty.
-    if (clearSnap) {
-      setUndoState('note-clear', clearSnap, currentHubIndex, 20000);
-    } else {
-      if (pendingUndoState && (pendingUndoState.type === 'text' || pendingUndoState.type === 'note-clear')) {
-        pendingUndoState = { type: null, data: null, hub: 1 };
-      }
-      if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
-    }
+    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
     if (notify && hadText) showToastNotification(t('toastCleared'));
     isNotePinned = false;
-    if (typeof applyPinVisual === 'function') applyPinVisual(false);
-    // Stop idle + visual close timers — do not start collapse countdown after Clear.
-    if (typeof abortNoteClosing === 'function') abortNoteClosing();
-    else {
-      if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
-      if (typeof stopCollapseCountdown === 'function') stopCollapseCountdown();
-    }
+    if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
+    if (typeof startCollapseCountdown === 'function') startCollapseCountdown();
     return hadText;
+  }
+  // --- Inline translate via background service worker (CSP-safe) ---
+  let noteTranslateBusy = false;
+  function detectTranslateTarget(text) {
+    const fa = (text.match(/[\u0600-\u06FF]/g) || []).length;
+    const la = (text.match(/[A-Za-z]/g) || []).length;
+    if (fa > la) return 'en';
+    if (la > 0) return 'fa';
+    return currentLang === 'fa' ? 'en' : 'fa';
+  }
+
+  function applyTranslatedNote(translated) {
+    if (!noteTextarea || translated == null) return;
+    if (typeof notepadUndo !== 'undefined' && notepadUndo) {
+      try { notepadUndo.forceBoundary(); } catch (err) {}
+    } else if (typeof beginNoteEditSessionIfNeeded === 'function') {
+      try { beginNoteEditSessionIfNeeded(); } catch (err) {}
+    }
+    noteTextarea.value = translated;
+    try {
+      const end = noteTextarea.value.length;
+      noteTextarea.setSelectionRange(end, end);
+      noteTextarea.focus();
+    } catch (err) {}
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+  }
+
+  function requestNoteTranslation(text, targetLang) {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!chrome.runtime || !chrome.runtime.id) {
+          reject(new Error('no_extension_runtime'));
+          return;
+        }
+        chrome.runtime.sendMessage(
+          { action: 'translateText', text: text, targetLang: targetLang },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message || 'no_receiver'));
+              return;
+            }
+            if (response && response.success && typeof response.text === 'string') {
+              resolve(response.text);
+            } else {
+              reject(new Error((response && response.error) || 'translate_failed'));
+            }
+          }
+        );
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  async function runNoteTranslate() {
+    if (noteTranslateBusy) return;
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    const textVal = noteTextarea ? noteTextarea.value.trim() : '';
+    if (!textVal) {
+      showToastNotification(t('toastTranslateEmpty') || t('dockEmptyPrompt'), true);
+      return;
+    }
+    if (textVal.length > 4500) {
+      showToastNotification(currentLang === 'fa' ? 'متن خیلی بلند است (حداکثر حدود ۴۵۰۰ نویسه)' : 'Text is too long (max ~4500 chars)', true);
+      return;
+    }
+    const targetLang = detectTranslateTarget(textVal);
+    const btn = uiEls.translateBtn;
+    noteTranslateBusy = true;
+    if (btn) {
+      btn.classList.add('is-busy');
+      btn.style.opacity = '0.55';
+      btn.disabled = true;
+    }
+    showToastNotification(t('toastTranslateBusy'));
+    try {
+      const translated = await requestNoteTranslation(textVal, targetLang);
+      applyTranslatedNote(translated);
+      showToastNotification(t('toastTranslated'));
+    } catch (err) {
+      console.warn('[AI Tree] translate failed:', err);
+      showToastNotification(t('toastTranslateFail'), true);
+    } finally {
+      noteTranslateBusy = false;
+      if (btn) {
+        btn.classList.remove('is-busy');
+        btn.style.opacity = '';
+        btn.disabled = false;
+      }
+    }
+  }
+
+  if (uiEls.translateBtn) {
+    uiEls.translateBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      runNoteTranslate();
+    });
   }
   if (uiEls.extractDocBtn) {
     uiEls.extractDocBtn.addEventListener('click', (e) => {
