@@ -757,8 +757,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 #ai-align-right-btn { order: 3; }
 .ai-note-fontsize-wrap { order: 4; }
 .ai-note-emoji-wrap { order: 5; }
-#ai-note-translate-btn { order: 6; }
-#ai-note-extract-doc-btn { order: 7; }
+#ai-note-extract-doc-btn { order: 6; }
 #ai-align-left-btn,
 #ai-align-center-btn,
 #ai-align-right-btn {
@@ -831,38 +830,6 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   font-variant-numeric: tabular-nums;
   color: rgba(156,163,175,0.85);
   user-select: none;
-}
-
-/* Inline translate (format bar) */
-.ai-translate-btn {
-  width: auto !important;
-  min-width: 24px;
-  height: 22px;
-  padding: 0 7px !important;
-  font-size: 13px;
-  line-height: 1;
-  background: rgba(167, 139, 250, 0.14) !important;
-  border: 1px solid rgba(167, 139, 250, 0.34) !important;
-  color: #C4B5FD;
-  border-radius: 6px;
-  flex: 0 0 auto;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
-}
-.ai-translate-btn:hover {
-  background: rgba(167, 139, 250, 0.28) !important;
-  border-color: rgba(196, 181, 253, 0.55) !important;
-  color: #EDE9FE;
-  filter: none;
-}
-.ai-translate-btn:active { transform: scale(0.96); }
-.ai-translate-btn:focus-visible {
-  outline: 2px solid rgba(196, 181, 253, 0.85);
-  outline-offset: 2px;
-}
-.ai-translate-btn.is-busy,
-.ai-translate-btn:disabled {
-  opacity: 0.55;
-  cursor: wait;
 }
 
 /* Page → LLM Markdown extract (format bar) */
@@ -1150,15 +1117,16 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 
 /* Large readable ayah */
 .ai-todo-quote-fa {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 800;
   color: #f1f5f9;
   white-space: pre-line;
-  line-height: 1.55;
+  line-height: 1.85;
   direction: rtl;
   font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", "Traditional Arabic", serif;
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-  margin-bottom: 5px;
+  margin-bottom: 7px;
+  letter-spacing: 0.01em;
   transition: color 0.3s;
 }
 .ai-todo-quote:not(.is-collapsed) .ai-todo-quote-fa {
@@ -1169,8 +1137,8 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 /* Translation line — switches with the app language, same idea as the Rumi drawer:
    fa mode shows the Persian meaning, en mode shows the English translation. */
 .ai-todo-quote-translation {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 12.5px;
+  font-weight: 600;
   color: rgba(241, 245, 249, 0.75);
   white-space: pre-line;
   line-height: 1.45;
