@@ -175,7 +175,16 @@
       toastTranslated: "Translated 🌐",
       toastTranslateFail: "Translation failed",
       toastTranslateEmpty: "Type something first",
-      toastTranslateBusy: "Translating…"
+      toastTranslateBusy: "Translating…",
+      noteSpellcheckTitle: "Clean & Spell Check (FA/EN)",
+      toastSpellcheckBusy: "Checking English grammar…",
+      toastSpellcheckNone: "No grammar errors found! ✨",
+      toastSpellcheckFixed: "{n} English error(s) fixed! 🧹",
+      toastSpellcheckNoSuggest: "No suggestions found.",
+      toastSpellcheckFail: "Server error",
+      toastSpellcheckLong: "Text is too long for spell-check",
+      toastSpellcheckFaFixed: "Persian formatting fixed! 🧹",
+      toastSpellcheckFaClean: "Text is already tidy! ✨"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -344,7 +353,16 @@
       toastTranslated: "ترجمه شد 🌐",
       toastTranslateFail: "ترجمه ناموفق بود",
       toastTranslateEmpty: "اول یه متن بنویس",
-      toastTranslateBusy: "در حال ترجمه…"
+      toastTranslateBusy: "در حال ترجمه…",
+      noteSpellcheckTitle: "پاک‌سازی و غلط‌یابی (فارسی/انگلیسی)",
+      toastSpellcheckBusy: "در حال بررسی گرامر انگلیسی…",
+      toastSpellcheckNone: "غلط املایی یا گرامری یافت نشد! ✨",
+      toastSpellcheckFixed: "{n} خطای انگلیسی اصلاح شد! 🧹",
+      toastSpellcheckNoSuggest: "پیشنهادی برای اصلاح یافت نشد.",
+      toastSpellcheckFail: "خطا در ارتباط با سرور",
+      toastSpellcheckLong: "متن برای غلط‌یابی خیلی بلند است",
+      toastSpellcheckFaFixed: "نیم‌فاصله‌ها و علائم اصلاح شدند! 🧹",
+      toastSpellcheckFaClean: "متن شما از قبل مرتب است! ✨"
     }
   };
 
@@ -895,6 +913,7 @@
         <div id="ai-emoji-popover" class="ai-emoji-popover" role="dialog"></div>
       </div>
       <button type="button" id="ai-note-translate-btn" class="ai-format-btn ai-translate-btn" title="Translate (Auto-detect)" aria-label="Translate text">🔤</button>
+      <button type="button" id="ai-note-spellcheck-btn" class="ai-format-btn ai-spellcheck-btn" title="Clean & Spell Check (FA/EN)" aria-label="Fix Spelling">✍️</button>
       <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown">📄</button>
     </div>
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
@@ -1137,6 +1156,7 @@
     emojiOnlineBtn: quickNoteForm.querySelector('#ai-emoji-online-btn'),
     emojiPopover: quickNoteForm.querySelector('#ai-emoji-popover'),
     translateBtn: quickNoteForm.querySelector('#ai-note-translate-btn'),
+    spellcheckBtn: quickNoteForm.querySelector('#ai-note-spellcheck-btn'),
     extractDocBtn: quickNoteForm.querySelector('#ai-note-extract-doc-btn'),
     socialWrap: quickNoteForm.querySelector('#ai-social-share-wrap'),
     socialToggleBtn: quickNoteForm.querySelector('#ai-social-toggle-btn'),
@@ -1366,6 +1386,10 @@
     if (uiEls.translateBtn) {
       uiEls.translateBtn.title = t('noteTranslateTitle');
       uiEls.translateBtn.setAttribute('aria-label', t('noteTranslateTitle'));
+    }
+    if (uiEls.spellcheckBtn) {
+      uiEls.spellcheckBtn.title = t('noteSpellcheckTitle');
+      uiEls.spellcheckBtn.setAttribute('aria-label', t('noteSpellcheckTitle'));
     }
     if (uiEls.extractDocBtn) {
       uiEls.extractDocBtn.title = t('noteExtractTitle');
@@ -1700,6 +1724,13 @@
         markedDays = markedDays.filter(x => x.id !== m.id);
         saveMarkedDays(); renderMarkedDays(); showToastNotification(t('markToastDeleted'));
       });
+      li.addEventListener('click', (e) => {
+        if (e.target === delBtn || delBtn.contains(e.target)) return;
+        e.stopPropagation();
+        const withDays = { ...m, days: daysUntilNext(m.day, m.month, m.cal) };
+        openMarkEventSheet(withDays);
+      });
+      li.style.cursor = 'pointer';
       li.appendChild(span); li.appendChild(delBtn);
       uiEls.markList.appendChild(li);
     });
@@ -1967,6 +1998,13 @@
         return mk.day === gd && mk.month === gm;
       });
     }
+    function marksForDay(gy, gm, gd, jy, jm, jd) {
+      return markedDays.filter(mk => {
+        const isJ = mk.cal === 'j' || mk.cal === 'jalali';
+        if (isJ) return mk.day === jd && mk.month === jm;
+        return mk.day === gd && mk.month === gm;
+      }).map(m => ({ ...m, days: daysUntilNext(m.day, m.month, m.cal) }));
+    }
 
     let html = '';
     for (let i = 0; i < offset; i++) html += '<div class="day-cell empty"></div>';
@@ -2022,9 +2060,16 @@
       const primary = preferJalali ? toPersianDigits(j.jd) : String(d);
       const sub = preferJalali ? String(d) : String(j.jd);
       const tip = dayHoverTip(y, m, d);
+      const dayMarks = isMarked ? marksForDay(y, m, d, j.jy, j.jm, j.jd) : [];
       let tipAttr = ` data-tip-greg="${tip.gregLine}"`;
       if (tip.secLine) tipAttr += ` data-tip-sec="${tip.secLine}"`;
       if (tip.hijriLine) tipAttr += ` data-tip-hijri="${tip.hijriLine}"`;
+      if (dayMarks.length) {
+        // Escape quotes so multi-label tip stays valid in the attribute
+        const labels = dayMarks.map(mk => (mk.golden ? '★ ' : '') + String(mk.label || '')).join(' · ')
+          .replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        tipAttr += ` data-tip-event="${labels}"`;
+      }
       const cls = ['day-cell'];
       if (isToday) cls.push('is-today');
       if (isMarked) cls.push('is-marked');
@@ -2044,8 +2089,27 @@
         const j = gregorianToJalaali(gy, gm, gd);
         smartDateMeta = { source: currentLang === 'fa' ? 'jalali' : 'gregorian', jy: j.jy, jm: j.jm, jd: j.jd };
         setSmartDate(iso);
-        closeDualPicker();
-        uiEls.smartDateInput.focus();
+
+        // If this day has special-day event(s), open the paper event sheet (same as mark dots)
+        const hits = marksForDay(gy, gm, gd, j.jy, j.jm, j.jd);
+        if (hits.length) {
+          // Prefer today's event, else nearest (fewest days until)
+          hits.sort((a, b) => a.days - b.days);
+          openMarkEventSheet(hits[0]);
+          // Highlight matching mark-dot if visible
+          if (uiEls.markDotsRow) {
+            uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
+            const dots = uiEls.markDotsRow.querySelectorAll('.ai-mark-dot');
+            dots.forEach((dot) => {
+              if (dot.title === hits[0].label) dot.classList.add('is-active');
+            });
+          }
+          // Keep dual picker open so user still sees calendar context; don't force-close
+        } else {
+          closeMarkEventSheet();
+          closeDualPicker();
+          uiEls.smartDateInput.focus();
+        }
       });
     });
   }
@@ -5298,6 +5362,176 @@
       runNoteTranslate();
     });
   }
+
+  // --- Hybrid spell-check: offline Persian normalizer + LanguageTool for English ---
+  let noteSpellcheckBusy = false;
+
+  /**
+   * Offline normalizer for Persian text.
+   * Arabic→Persian chars, ZWNJ for prefixes/suffixes, punctuation spacing.
+   */
+  function normalizePersianText(raw) {
+    if (!raw) return raw;
+    let fixed = raw;
+    const zwnj = '\u200C';
+
+    // Arabic yeh/kaf → Persian
+    fixed = fixed.replace(/\u064A/g, '\u06CC').replace(/\u0643/g, '\u06A9');
+
+    // Prefixes: می / نمی + space → ZWNJ
+    fixed = fixed.replace(/\b(ن?می)\s+(?=[\u0600-\u06FF])/g, '$1' + zwnj);
+
+    // Common suffixes with ZWNJ
+    fixed = fixed.replace(
+      /(?<=[\u0600-\u06FF])\s+(ها|های|هایی|تر|ترین|ام|ات|اش|مان|تان|شان|ای|ایم|اید|اند)\b/g,
+      zwnj + '$1'
+    );
+
+    // Punctuation: no space before, one space after
+    fixed = fixed.replace(/\s+([،؛:?.!])/g, '$1');
+    fixed = fixed.replace(/([،؛:?.!])(?=[\u0600-\u06FFa-zA-Z])/g, '$1 ');
+
+    // Collapse multiple spaces (keep newlines)
+    fixed = fixed.replace(/[^\S\n]{2,}/g, ' ');
+
+    return fixed.trim();
+  }
+
+  function requestNoteSpellcheck(text, lang) {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!chrome.runtime || !chrome.runtime.id) {
+          reject(new Error('no_extension_runtime'));
+          return;
+        }
+        chrome.runtime.sendMessage(
+          { action: 'checkSpelling', text: text, lang: lang },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message || 'no_receiver'));
+              return;
+            }
+            if (response && response.success && Array.isArray(response.matches)) {
+              resolve(response.matches);
+            } else {
+              reject(new Error((response && response.error) || 'spellcheck_failed'));
+            }
+          }
+        );
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  function applySpellcheckCorrections(originalText, matches) {
+    if (!matches || !matches.length) return { text: originalText, count: 0 };
+    const sorted = matches.slice().sort((a, b) => (b.offset || 0) - (a.offset || 0));
+    let corrected = originalText;
+    let count = 0;
+    sorted.forEach((match) => {
+      if (!match || !match.replacements || !match.replacements.length) return;
+      const best = match.replacements[0] && match.replacements[0].value;
+      if (best == null) return;
+      const start = match.offset | 0;
+      const length = match.length | 0;
+      if (start < 0 || length <= 0 || start + length > corrected.length) return;
+      corrected = corrected.slice(0, start) + best + corrected.slice(start + length);
+      count++;
+    });
+    return { text: corrected, count };
+  }
+
+  function applyNoteTextAndRefresh(newText) {
+    if (!noteTextarea) return;
+    if (typeof notepadUndo !== 'undefined' && notepadUndo) {
+      try { notepadUndo.forceBoundary(); } catch (err) {}
+    } else if (typeof beginNoteEditSessionIfNeeded === 'function') {
+      try { beginNoteEditSessionIfNeeded(); } catch (err) {}
+    }
+    noteTextarea.value = newText;
+    try {
+      const end = noteTextarea.value.length;
+      noteTextarea.setSelectionRange(end, end);
+      noteTextarea.focus();
+    } catch (err) {}
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+    if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+  }
+
+  async function runNoteSpellcheck() {
+    if (noteSpellcheckBusy) return;
+    if (typeof abortNoteClosing === 'function') abortNoteClosing();
+    const textVal = noteTextarea ? noteTextarea.value : '';
+    if (!textVal || !textVal.trim()) {
+      showToastNotification(t('toastTranslateEmpty') || t('dockEmptyPrompt'), true);
+      return;
+    }
+
+    const isPersian = /[\u0600-\u06FF]/.test(textVal);
+    const btn = uiEls.spellcheckBtn;
+
+    // ---------- OFFLINE: Persian normalizer ----------
+    if (isPersian) {
+      const cleaned = normalizePersianText(textVal);
+      if (cleaned === textVal) {
+        showToastNotification(t('toastSpellcheckFaClean'));
+        return;
+      }
+      applyNoteTextAndRefresh(cleaned);
+      showToastNotification(t('toastSpellcheckFaFixed'));
+      return;
+    }
+
+    // ---------- ONLINE: English via LanguageTool ----------
+    if (textVal.length > 20000) {
+      showToastNotification(t('toastSpellcheckLong'), true);
+      return;
+    }
+    noteSpellcheckBusy = true;
+    if (btn) {
+      btn.classList.add('is-busy');
+      btn.style.opacity = '0.55';
+      btn.disabled = true;
+    }
+    showToastNotification(t('toastSpellcheckBusy'));
+    try {
+      const matches = await requestNoteSpellcheck(textVal, 'en-US');
+      if (!matches.length) {
+        showToastNotification(t('toastSpellcheckNone'));
+        return;
+      }
+      const { text: corrected, count } = applySpellcheckCorrections(textVal, matches);
+      if (count <= 0) {
+        showToastNotification(t('toastSpellcheckNoSuggest'), true);
+        return;
+      }
+      applyNoteTextAndRefresh(corrected);
+      showToastNotification(t('toastSpellcheckFixed').replace('{n}', String(count)));
+    } catch (err) {
+      console.warn('[AI Tree] spellcheck failed:', err);
+      showToastNotification(t('toastSpellcheckFail'), true);
+    } finally {
+      noteSpellcheckBusy = false;
+      if (btn) {
+        btn.classList.remove('is-busy');
+        btn.style.opacity = '';
+        btn.disabled = false;
+      }
+    }
+  }
+
+  if (uiEls.spellcheckBtn) {
+    uiEls.spellcheckBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      runNoteSpellcheck();
+    });
+  }
+
   if (uiEls.extractDocBtn) {
     uiEls.extractDocBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -5601,27 +5835,37 @@
   // نیاز به host_permissions برای CDN در manifest.json
   // ============================================================================
   const EMOJI_CDN_URLS = [
-    'https://cdn.jsdelivr.net/npm/@emoji-mart/data@1.2.1/sets/14/native.json',
-    'https://unpkg.com/@emoji-mart/data@1.2.1/sets/14/native.json',
-    'https://cdn.jsdelivr.net/npm/unicode-emoji-json@0.8.0/data-by-group.json',
-    'https://unpkg.com/unicode-emoji-json@0.8.0/data-by-group.json'
+    'https://cdn.jsdelivr.net/npm/@emoji-mart/data@latest/sets/15/native.json',
+    'https://unpkg.com/@emoji-mart/data@latest/sets/15/native.json',
+    'https://cdn.jsdelivr.net/npm/unicode-emoji-json@latest/data-by-group.json',
+    'https://unpkg.com/unicode-emoji-json@latest/data-by-group.json'
   ];
-  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v3';
-  const EMOJI_CACHE_MAX_ITEMS = 2500;
+  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v5'; // Unicode 15 / larger catalog
+  const EMOJI_CACHE_MAX_ITEMS = 5000;
   let cachedOnlineEmojis = null; // [{ e, n }]
   let onlineEmojiLoadPromise = null;
 
-  // نگاشت سبک فارسی → انگلیسی برای جستجو (اختیاری)
+  // --- Infinite scroll state for online emoji vault ---
+  let currentEmojiResults = [];
+  let currentEmojiRenderIndex = 0;
+  const EMOJI_CHUNK_SIZE = 100;
+  let emojiIntersectionObserver = null;
+
+  // Expanded FA → EN search hints for the large catalog
   const EMOJI_FA_HINTS = {
-    'آتش': 'fire', 'شعله': 'fire', 'قلب': 'heart', 'عشق': 'heart',
-    'خنده': 'grin', 'لبخند': 'smile', 'گریه': 'cry', 'کتاب': 'book',
-    'ستاره': 'star', 'ماه': 'moon', 'خورشید': 'sun', 'گل': 'flower',
+    'آتش': 'fire', 'شعله': 'fire', 'قلب': 'heart', 'عشق': 'heart', 'دوست': 'love',
+    'خنده': 'grin', 'لبخند': 'smile', 'گریه': 'cry', 'اشک': 'tear', 'ناراحت': 'sad',
+    'کتاب': 'book', 'ستاره': 'star', 'ماه': 'moon', 'خورشید': 'sun', 'گل': 'flower',
     'درخت': 'tree', 'ماشین': 'car', 'هواپیما': 'airplane', 'موشک': 'rocket',
-    'کامپیوتر': 'computer', 'کد': 'laptop', 'تلفن': 'phone', 'موسیقی': 'music',
-    'غذا': 'food', 'قهوه': 'coffee', 'چای': 'tea', 'کیک': 'cake',
-    'ورزش': 'sport', 'فوتبال': 'soccer', 'برنده': 'trophy', 'هدیه': 'gift',
-    'تیک': 'check', 'خطا': 'cross', 'هشدار': 'warning', 'ایده': 'bulb',
-    'پین': 'pushpin', 'یادداشت': 'memo', 'چشم': 'eye', 'دست': 'hand'
+    'کامپیوتر': 'computer', 'کد': 'laptop', 'تلفن': 'phone', 'موسیقی': 'music', 'آهنگ': 'song',
+    'غذا': 'food', 'قهوه': 'coffee', 'چای': 'tea', 'کیک': 'cake', 'سیب': 'apple',
+    'ورزش': 'sport', 'فوتبال': 'soccer', 'برنده': 'trophy', 'هدیه': 'gift', 'کادو': 'present',
+    'تیک': 'check', 'خطا': 'cross', 'هشدار': 'warning', 'ایده': 'bulb', 'فکر': 'think',
+    'پین': 'pushpin', 'یادداشت': 'memo', 'چشم': 'eye', 'دست': 'hand', 'انگشت': 'finger',
+    'حیوان': 'animal', 'سگ': 'dog', 'گربه': 'cat', 'پرنده': 'bird', 'پول': 'money',
+    'زمان': 'time', 'ساعت': 'clock', 'خانه': 'house', 'خواب': 'sleep', 'بیمار': 'sick',
+    'سلام': 'wave', 'تشویق': 'clap', 'آفرین': 'thumbs up', 'جشن': 'party tada',
+    'تولد': 'birthday cake', 'ایران': 'flag'
   };
 
   function normalizeEmojiQuery(raw) {
@@ -5779,21 +6023,30 @@
   function renderOnlineEmojiGrid(queryRaw) {
     const grid = document.getElementById('ai-emoji-grid-wrap');
     if (!grid) return;
-    const q = normalizeEmojiQuery(queryRaw);
-    const source = cachedOnlineEmojis || [];
-    let filtered;
-    if (!q) {
-      filtered = source.slice(0, 160);
-    } else {
-      const parts = q.split(/\s+/).filter(Boolean);
-      filtered = source.filter((item) => {
-        const hay = (item.n || '') + ' ' + (item.e || '');
-        return parts.every((p) => hay.includes(p) || (item.e && item.e.includes(p)));
-      }).slice(0, 160);
+
+    // Disconnect previous infinite-scroll observer on new search
+    if (emojiIntersectionObserver) {
+      try { emojiIntersectionObserver.disconnect(); } catch (e) {}
+      emojiIntersectionObserver = null;
     }
 
+    const q = normalizeEmojiQuery(queryRaw);
+    const source = cachedOnlineEmojis || [];
+
+    if (!q) {
+      currentEmojiResults = source;
+    } else {
+      const parts = q.split(/\s+/).filter(Boolean);
+      currentEmojiResults = source.filter((item) => {
+        const hay = ((item.n || '') + ' ' + (item.e || '')).toLowerCase();
+        return parts.every((p) => hay.includes(p) || (item.e && item.e.includes(p)));
+      });
+    }
+
+    currentEmojiRenderIndex = 0;
     grid.innerHTML = '';
-    if (!filtered.length) {
+
+    if (!currentEmojiResults.length) {
       const empty = document.createElement('div');
       empty.className = 'ai-emoji-loading';
       empty.textContent = t('emojiOnlineEmpty');
@@ -5801,8 +6054,16 @@
       return;
     }
 
+    renderNextEmojiChunk(grid);
+  }
+
+  function renderNextEmojiChunk(grid) {
+    if (!grid) return;
     const frag = document.createDocumentFragment();
-    filtered.forEach((item) => {
+    const endIndex = Math.min(currentEmojiRenderIndex + EMOJI_CHUNK_SIZE, currentEmojiResults.length);
+
+    for (let i = currentEmojiRenderIndex; i < endIndex; i++) {
+      const item = currentEmojiResults[i];
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ai-emoji-cell';
@@ -5814,8 +6075,32 @@
         closeOnlineEmojiModal();
       });
       frag.appendChild(btn);
-    });
+    }
+
+    currentEmojiRenderIndex = endIndex;
+
+    const oldSentinel = grid.querySelector('.ai-emoji-sentinel');
+    if (oldSentinel) oldSentinel.remove();
+
     grid.appendChild(frag);
+
+    if (currentEmojiRenderIndex < currentEmojiResults.length) {
+      const sentinel = document.createElement('div');
+      sentinel.className = 'ai-emoji-sentinel';
+      sentinel.style.gridColumn = '1 / -1';
+      sentinel.style.height = '12px';
+      grid.appendChild(sentinel);
+
+      emojiIntersectionObserver = new IntersectionObserver((entries) => {
+        if (entries[0] && entries[0].isIntersecting) {
+          try { emojiIntersectionObserver.disconnect(); } catch (e) {}
+          emojiIntersectionObserver = null;
+          renderNextEmojiChunk(grid);
+        }
+      }, { root: grid, rootMargin: '120px' });
+
+      emojiIntersectionObserver.observe(sentinel);
+    }
   }
 
   function closeOnlineEmojiModal() {

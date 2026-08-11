@@ -2523,6 +2523,15 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
 }
+/* Marked day: also show event title in the hover tip */
+.day-cell[data-tip-event]::after {
+  content: attr(data-tip-greg) "\A" attr(data-tip-sec) "\A" attr(data-tip-hijri) "\A" attr(data-tip-event);
+  width: 108px;
+  min-height: 92px;
+  font-size: 9px;
+  color: #fef3c7;
+  border-color: rgba(251, 191, 36, 0.55);
+}
 .day-cell[data-tip-greg]::before {
   content: none;
   display: none;
@@ -3253,7 +3262,40 @@ body.rtl .ai-note-history-menu,
   cursor: wait;
 }
 #ai-note-translate-btn { order: 6; }
-#ai-note-extract-doc-btn { order: 7; }
+#ai-note-spellcheck-btn { order: 7; }
+#ai-note-extract-doc-btn { order: 8; }
+
+/* Inline spell-check (format bar) */
+.ai-spellcheck-btn {
+  width: auto !important;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px !important;
+  font-size: 13px;
+  line-height: 1;
+  background: rgba(251, 191, 36, 0.14) !important;
+  border: 1px solid rgba(251, 191, 36, 0.34) !important;
+  color: #FDE68A;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.12s ease;
+}
+.ai-spellcheck-btn:hover {
+  background: rgba(251, 191, 36, 0.28) !important;
+  border-color: rgba(253, 230, 138, 0.55) !important;
+  color: #FEF3C7;
+  filter: none;
+}
+.ai-spellcheck-btn:active { transform: scale(0.96); }
+.ai-spellcheck-btn:focus-visible {
+  outline: 2px solid rgba(253, 230, 138, 0.85);
+  outline-offset: 2px;
+}
+.ai-spellcheck-btn.is-busy,
+.ai-spellcheck-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
 
 .ai-emoji-online-btn {
   flex: 0 0 auto;

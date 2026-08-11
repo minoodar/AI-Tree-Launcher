@@ -14,6 +14,15 @@ document.addEventListener('DOMContentLoaded', () => {
       translate: 'Translate', translateTitle: 'Translate note (FA ↔ EN, auto-detect)',
       toastTranslated: 'Translated 🌐', toastTranslateFail: 'Translation failed',
       toastTranslateBusy: 'Translating…', toastTranslateLong: 'Text is too long (max ~4500 chars)',
+      spellcheck: 'Spell check', spellcheckTitle: 'Clean & Spell Check (FA/EN)',
+      toastSpellcheckBusy: 'Checking English grammar…',
+      toastSpellcheckNone: 'No grammar errors found! ✨',
+      toastSpellcheckFixed: '{n} English error(s) fixed! 🧹',
+      toastSpellcheckNoSuggest: 'No suggestions found.',
+      toastSpellcheckFail: 'Server error',
+      toastSpellcheckLong: 'Text is too long for spell-check',
+      toastSpellcheckFaFixed: 'Persian formatting fixed! 🧹',
+      toastSpellcheckFaClean: 'Text is already tidy! ✨',
       emojiOnline: 'Online vault', emojiOnlineTitle: 'Online emoji vault',
       emojiOnlineSearch: 'Search… fire, heart, book',
       emojiOnlineLoading: 'Loading vault…', emojiOnlineEmpty: 'No emoji found',
@@ -33,6 +42,15 @@ document.addEventListener('DOMContentLoaded', () => {
       translate: 'ترجمه', translateTitle: 'ترجمه یادداشت (خودکار فارسی ↔ انگلیسی)',
       toastTranslated: 'ترجمه شد 🌐', toastTranslateFail: 'ترجمه ناموفق بود',
       toastTranslateBusy: 'در حال ترجمه…', toastTranslateLong: 'متن خیلی بلند است (حداکثر حدود ۴۵۰۰ نویسه)',
+      spellcheck: 'غلط‌یابی', spellcheckTitle: 'پاک‌سازی و غلط‌یابی (فارسی/انگلیسی)',
+      toastSpellcheckBusy: 'در حال بررسی گرامر انگلیسی…',
+      toastSpellcheckNone: 'غلط املایی یا گرامری یافت نشد! ✨',
+      toastSpellcheckFixed: '{n} خطای انگلیسی اصلاح شد! 🧹',
+      toastSpellcheckNoSuggest: 'پیشنهادی برای اصلاح یافت نشد.',
+      toastSpellcheckFail: 'خطا در ارتباط با سرور',
+      toastSpellcheckLong: 'متن برای غلط‌یابی خیلی بلند است',
+      toastSpellcheckFaFixed: 'نیم‌فاصله‌ها و علائم اصلاح شدند! 🧹',
+      toastSpellcheckFaClean: 'متن شما از قبل مرتب است! ✨',
       emojiOnline: 'گنجینه آنلاین', emojiOnlineTitle: 'گنجینه آنلاین ایموجی',
       emojiOnlineSearch: 'جستجو… آتش، قلب، کتاب',
       emojiOnlineLoading: 'در حال بارگذاری…', emojiOnlineEmpty: 'ایموجی یافت نشد',
@@ -68,6 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendBtn: document.getElementById('send-btn'),
     sendLabel: document.getElementById('send-label'),
     translateBtn: document.getElementById('translate-btn'),
+    spellcheckBtn: document.getElementById('spellcheck-btn'),
     emojiOnlineBtn: document.getElementById('emoji-online-btn'),
     emojiOnlineModal: document.getElementById('emoji-online-modal'),
     emojiOnlineTitle: document.getElementById('emoji-online-title'),
@@ -96,6 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.translateBtn) {
       els.translateBtn.title = t('translateTitle');
       els.translateBtn.setAttribute('aria-label', t('translateTitle'));
+    }
+    if (els.spellcheckBtn) {
+      els.spellcheckBtn.title = t('spellcheckTitle');
+      els.spellcheckBtn.setAttribute('aria-label', t('spellcheckTitle'));
     }
     if (els.emojiOnlineBtn) {
       els.emojiOnlineBtn.title = t('emojiOnline');
@@ -486,32 +509,160 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ============================= Hybrid spell-check (FA offline / EN online) =============================
+  let spellcheckBusy = false;
+
+  function normalizePersianText(raw) {
+    if (!raw) return raw;
+    let fixed = raw;
+    const zwnj = '\u200C';
+    fixed = fixed.replace(/\u064A/g, '\u06CC').replace(/\u0643/g, '\u06A9');
+    fixed = fixed.replace(/\b(ن?می)\s+(?=[\u0600-\u06FF])/g, '$1' + zwnj);
+    fixed = fixed.replace(
+      /(?<=[\u0600-\u06FF])\s+(ها|های|هایی|تر|ترین|ام|ات|اش|مان|تان|شان|ای|ایم|اید|اند)\b/g,
+      zwnj + '$1'
+    );
+    fixed = fixed.replace(/\s+([،؛:?.!])/g, '$1');
+    fixed = fixed.replace(/([،؛:?.!])(?=[\u0600-\u06FFa-zA-Z])/g, '$1 ');
+    fixed = fixed.replace(/[^\S\n]{2,}/g, ' ');
+    return fixed.trim();
+  }
+
+  function requestSpellcheck(text, lang) {
+    return new Promise((resolve, reject) => {
+      try {
+        chrome.runtime.sendMessage(
+          { action: 'checkSpelling', text: text, lang: lang },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message || 'no_receiver'));
+              return;
+            }
+            if (response && response.success && Array.isArray(response.matches)) resolve(response.matches);
+            else reject(new Error((response && response.error) || 'spellcheck_failed'));
+          }
+        );
+      } catch (err) { reject(err); }
+    });
+  }
+
+  function applySpellcheckCorrections(originalText, matches) {
+    if (!matches || !matches.length) return { text: originalText, count: 0 };
+    const sorted = matches.slice().sort((a, b) => (b.offset || 0) - (a.offset || 0));
+    let corrected = originalText;
+    let count = 0;
+    sorted.forEach((match) => {
+      if (!match || !match.replacements || !match.replacements.length) return;
+      const best = match.replacements[0] && match.replacements[0].value;
+      if (best == null) return;
+      const start = match.offset | 0;
+      const length = match.length | 0;
+      if (start < 0 || length <= 0 || start + length > corrected.length) return;
+      corrected = corrected.slice(0, start) + best + corrected.slice(start + length);
+      count++;
+    });
+    return { text: corrected, count };
+  }
+
+  async function runSpellcheck() {
+    if (spellcheckBusy) return;
+    const textVal = els.textarea.value || '';
+    if (!textVal.trim()) { showToast(t('toastEmptyPrompt')); return; }
+
+    const isPersian = /[\u0600-\u06FF]/.test(textVal);
+
+    // Offline Persian normalizer
+    if (isPersian) {
+      const cleaned = normalizePersianText(textVal);
+      if (cleaned === textVal) {
+        showToast(t('toastSpellcheckFaClean'));
+        return;
+      }
+      els.textarea.value = cleaned;
+      try {
+        const end = els.textarea.value.length;
+        els.textarea.setSelectionRange(end, end);
+        els.textarea.focus();
+      } catch (e) {}
+      updateTokenMeter();
+      saveDraftDebounced();
+      showToast(t('toastSpellcheckFaFixed'));
+      return;
+    }
+
+    // Online English via LanguageTool
+    if (textVal.length > 20000) { showToast(t('toastSpellcheckLong')); return; }
+    spellcheckBusy = true;
+    if (els.spellcheckBtn) {
+      els.spellcheckBtn.classList.add('is-busy');
+      els.spellcheckBtn.disabled = true;
+    }
+    showToast(t('toastSpellcheckBusy'));
+    try {
+      const matches = await requestSpellcheck(textVal, 'en-US');
+      if (!matches.length) { showToast(t('toastSpellcheckNone')); return; }
+      const { text: corrected, count } = applySpellcheckCorrections(textVal, matches);
+      if (count <= 0) { showToast(t('toastSpellcheckNoSuggest')); return; }
+      els.textarea.value = corrected;
+      try {
+        const end = els.textarea.value.length;
+        els.textarea.setSelectionRange(end, end);
+        els.textarea.focus();
+      } catch (e) {}
+      updateTokenMeter();
+      saveDraftDebounced();
+      showToast(t('toastSpellcheckFixed').replace('{n}', String(count)));
+    } catch (err) {
+      console.warn('[notepad] spellcheck failed:', err);
+      showToast(t('toastSpellcheckFail'));
+    } finally {
+      spellcheckBusy = false;
+      if (els.spellcheckBtn) {
+        els.spellcheckBtn.classList.remove('is-busy');
+        els.spellcheckBtn.disabled = false;
+      }
+    }
+  }
+  if (els.spellcheckBtn) {
+    els.spellcheckBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      runSpellcheck();
+    });
+  }
+
   // ============================= Online emoji vault =============================
   const EMOJI_CDN_URLS = [
-    'https://cdn.jsdelivr.net/npm/@emoji-mart/data@1.2.1/sets/14/native.json',
-    'https://unpkg.com/@emoji-mart/data@1.2.1/sets/14/native.json',
-    'https://cdn.jsdelivr.net/npm/unicode-emoji-json@0.8.0/data-by-group.json',
-    'https://unpkg.com/unicode-emoji-json@0.8.0/data-by-group.json'
+    'https://cdn.jsdelivr.net/npm/@emoji-mart/data@latest/sets/15/native.json',
+    'https://unpkg.com/@emoji-mart/data@latest/sets/15/native.json',
+    'https://cdn.jsdelivr.net/npm/unicode-emoji-json@latest/data-by-group.json',
+    'https://unpkg.com/unicode-emoji-json@latest/data-by-group.json'
   ];
-  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v3';
-  const EMOJI_CACHE_MAX = 4000;
+  const EMOJI_CACHE_KEY = 'aiTreeOnlineEmojiCache_v5';
+  const EMOJI_CACHE_MAX = 5000;
   const EMOJI_FA_HINTS = {
-    'آتش': 'fire', 'شعله': 'fire', 'قلب': 'heart', 'عشق': 'heart',
-    'خنده': 'grin laugh', 'لبخند': 'smile', 'گریه': 'cry', 'کتاب': 'book',
-    'ستاره': 'star', 'ماه': 'moon', 'خورشید': 'sun', 'گل': 'flower',
+    'آتش': 'fire', 'شعله': 'fire', 'قلب': 'heart', 'عشق': 'heart', 'دوست': 'love',
+    'خنده': 'grin', 'لبخند': 'smile', 'گریه': 'cry', 'اشک': 'tear', 'ناراحت': 'sad',
+    'کتاب': 'book', 'ستاره': 'star', 'ماه': 'moon', 'خورشید': 'sun', 'گل': 'flower',
     'درخت': 'tree', 'ماشین': 'car', 'هواپیما': 'airplane', 'موشک': 'rocket',
-    'کامپیوتر': 'computer', 'تلفن': 'phone', 'موسیقی': 'music',
-    'غذا': 'food', 'قهوه': 'coffee', 'چای': 'tea', 'کیک': 'cake',
-    'ورزش': 'sport', 'فوتبال': 'soccer', 'برنده': 'trophy', 'هدیه': 'gift',
-    'تیک': 'check', 'خطا': 'cross', 'هشدار': 'warning', 'ایده': 'bulb',
-    'پین': 'pushpin', 'یادداشت': 'memo', 'چشم': 'eye', 'دست': 'hand',
-    'سلام': 'wave', 'تشویق': 'clap', 'آفرین': 'thumbs up', 'پول': 'money',
-    'خانه': 'house', 'سگ': 'dog', 'گربه': 'cat', 'جشن': 'party tada',
+    'کامپیوتر': 'computer', 'کد': 'laptop', 'تلفن': 'phone', 'موسیقی': 'music', 'آهنگ': 'song',
+    'غذا': 'food', 'قهوه': 'coffee', 'چای': 'tea', 'کیک': 'cake', 'سیب': 'apple',
+    'ورزش': 'sport', 'فوتبال': 'soccer', 'برنده': 'trophy', 'هدیه': 'gift', 'کادو': 'present',
+    'تیک': 'check', 'خطا': 'cross', 'هشدار': 'warning', 'ایده': 'bulb', 'فکر': 'think',
+    'پین': 'pushpin', 'یادداشت': 'memo', 'چشم': 'eye', 'دست': 'hand', 'انگشت': 'finger',
+    'حیوان': 'animal', 'سگ': 'dog', 'گربه': 'cat', 'پرنده': 'bird', 'پول': 'money',
+    'زمان': 'time', 'ساعت': 'clock', 'خانه': 'house', 'خواب': 'sleep', 'بیمار': 'sick',
+    'سلام': 'wave', 'تشویق': 'clap', 'آفرین': 'thumbs up', 'جشن': 'party tada',
     'تولد': 'birthday cake', 'ایران': 'flag'
   };
 
   let cachedOnlineEmojis = null;
   let onlineEmojiPromise = null;
+
+  // Infinite scroll state
+  let currentEmojiResults = [];
+  let currentEmojiRenderIndex = 0;
+  const EMOJI_CHUNK_SIZE = 100;
+  let emojiIntersectionObserver = null;
 
   function normalizeEmojiQuery(raw) {
     let q = String(raw || '').trim().toLowerCase();
@@ -657,8 +808,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function searchOnlineEmojis(queryRaw, limit) {
     const source = cachedOnlineEmojis || [];
     const q = normalizeEmojiQuery(queryRaw);
-    const cap = Math.min(limit || 400, source.length);
-    if (!q) return source.slice(0, Math.min(200, source.length));
+    if (!q) {
+      const cap = (limit == null) ? source.length : Math.min(limit, source.length);
+      return source.slice(0, cap);
+    }
     const parts = q.split(/\s+/).filter(Boolean);
     const scored = [];
     for (let i = 0; i < source.length; i++) {
@@ -666,22 +819,42 @@ document.addEventListener('DOMContentLoaded', () => {
       if (s > 0) scored.push({ s, item: source[i] });
     }
     scored.sort((a, b) => b.s - a.s);
+    const cap = (limit == null) ? scored.length : Math.min(limit, scored.length);
     return scored.slice(0, cap).map((x) => x.item);
   }
 
   function renderOnlineEmojiGrid(queryRaw) {
     if (!els.emojiOnlineGrid) return;
-    const filtered = searchOnlineEmojis(queryRaw, 400);
-    els.emojiOnlineGrid.innerHTML = '';
-    if (!filtered.length) {
+    const grid = els.emojiOnlineGrid;
+
+    if (emojiIntersectionObserver) {
+      try { emojiIntersectionObserver.disconnect(); } catch (e) {}
+      emojiIntersectionObserver = null;
+    }
+
+    // Full ranked list; infinite scroll renders in chunks
+    currentEmojiResults = searchOnlineEmojis(queryRaw, null);
+    currentEmojiRenderIndex = 0;
+    grid.innerHTML = '';
+
+    if (!currentEmojiResults.length) {
       const empty = document.createElement('div');
       empty.className = 'emoji-online-status';
       empty.textContent = t('emojiOnlineEmpty');
-      els.emojiOnlineGrid.appendChild(empty);
+      grid.appendChild(empty);
       return;
     }
+
+    renderNextEmojiChunk(grid);
+  }
+
+  function renderNextEmojiChunk(grid) {
+    if (!grid) return;
     const frag = document.createDocumentFragment();
-    filtered.forEach((item) => {
+    const endIndex = Math.min(currentEmojiRenderIndex + EMOJI_CHUNK_SIZE, currentEmojiResults.length);
+
+    for (let i = currentEmojiRenderIndex; i < endIndex; i++) {
+      const item = currentEmojiResults[i];
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'emoji-online-cell';
@@ -692,8 +865,32 @@ document.addEventListener('DOMContentLoaded', () => {
         closeOnlineEmojiModal();
       });
       frag.appendChild(btn);
-    });
-    els.emojiOnlineGrid.appendChild(frag);
+    }
+
+    currentEmojiRenderIndex = endIndex;
+
+    const oldSentinel = grid.querySelector('.ai-emoji-sentinel');
+    if (oldSentinel) oldSentinel.remove();
+
+    grid.appendChild(frag);
+
+    if (currentEmojiRenderIndex < currentEmojiResults.length) {
+      const sentinel = document.createElement('div');
+      sentinel.className = 'ai-emoji-sentinel';
+      sentinel.style.gridColumn = '1 / -1';
+      sentinel.style.height = '12px';
+      grid.appendChild(sentinel);
+
+      emojiIntersectionObserver = new IntersectionObserver((entries) => {
+        if (entries[0] && entries[0].isIntersecting) {
+          try { emojiIntersectionObserver.disconnect(); } catch (e) {}
+          emojiIntersectionObserver = null;
+          renderNextEmojiChunk(grid);
+        }
+      }, { root: grid, rootMargin: '120px' });
+
+      emojiIntersectionObserver.observe(sentinel);
+    }
   }
 
   function closeOnlineEmojiModal() {

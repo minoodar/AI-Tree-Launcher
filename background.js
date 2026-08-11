@@ -85,4 +85,41 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true;
   }
+
+  if (message.action === 'checkSpelling') {
+    const text = String(message.text || '');
+    if (!text) {
+      sendResponse({ success: false, error: 'empty' });
+      return;
+    }
+    // LanguageTool public API soft limit; keep payload modest
+    if (text.length > 20000) {
+      sendResponse({ success: false, error: 'too_long' });
+      return;
+    }
+    const lang = String(message.lang || 'auto').slice(0, 16);
+
+    const params = new URLSearchParams();
+    params.append('text', text);
+    params.append('language', lang);
+
+    fetch('https://api.languagetool.org/v2/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then((data) => {
+        const matches = (data && Array.isArray(data.matches)) ? data.matches : [];
+        sendResponse({ success: true, matches: matches });
+      })
+      .catch((error) => {
+        sendResponse({ success: false, error: String((error && error.message) || error) });
+      });
+
+    return true;
+  }
 });

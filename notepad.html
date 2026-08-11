@@ -350,6 +350,22 @@
     cursor: wait;
   }
 
+  .fmt-btn.spellcheck-btn {
+    background: rgba(251, 191, 36, 0.14);
+    border: 1px solid rgba(251, 191, 36, 0.34);
+    color: #FDE68A;
+    min-width: 30px;
+  }
+  .fmt-btn.spellcheck-btn:hover {
+    background: rgba(251, 191, 36, 0.28);
+    color: #FEF3C7;
+  }
+  .fmt-btn.spellcheck-btn.is-busy,
+  .fmt-btn.spellcheck-btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+
   /* Online emoji vault modal */
   .fmt-btn.emoji-online-btn {
     background: rgba(56, 189, 248, 0.12);
@@ -486,6 +502,7 @@
       </div>
       <button type="button" class="fmt-btn emoji-online-btn" id="emoji-online-btn" title="Online emoji vault">🌐</button>
       <button type="button" class="fmt-btn translate-btn" id="translate-btn" title="Translate (FA ↔ EN)">🔤</button>
+      <button type="button" class="fmt-btn spellcheck-btn" id="spellcheck-btn" title="Clean & Spell Check (FA/EN)">✍️</button>
       <div class="toolbar-spacer"></div>
       <div class="ai-select-wrap">
         <select class="ai-select" id="ai-select"></select>
