@@ -1479,6 +1479,13 @@
         if (rangeEl) rangeEl.textContent = copy[2];
         if (lessonEl) lessonEl.textContent = copy[3];
       }
+      // رنگ‌بندی نمایش فشردهٔ ساعت/تاریخ اصلی بر اساس ماه جلالیِ «امروز» — چرخهٔ
+      // دوازده‌گانهٔ طبیعت (فروردین..اسفند)، مستقل از کارت اطلاعات فصل بالا.
+      try {
+        const jNow = gregorianToJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+        const calMonthKey = calMonthKeyFromJalali(jNow.jm);
+        if (calMonthKey && clockPanel.dataset.calMonth !== calMonthKey) clockPanel.dataset.calMonth = calMonthKey;
+      } catch (eCalMonth) {}
       timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute:'2-digit', hour12: false });
       const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       const primaryDateEl = document.getElementById('ai-date-fa');   
@@ -1660,9 +1667,21 @@
   function closeMarkEventSheet() {
     if (!uiEls.markEventSheet) return;
     uiEls.markEventSheet.classList.add('is-collapsed');
+    dayEventSheetOpenIso = null;
     if (uiEls.markDotsRow) {
       uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
     }
+  }
+
+  // وقتی روی «روز جاری» کلیک می‌شود ولی هیچ مناسبت ثبت‌شده‌ای ندارد، به‌جای سکوت،
+  // همان بنر کاغذی رویداد را با یک پیام خلاقانهٔ مخصوص امروز باز می‌کنیم.
+  function openTodayGreetingSheet(iso) {
+    if (!uiEls.markEventSheet) return;
+    if (uiEls.markEventBadge) uiEls.markEventBadge.textContent = '✨';
+    if (uiEls.markEventText) uiEls.markEventText.textContent = currentLang === 'fa' ? 'این روز توست' : 'This day is yours';
+    if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = currentLang === 'fa' ? 'امروز' : 'Today';
+    uiEls.markEventSheet.classList.remove('is-collapsed');
+    dayEventSheetOpenIso = iso;
   }
 
   function renderMarkedDays() {
@@ -1802,6 +1821,9 @@
   let smartDateISO = ''; // hidden canonical YYYY-MM-DD (Gregorian)
   let dualViewYear = null, dualViewMonth = null; // 1-based month of currently shown Gregorian month
   let dualPickerOpen = false;
+  // کدام روز (iso) در حال حاضر بنر رویدادش باز است — برای رفتار دوکاره‌ی کلیک:
+  // کلیک اول باز می‌کند، کلیک دوم روی همان روز می‌بندد.
+  let dayEventSheetOpenIso = null;
 
   function toAsciiDigits(str) {
     return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
@@ -1944,6 +1966,9 @@
   });
 
   const JALALI_MONTHS_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+  // اسلاگ لاتین همان ترتیب بالا — فقط برای مقدار attribute رنگ‌بندیِ ماهانه (data-cal-month)
+  const JALALI_MONTH_KEYS = ['farvardin','ordibehesht','khordad','tir','mordad','shahrivar','mehr','aban','azar','dey','bahman','esfand'];
+  function calMonthKeyFromJalali(jm) { return JALALI_MONTH_KEYS[jm - 1] || ''; }
   const GREG_MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const GREG_MONTHS_FA = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
@@ -1955,6 +1980,9 @@
     dualPickerOpen = false;
     if (uiEls.dualPicker) { uiEls.dualPicker.hidden = true; uiEls.dualPicker.style.display = 'none'; }
     if (uiEls.markPanel) uiEls.markPanel.classList.remove('picker-open');
+    // بستن تقویم (چه با کلیک بیرون، چه Esc، چه انتخاب روز، چه بستن کل پنل ساعت)
+    // باید بنر نمایش رویداد را هم ببندد، تا بعد از تقویم روی صفحه باقی نماند.
+    if (typeof closeMarkEventSheet === 'function') closeMarkEventSheet();
     if (uiEls.markPanel && uiEls.markPanel.classList.contains('active')) positionMarksPanelSide();
   }
   function openDualPicker() {
@@ -1977,6 +2005,15 @@
     const startDow = first.getDay();
     const offset = preferJalali ? (startDow + 1) % 7 : startDow;
     const totalDays = daysInGregorianMonth(y, m);
+
+    // رنگ‌بندی تقویم کلی (پاپ‌آپ) بر اساس ماه جلالیِ همان بازهٔ نمایش‌داده‌شده —
+    // چون هر گرید یک ماه میلادی است ولی می‌تواند بین دو ماه جلالی مشترک باشد،
+    // ماهِ جلالیِ روز میانی (۱۵ام) به‌عنوان هویت رنگی کل گرید در نظر گرفته می‌شود.
+    try {
+      const midJ = gregorianToJalaali(y, m, Math.min(15, totalDays));
+      const gridCalMonthKey = calMonthKeyFromJalali(midJ.jm);
+      if (gridCalMonthKey && uiEls.dualPicker) uiEls.dualPicker.dataset.calMonth = gridCalMonthKey;
+    } catch (eGridCalMonth) {}
 
     // One grid = one real (Gregorian) month, always — title just names that month.
     // (Its Jalali equivalent can span two Jalali months, but the grid itself never mixes days
@@ -2009,7 +2046,15 @@
     let html = '';
     for (let i = 0; i < offset; i++) html += '<div class="day-cell empty"></div>';
     const GREG_MONTHS_SHORT_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    // هفت‌پیکر نظامی: هر روز هفته به یکی از هفت گنبد/رنگ آن نسبت داده می‌شود —
+    // فقط برای بج رنگی روز در تولتیپ (گرافیک متمایز)، مستقل از رنگ خودِ سلول روز.
+    const HAFT_PEYKAR_KEY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']; // index = Date.getDay()
+    const WEEKDAY_FULL_FA = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
+    const WEEKDAY_FULL_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     function dayHoverTip(gy, gm, gd) {
+      const wdIdx = new Date(gy, gm - 1, gd).getDay();
+      const weekdayKey = HAFT_PEYKAR_KEY[wdIdx];
+      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
       // Line 1 — Gregorian English, no year
       const gregLine = `${gd} ${GREG_MONTHS_SHORT_EN[gm - 1]}`;
       // Line 2 — secondary calendar (day + month only)
@@ -2048,7 +2093,7 @@
         const hijriLocale = currentLang === 'fa' ? 'fa-IR-u-ca-islamic-umalqura' : 'en-US-u-ca-islamic-umalqura';
         hijriLine = dt.toLocaleDateString(hijriLocale, hijriOpts);
       } catch (e3) {}
-      return { gregLine, secLine: (secLine || '').trim(), hijriLine: (hijriLine || '').trim() };
+      return { weekdayKey, weekdayLine, gregLine, secLine: (secLine || '').trim(), hijriLine: (hijriLine || '').trim() };
     }
 
     for (let d = 1; d <= totalDays; d++) {
@@ -2062,17 +2107,23 @@
       const tip = dayHoverTip(y, m, d);
       // Hover tooltip stays date-only (Gregorian/Jalali/Hijri); events are shown
       // elsewhere (the special-days popup toggle / event sheet on click), not
-      // stacked into this tooltip, so it keeps its small, consistent "magnifier" look.
-      let tipAttr = ` data-tip-greg="${tip.gregLine}"`;
-      if (tip.secLine) tipAttr += ` data-tip-sec="${tip.secLine}"`;
-      if (tip.hijriLine) tipAttr += ` data-tip-hijri="${tip.hijriLine}"`;
+      // stacked into this tooltip, so it keeps its own clear, uncluttered look.
+      // The weekday gets its own bigger, color-coded badge (Haft Peykar palette)
+      // so the tooltip is easier to scan at a glance.
+      const tipHtml = `<div class="ai-day-tip" data-weekday="${tip.weekdayKey}">
+          <span class="ai-day-tip-wd">${tip.weekdayLine}</span>
+          <span class="ai-day-tip-greg">${tip.gregLine}</span>${tip.secLine ? `
+          <span class="ai-day-tip-sec">${tip.secLine}</span>` : ''}${tip.hijriLine ? `
+          <span class="ai-day-tip-hijri">${tip.hijriLine}</span>` : ''}
+        </div>`;
       const cls = ['day-cell'];
       if (isToday) cls.push('is-today');
       if (isMarked) cls.push('is-marked');
       if (isSelected) cls.push('is-selected');
-      html += `<div class="${cls.join(' ')}" data-iso="${iso}" role="button" tabindex="0"${tipAttr}>
+      html += `<div class="${cls.join(' ')}" data-iso="${iso}" data-weekday="${tip.weekdayKey}" role="button" tabindex="0">
         <span class="primary-day">${primary}</span>
         <span class="sub-day">${sub}</span>
+        ${tipHtml}
       </div>`;
     }
     uiEls.dualGrid.innerHTML = html;
@@ -2080,11 +2131,20 @@
     uiEls.dualGrid.querySelectorAll('.day-cell[data-iso]').forEach(cell => {
       cell.addEventListener('click', (e) => {
         e.stopPropagation();
+        // کلیک باعث می‌شود تولتیپ همان لحظه پنهان شود؛ چون موس معمولاً بعد از
+        // کلیک هنوز روی همان سلول است، صرفِ :hover در CSS آن را باز نگه می‌داشت.
+        cell.classList.add('tip-suppressed');
         const iso = cell.dataset.iso;
         const [gy, gm, gd] = iso.split('-').map(Number);
         const j = gregorianToJalaali(gy, gm, gd);
         smartDateMeta = { source: currentLang === 'fa' ? 'jalali' : 'gregorian', jy: j.jy, jm: j.jm, jd: j.jd };
         setSmartDate(iso);
+
+        // کلیک دوکاره: اگر بنر رویداد همین روز از قبل باز است، همین کلیک آن را می‌بندد
+        if (dayEventSheetOpenIso === iso) {
+          closeMarkEventSheet();
+          return;
+        }
 
         // If this day has special-day event(s), open the paper event sheet (same as mark dots)
         const hits = marksForDay(gy, gm, gd, j.jy, j.jm, j.jd);
@@ -2092,6 +2152,7 @@
           // Prefer today's event, else nearest (fewest days until)
           hits.sort((a, b) => a.days - b.days);
           openMarkEventSheet(hits[0]);
+          dayEventSheetOpenIso = iso;
           // Highlight matching mark-dot if visible
           if (uiEls.markDotsRow) {
             uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
@@ -2101,12 +2162,17 @@
             });
           }
           // Keep dual picker open so user still sees calendar context; don't force-close
+        } else if (iso === todayISO) {
+          // روز جاری حتی بدون مناسبتِ ثبت‌شده هم بی‌جواب نمی‌ماند
+          openTodayGreetingSheet(iso);
         } else {
           closeMarkEventSheet();
           closeDualPicker();
           uiEls.smartDateInput.focus();
         }
       });
+      cell.addEventListener('mouseleave', () => cell.classList.remove('tip-suppressed'));
+      cell.addEventListener('pointerleave', () => cell.classList.remove('tip-suppressed'));
     });
   }
 

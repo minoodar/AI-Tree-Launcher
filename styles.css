@@ -2408,6 +2408,13 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
   background: rgba(8,12,22,0.96); border: 1px solid rgba(255,255,255,0.1);
   box-sizing: border-box; width: 100%;
   overflow: visible;
+  transition: background 0.3s var(--ease-premium, ease), border-color 0.3s var(--ease-premium, ease);
+}
+/* تقویم کلی (پاپ‌آپ): پس‌زمینه‌اش هم رنگ ماهی را می‌گیرد که در آن لحظه مرور می‌شود —
+   مستقل از ماهِ «امروز»ِ نمایش فشرده — تا با ورق‌زدن ماه‌ها، هویت رنگی هم عوض شود. */
+.ai-dual-picker[data-cal-month] {
+  background: linear-gradient(155deg, var(--cal-line), transparent 60%), rgba(8,12,22,0.96);
+  border-color: var(--cal-line);
 }
 .ai-dual-picker-header {
   display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 7px;
@@ -2418,8 +2425,10 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
 }
 .ai-dual-picker-header button:hover { background: rgba(56,189,248,0.25); }
 #ai-dual-month-label {
-  flex: 1; min-width: 0; text-align: center; font-size: 12px; font-weight: 700; color: #bae6fd;
+  flex: 1; min-width: 0; text-align: center; font-size: 11.5px; font-weight: 800; color: #bae6fd;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: 0.2px;
+  padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.06);
+  transition: background 0.25s var(--ease-premium, ease), color 0.25s var(--ease-premium, ease);
 }
 .ai-dual-weekdays {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;
@@ -2437,7 +2446,9 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
   background: transparent; border: 1px solid transparent;
   transition: background 0.12s, border-color 0.12s;
   user-select: none; padding: 1px 0; box-sizing: border-box;
+  position: relative; overflow: visible; z-index: 1;
 }
+.day-cell:not(.empty):hover { z-index: 40; }
 .day-cell.empty { pointer-events: none; }
 .day-cell:not(.empty):hover { background: rgba(56,189,248,0.15); }
 /* روز جاری — آبی */
@@ -2475,57 +2486,107 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
 .day-cell .sub-day {
   font-size: 9px; font-weight: 500; color: rgba(148,163,184,0.55); line-height: 1;
 }
+/* لایهٔ «روز» از سیستم دوگانهٔ رنگ: عدد تقویم فرعی هر خانه با رنگ هفت‌پیکرِ
+   همان روز هفته کمی رنگ می‌گیرد؛ لایهٔ «ماه» (پس‌زمینه/حلقهٔ امروز) جدا و پایین‌تر تعریف شده. */
+.day-cell[data-weekday="sat"] .sub-day { color: rgba(150, 140, 165, 0.85); }
+.day-cell[data-weekday="sun"] .sub-day { color: rgba(217, 166, 46, 0.9); }
+.day-cell[data-weekday="mon"] .sub-day { color: rgba(79, 170, 130, 0.9); }
+.day-cell[data-weekday="tue"] .sub-day { color: rgba(224, 120, 120, 0.9); }
+.day-cell[data-weekday="wed"] .sub-day { color: rgba(66, 190, 190, 0.9); }
+.day-cell[data-weekday="thu"] .sub-day { color: rgba(120, 160, 220, 0.9); }
+.day-cell[data-weekday="fri"] .sub-day { color: rgba(232, 227, 216, 0.9); }
 
-/* Day hover card — rectangular, slightly larger than a day cell */
-.day-cell[data-tip-greg] {
-  position: relative;
-  z-index: 1;
-  overflow: visible;
-}
-.day-cell[data-tip-greg]:hover {
-  z-index: 40;
-}
-.day-cell[data-tip-greg]::after {
-  content: attr(data-tip-greg) "\A" attr(data-tip-sec) "\A" attr(data-tip-hijri);
-  white-space: pre-wrap;
+/* Day hover card — bigger, clearer, with a color-coded weekday badge
+   (Haft Peykar / Nezami's seven domes — one color per weekday) so the
+   tooltip reads at a glance instead of being a tiny wall of text. */
+.ai-day-tip {
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translate(-50%, 4px) scale(0.9);
-  width: 68px;
-  min-height: 72px;
-  padding: 8px 5px;
+  bottom: calc(100% + 7px);
+  transform: translate(-50%, 4px) scale(0.92);
+  width: max-content;
+  max-width: 150px;
+  padding: 0 0 5px;
   box-sizing: border-box;
-  border-radius: 8px;
-  background: rgba(12, 18, 30, 0.98);
-  border: 1px solid rgba(125, 211, 252, 0.42);
-  color: #f1f5f9;
-  font-size: 9.5px;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: 0.02em;
+  border-radius: 9px;
+  overflow: hidden;
+  /* پس‌زمینهٔ کارت = رنگ ماهِ جلالیِ همان روز (چرخهٔ دوازده‌گانهٔ طبیعت)؛
+     اگر به هر دلیل ماه شناخته نشد، به تیرهٔ خنثای قبلی برمی‌گردد. */
+  background: var(--cal-badge-bg, rgba(15, 21, 33, 0.98));
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--cal-badge-ink, #f1f5f9);
   text-align: center;
   direction: ltr;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   opacity: 0;
   pointer-events: none;
   z-index: 41;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 6px 14px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   transition:
     opacity 0.14s var(--ease-premium),
     transform 0.16s var(--ease-premium);
 }
-.day-cell[data-tip-greg]:hover::after {
+.day-cell:not(.empty):hover .ai-day-tip {
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
 }
-.day-cell[data-tip-greg]::before {
-  content: none;
-  display: none;
+/* کلیک روی روز، تولتیپ را بلافاصله می‌بندد؛ حتی اگر موس هنوز روی همان سلول باشد */
+.day-cell.tip-suppressed .ai-day-tip {
+  opacity: 0 !important;
+  transform: translate(-50%, 4px) scale(0.92) !important;
+  pointer-events: none !important;
+}
+/* بج نام روز هفته — نوار/accent کوچکِ رنگیِ همان روز از پالت هفت‌پیکر،
+   روی پس‌زمینهٔ ماه می‌نشیند تا هر روز دو هویت رنگی داشته باشد: روز + ماه */
+.ai-day-tip-wd {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  margin-bottom: 3px;
+  padding: 0 9px;
+  white-space: nowrap;
+  background: rgba(148, 163, 184, 0.22);
+  color: #f1f5f9;
+}
+.ai-day-tip-greg,
+.ai-day-tip-sec,
+.ai-day-tip-hijri {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--cal-badge-ink, #e2e8f0);
+  padding: 0 9px;
+  white-space: nowrap;
+}
+.ai-day-tip-sec,
+.ai-day-tip-hijri {
+  opacity: 0.75;
+  font-size: 10.5px;
+}
+
+/* پالت هفت‌پیکر نظامی — هر روز هفته رنگ بج مخصوص خودش را دارد */
+.ai-day-tip[data-weekday="sat"]  .ai-day-tip-wd { background: #25222B; color: #F4E8D0; }
+.ai-day-tip[data-weekday="sun"]  .ai-day-tip-wd { background: #D9A62E; color: #211C16; }
+.ai-day-tip[data-weekday="mon"]  .ai-day-tip-wd { background: #2F6B4F; color: #F3EBD2; }
+.ai-day-tip[data-weekday="tue"]  .ai-day-tip-wd { background: #9E3F3F; color: #FFF0D2; }
+.ai-day-tip[data-weekday="wed"]  .ai-day-tip-wd { background: #238A8A; color: #FFF4D6; }
+.ai-day-tip[data-weekday="thu"]  .ai-day-tip-wd { background: #315A91; color: #F4EBD7; }
+.ai-day-tip[data-weekday="fri"]  .ai-day-tip-wd { background: #E8E3D8; color: #29252A; }
+.ai-day-tip[data-weekday="sat"],
+.ai-day-tip[data-weekday="sun"],
+.ai-day-tip[data-weekday="mon"],
+.ai-day-tip[data-weekday="tue"],
+.ai-day-tip[data-weekday="wed"],
+.ai-day-tip[data-weekday="thu"],
+.ai-day-tip[data-weekday="fri"] {
+  border-color: rgba(255, 255, 255, 0.14);
 }
 
 #ai-mark-add-btn {
@@ -4109,45 +4170,131 @@ body.rtl .ai-note-history-menu,
 #ai-clock-panel[data-season="spring"] {
   --season-ink: #d1fae5; --season-soft: rgba(209,250,229,.76); --season-line: rgba(110,231,183,.40);
   --season-today: #6ee7b7; --season-today-bg: rgba(16,185,129,.18);
-  background: radial-gradient(circle at 13% 5%, rgba(110,231,183,.26), transparent 36%), radial-gradient(circle at 91% 88%, rgba(251,191,36,.12), transparent 38%), linear-gradient(145deg, #113a37, #081d28 72%) !important;
 }
 #ai-clock-panel[data-season="summer"] {
   --season-ink: #fef3c7; --season-soft: rgba(254,243,199,.78); --season-line: rgba(253,230,138,.40);
   --season-today: #fbbf24; --season-today-bg: rgba(245,158,11,.19);
-  background: radial-gradient(circle at 14% 5%, rgba(251,191,36,.28), transparent 35%), radial-gradient(circle at 91% 92%, rgba(56,189,248,.15), transparent 42%), linear-gradient(145deg, #24334a, #0d1d35 72%) !important;
 }
 #ai-clock-panel[data-season="autumn"] {
   --season-ink: #ffedd5; --season-soft: rgba(255,237,213,.78); --season-line: rgba(251,146,60,.42);
   --season-today: #fb923c; --season-today-bg: rgba(234,88,12,.20);
-  background: radial-gradient(circle at 14% 6%, rgba(251,146,60,.28), transparent 37%), radial-gradient(circle at 94% 94%, rgba(190,24,93,.14), transparent 43%), linear-gradient(145deg, #40251e, #1d1220 72%) !important;
 }
 #ai-clock-panel[data-season="winter"] {
   --season-ink: #e0f2fe; --season-soft: rgba(224,242,254,.78); --season-line: rgba(125,211,252,.40);
   --season-today: #7dd3fc; --season-today-bg: rgba(14,165,233,.20);
-  background: radial-gradient(circle at 13% 4%, rgba(125,211,252,.23), transparent 36%), radial-gradient(circle at 90% 88%, rgba(129,140,248,.17), transparent 42%), linear-gradient(145deg, #132b4b, #090f25 72%) !important;
 }
 /* Fine grain is static and clipped to the card: artistic depth without a paint loop. */
-#ai-clock-panel[data-season] .ai-clock-halo::after {
+#ai-clock-panel[data-cal-month] .ai-clock-halo::after {
   content: "";
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, var(--season-line) 0 1px, transparent 1.4px);
+  background-image: radial-gradient(circle, var(--cal-line) 0 1px, transparent 1.4px);
   background-size: 23px 23px;
   opacity: .16;
   pointer-events: none;
 }
-#ai-clock-panel[data-season] .ai-clock-kicker,
-#ai-clock-panel[data-season] .ai-clock-date-en { color: var(--season-soft); }
-#ai-clock-panel[data-season] .ai-clock-kicker span:first-child,
-#ai-clock-panel[data-season] .ai-clock-kicker span:last-child { background: linear-gradient(90deg, transparent, var(--season-line), transparent); }
-#ai-clock-panel[data-season] .ai-clock-time { color: var(--season-ink); text-shadow: 0 0 14px var(--season-line); }
-#ai-clock-panel[data-season] .ai-clock-date-fa { color: var(--season-ink); }
-#ai-clock-panel[data-season] .ai-clock-marks-panel { border-color: var(--season-line); }
-#ai-clock-panel[data-season] .day-cell:not(.empty):hover { background: var(--season-today-bg); }
-#ai-clock-panel[data-season] .day-cell.is-today { border-color: var(--season-today); background: var(--season-today-bg); box-shadow: 0 0 0 1px var(--season-line), 0 0 12px var(--season-line); }
-#ai-clock-panel[data-season] .day-cell.is-today .primary-day { color: var(--season-ink); }
-#ai-clock-panel[data-season] #ai-dual-month-label { color: var(--season-ink); }
-#ai-clock-panel[data-season] .ai-dual-wd { color: var(--season-soft); }
+#ai-clock-panel[data-cal-month] .ai-clock-kicker,
+#ai-clock-panel[data-cal-month] .ai-clock-date-en { color: var(--cal-soft); }
+#ai-clock-panel[data-cal-month] .ai-clock-kicker span:first-child,
+#ai-clock-panel[data-cal-month] .ai-clock-kicker span:last-child { background: linear-gradient(90deg, transparent, var(--cal-line), transparent); }
+#ai-clock-panel[data-cal-month] .ai-clock-time { color: var(--cal-ink); text-shadow: 0 0 14px var(--cal-line); }
+#ai-clock-panel[data-cal-month] .ai-clock-date-fa { color: var(--cal-ink); }
+#ai-clock-panel[data-cal-month] .ai-clock-marks-panel { border-color: var(--cal-line); }
+#ai-clock-panel[data-cal-month] .day-cell:not(.empty):hover { background: var(--cal-today-bg); }
+#ai-clock-panel[data-cal-month] .day-cell.is-today { border-color: var(--cal-badge-bg); background: var(--cal-today-bg); box-shadow: 0 0 0 1px var(--cal-line), 0 0 12px var(--cal-line); }
+#ai-clock-panel[data-cal-month] .day-cell.is-today .primary-day { color: var(--cal-ink); }
+/* بج نام ماه — پس‌زمینه و رنگ فونتِ همان ماه، دقیقاً طبق پالت پیشنهادی */
+#ai-clock-panel[data-cal-month] #ai-dual-month-label { background: var(--cal-badge-bg); color: var(--cal-badge-ink); }
+#ai-clock-panel[data-cal-month] .ai-dual-wd { color: var(--cal-soft); }
+
+/* هفت‌رنگ نظامی برای هفته / چرخهٔ دوازده‌گانهٔ طبیعت برای ماه — هر ماه جلالی
+   رنگ پس‌زمینهٔ کلی نمایش فشردهٔ ساعت و تقویم کلی (پاپ‌آپ) را تعیین می‌کند؛
+   بج ماه از جفت رنگِ اصلیِ همان ماه (پس‌زمینه + فونت متضاد) استفاده می‌کند،
+   و بقیهٔ متن‌ها از یک تُن روشنِ هم‌خانواده برای خوانایی روی پس‌زمینهٔ تیرهٔ ابزارک. */
+[data-cal-month="farvardin"] {
+  --cal-badge-bg: #6FAF72; --cal-badge-ink: #FFF7DC;
+  --cal-ink: #E3F3E0; --cal-soft: rgba(227,243,224,.78); --cal-line: rgba(111,175,114,.40); --cal-today-bg: rgba(111,175,114,.18);
+}
+#ai-clock-panel[data-cal-month="farvardin"] {
+  background: radial-gradient(circle at 13% 5%, rgba(111,175,114,.26), transparent 36%), radial-gradient(circle at 91% 88%, rgba(217,139,154,.10), transparent 38%), linear-gradient(145deg, #16352a, #0a1d1c 72%) !important;
+}
+[data-cal-month="ordibehesht"] {
+  --cal-badge-bg: #D98B9A; --cal-badge-ink: #FFF5E8;
+  --cal-ink: #FBE6EA; --cal-soft: rgba(251,230,234,.78); --cal-line: rgba(217,139,154,.40); --cal-today-bg: rgba(217,139,154,.18);
+}
+#ai-clock-panel[data-cal-month="ordibehesht"] {
+  background: radial-gradient(circle at 13% 5%, rgba(217,139,154,.26), transparent 36%), radial-gradient(circle at 91% 88%, rgba(111,175,114,.10), transparent 38%), linear-gradient(145deg, #3a2028, #1d1219 72%) !important;
+}
+[data-cal-month="khordad"] {
+  --cal-badge-bg: #C49A32; --cal-badge-ink: #29231A;
+  --cal-ink: #FBF0D6; --cal-soft: rgba(251,240,214,.78); --cal-line: rgba(196,154,50,.42); --cal-today-bg: rgba(196,154,50,.19);
+}
+#ai-clock-panel[data-cal-month="khordad"] {
+  background: radial-gradient(circle at 14% 5%, rgba(196,154,50,.28), transparent 35%), radial-gradient(circle at 91% 92%, rgba(56,189,248,.10), transparent 42%), linear-gradient(145deg, #3a2f16, #1d1710 72%) !important;
+}
+[data-cal-month="tir"] {
+  --cal-badge-bg: #C45A3C; --cal-badge-ink: #FFF0D0;
+  --cal-ink: #FBE3D6; --cal-soft: rgba(251,227,214,.78); --cal-line: rgba(196,90,60,.42); --cal-today-bg: rgba(196,90,60,.20);
+}
+#ai-clock-panel[data-cal-month="tir"] {
+  background: radial-gradient(circle at 14% 6%, rgba(196,90,60,.28), transparent 37%), radial-gradient(circle at 94% 94%, rgba(190,24,93,.12), transparent 43%), linear-gradient(145deg, #3f2318, #1d130f 72%) !important;
+}
+[data-cal-month="mordad"] {
+  --cal-badge-bg: #B98A32; --cal-badge-ink: #29251B;
+  --cal-ink: #FAF0D6; --cal-soft: rgba(250,240,214,.78); --cal-line: rgba(185,138,50,.40); --cal-today-bg: rgba(185,138,50,.19);
+}
+#ai-clock-panel[data-cal-month="mordad"] {
+  background: radial-gradient(circle at 13% 5%, rgba(185,138,50,.26), transparent 36%), radial-gradient(circle at 91% 88%, rgba(142,112,69,.14), transparent 40%), linear-gradient(145deg, #362c16, #1c1710 72%) !important;
+}
+[data-cal-month="shahrivar"] {
+  --cal-badge-bg: #8E7045; --cal-badge-ink: #FFF2D2;
+  --cal-ink: #F3E7D2; --cal-soft: rgba(243,231,210,.78); --cal-line: rgba(142,112,69,.42); --cal-today-bg: rgba(142,112,69,.19);
+}
+#ai-clock-panel[data-cal-month="shahrivar"] {
+  background: radial-gradient(circle at 14% 5%, rgba(142,112,69,.28), transparent 36%), radial-gradient(circle at 91% 90%, rgba(184,92,56,.12), transparent 40%), linear-gradient(145deg, #302819, #191410 72%) !important;
+}
+[data-cal-month="mehr"] {
+  --cal-badge-bg: #B85C38; --cal-badge-ink: #FFF4DC;
+  --cal-ink: #F8E3D4; --cal-soft: rgba(248,227,212,.78); --cal-line: rgba(184,92,56,.42); --cal-today-bg: rgba(184,92,56,.20);
+}
+#ai-clock-panel[data-cal-month="mehr"] {
+  background: radial-gradient(circle at 14% 6%, rgba(184,92,56,.28), transparent 37%), radial-gradient(circle at 94% 94%, rgba(112,72,61,.16), transparent 43%), linear-gradient(145deg, #3a2416, #1d140f 72%) !important;
+}
+[data-cal-month="aban"] {
+  --cal-badge-bg: #70483D; --cal-badge-ink: #F7E8C8;
+  --cal-ink: #F0DED3; --cal-soft: rgba(240,222,211,.78); --cal-line: rgba(112,72,61,.44); --cal-today-bg: rgba(112,72,61,.22);
+}
+#ai-clock-panel[data-cal-month="aban"] {
+  background: radial-gradient(circle at 14% 6%, rgba(112,72,61,.30), transparent 37%), radial-gradient(circle at 94% 94%, rgba(184,92,56,.14), transparent 43%), linear-gradient(145deg, #2c1c17, #180f0c 72%) !important;
+}
+[data-cal-month="azar"] {
+  --cal-badge-bg: #536B72; --cal-badge-ink: #F4EBD4;
+  --cal-ink: #E4EBEC; --cal-soft: rgba(228,235,236,.78); --cal-line: rgba(83,107,114,.42); --cal-today-bg: rgba(83,107,114,.20);
+}
+#ai-clock-panel[data-cal-month="azar"] {
+  background: radial-gradient(circle at 13% 4%, rgba(83,107,114,.26), transparent 36%), radial-gradient(circle at 90% 88%, rgba(64,86,111,.16), transparent 42%), linear-gradient(145deg, #1f2b2e, #101a1d 72%) !important;
+}
+[data-cal-month="dey"] {
+  --cal-badge-bg: #40566F; --cal-badge-ink: #F4F0E6;
+  --cal-ink: #DCE5EE; --cal-soft: rgba(220,229,238,.78); --cal-line: rgba(64,86,111,.42); --cal-today-bg: rgba(64,86,111,.22);
+}
+#ai-clock-panel[data-cal-month="dey"] {
+  background: radial-gradient(circle at 13% 4%, rgba(64,86,111,.28), transparent 36%), radial-gradient(circle at 90% 88%, rgba(113,138,154,.16), transparent 42%), linear-gradient(145deg, #172433, #0c141f 72%) !important;
+}
+[data-cal-month="bahman"] {
+  --cal-badge-bg: #718A9A; --cal-badge-ink: #FFF8E8;
+  --cal-ink: #E7EEF2; --cal-soft: rgba(231,238,242,.78); --cal-line: rgba(113,138,154,.40); --cal-today-bg: rgba(113,138,154,.19);
+}
+#ai-clock-panel[data-cal-month="bahman"] {
+  background: radial-gradient(circle at 13% 4%, rgba(113,138,154,.24), transparent 36%), radial-gradient(circle at 90% 88%, rgba(64,86,111,.16), transparent 42%), linear-gradient(145deg, #202e39, #10181f 72%) !important;
+}
+[data-cal-month="esfand"] {
+  --cal-badge-bg: #657A5B; --cal-badge-ink: #FFF3D6;
+  --cal-ink: #E6ECE1; --cal-soft: rgba(230,236,225,.78); --cal-line: rgba(101,122,91,.40); --cal-today-bg: rgba(101,122,91,.19);
+}
+#ai-clock-panel[data-cal-month="esfand"] {
+  background: radial-gradient(circle at 13% 5%, rgba(101,122,91,.26), transparent 36%), radial-gradient(circle at 91% 88%, rgba(111,175,114,.12), transparent 38%), linear-gradient(145deg, #202b1c, #10160e 72%) !important;
+}
 
 /* The event drawer starts with context, so three calendars teach the season instead of floating on black. */
 .ai-season-context {
