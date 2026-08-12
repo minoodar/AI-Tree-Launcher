@@ -2523,15 +2523,6 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
   opacity: 1;
   transform: translate(-50%, 0) scale(1);
 }
-/* Marked day: also show event title in the hover tip */
-.day-cell[data-tip-event]::after {
-  content: attr(data-tip-greg) "\A" attr(data-tip-sec) "\A" attr(data-tip-hijri) "\A" attr(data-tip-event);
-  width: 108px;
-  min-height: 92px;
-  font-size: 9px;
-  color: #fef3c7;
-  border-color: rgba(251, 191, 36, 0.55);
-}
 .day-cell[data-tip-greg]::before {
   content: none;
   display: none;

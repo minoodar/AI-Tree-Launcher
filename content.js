@@ -2060,16 +2060,12 @@
       const primary = preferJalali ? toPersianDigits(j.jd) : String(d);
       const sub = preferJalali ? String(d) : String(j.jd);
       const tip = dayHoverTip(y, m, d);
-      const dayMarks = isMarked ? marksForDay(y, m, d, j.jy, j.jm, j.jd) : [];
+      // Hover tooltip stays date-only (Gregorian/Jalali/Hijri); events are shown
+      // elsewhere (the special-days popup toggle / event sheet on click), not
+      // stacked into this tooltip, so it keeps its small, consistent "magnifier" look.
       let tipAttr = ` data-tip-greg="${tip.gregLine}"`;
       if (tip.secLine) tipAttr += ` data-tip-sec="${tip.secLine}"`;
       if (tip.hijriLine) tipAttr += ` data-tip-hijri="${tip.hijriLine}"`;
-      if (dayMarks.length) {
-        // Escape quotes so multi-label tip stays valid in the attribute
-        const labels = dayMarks.map(mk => (mk.golden ? '★ ' : '') + String(mk.label || '')).join(' · ')
-          .replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-        tipAttr += ` data-tip-event="${labels}"`;
-      }
       const cls = ['day-cell'];
       if (isToday) cls.push('is-today');
       if (isMarked) cls.push('is-marked');
@@ -4086,7 +4082,13 @@
 
     const { lineH, padY } = measureNoteLineMetrics();
     const minTaH = Math.ceil(NOTE_TA_MIN_LINES * lineH + padY);
-    const maxTaH = Math.ceil(NOTE_TA_MAX_LINES * lineH + padY);
+    // اجازه بده کادر تا نزدیک ارتفاع کامل صفحه (سقفِ noteMaxH) رشد قائم داشته باشد،
+    // نه فقط تا ۱۰ خط ثابت — وگرنه بعد از آن آستانه، رشد ارتفاع متوقف و به‌جایش
+    // فقط عرض زیاد می‌شد که هنگام تایپ باعث تکان‌های ناگهانی می‌شد.
+    const maxTaH = Math.max(
+      Math.ceil(NOTE_TA_MAX_LINES * lineH + padY),
+      Math.ceil(noteMaxH() - measureNoteChromeH())
+    );
 
     const measureScrollH = () => {
       const prevMin = noteTextarea.style.minHeight;
