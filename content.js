@@ -95,6 +95,7 @@
       bookmarkCount: "{n} Bookmarks",
       coreCount: "{n} Core",
       hubCore: "Core",
+      hubComet: "Comet Stars",
       portalForward: "Extended Network {n}",
       portalHome: "Home",
       portalNews: "News",
@@ -103,6 +104,7 @@
       hubDotNews: "News",
       hubNews: "News",
       toastOverflowed: "{tier} tier is full — saved to Extended Network {hub} instead.",
+      toastOverflowedToComet: "{tier} tier is full everywhere — moved to the Comet Stars mix in Network {hub}.",
       toastTierFullEverywhere: "{tier} tier is full across all networks!",
       toastQuickAdded: "Bookmarked: {label} {stars}",
       hubHoldHint: "Hold to bookmark this page\nRelease at the star you want",
@@ -273,6 +275,7 @@
       bookmarkCount: "{n} بوک‌مارک",
       coreCount: "{n} هسته",
       hubCore: "هسته",
+      hubComet: "ستاره‌های دنبال‌دار",
       portalForward: "منظومه‌ی فرعی {n}",
       portalHome: "خانه",
       portalNews: "اخبار",
@@ -281,6 +284,7 @@
       hubDotNews: "اخبار",
       hubNews: "اخبار",
       toastOverflowed: "رده‌ی {tier} پر شد؛ در منظومه‌ی فرعی {hub} ذخیره شد.",
+      toastOverflowedToComet: "اسلات {tier} همه‌جا پر شده؛ بوک‌مارک شما به ستاره‌های دنبال‌دار میکسِ کهکشان {hub} منتقل شد.",
       toastTierFullEverywhere: "رده‌ی {tier} در همه‌ی منظومه‌ها پر است!",
       toastQuickAdded: "بوک‌مارک شد: {label} {stars}",
       hubHoldHint: "نگه دارید تا بوک‌مارک شود\nدر ستاره‌ی دلخواه رها کنید",
@@ -404,7 +408,7 @@
 
   const GOLDEN_ANGLE = 137.51; let SPACING = 32; const START_RADIUS = 88; const MAX_NODES = 80;
   const MIN_SPACING = 18; const MAX_SPACING = 84;
-  let currentLayerMode = 0; let showAllOverride = false; const MAX_LAYERS = 5;
+  let currentLayerMode = 0; let showAllOverride = false; const MAX_LAYERS = 6; // ۵ ردهٔ ستاره‌ای + مجموعهٔ سرریزِ دنبال‌دار
   let isOpen = false; let isDragging = false; let dragMoved = false;
   let spiralNodeEls = []; 
   
@@ -759,46 +763,78 @@
   }
 
   const RING_CONFIG = [
-    { labelKey: 'hubCore', max: 4 },
+    { labelKey: 'hubCore', max: 5 },
     { label: '5★',   importance: 5,     max: 7  },
     { label: '4★',   importance: 4,     max: 14 },
     { label: '3★',   importance: 3,     max: 20 },
-    { label: '1-2★', importanceMax: 2,  max: 30 }
+    { label: '1-2★', importanceMax: 2,  max: 30 },
+    // مجموعه‌ی میکسِ سرریز: وقتی رده‌ی اصلی در همه‌ی کهکشان‌های قابل‌سرریز پر باشد،
+    // به‌جای گم‌شدنِ بوک‌مارک، اینجا (با ظرفیت بیشتر) نگه داشته می‌شود.
+    { labelKey: 'hubComet', comet: true, max: 50 }
   ];
+  function ringDisplayLabel(ring) {
+    if (!ring) return '';
+    return ring.labelKey ? t(ring.labelKey) : (ring.label || '');
+  }
 
   function importanceMatchesRing(importance, ring) {
     return ring.importance !== undefined ? importance === ring.importance : importance <= ring.importanceMax;
   }
   function tierRingForImportance(importance) {
     for (let i = 1; i < RING_CONFIG.length; i++) { if (importanceMatchesRing(importance, RING_CONFIG[i])) return RING_CONFIG[i]; }
-    return RING_CONFIG[RING_CONFIG.length - 1];
+    return RING_CONFIG[RING_CONFIG.length - 2]; // آخرین رده‌ی واقعی ستاره‌ای (۱-۲★)؛ آخرِ آرایه مجموعه‌ی دنبال‌دار است
   }
   function tierCountInHub(hubIdx, ring) {
     const data = hubData(hubIdx); let n = 0;
-    for (let i = 4; i < data.length; i++) { if (importanceMatchesRing(data[i].importance || 3, ring)) n++; }
+    for (let i = 5; i < data.length; i++) {
+      if (ring.comet) { if (data[i].overflow) n++; }
+      else if (!data[i].overflow && importanceMatchesRing(data[i].importance || 3, ring)) n++;
+    }
     return n;
   }
   function findTargetHubForImportance(importance, startHub) {
     const ring = tierRingForImportance(importance);
-    // کهکشان NEWS هرگز مقصد سرریز خودکار نیست و خودش هم سرریز نمی‌کند
+    const cometRing = RING_CONFIG[RING_CONFIG.length - 1];
+    // کهکشان NEWS هرگز مقصد سرریز خودکار نیست و خودش هم به کهکشان‌های دیگر سرریز نمی‌کند؛
+    // فقط اگر رده‌ی اصلی‌اش پر شود، به مجموعه‌ی دنبال‌دارِ داخلیِ خودش سرریز می‌کند.
     if (isNewsHub(startHub)) {
       const full = tierCountInHub(NEWS_HUB_INDEX, ring) >= ring.max || hubData(NEWS_HUB_INDEX).length >= MAX_NODES;
-      return { ring, targetHub: full ? (HUB_COUNT + 1) : NEWS_HUB_INDEX };
+      if (!full) return { ring, targetHub: NEWS_HUB_INDEX };
+      const cometFull = tierCountInHub(NEWS_HUB_INDEX, cometRing) >= cometRing.max || hubData(NEWS_HUB_INDEX).length >= MAX_NODES;
+      if (!cometFull) return { ring: cometRing, targetHub: NEWS_HUB_INDEX, overflowFromRing: ring };
+      return { ring, targetHub: HUB_COUNT + 1 };
     }
     let targetHub = Math.min(startHub, OVERFLOW_HUB_MAX);
     while (targetHub <= OVERFLOW_HUB_MAX && (tierCountInHub(targetHub, ring) >= ring.max || hubData(targetHub).length >= MAX_NODES)) {
       targetHub++;
     }
-    if (targetHub > OVERFLOW_HUB_MAX) targetHub = HUB_COUNT + 1; // پر در همهٔ کهکشان‌های قابل‌سرریز
-    return { ring, targetHub };
+    if (targetHub <= OVERFLOW_HUB_MAX) return { ring, targetHub };
+    // رده‌ی اصلی در همه‌ی کهکشان‌های قابل‌سرریز پر است؛ حالا به‌جای گم‌کردنِ بوک‌مارک،
+    // مجموعه‌ی میکسِ «ستاره‌های دنبال‌دار» هر کهکشان را امتحان کن
+    let cometHub = 1;
+    while (cometHub <= OVERFLOW_HUB_MAX && (tierCountInHub(cometHub, cometRing) >= cometRing.max || hubData(cometHub).length >= MAX_NODES)) {
+      cometHub++;
+    }
+    if (cometHub <= OVERFLOW_HUB_MAX) return { ring: cometRing, targetHub: cometHub, overflowFromRing: ring };
+    return { ring, targetHub: HUB_COUNT + 1 }; // واقعاً همه‌جا پر است، حتی مجموعه‌ی دنبال‌دار
   }
   function hubHasTierItems(hubIdx, ring) { return tierCountInHub(hubIdx, ring) > 0; }
+  // نصب‌های قدیمی ۴ اسلات هسته داشتند؛ این هسته الان ۵ اسلاته است. هر آرایهٔ لینک با ساختار
+  // قدیمی (هستهٔ ۴تایی در ابتدا) که هنوز مهاجرت نکرده را با درج یک اسلات خالیِ پنجم اصلاح می‌کند
+  // — هم موقع بارگذاری اولیه و هم موقع بازیابی از بکاپِ داخلی استفاده می‌شود.
+  function migrateCoreSlotsTo5(arr) {
+    if (!Array.isArray(arr) || arr.length < 4) return arr;
+    const migrated = arr.slice();
+    migrated.splice(4, 0, { label: '', url: '' });
+    return migrated;
+  }
 
   const CORE_COLORS = [
     { bg: "rgba(154, 52, 18, 0.82)", border: "rgba(249, 115, 22, 0.8)", glow: "rgba(249, 115, 22, 0.55)" }, 
     { bg: "rgba(26, 54, 153, 0.82)", border: "rgba(66, 133, 244, 0.8)", glow: "rgba(66, 133, 244, 0.55)" }, 
     { bg: "rgba(4, 90, 66, 0.82)",   border: "rgba(16, 185, 129, 0.8)", glow: "rgba(16, 185, 129, 0.55)" }, 
-    { bg: "rgba(23, 49, 118, 0.82)", border: "rgba(77, 107, 254, 0.8)", glow: "rgba(77, 107, 254, 0.55)" }  
+    { bg: "rgba(23, 49, 118, 0.82)", border: "rgba(77, 107, 254, 0.8)", glow: "rgba(77, 107, 254, 0.55)" },
+    { bg: "rgba(133, 77, 14, 0.82)", border: "rgba(234, 179, 8, 0.8)",  glow: "rgba(234, 179, 8, 0.55)" }
   ];
   const EXTRA_COLORS = [
     { bg: "rgba(107, 33, 168, 0.75)", border: "rgba(168, 85, 247, 0.5)", glow: "rgba(168, 85, 247, 0.2)" }, 
@@ -807,7 +843,7 @@
   ];
   // همان منطقِ رنگ‌دهیِ نودهای اسپیرال، برای استفاده در نتایج جستجو (تا رنگ‌ها همیشه هم‌خوان بمانند)
   function colorSetForBookmark(link, idxInHub) {
-    if (idxInHub < 4) return CORE_COLORS[idxInHub] || EXTRA_COLORS[0];
+    if (idxInHub < 5) return CORE_COLORS[idxInHub] || EXTRA_COLORS[0];
     const importance = (link && link.importance) || 3;
     const nodeLayer = Math.max(0, importance - 1);
     return EXTRA_COLORS[nodeLayer % EXTRA_COLORS.length];
@@ -1443,7 +1479,7 @@
     if(clockPanel.classList.contains('active')) { updateClockAge(); renderMarkedDays(); if (typeof renderRumiQuote === 'function') renderRumiQuote(); }
     if(searchPanel.classList.contains('active')) renderSearchResults(uiEls.searchInput.value);
     renderTierDots();
-    if(isOpen) setHubLabel(currentLayerMode === 0 ? t('hubCore') : RING_CONFIG[currentLayerMode].label);
+    if(isOpen) setHubLabel(currentLayerMode === 0 ? t('hubCore') : ringDisplayLabel(RING_CONFIG[currentLayerMode]));
     updateBookmarkCount();
   }
 
@@ -2864,7 +2900,7 @@
         // ویرایش همیشه در دسترس است. برای ۴ اسلوت ثابت (هوش مصنوعی در کهکشان ۱،
         // یا جایگاه‌های خالی پیش‌فرض در کهکشان ۲ و ۳) دکمهٔ حذف به‌جای برداشتنِ کامل آیتم،
         // آن را به‌همان روشی که فرم ویرایش انجام می‌دهد خالی می‌کند.
-        const isFixedSlot = idx < 4;
+        const isFixedSlot = idx < 5;
         const actions = document.createElement('span'); actions.className = 'ai-search-result-actions';
         const editBtn = document.createElement('button'); editBtn.type = 'button'; editBtn.className = 'ai-search-action-btn ai-search-action-edit';
         editBtn.title = t('searchEditBtn'); editBtn.setAttribute('aria-label', t('searchEditBtn')); editBtn.textContent = '✎';
@@ -2900,7 +2936,7 @@
     const arr = hubData(hubIdx);
     const pos = arr.indexOf(link);
     if (pos === -1) return;
-    if (pos < 4) {
+    if (pos < 5) {
       // اسلوت ثابت — مثل فرم ویرایش، به‌جای حذف از آرایه، خالی می‌شود
       arr[pos] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
       saveLinksAll();
@@ -6747,7 +6783,7 @@
 
   async function loadDataAndRender() {
     const [syncData, localData] = await Promise.all([
-      storageGet('sync', ['orbitX', 'orbitY', 'linksData', 'coreAIConfig', 'lastDeletedLink', 'userBirthYear', 'nodeSpacing', 'aiTreeTodos', 'appLanguage', 'aiTreeMarkedDays', 'clockCustomX', 'clockCustomY']),
+      storageGet('sync', ['orbitX', 'orbitY', 'linksData', 'coreAIConfig', 'lastDeletedLink', 'userBirthYear', 'nodeSpacing', 'aiTreeTodos', 'appLanguage', 'aiTreeMarkedDays', 'clockCustomX', 'clockCustomY', 'coreSlots5Migrated']),
       storageGet('local', ['linksData', 'linksData2', 'linksData3', 'linksData4', 'activeNoteAIIndex'])
     ]);
 
@@ -6764,21 +6800,38 @@
       try { chrome.storage.local.set({ linksData: resolvedLinksData }); chrome.storage.sync.remove('linksData'); } catch (err) {}
     }
 
+    // مهاجرتِ یک‌باره: نصب‌های قدیمی ۴ اسلات هسته داشتند (ایندکس ۰ تا ۳) و بوک‌مارک‌های واقعی از
+    // ایندکس ۴ شروع می‌شدند. حالا که هسته ۵ اسلاته شده، اگر این مهاجرت انجام نشود، همان بوک‌مارک
+    // واقعیِ ایندکس ۴ به‌اشتباه «اسلات هستهٔ پنجم» خوانده و از شمارش رده‌اش گم می‌شود — پس یک
+    // اسلات خالی جدید بین هستهٔ قدیمی و بوک‌مارک‌های واقعی درج می‌کنیم، فقط یک‌بار.
+    if (!syncData.coreSlots5Migrated) {
+      if (resolvedLinksData) resolvedLinksData = migrateCoreSlotsTo5(resolvedLinksData);
+      if (localData.linksData2) localData.linksData2 = migrateCoreSlotsTo5(localData.linksData2);
+      if (localData.linksData3) localData.linksData3 = migrateCoreSlotsTo5(localData.linksData3);
+      if (localData.linksData4) localData.linksData4 = migrateCoreSlotsTo5(localData.linksData4);
+      try {
+        if (chrome.runtime?.id) {
+          chrome.storage.local.set({ linksData: resolvedLinksData, linksData2: localData.linksData2, linksData3: localData.linksData3, linksData4: localData.linksData4 });
+          chrome.storage.sync.set({ coreSlots5Migrated: true });
+        }
+      } catch (err) {}
+    }
+
     if (syncData.appLanguage) currentLang = syncData.appLanguage;
     updateUITexts();
 
     if (syncData.orbitX !== undefined) { root.style.left = syncData.orbitX + 'px'; root.style.top = syncData.orbitY + 'px'; root.style.bottom = 'auto'; } else { root.style.left = WIDGET1_DEFAULT_LEFT; root.style.top = 'auto'; root.style.bottom = WIDGET1_DEFAULT_BOTTOM; }
 
-    // هسته پیش‌فرض: ChatGPT اول (ارسال مستقیم با q)
-    let defaultCore = [{ label: 'ChatGPT', url: 'https://chatgpt.com' }, { label: 'Claude', url: 'https://claude.ai' }, { label: 'Gemini', url: 'https://gemini.google.com' }, { label: 'DeepSeek', url: 'https://chat.deepseek.com' }];
-    if (syncData.coreAIConfig && syncData.coreAIConfig.length === 4) defaultCore = syncData.coreAIConfig;
+    // هسته پیش‌فرض: ChatGPT اول (ارسال مستقیم با q) — پنجمین اسلات: Grok (قبلاً هم در فهرست Ask AI بود)
+    let defaultCore = [{ label: 'ChatGPT', url: 'https://chatgpt.com' }, { label: 'Claude', url: 'https://claude.ai' }, { label: 'Gemini', url: 'https://gemini.google.com' }, { label: 'DeepSeek', url: 'https://chat.deepseek.com' }, { label: 'Grok', url: 'https://grok.com' }];
+    if (syncData.coreAIConfig && syncData.coreAIConfig.length === 5) defaultCore = syncData.coreAIConfig;
 
-    linksData = (resolvedLinksData && resolvedLinksData.length >= 4) ? resolvedLinksData : defaultCore;
+    linksData = (resolvedLinksData && resolvedLinksData.length >= 5) ? resolvedLinksData : defaultCore;
 
-    const blankQuad = () => [ { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' } ];
-    linksData2 = (localData.linksData2 && localData.linksData2.length >= 4) ? localData.linksData2 : blankQuad();
-    linksData3 = (localData.linksData3 && localData.linksData3.length >= 4) ? localData.linksData3 : blankQuad();
-    linksData4 = (localData.linksData4 && localData.linksData4.length >= 4) ? localData.linksData4 : blankQuad();
+    const blankQuad = () => [ { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' } ];
+    linksData2 = (localData.linksData2 && localData.linksData2.length >= 5) ? localData.linksData2 : blankQuad();
+    linksData3 = (localData.linksData3 && localData.linksData3.length >= 5) ? localData.linksData3 : blankQuad();
+    linksData4 = (localData.linksData4 && localData.linksData4.length >= 5) ? localData.linksData4 : blankQuad();
 
     if(syncData.lastDeletedLink) setUndoState('storage', null);
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
@@ -6809,7 +6862,7 @@
   function countHubBookmarks(hubIdx) {
     const arr = hubData(hubIdx);
     let n = 0;
-    for (let i = 4; i < arr.length; i++) {
+    for (let i = 5; i < arr.length; i++) {
       if (arr[i] && arr[i].url) n++;
     }
     return n;
@@ -6818,7 +6871,7 @@
   function countHubCores(hubIdx) {
     const arr = hubData(hubIdx);
     let n = 0;
-    for (let i = 0; i < 4 && i < arr.length; i++) {
+    for (let i = 0; i < 5 && i < arr.length; i++) {
       if (arr[i] && arr[i].url) n++;
     }
     return n;
@@ -6889,28 +6942,32 @@
     let ring = null;
     if (showAllOverride) {
         // Show-all: only bookmarks of this galaxy — core AI slots stay on Core layer
-        for (let i = 4; i < activeData.length; i++) visibleIndices.push(i);
+        for (let i = 5; i < activeData.length; i++) visibleIndices.push(i);
     } else {
         if (currentLayerMode === 0) {
-            visibleIndices = [0, 1, 2, 3].filter(i => i < activeData.length);
+            visibleIndices = [0, 1, 2, 3, 4].filter(i => i < activeData.length);
         } else {
             ring = RING_CONFIG[currentLayerMode];
-            for (let i = 4; i < activeData.length; i++) {
-                if (importanceMatchesRing(activeData[i].importance || 3, ring)) visibleIndices.push(i);
+            for (let i = 5; i < activeData.length; i++) {
+                const item = activeData[i];
+                const matchesRing = ring.comet
+                  ? !!item.overflow
+                  : (!item.overflow && importanceMatchesRing(item.importance || 3, ring));
+                if (matchesRing) visibleIndices.push(i);
             }
             visibleIndices = visibleIndices.slice(0, ring.max);
         }
     }
 
     visibleIndices.sort((a, b) => {
-        const aRank = a < 4 ? 999 : (activeData[a].importance || 3);
-        const bRank = b < 4 ? 999 : (activeData[b].importance || 3);
+        const aRank = a < 5 ? 999 : (activeData[a].importance || 3);
+        const bRank = b < 5 ? 999 : (activeData[b].importance || 3);
         if (aRank !== bRank) return bRank - aRank;
         return a - b;
     });
 
-    let coreIndices = visibleIndices.filter(i => i < 4);
-    let bookmarkIndices = visibleIndices.filter(i => i >= 4);
+    let coreIndices = visibleIndices.filter(i => i < 5);
+    let bookmarkIndices = visibleIndices.filter(i => i >= 5);
 
     let portals = [];
     if (!showAllOverride) {
@@ -6923,10 +6980,10 @@
         const forwardIcon = isNewsHub(nextHub) ? '📰' : '🌌';
         const forwardPortal = (currentLayerMode === 0)
             ? (currentHubIndex < HUB_COUNT ? { isPortal: true, target: nextHub, label: forwardLabel, icon: forwardIcon } : null)
-            : (currentHubIndex < HUB_COUNT && hubHasTierItems(nextHub, ring) ? { isPortal: true, target: nextHub, label: `${ring.label} · ${forwardLabel}`, icon: forwardIcon, keepLayer: true } : null);
+            : (currentHubIndex < HUB_COUNT && hubHasTierItems(nextHub, ring) ? { isPortal: true, target: nextHub, label: `${ringDisplayLabel(ring)} · ${forwardLabel}`, icon: forwardIcon, keepLayer: true } : null);
         const backPortal = (currentLayerMode === 0)
             ? (currentHubIndex > 1 ? { isPortal: true, target: 1, label: t('portalHome'), icon: '🌍' } : null)
-            : (currentHubIndex > 1 && hubHasTierItems(1, ring) ? { isPortal: true, target: 1, label: `${ring.label} · ${t('portalHome')}`, icon: '🌍', keepLayer: true } : null);
+            : (currentHubIndex > 1 && hubHasTierItems(1, ring) ? { isPortal: true, target: 1, label: `${ringDisplayLabel(ring)} · ${t('portalHome')}`, icon: '🌍', keepLayer: true } : null);
 
         if (hubNavDirection === 'backward') {
             if (backPortal) portals.push(backPortal);
@@ -6949,7 +7006,7 @@
 
       if (item.type === 'node') {
           const globalIdx = item.globalIdx; const link = item.data;
-          const isBlankCore = globalIdx < 4 && !link.url;
+          const isBlankCore = globalIdx < 5 && !link.url;
 
           const a = document.createElement('a'); a.className = 'ai-node'; a.target = "_blank";
           let colorSet; const content = document.createElement('div'); content.className = 'ai-node-content';
@@ -6969,7 +7026,7 @@
           fav.addEventListener('error', () => fav.style.display = 'none');
           const span = document.createElement('span');
 
-          if (globalIdx < 4) {
+          if (globalIdx < 5) {
             colorSet = CORE_COLORS[globalIdx]; a.classList.add('core-text-circle'); 
             let shortLabel = link.label; if (shortLabel.toLowerCase() === 'chatgpt') shortLabel = 'GPT'; if (shortLabel.toLowerCase() === 'deepseek') shortLabel = 'Seek';
             span.textContent = shortLabel; a.style.boxShadow = `0 0 16px ${colorSet.glow}, inset 0 0 8px ${colorSet.glow}`;
@@ -7040,7 +7097,7 @@
   function switchHub(targetIndex, keepLayer) {
       currentHubIndex = targetIndex;
       if (!keepLayer) currentLayerMode = 0;
-      setHubLabel(showAllOverride ? t('hubAll') : (currentLayerMode === 0 ? t('hubCore') : RING_CONFIG[currentLayerMode].label));
+      setHubLabel(showAllOverride ? t('hubAll') : (currentLayerMode === 0 ? t('hubCore') : ringDisplayLabel(RING_CONFIG[currentLayerMode])));
       renderSpiral(); renderTierDots();
       updateBookmarkCount();
   }
@@ -7070,16 +7127,16 @@
     uiEls.formDescription.value = link.description || '';
     uiEls.formLabel.classList.remove('invalid'); uiEls.formUrl.classList.remove('invalid');
     selectedImportance = link.importance || DEFAULT_IMPORTANCE; paintStars(selectedImportance);
-    uiEls.formImportanceWrap.style.display = (globalIdx < 4) ? 'none' : '';
-    uiEls.formGalaxyWrap.style.display = (isAddFlow || globalIdx < 4) ? 'none' : '';
-    if (!isAddFlow && globalIdx >= 4) {
+    uiEls.formImportanceWrap.style.display = (globalIdx < 5) ? 'none' : '';
+    uiEls.formGalaxyWrap.style.display = (isAddFlow || globalIdx < 5) ? 'none' : '';
+    if (!isAddFlow && globalIdx >= 5) {
       selectedGalaxy = currentHubIndex;
       requestAnimationFrame(() => snapGalaxyKnobTo(selectedGalaxy, false));
     }
     if (isAddFlow) { uiEls.formMainTitle.textContent = t('formAddTitle'); uiEls.formSave.textContent = t('formSaveBtn'); }
     else { uiEls.formMainTitle.textContent = t('formEditTitle'); uiEls.formSave.textContent = t('formUpdateBtn'); }
     uiEls.formDelete.style.display = isAddFlow ? 'none' : '';
-    uiEls.formDelete.textContent = (globalIdx < 4) ? t('formClearCoreBtn') : t('formDeleteBtn');
+    uiEls.formDelete.textContent = (globalIdx < 5) ? t('formClearCoreBtn') : t('formDeleteBtn');
     inlineForm.classList.add('active');
     if (isAddFlow) uiEls.formUrl.focus(); else uiEls.formLabel.focus();
   }
@@ -7130,18 +7187,24 @@
       const newImportance = parseInt(starEl.dataset.value, 10);
       if (newImportance === (link.importance || DEFAULT_IMPORTANCE)) { closeStarEditor(); return; }
 
-      const { ring, targetHub } = findTargetHubForImportance(newImportance, currentHubIndex);
+      const { ring, targetHub, overflowFromRing } = findTargetHubForImportance(newImportance, currentHubIndex);
       if (targetHub > HUB_COUNT) { closeStarEditor(); showToastNotification(t('toastTierFullEverywhere').replace('{tier}', ring.label), true); return; }
 
+      link.importance = newImportance;
+      if (ring.comet) { link.overflow = true; } else { delete link.overflow; }
+
       if (targetHub === currentHubIndex) {
-        link.importance = newImportance;
-        saveLinksAll(); closeStarEditor(); renderSpiral(); showToastNotification(t('toastStarUpdated'));
+        saveLinksAll(); closeStarEditor(); renderSpiral();
+        showToastNotification(ring.comet
+          ? t('toastOverflowedToComet').replace('{tier}', ringDisplayLabel(overflowFromRing)).replace('{hub}', targetHub)
+          : t('toastStarUpdated'));
       } else {
         activeData.splice(starEditorTargetIdx, 1);
-        link.importance = newImportance;
         hubData(targetHub).push(link);
         saveLinksAll(); closeStarEditor();
-        showToastNotification(t('toastOverflowed').replace('{tier}', ring.label).replace('{hub}', targetHub - 1));
+        showToastNotification(ring.comet
+          ? t('toastOverflowedToComet').replace('{tier}', ringDisplayLabel(overflowFromRing)).replace('{hub}', targetHub)
+          : t('toastOverflowed').replace('{tier}', ringDisplayLabel(ring)).replace('{hub}', targetHub - 1));
         currentLayerMode = RING_CONFIG.indexOf(ring);
         switchHub(targetHub, true);
       }
@@ -7244,7 +7307,7 @@
     labelInput.classList.remove('invalid'); urlInput.classList.remove('invalid');
 
     const activeDataForCheck = hubData(currentHubIndex);
-    const isEditingCore = editingNodeIndex !== null && editingNodeIndex < 4 && !!activeDataForCheck[editingNodeIndex];
+    const isEditingCore = editingNodeIndex !== null && editingNodeIndex < 5 && !!activeDataForCheck[editingNodeIndex];
     if (isEditingCore && !label && !url) {
       activeDataForCheck[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
       editingNodeIndex = null; saveLinksAll(); renderSpiral(); closeTree();
@@ -7263,7 +7326,7 @@
     if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
 
     if (isEditing) {
-        if (editingNodeIndex >= 4 && selectedGalaxy && selectedGalaxy !== currentHubIndex) {
+        if (editingNodeIndex >= 5 && selectedGalaxy && selectedGalaxy !== currentHubIndex) {
           const movedItem = activeData.splice(editingNodeIndex, 1)[0];
           movedItem.label = label; movedItem.url = url; movedItem.importance = selectedImportance; movedItem.description = description;
           hubData(selectedGalaxy).push(movedItem);
@@ -7277,17 +7340,26 @@
         editingNodeIndex = null; showToastNotification(t('toastUpdated')); saveLinksAll(); renderSpiral(); closeTree(); return;
     }
 
-    const { ring, targetHub } = findTargetHubForImportance(selectedImportance, currentHubIndex);
+    const { ring, targetHub, overflowFromRing } = findTargetHubForImportance(selectedImportance, currentHubIndex);
 
     if (targetHub > HUB_COUNT) {
         showToastNotification(t('toastTierFullEverywhere').replace('{tier}', ring.label), true);
         return;
     }
 
-    hubData(targetHub).push({ label, url, description, isCore: false, importance: selectedImportance });
+    const newBookmark = { label, url, description, isCore: false, importance: selectedImportance };
+    if (ring.comet) newBookmark.overflow = true;
+    hubData(targetHub).push(newBookmark);
+
+    if (ring.comet) {
+        showToastNotification(t('toastOverflowedToComet').replace('{tier}', ringDisplayLabel(overflowFromRing)).replace('{hub}', targetHub));
+        if (targetHub !== currentHubIndex) { currentLayerMode = RING_CONFIG.indexOf(ring); switchHub(targetHub, true); }
+        else renderSpiral();
+        saveLinksAll(); closeTree(); return;
+    }
 
     if (targetHub !== currentHubIndex) {
-        showToastNotification(t('toastOverflowed').replace('{tier}', ring.label).replace('{hub}', targetHub - 1));
+        showToastNotification(t('toastOverflowed').replace('{tier}', ringDisplayLabel(ring)).replace('{hub}', targetHub - 1));
         currentLayerMode = RING_CONFIG.indexOf(ring);
         switchHub(targetHub, true); 
         saveLinksAll(); closeTree(); return;
@@ -7310,10 +7382,12 @@
     if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
 
     const startHub = isOpen ? currentHubIndex : 1;
-    const { ring, targetHub } = findTargetHubForImportance(importance, startHub);
+    const { ring, targetHub, overflowFromRing } = findTargetHubForImportance(importance, startHub);
     if (targetHub > HUB_COUNT) { showToastNotification(t('toastTierFullEverywhere').replace('{tier}', ring.label), true); return; }
 
-    hubData(targetHub).push({ label, url: homeUrl, description: '', isCore: false, importance });
+    const newItem = { label, url: homeUrl, description: '', isCore: false, importance };
+    if (ring.comet) newItem.overflow = true;
+    hubData(targetHub).push(newItem);
     const newNodeIndex = hubData(targetHub).length - 1;
     saveLinksAll();
     
@@ -7325,10 +7399,14 @@
     const ringIndex = RING_CONFIG.indexOf(ring);
     currentLayerMode = ringIndex > 0 ? ringIndex : 1; 
     
-    setHubLabel(RING_CONFIG[currentLayerMode].label);
+    setHubLabel(ringDisplayLabel(RING_CONFIG[currentLayerMode]));
     renderSpiral(); renderTierDots();
     
-    showToastNotification(t('toastQuickAdded').replace('{label}', label).replace('{stars}', '★'.repeat(importance)));
+    if (ring.comet) {
+      showToastNotification(t('toastOverflowedToComet').replace('{tier}', ringDisplayLabel(overflowFromRing)).replace('{hub}', targetHub));
+    } else {
+      showToastNotification(t('toastQuickAdded').replace('{label}', label).replace('{stars}', '★'.repeat(importance)));
+    }
 
     // ثبتِ خودکار بوک‌مارک بدون توضیح ذخیره می‌شود؛ برای این‌که کاربر مجبور نباشد جداگانه روی نود
     // کلیک کند تا توضیح اضافه کند، همان فرم ویرایش (که فیلد توضیحات را هم دارد) بلافاصله باز می‌شود
@@ -7346,7 +7424,7 @@
     if (editingNodeIndex === null) return;
     const activeData = hubData(currentHubIndex);
     if (!activeData[editingNodeIndex]) return;
-    if (editingNodeIndex < 4) {
+    if (editingNodeIndex < 5) {
       activeData[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
       saveLinksAll(); renderSpiral(); showToastNotification(t('toastCoreCleared'));
       closeTree();
@@ -7516,7 +7594,7 @@
             linksData2 = JSON.parse(JSON.stringify(found.w2 || []));
             linksData3 = JSON.parse(JSON.stringify(found.w3 || []));
             linksData4 = JSON.parse(JSON.stringify(found.w4 || found.news || []));
-            if (!linksData4 || linksData4.length < 4) linksData4 = [{ label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }];
+            if (!linksData4 || linksData4.length < 5) linksData4 = [{ label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }, { label: '', url: '' }];
             saveLinksAll(); currentHubIndex = 1; renderSpiral(); renderTierDots(); showToastNotification(t('toastRestored')); sendResponse({ ok: true });
           } else sendResponse({ ok: false });
         });
