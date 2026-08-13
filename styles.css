@@ -2088,6 +2088,14 @@ transition-delay: 0s;
   fill: #FDE68A !important;
   stroke: rgba(40, 20, 0, 0.92);
 }
+/* ایموجی 💫: بدون دورخط SVG (که روی گلیفِ رنگی به‌شکل کادر ناخواسته درمی‌آمد)،
+   با یک سایهٔ نرم برای خوانایی روی دیسکِ هاب */
+#ai-hub-text.is-emoji-glyph {
+  stroke: none !important;
+  stroke-width: 0 !important;
+  paint-order: normal !important;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+}
 
 .ai-node.priority-5 { filter: saturate(1.15) brightness(1.08); }
 .ai-node.priority-4 { filter: saturate(1.07) brightness(1.04); }

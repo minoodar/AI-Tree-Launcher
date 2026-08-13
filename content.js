@@ -770,11 +770,18 @@
     { label: '1-2★', importanceMax: 2,  max: 30 },
     // مجموعه‌ی میکسِ سرریز: وقتی رده‌ی اصلی در همه‌ی کهکشان‌های قابل‌سرریز پر باشد،
     // به‌جای گم‌شدنِ بوک‌مارک، اینجا (با ظرفیت بیشتر) نگه داشته می‌شود.
-    { labelKey: 'hubComet', comet: true, max: 50 }
+    // نمایش فقط ایموجی 💫 است؛ عبارت «ستاره‌های دنبال‌دار» فقط در تولتیپ می‌آید.
+    { label: '💫', titleKey: 'hubComet', comet: true, max: 50 }
   ];
   function ringDisplayLabel(ring) {
     if (!ring) return '';
     return ring.labelKey ? t(ring.labelKey) : (ring.label || '');
+  }
+  // برای تولتیپ‌ها همیشه عبارت کامل (نه ایموجی) برگردانده می‌شود
+  function ringTooltipLabel(ring) {
+    if (!ring) return '';
+    if (ring.titleKey) return t(ring.titleKey);
+    return ringDisplayLabel(ring);
   }
 
   function importanceMatchesRing(importance, ring) {
@@ -1795,6 +1802,19 @@
     if (uiEls.markPanel && uiEls.markPanel.classList.contains('active')) positionMarksPanelSide();
   }
 
+  // موقعیت آماده‌به‌کار دکمهٔ تاگلِ مناسبت‌ها: حتی وقتی پنل هنوز باز نشده، بر اساس اینکه
+  // ساعت در کدام نیمهٔ صفحه است تنظیم می‌شود — تا از همان ابتدا در سمتی باشد که تقویم
+  // واقعاً قرار است باز شود، نه همیشه سمت راستِ پیش‌فرض.
+  function syncMarksToggleRestSide() {
+    if (!uiEls.markPanel) return;
+    if (uiEls.markPanel.classList.contains('active')) { positionMarksPanelSide(); return; }
+    const rect = clockPanel.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const clockCenterX = rect.left + rect.width / 2;
+    const openLeft = clockCenterX >= vw / 2; // ساعت در نیمهٔ راست صفحه → تاگل/تقویم به چپ می‌رود
+    clockPanel.classList.toggle('marks-open-left', openLeft);
+  }
+
   function positionMarksPanelSide() {
     if (!uiEls.markPanel || !uiEls.markPanel.classList.contains('active')) return;
     const rect = clockPanel.getBoundingClientRect();
@@ -1840,7 +1860,7 @@
     if (!isOpen) {
       closeDualPicker();
       uiEls.markPanel.classList.remove('side-left');
-      clockPanel.classList.remove('marks-open-left');
+      syncMarksToggleRestSide();
     } else {
       positionMarksPanelSide();
     }
@@ -2332,7 +2352,7 @@
 
       clockPanel.style.left = `${leftPos}px`;
       clockPanel.style.top = `${topPos}px`;
-      if (typeof positionMarksPanelSide === 'function') positionMarksPanelSide();
+      if (typeof syncMarksToggleRestSide === 'function') syncMarksToggleRestSide();
   }
   
   clockToggleDot.addEventListener('click', (e) => {
@@ -2406,7 +2426,7 @@
           }
         } catch (err) {}
       }
-      if (typeof positionMarksPanelSide === 'function') positionMarksPanelSide();
+      if (typeof syncMarksToggleRestSide === 'function') syncMarksToggleRestSide();
     }
   }
   document.addEventListener('mouseup', endClockDrag);
@@ -2990,7 +3010,7 @@
       for (let i = 0; i < MAX_LAYERS; i++) {
         const ring = RING_CONFIG[i];
         const dot = document.createElement('div'); dot.className = 'tier-dot' + (isOpen && !showAllOverride && i === currentLayerMode ? ' active' : '');
-        dot.title = ring.labelKey ? t(ring.labelKey) : ring.label;
+        dot.title = ringTooltipLabel(ring);
         dot.addEventListener('click', (e) => {
           e.stopPropagation();
           showAllOverride = false; root.classList.remove('show-all-active');
@@ -6980,10 +7000,10 @@
         const forwardIcon = isNewsHub(nextHub) ? '📰' : '🌌';
         const forwardPortal = (currentLayerMode === 0)
             ? (currentHubIndex < HUB_COUNT ? { isPortal: true, target: nextHub, label: forwardLabel, icon: forwardIcon } : null)
-            : (currentHubIndex < HUB_COUNT && hubHasTierItems(nextHub, ring) ? { isPortal: true, target: nextHub, label: `${ringDisplayLabel(ring)} · ${forwardLabel}`, icon: forwardIcon, keepLayer: true } : null);
+            : (currentHubIndex < HUB_COUNT && hubHasTierItems(nextHub, ring) ? { isPortal: true, target: nextHub, label: `${ringTooltipLabel(ring)} · ${forwardLabel}`, icon: forwardIcon, keepLayer: true } : null);
         const backPortal = (currentLayerMode === 0)
             ? (currentHubIndex > 1 ? { isPortal: true, target: 1, label: t('portalHome'), icon: '🌍' } : null)
-            : (currentHubIndex > 1 && hubHasTierItems(1, ring) ? { isPortal: true, target: 1, label: `${ringDisplayLabel(ring)} · ${t('portalHome')}`, icon: '🌍', keepLayer: true } : null);
+            : (currentHubIndex > 1 && hubHasTierItems(1, ring) ? { isPortal: true, target: 1, label: `${ringTooltipLabel(ring)} · ${t('portalHome')}`, icon: '🌍', keepLayer: true } : null);
 
         if (hubNavDirection === 'backward') {
             if (backPortal) portals.push(backPortal);
@@ -7629,7 +7649,19 @@
     }
 
     el.textContent = displayText;
+    el.title = (displayText === '💫') ? t('hubComet') : '';
     el.classList.toggle('is-default-ai', displayText === 'AI' && currentHubIndex === 1);
+    // ایموجی 💫 یک واحدِ بصریِ تکی است، اما در جاوااسکریپت طول رشته‌اش ۲ (سوروگیت‌پر) حساب
+    // می‌شود — همین باعث می‌شد به‌اشتباه خیلی کوچک محاسبه شود. این‌جا جدا و بزرگ می‌گیریمش،
+    // و کلاسی می‌گذاریم تا استروکِ متنیِ SVG (که روی گلیف رنگیِ ایموجی به‌شکل یک کادر
+    // ناخواسته در می‌آمد) برایش خاموش شود.
+    el.classList.toggle('is-emoji-glyph', displayText === '💫');
+    if (displayText === '💫') {
+      el.setAttribute('font-size', '17');
+      el.setAttribute('font-weight', '400');
+      el.setAttribute('y', '17.5');
+      return;
+    }
 
     // Visual length: CJK/Arabic glyphs read wider than Latin of the same char count
     const rawLen = displayText.length;
