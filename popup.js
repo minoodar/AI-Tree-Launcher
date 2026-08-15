@@ -10,7 +10,12 @@ document.addEventListener('DOMContentLoaded', () => {
         invalidFile: "Invalid file format.", errRead: "Error reading JSON file.",
         btnHide: "Hide", btnShow: "Show (Reset)",
         backupHint: "🟢 Export saves bookmarks (incl. News) + notepad prompts &nbsp;·&nbsp; 🟠 Import restores both from a file",
-        contactTitle: "✉︎ Contact Us", contactEmail: "Email:"
+        contactTitle: "✉︎ Contact Us", contactEmail: "Email:",
+        holidaysTitle: "Official Public Holidays", holidaysEnable: "Show official holidays on the calendar",
+        holidayAuto: "Auto — follow app language", holidayIran: "Iran (offline, curated list)", holidayCustom: "Other country (enter code)",
+        holidayHintAuto: "Currently resolves to Iran when the app language is Persian, otherwise a country guessed from your system locale.",
+        holidayHintIran: "Uses the built-in offline Iran holiday list — no network request needed.",
+        holidayHintCustom: "Enter a 2-letter country code (ISO 3166-1, e.g. US, DE, GB, FR). Fetched from a public international holiday source."
       },
       fa: {
         tabSettings: "تنظیمات اصلی", tabBackups: "بکاپ",
@@ -20,7 +25,12 @@ document.addEventListener('DOMContentLoaded', () => {
         invalidFile: "فایل نامعتبر است.", errRead: "خطا در خواندن فایل JSON.",
         btnHide: "پنهان کردن", btnShow: "نمایش مجدد (ریست)",
         backupHint: "🟢 دریافت بکاپ، بوک‌مارک‌ها (شامل اخبار) و پرامپت‌های دفترچه را ذخیره می‌کند &nbsp;·&nbsp; 🟠 بازیابی، هر دو را از فایل برمی‌گرداند",
-        contactTitle: "✉︎ ارتباط با ما", contactEmail: "ایمیل:"
+        contactTitle: "✉︎ ارتباط با ما", contactEmail: "ایمیل:",
+        holidaysTitle: "تعطیلات رسمی", holidaysEnable: "نمایش تعطیلات رسمی روی تقویم",
+        holidayAuto: "خودکار — بر اساس زبان افزونه", holidayIran: "ایران (آفلاین، فهرست دقیق)", holidayCustom: "کشور دیگر (کد را وارد کنید)",
+        holidayHintAuto: "با انتخاب زبان فارسی روی ایران و در غیر این صورت بر اساس حدس از تنظیمات سیستم عمل می‌کند.",
+        holidayHintIran: "از فهرست آفلاین داخلیِ تعطیلات ایران استفاده می‌کند — بدون نیاز به اینترنت.",
+        holidayHintCustom: "کد دو حرفی کشور را وارد کنید (مثل US، DE، GB، FR). از یک منبع بین‌المللیِ تعطیلات دریافت می‌شود."
       }
     };
 
@@ -53,6 +63,18 @@ document.addEventListener('DOMContentLoaded', () => {
       
       const contactEmail = document.getElementById('lbl-contact-email');
       if (contactEmail) contactEmail.textContent = t.contactEmail;
+
+      const hTitle = document.getElementById('lbl-holidays-title');
+      if (hTitle) hTitle.textContent = t.holidaysTitle;
+      const hEnable = document.getElementById('lbl-holidays-enable');
+      if (hEnable) hEnable.textContent = t.holidaysEnable;
+      const optAuto = document.getElementById('opt-holiday-auto');
+      if (optAuto) optAuto.textContent = t.holidayAuto;
+      const optIran = document.getElementById('opt-holiday-ir');
+      if (optIran) optIran.textContent = t.holidayIran;
+      const optCustom = document.getElementById('opt-holiday-custom');
+      if (optCustom) optCustom.textContent = t.holidayCustom;
+      updateHolidayRegionHint();
     }
 
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -68,11 +90,43 @@ document.addEventListener('DOMContentLoaded', () => {
   
     const userBirthYearInput = document.getElementById('userBirthYear');
     const langSelect = document.getElementById('appLanguage');
+    const holidaysEnabledCb = document.getElementById('holidaysEnabledCb');
+    const holidayRegionSelect = document.getElementById('holidayRegionSelect');
+    const holidayCustomCountry = document.getElementById('holidayCustomCountry');
+
+    function updateHolidayRegionHint() {
+      const hint = document.getElementById('holiday-region-hint');
+      if (!hint) return;
+      const t = i18nPopup[currentLang];
+      const mode = holidayRegionSelect ? holidayRegionSelect.value : 'auto';
+      hint.textContent = mode === 'IR' ? t.holidayHintIran : (mode === 'custom' ? t.holidayHintCustom : t.holidayHintAuto);
+    }
+
+    function syncHolidayCustomVisibility() {
+      if (!holidayRegionSelect || !holidayCustomCountry) return;
+      holidayCustomCountry.style.display = holidayRegionSelect.value === 'custom' ? 'block' : 'none';
+    }
+
+    if (holidayRegionSelect) {
+      holidayRegionSelect.addEventListener('change', () => {
+        syncHolidayCustomVisibility();
+        updateHolidayRegionHint();
+      });
+    }
   
     chrome.storage.sync.get(['userBirthYear', 'appLanguage'], (data) => {
       if (data.appLanguage) { currentLang = data.appLanguage; langSelect.value = currentLang; }
       if (data.userBirthYear) userBirthYearInput.value = data.userBirthYear;
       applyTranslation();
+    });
+
+    chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry'], (data) => {
+      // Default to true if undefined (feature ships enabled by default)
+      if (holidaysEnabledCb) holidaysEnabledCb.checked = data.showPublicHolidays !== undefined ? !!data.showPublicHolidays : true;
+      if (holidayRegionSelect) holidayRegionSelect.value = data.holidayRegionMode || 'auto';
+      if (holidayCustomCountry) holidayCustomCountry.value = data.holidayCustomCountry || '';
+      syncHolidayCustomVisibility();
+      updateHolidayRegionHint();
     });
 
     langSelect.addEventListener('change', (e) => {
@@ -86,8 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
         userBirthYear: userBirthYearInput.value
       };
       chrome.storage.sync.set(newData, () => {
-        showToast(i18nPopup[currentLang].toastSaved);
-        broadcastRefresh(); 
+        const holidayLocalData = {
+          showPublicHolidays: holidaysEnabledCb ? !!holidaysEnabledCb.checked : false,
+          holidayRegionMode: holidayRegionSelect ? holidayRegionSelect.value : 'auto',
+          holidayCustomCountry: holidayCustomCountry ? holidayCustomCountry.value.trim().toUpperCase().slice(0, 2) : ''
+        };
+        chrome.storage.local.set(holidayLocalData, () => {
+          showToast(i18nPopup[currentLang].toastSaved);
+          broadcastRefresh();
+        });
       });
     });
 

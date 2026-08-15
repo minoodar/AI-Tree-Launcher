@@ -395,6 +395,12 @@
   const TODO_DAILY_TTL_MS = 24 * 60 * 60 * 1000;
   let userBirthYear = null; 
   let markedDays = []; // مناسبت‌های نشانه‌گذاری‌شده: [{ id, label, day, month }]
+  // تعطیلات رسمی آنلاین (کشوری) — مجزا از markedDays شخصی؛ فقط در رندر با هم ترکیب می‌شوند
+  // تا هرگز در بکاپ/خروجی JSON کاربر مخلوط نشوند و با یک fetch جدید کامل جایگزین شوند.
+  let publicHolidays = [];
+  let showPublicHolidays = true;
+  let holidayRegionMode = 'auto'; // 'auto' | 'IR' | 'custom' — از پنل تنظیمات (popup)
+  let holidayCustomCountry = '';
   let isNotePinned = false;
   // ایموجی‌های موردعلاقه — باید قبل از هر renderEmojiTray مقداردهی شود (جلوگیری از TDZ)
   const DEFAULT_FAVORITE_EMOJIS = ['✨', '📌', '🔥', '💡', '🌱', '🎯', '🚀', '⭐'];
@@ -1631,11 +1637,52 @@
     return { jy, jm, jd };
   }
 
+  // تبدیل «رو به جلو»: از یک تاریخ میلادی معلوم، روز/ماه معادلش در تقویم قمری (islamic-umalqura)
+  // را می‌گیرد. این جهت با Intl مرورگر قابل‌اعتماد است؛ جهت برعکس (قمری معلوم → میلادی مجهول)
+  // اعتماد کمتری دارد چون مبنای رؤیت هلال محلی است، برای همین در daysUntilNextHijri با یک
+  // اسکن رو-به-جلوی سبک (نه فرمول ثابت) حل می‌شود.
+  function gregorianToHijriDM(gy, gm, gd) {
+    try {
+      const dt = new Date(gy, gm - 1, gd);
+      const parts = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric' }).formatToParts(dt);
+      const day = parseInt(parts.find(p => p.type === 'day').value, 10);
+      const month = parseInt(parts.find(p => p.type === 'month').value, 10);
+      if (!day || !month) return null;
+      return { hd: day, hm: month };
+    } catch (e) { return null; }
+  }
+
+  // اسکن رو-به-جلو (حداکثر ۳۹۵ روز) برای پیدا کردن نزدیک‌ترین تاریخ میلادیِ معادلِ یک
+  // روز/ماه قمری. ساده‌تر و قابل‌اعتمادتر از فرمول‌های تبدیل ثابت قمری→میلادی است.
+  // یک کش سبک به‌ازای هر (روز، ماه، سالِ امروز) نگه می‌داریم تا رندرهای پیاپی سنگین نشوند.
+  const _hijriNextCache = {};
+  function nextHijriOccurrence(hDay, hMonth) {
+    const now = new Date();
+    const cacheKey = `${hMonth}-${hDay}-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+    if (_hijriNextCache[cacheKey]) return _hijriNextCache[cacheKey];
+    const todayStripped = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    for (let i = 0; i < 395; i++) {
+      const cand = new Date(todayStripped.getFullYear(), todayStripped.getMonth(), todayStripped.getDate() + i);
+      const hm = gregorianToHijriDM(cand.getFullYear(), cand.getMonth() + 1, cand.getDate());
+      if (hm && hm.hd === hDay && hm.hm === hMonth) {
+        _hijriNextCache[cacheKey] = cand;
+        return cand;
+      }
+    }
+    return null; // نباید پیش بیاید، ولی برای ایمنی
+  }
+
   function daysUntilNext(day, month, cal) {
     const now = new Date();
     const todayStripped = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // cal: 'j' = Jalali annual, 'g' = Gregorian annual (default for legacy entries)
+    // cal: 'j' = Jalali annual, 'h' = Hijri (lunar) annual, 'g' = Gregorian annual (default for legacy entries)
     const useJalali = cal === 'j' || cal === 'jalali';
+    const useHijri = cal === 'h' || cal === 'hijri';
+    if (useHijri) {
+      const target = nextHijriOccurrence(day, month);
+      if (!target) return 9999;
+      return Math.round((target - todayStripped) / 86400000);
+    }
     if (useJalali) {
       const jToday = gregorianToJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
       let g = jalaaliToGregorian(jToday.jy, month, day);
@@ -1656,7 +1703,12 @@
   function markedOccurrenceThisYear(day, month, cal) {
     const now = new Date();
     const useJalali = cal === 'j' || cal === 'jalali';
+    const useHijri = cal === 'h' || cal === 'hijri';
     try {
+      if (useHijri) {
+        // برای پرونینگ صرفاً کافیست وقوعِ همین دور از تاریخ (نزدیک‌ترین رخداد) را بدانیم
+        return nextHijriOccurrence(day, month);
+      }
       if (useJalali) {
         const jToday = gregorianToJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
         const g = jalaaliToGregorian(jToday.jy, month, day);
@@ -1688,19 +1740,31 @@
 
   function openMarkEventSheet(m) {
     if (!uiEls.markEventSheet || !m) return;
-    const dd = String(m.day).padStart(2, '0');
-    const mm = String(m.month).padStart(2, '0');
     const isJ = m.cal === 'j' || m.cal === 'jalali';
-    const dateStr = (isJ && currentLang === 'fa') ? toPersianDigits(`${dd}/${mm}`) : `${dd}/${mm}`;
-    const calHint = isJ ? (currentLang === 'fa' ? 'شمسی' : 'Jalali') : (currentLang === 'fa' ? 'میلادی' : 'Gregorian');
+    const isH = m.cal === 'h' || m.cal === 'hijri';
+    const fa = currentLang === 'fa';
+    let dateStr, calHint;
+    if (isJ) {
+      const monthName = JALALI_MONTHS_FA[m.month - 1] || '';
+      dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
+      calHint = fa ? 'شمسی' : 'Jalali';
+    } else if (isH) {
+      const monthName = (fa ? HIJRI_MONTHS_FA : HIJRI_MONTHS_EN)[m.month - 1] || '';
+      dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
+      calHint = fa ? 'قمری' : 'Hijri';
+    } else {
+      const monthName = GREG_MONTHS_EN[m.month - 1] || '';
+      dateStr = `${m.day} ${monthName}`;
+      calHint = fa ? 'میلادی' : 'Gregorian';
+    }
     if (uiEls.markEventBadge) {
-      uiEls.markEventBadge.textContent = m.days === 0 ? '🎉' : (m.golden ? '★' : '📌');
+      uiEls.markEventBadge.textContent = m.days === 0 ? '🎉' : (m.isPublic ? '🔴' : (m.golden ? '★' : '📌'));
     }
     if (uiEls.markEventText) uiEls.markEventText.textContent = m.label;
     if (uiEls.markEventMeta) {
       uiEls.markEventMeta.textContent = m.days === 0
-        ? (currentLang === 'fa' ? `امروز · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
-        : (currentLang === 'fa'
+        ? (fa ? `امروز · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
+        : (fa
             ? `${m.days} روز مانده · ${dateStr} · ${calHint}`
             : `in ${m.days}d · ${dateStr} · ${calHint}`);
     }
@@ -1725,6 +1789,52 @@
     if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = currentLang === 'fa' ? 'امروز' : 'Today';
     uiEls.markEventSheet.classList.remove('is-collapsed');
     dayEventSheetOpenIso = iso;
+  }
+
+  // تعطیلات رسمی آنلاین: کشور را حدس می‌زند (فعلاً بر پایهٔ زبان برنامه، تا وقتی
+  // یک انتخاب‌گر کشور دستی در تنظیمات اضافه شود) و از background.js می‌خواهد.
+  // «auto» هوشمند است: با تغییر زبان برنامه (fa↔en) هم‌زمان کشور را دوباره حدس می‌زند
+  function resolveHolidayCountryCode() {
+    if (holidayRegionMode === 'IR') return 'IR';
+    if (holidayRegionMode === 'custom' && holidayCustomCountry) return holidayCustomCountry;
+    if (currentLang === 'fa') return 'IR';
+    try {
+      const loc = Intl.DateTimeFormat().resolvedOptions().locale || '';
+      const region = loc.split('-').find(p => p.length === 2 && p === p.toUpperCase());
+      if (region) return region;
+    } catch (e) {}
+    return 'US';
+  }
+  function loadRegionalHolidays() {
+    if (!showPublicHolidays) {
+      publicHolidays = [];
+      renderMarkedDays();
+      if (typeof renderDualGrid === 'function' && dualPickerOpen) renderDualGrid();
+      return;
+    }
+    const countryCode = resolveHolidayCountryCode();
+    try {
+      if (!chrome.runtime?.id) return;
+      chrome.runtime.sendMessage(
+        { action: 'fetchGlobalHolidays', countryCode, year: new Date().getFullYear() },
+        (response) => {
+          if (chrome.runtime.lastError) {
+            // معمولاً یعنی background.js هنوز listenerِ 'fetchGlobalHolidays' را ندارد —
+            // این خط برای تشخیص همین حالت در کنسول توسعه‌دهنده است.
+            console.warn('[AI Orbit] fetchGlobalHolidays failed — is the holidays block merged into background.js?', chrome.runtime.lastError.message);
+            return;
+          }
+          if (response && response.success && Array.isArray(response.data)) {
+            publicHolidays = response.data;
+            console.info('[AI Orbit] Loaded', publicHolidays.length, 'public holidays for', countryCode, '(source:', response.source + ')');
+            renderMarkedDays();
+            if (typeof renderDualGrid === 'function' && dualPickerOpen) renderDualGrid();
+          } else {
+            console.warn('[AI Orbit] fetchGlobalHolidays responded without usable data:', response);
+          }
+        }
+      );
+    } catch (e) {}
   }
 
   function renderMarkedDays() {
@@ -2025,8 +2135,14 @@
   // اسلاگ لاتین همان ترتیب بالا — فقط برای مقدار attribute رنگ‌بندیِ ماهانه (data-cal-month)
   const JALALI_MONTH_KEYS = ['farvardin','ordibehesht','khordad','tir','mordad','shahrivar','mehr','aban','azar','dey','bahman','esfand'];
   function calMonthKeyFromJalali(jm) { return JALALI_MONTH_KEYS[jm - 1] || ''; }
-  const GREG_MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const GREG_MONTHS_FA = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
+  // نام‌های نمایشیِ ماه‌های میلادی — دیگر «ژانویه»/«January» نشان داده نمی‌شود؛
+  // به‌جایش همین ۱۲ نام اوستایی/پارسیِ پیشنهادی، در همه‌جای رابط کاربری یکسان
+  // (چه زبان fa چه en). فقط لایهٔ نمایش تغییر کرده؛ ایندکس‌گذاری (m-1) و محاسبهٔ
+  // تاریخ دست‌نخورده مانده — GREG_MONTHS_EN/FA همچنان با همان ترتیب ژانویه→دسامبر پر می‌شوند.
+  const GREG_MONTHS_EN = ['فَرَوَهَر','اَرتا','هُورداد','تیشتَر','اَمُرداد','خَشَثرَه','مِهر','اَناهیتا','آتَر','دَئوش','وُهومَن','سپَنتا'];
+  const HIJRI_MONTHS_FA = ['محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی','رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه'];
+  const HIJRI_MONTHS_EN = ['Muharram','Safar',"Rabi' al-awwal","Rabi' al-thani",'Jumada al-awwal','Jumada al-thani','Rajab',"Sha'ban",'Ramadan','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
+  const GREG_MONTHS_FA = GREG_MONTHS_EN;
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
   const WEEKDAYS_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
@@ -2083,25 +2199,36 @@
 
     const todayISO = isoFromYMD(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate());
 
-    // Precompute marked day keys for quick lookup in this month
+    // تطبیق یک مناسبت با یک روزِ گرید — بسته به cal آن مناسبت (شمسی/میلادی/قمری)
+    function markMatchesGridDay(mk, gd, gm, jd, jm, hijriDM) {
+      const isH = mk.cal === 'h' || mk.cal === 'hijri';
+      if (isH) return !!hijriDM && mk.day === hijriDM.hd && mk.month === hijriDM.hm;
+      const isJ = mk.cal === 'j' || mk.cal === 'jalali';
+      if (isJ) return mk.day === jd && mk.month === jm;
+      return mk.day === gd && mk.month === gm;
+    }
     function isMarkedDay(gy, gm, gd, jy, jm, jd) {
-      return markedDays.some(mk => {
-        const isJ = mk.cal === 'j' || mk.cal === 'jalali';
-        if (isJ) return mk.day === jd && mk.month === jm;
-        return mk.day === gd && mk.month === gm;
-      });
+      const hijriDM = gregorianToHijriDM(gy, gm, gd);
+      return markedDays.some(mk => markMatchesGridDay(mk, gd, gm, jd, jm, hijriDM));
+    }
+    // فقط تعطیلات رسمیِ آنلاین (شخصی نیست) — برای کادر قرمز مجزا از is-marked
+    function isPublicHolidayDay(gy, gm, gd, jy, jm, jd) {
+      if (!showPublicHolidays || !publicHolidays.length) return false;
+      const hijriDM = gregorianToHijriDM(gy, gm, gd);
+      return publicHolidays.some(mk => markMatchesGridDay(mk, gd, gm, jd, jm, hijriDM));
     }
     function marksForDay(gy, gm, gd, jy, jm, jd) {
-      return markedDays.filter(mk => {
-        const isJ = mk.cal === 'j' || mk.cal === 'jalali';
-        if (isJ) return mk.day === jd && mk.month === jm;
-        return mk.day === gd && mk.month === gm;
-      }).map(m => ({ ...m, days: daysUntilNext(m.day, m.month, m.cal) }));
+      const hijriDM = gregorianToHijriDM(gy, gm, gd);
+      const personal = markedDays.filter(mk => markMatchesGridDay(mk, gd, gm, jd, jm, hijriDM));
+      const holidays = (showPublicHolidays ? publicHolidays : []).filter(mk => markMatchesGridDay(mk, gd, gm, jd, jm, hijriDM));
+      // شخصی‌ها اول — اگر همان روز هم مناسبت شخصی هم تعطیل رسمی داشت، کلیک روی روز اول آن را نشان می‌دهد
+      return [...personal, ...holidays].map(m => ({ ...m, days: daysUntilNext(m.day, m.month, m.cal) }));
     }
 
     let html = '';
     for (let i = 0; i < offset; i++) html += '<div class="day-cell empty"></div>';
-    const GREG_MONTHS_SHORT_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    // همان ۱۲ نامِ اوستایی/پارسیِ یکسان با بقیهٔ رابط کاربری — نسخهٔ کوتاه/جداگانهٔ
+    // میلادی دیگر لازم نیست چون این نام‌ها خودشان به‌اندازهٔ کافی جمع‌وجورند.
     // هفت‌پیکر نظامی: هر روز هفته به یکی از هفت گنبد/رنگ آن نسبت داده می‌شود —
     // فقط برای بج رنگی روز در تولتیپ (گرافیک متمایز)، مستقل از رنگ خودِ سلول روز.
     const HAFT_PEYKAR_KEY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']; // index = Date.getDay()
@@ -2111,8 +2238,8 @@
       const wdIdx = new Date(gy, gm - 1, gd).getDay();
       const weekdayKey = HAFT_PEYKAR_KEY[wdIdx];
       const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
-      // Line 1 — Gregorian English, no year
-      const gregLine = `${gd} ${GREG_MONTHS_SHORT_EN[gm - 1]}`;
+      // Line 1 — Gregorian day/month, using the unified display month names
+      const gregLine = `${gd} ${GREG_MONTHS_EN[gm - 1]}`;
       // Line 2 — secondary calendar (day + month only)
       let secLine = '';
       try {
@@ -2158,6 +2285,7 @@
       const isToday = iso === todayISO;
       const isSelected = iso === smartDateISO;
       const isMarked = isMarkedDay(y, m, d, j.jy, j.jm, j.jd);
+      const isHoliday = isPublicHolidayDay(y, m, d, j.jy, j.jm, j.jd);
       const primary = preferJalali ? toPersianDigits(j.jd) : String(d);
       const sub = preferJalali ? String(d) : String(j.jd);
       const tip = dayHoverTip(y, m, d);
@@ -2175,6 +2303,7 @@
       const cls = ['day-cell'];
       if (isToday) cls.push('is-today');
       if (isMarked) cls.push('is-marked');
+      if (isHoliday) cls.push('is-public-holiday');
       if (isSelected) cls.push('is-selected');
       html += `<div class="${cls.join(' ')}" data-iso="${iso}" data-weekday="${tip.weekdayKey}" role="button" tabindex="0">
         <span class="primary-day">${primary}</span>
@@ -6754,9 +6883,20 @@
                   clearTimeout(globalUndoTimeout); undoToggleDot.classList.remove('active-undo'); pendingUndoState = { type: null, data: null, hub: 1 };
               }
           }
-          if (langChanged) { updateUITexts(); }
+          if (langChanged) {
+            updateUITexts();
+            // «هوشمند»: اگر حالت کشور روی auto است، با تغییر زبان برنامه کشورِ حدسی هم عوض می‌شود
+            if (showPublicHolidays && holidayRegionMode === 'auto') loadRegionalHolidays();
+          }
       }
       if (area === 'local') {
+        if (changes.showPublicHolidays || changes.holidayRegionMode || changes.holidayCustomCountry) {
+          if (changes.showPublicHolidays) showPublicHolidays = changes.showPublicHolidays.newValue !== undefined ? !!changes.showPublicHolidays.newValue : true;
+          if (changes.holidayRegionMode) holidayRegionMode = changes.holidayRegionMode.newValue || 'auto';
+          if (changes.holidayCustomCountry) holidayCustomCountry = changes.holidayCustomCountry.newValue || '';
+          // اگر همین الان (از popup) تغییر کرده، بلافاصله بازخوانی/پاکسازی کن
+          loadRegionalHolidays();
+        }
         // Two-way live sync with the standalone notepad tab (see notepad.js).
         // Only overwrite when this widget's textarea isn't the one being typed in.
         if (changes.savedPromptDraft && noteTextarea && document.activeElement !== noteTextarea) {
@@ -6857,6 +6997,16 @@
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
     if(syncData.aiTreeTodos) { todosData = syncData.aiTreeTodos; migrateTodos(); pruneExpiredDailyTodos(); }
     if(Array.isArray(syncData.aiTreeMarkedDays)) { markedDays = syncData.aiTreeMarkedDays; pruneExpiredMarkedDays(); }
+    try {
+      if (chrome.runtime?.id) {
+        chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry'], (res) => {
+          showPublicHolidays = res.showPublicHolidays !== undefined ? !!res.showPublicHolidays : true;
+          holidayRegionMode = res.holidayRegionMode || 'auto';
+          holidayCustomCountry = res.holidayCustomCountry || '';
+          if (showPublicHolidays) loadRegionalHolidays();
+        });
+      }
+    } catch (eHolidaysInit) {}
     if (typeof syncData.nodeSpacing === 'number' && !isNaN(syncData.nodeSpacing)) SPACING = Math.min(MAX_SPACING, Math.max(MIN_SPACING, syncData.nodeSpacing));
     if (syncData.clockCustomX !== undefined && syncData.clockCustomY !== undefined) {
       // فقط مختصات اولیه؛ لنگر دائمی نیست تا با باز شدن دوباره کنار هاب قرار بگیرد

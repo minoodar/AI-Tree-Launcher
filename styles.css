@@ -2380,6 +2380,7 @@ right: calc(100% + 2px);
   border-color: #FCD34D;
   background: rgba(251, 191, 36, 0.14);
 }
+
 .ai-mark-dot.is-golden {
   background: rgba(251, 191, 36, 0.9) !important;
   box-shadow: 0 0 8px rgba(251, 191, 36, 0.55) !important;
@@ -2467,13 +2468,31 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
 }
 .day-cell.is-today .primary-day { color: #93c5fd; }
 
-/* روزهای ثبت‌شده (مناسبت‌ها) — قرمز */
+/* روزهای ثبت‌شده (مناسبت‌های شخصی) — طلایی/کهربایی، هماهنگ با ستاره‌های طلایی؛
+   قرمز از این پس فقط مخصوص تعطیلات رسمیِ آنلاین (is-public-holiday) است */
 .day-cell.is-marked {
+  border: 1.5px solid #FBBF24;
+  background: rgba(251, 191, 36, 0.14);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+.day-cell.is-marked .primary-day { color: #fde68a; }
+
+/* تعطیلات رسمیِ کشوری (آنلاین) — قرمز، جدا از مناسبت‌های شخصی */
+.day-cell.is-public-holiday {
   border: 1.5px solid #EF4444;
   background: rgba(239, 68, 68, 0.14);
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2);
 }
-.day-cell.is-marked .primary-day { color: #fecaca; }
+.day-cell.is-public-holiday .primary-day { color: #fecaca; }
+
+/* اگر یک روز هم مناسبت شخصی و هم تعطیل رسمی باشد، طلایی/شخصی در گرید هم اولویت دارد —
+   هماهنگ با ترتیب «شخصی‌ها اول» در marksForDay برای کشوی رویداد */
+.day-cell.is-marked.is-public-holiday {
+  border-color: #FBBF24;
+  background: rgba(251, 191, 36, 0.14);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.2);
+}
+.day-cell.is-marked.is-public-holiday .primary-day { color: #fde68a; }
 
 /* انتخاب موقت هنگام افزودن — حلقه نقطه‌چین */
 .day-cell.is-selected {
@@ -2481,8 +2500,14 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
   outline-offset: 1px;
 }
 
-/* اگر هم امروز و هم marked باشد، قرمز اولویت دارد ولی نقطه آبی کوچک می‌ماند */
+/* اگر هم امروز و هم marked باشد، طلایی اولویت دارد ولی نقطه آبی کوچک می‌ماند */
 .day-cell.is-today.is-marked {
+  border-color: #FBBF24;
+  background: rgba(251, 191, 36, 0.14);
+  box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.55);
+}
+/* اگر هم امروز و هم تعطیل رسمی باشد، قرمز اولویت دارد ولی نقطه آبی کوچک می‌ماند */
+.day-cell.is-today.is-public-holiday {
   border-color: #EF4444;
   background: rgba(239, 68, 68, 0.14);
   box-shadow: inset 0 0 0 2px rgba(59, 130, 246, 0.55);

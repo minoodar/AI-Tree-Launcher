@@ -112,6 +112,21 @@
       <input type="number" id="userBirthYear" placeholder="e.g., 1990 or 1375">
     </div>
 
+    <div class="form-group" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border);">
+      <label id="lbl-holidays-title">Official Public Holidays</label>
+      <label style="display:flex; align-items:center; gap:8px; margin: 6px 0 10px; cursor:pointer; font-size:12px; color: var(--text);">
+        <input type="checkbox" id="holidaysEnabledCb" style="width:auto; margin:0;">
+        <span id="lbl-holidays-enable">Show official holidays on the calendar</span>
+      </label>
+      <select id="holidayRegionSelect">
+        <option value="auto" id="opt-holiday-auto">Auto — follow app language</option>
+        <option value="IR" id="opt-holiday-ir">Iran (offline, curated list)</option>
+        <option value="custom" id="opt-holiday-custom">Other country (enter code)</option>
+      </select>
+      <input type="text" id="holidayCustomCountry" maxlength="2" placeholder="e.g. US, DE, GB" style="margin-top:8px; display:none; text-transform:uppercase;">
+      <div id="holiday-region-hint" style="font-size:11px; color: var(--text-muted); margin-top:6px; line-height:1.6;"></div>
+    </div>
+
     <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
       <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
       
