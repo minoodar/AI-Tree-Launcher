@@ -1753,8 +1753,8 @@
       dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
       calHint = fa ? 'قمری' : 'Hijri';
     } else {
-      const monthName = GREG_MONTHS_EN[m.month - 1] || '';
-      dateStr = `${m.day} ${monthName}`;
+      const monthName = getDisplayGregorianMonth(m.month - 1) || '';
+      dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
       calHint = fa ? 'میلادی' : 'Gregorian';
     }
     if (uiEls.markEventBadge) {
@@ -2135,14 +2135,23 @@
   // اسلاگ لاتین همان ترتیب بالا — فقط برای مقدار attribute رنگ‌بندیِ ماهانه (data-cal-month)
   const JALALI_MONTH_KEYS = ['farvardin','ordibehesht','khordad','tir','mordad','shahrivar','mehr','aban','azar','dey','bahman','esfand'];
   function calMonthKeyFromJalali(jm) { return JALALI_MONTH_KEYS[jm - 1] || ''; }
-  // نام‌های نمایشیِ ماه‌های میلادی — دیگر «ژانویه»/«January» نشان داده نمی‌شود؛
-  // به‌جایش همین ۱۲ نام اوستایی/پارسیِ پیشنهادی، در همه‌جای رابط کاربری یکسان
-  // (چه زبان fa چه en). فقط لایهٔ نمایش تغییر کرده؛ ایندکس‌گذاری (m-1) و محاسبهٔ
-  // تاریخ دست‌نخورده مانده — GREG_MONTHS_EN/FA همچنان با همان ترتیب ژانویه→دسامبر پر می‌شوند.
-  const GREG_MONTHS_EN = ['فَرَوَهَر','اَرتا','هُورداد','تیشتَر','اَمُرداد','خَشَثرَه','مِهر','اَناهیتا','آتَر','دَئوش','وُهومَن','سپَنتا'];
+  // نام‌های نمایشیِ ماه‌های میلادی — منطقه‌محور: اگر کشورِ تنظیم‌شده ایران است
+  // (پیش‌فرض/آفلاین)، همان ۱۲ نام اوستایی/پارسی نشان داده می‌شود؛ اگر کاربر از
+  // تنظیمات کشور دیگری انتخاب کرده باشد، نام استاندارد میلادی (بر پایهٔ زبان
+  // رابط کاربری) نمایش داده می‌شود. فقط لایهٔ نمایش است — ایندکس‌گذاری (m-1) و
+  // محاسبهٔ تاریخ دست‌نخورده می‌ماند.
+  const GREG_MONTHS_STD_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const GREG_MONTHS_STD_FA = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
+  const GREG_MONTHS_AVESTAN = ['فَرَوَهَر','اَرتا','هُورداد','تیشتَر','اَمُرداد','خَشَثرَه','مِهر','اَناهیتا','آتَر','دَئوش','وُهومَن','سپَنتا'];
+  function getDisplayGregorianMonth(mIndex) {
+    const countryCode = resolveHolidayCountryCode();
+    if (countryCode !== 'IR') {
+      return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : GREG_MONTHS_STD_EN[mIndex];
+    }
+    return GREG_MONTHS_AVESTAN[mIndex];
+  }
   const HIJRI_MONTHS_FA = ['محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی','رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه'];
   const HIJRI_MONTHS_EN = ['Muharram','Safar',"Rabi' al-awwal","Rabi' al-thani",'Jumada al-awwal','Jumada al-thani','Rajab',"Sha'ban",'Ramadan','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
-  const GREG_MONTHS_FA = GREG_MONTHS_EN;
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
   const WEEKDAYS_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
@@ -2190,9 +2199,10 @@
     // One grid = one real (Gregorian) month, always — title just names that month.
     // (Its Jalali equivalent can span two Jalali months, but the grid itself never mixes days
     // from two different months, so the title shouldn't imply that either.)
+    const monthLabelStr = getDisplayGregorianMonth(m - 1);
     uiEls.dualMonthLabel.textContent = preferJalali
-      ? `${GREG_MONTHS_FA[m - 1]} ${toPersianDigits(y)}`
-      : `${GREG_MONTHS_EN[m - 1]} ${y}`;
+      ? `${monthLabelStr} ${toPersianDigits(y)}`
+      : `${monthLabelStr} ${y}`;
 
     const wd = preferJalali ? WEEKDAYS_FA : WEEKDAYS_EN;
     uiEls.dualWeekdays.innerHTML = wd.map(d => `<span class="ai-dual-wd">${d}</span>`).join('');
@@ -2238,8 +2248,10 @@
       const wdIdx = new Date(gy, gm - 1, gd).getDay();
       const weekdayKey = HAFT_PEYKAR_KEY[wdIdx];
       const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
-      // Line 1 — Gregorian day/month, using the unified display month names
-      const gregLine = `${gd} ${GREG_MONTHS_EN[gm - 1]}`;
+      // Line 1 — Gregorian day/month, region-aware month name
+      const monthName = getDisplayGregorianMonth(gm - 1);
+      const dayStr = currentLang === 'fa' ? toPersianDigits(gd) : String(gd);
+      const gregLine = `${dayStr} ${monthName}`;
       // Line 2 — secondary calendar (day + month only)
       let secLine = '';
       try {
