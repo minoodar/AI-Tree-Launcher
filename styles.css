@@ -4565,6 +4565,256 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   );
 }
 
+/* دکمهٔ تاگلِ داشبورد زمان — دقیقاً همان زبانِ بصریِ تاگلِ مناسبت‌ها، اما کمی
+   پایین‌تر (فاصلهٔ عمودی) تا با آن هم‌پوشانی نداشته باشد، و با رنگِ بنفش/طلایی
+   متمایز می‌شود تا دو تاگل با هم اشتباه گرفته نشوند. */
+#ai-dash-toggle {
+  position: absolute;
+  top: calc(50% + 30px);
+  right: -9px;
+  left: auto;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  color: transparent;
+  font-size: 0;
+  line-height: 0;
+  padding: 0;
+  margin: 0;
+  z-index: 40;
+  cursor: pointer;
+  border: 1.5px solid rgba(196, 181, 253, 0.72);
+  background:
+    radial-gradient(circle at 35% 30%,
+      rgba(221, 214, 254, 0.55) 0%,
+      rgba(129, 140, 248, 0.28) 38%,
+      rgba(24, 16, 48, 0.72) 100%);
+  box-shadow:
+    0 0 0 1.5px rgba(2, 8, 20, 0.45),
+    inset 0 1px 2px rgba(224, 242, 254, 0.35),
+    inset 0 -2px 4px rgba(2, 12, 28, 0.35),
+    0 0 10px rgba(129, 140, 248, 0.28),
+    0 0 18px rgba(167, 139, 250, 0.12);
+  transition:
+    transform 180ms cubic-bezier(0.34, 1.3, 0.64, 1),
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+#ai-clock-panel.dash-open-left #ai-dash-toggle {
+  left: -9px;
+  right: auto;
+}
+#ai-dash-toggle > *, #ai-dash-toggle svg { display: none; pointer-events: none; }
+#ai-dash-toggle::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  left: auto;
+  width: 11px;
+  height: 1.5px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(196, 181, 253, 0.08) 0%, rgba(196, 181, 253, 0.55) 55%, rgba(221, 214, 254, 0.75) 100%);
+  box-shadow: 0 0 6px rgba(129, 140, 248, 0.25);
+  pointer-events: none;
+  z-index: 0;
+}
+#ai-clock-panel.dash-open-left #ai-dash-toggle::before {
+  right: auto;
+  left: 50%;
+  background: linear-gradient(270deg, rgba(196, 181, 253, 0.08) 0%, rgba(196, 181, 253, 0.55) 55%, rgba(221, 214, 254, 0.75) 100%);
+}
+#ai-dash-toggle:hover, #ai-clock-marks-toggle:hover { transform: translateY(-50%) scale(1.12); }
+#ai-dash-toggle.is-open, #ai-clock-marks-toggle.is-open { transform: translateY(-50%) scale(0.92); }
+
+/* --- پنل داشبورد زمان (نوار هفتگی + تایم‌لاین) — همان الگوی هوشمندِ پنل مناسبت‌ها --- */
+.ai-time-dashboard {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+  position: absolute;
+  top: 0;
+  left: calc(100% + 2px);
+  width: 290px;
+  max-height: min(480px, 82vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 13px 13px 15px;
+  border-radius: 14px;
+  border: 1px solid rgba(196, 181, 253, 0.27);
+  background:
+    radial-gradient(circle at 12% 5%, rgba(196, 181, 253, 0.14), transparent 32%),
+    radial-gradient(circle at 90% 92%, rgba(56, 189, 248, 0.10), transparent 38%),
+    rgba(8, 15, 29, .96);
+  box-shadow: 0 14px 36px rgba(2,6,23,.55), inset 0 1px rgba(255,255,255,.06), 0 0 18px rgba(129,140,248,.08);
+  cursor: default;
+  z-index: 20;
+  box-sizing: border-box;
+  transition: width 0.3s var(--ease-premium);
+}
+.ai-time-dashboard.active { display: flex; }
+.ai-time-dashboard.side-left { left: auto; right: calc(100% + 2px); }
+
+.ai-dash-next-event {
+  flex: 0 0 auto;
+  background: rgba(129, 140, 248, 0.12);
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #C4B5FD;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: ltr;
+  text-align: left;
+}
+
+.ai-timeline-container {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 60px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-left: 32px;
+  padding-right: 2px;
+  direction: ltr;
+}
+.ai-timeline-container::-webkit-scrollbar { width: 4px; }
+.ai-timeline-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+.ai-timeline-now-line {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--c-danger-strong);
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.55);
+  transition: top 1s linear;
+}
+.ai-now-label {
+  position: absolute;
+  left: 0; top: -7px;
+  font-size: 9px; font-weight: 800;
+  color: #fff; background: var(--c-danger-strong);
+  padding: 1px 4px; border-radius: 4px;
+}
+.ai-dash-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 22px 4px;
+  direction: inherit;
+}
+[dir="rtl"] .ai-dash-empty, .orbit-root[style*="direction: rtl"] .ai-dash-empty { direction: rtl; }
+
+.ai-event-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 26px 8px 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease-premium);
+}
+.ai-event-card:hover { background: rgba(255, 255, 255, 0.08); }
+.ai-event-time-label {
+  position: absolute;
+  left: -36px; top: 9px;
+  font-size: 9.5px; color: var(--text-muted);
+  font-family: 'SF Mono', Consolas, monospace;
+}
+.ai-event-dot {
+  position: absolute;
+  left: -12px; top: 13px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--c-blue);
+  cursor: pointer;
+}
+.ai-event-card.status-near .ai-event-dot { background: var(--c-amber); box-shadow: 0 0 6px var(--c-amber); }
+.ai-event-card.status-near { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.05); }
+.ai-event-card.status-missed .ai-event-dot { background: var(--c-danger); }
+.ai-event-card.status-missed .ai-event-title { color: var(--c-danger); }
+.ai-event-card.status-done { opacity: 0.5; }
+.ai-event-card.status-done .ai-event-title { text-decoration: line-through; }
+.ai-event-card.status-done .ai-event-dot { background: var(--text-muted); }
+.ai-event-title { font-size: 12px; font-weight: 600; color: #fff; direction: auto; text-align: start; }
+.ai-event-meta { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+.ai-event-del {
+  position: absolute; right: 5px; top: 5px;
+  width: 16px; height: 16px; border: none; border-radius: 50%;
+  background: transparent; color: rgba(255,255,255,0.35);
+  font-size: 13px; line-height: 1; cursor: pointer; padding: 0;
+}
+.ai-event-del:hover { background: rgba(239,68,68,0.18); color: #fca5a5; }
+.ai-event-card.ai-event-group { border-style: dashed; background: rgba(255, 255, 255, 0.02); }
+
+.ai-dash-add-btn {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(196,181,253,.4);
+  background: rgba(129,140,248,.14);
+  color: #DDD6FE;
+  font-size: 15px; font-weight: 700; line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.ai-dash-add-btn:hover { background: rgba(129,140,248,.26); }
+.ai-dash-add-btn:active { transform: scale(0.94); }
+
+.ai-time-quickadd-popover {
+  position: absolute;
+  inset: 0; /* کل پنل را می‌پوشاند — دیگر وابسته به میزان اسکرولِ محتوای زیرین نیست،
+               همیشه کاملاً در دیدِ کاربر است، صرف‌نظر از تعداد رویدادهای قبلی */
+  background: rgba(9,15,28,.99);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(0,0,0,.5);
+  z-index: 30;
+  overflow-y: auto;
+}
+.ai-popover-header { font-size: 10px; color: var(--text-muted); }
+.ai-time-quickadd-popover input {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 8px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.ai-time-quickadd-popover input[type="time"] { direction: ltr; }
+.ai-popover-btn-row { display: flex; gap: 6px; }
+.ai-popover-btn-row button {
+  flex: 1;
+  border: none;
+  border-radius: 6px;
+  padding: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+#ai-quick-evt-save { background: var(--c-blue); color: #04111f; }
+#ai-quick-evt-save:hover { filter: brightness(1.1); }
+.ai-popover-cancel { background: rgba(255,255,255,.08); color: #fff; }
+.ai-popover-cancel:hover { background: rgba(255,255,255,.14); }
+.ai-time-quickadd-popover input[type="time"] {
+  color-scheme: dark;
+}
+
 /* Hover / focus — spring lift */
 #ai-clock-marks-toggle:hover,
 #ai-clock-marks-toggle:focus-visible {

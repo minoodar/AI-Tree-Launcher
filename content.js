@@ -112,6 +112,15 @@
       toastQuickAdded: "Bookmarked: {label} {stars}",
       hubHoldHint: "Hold to bookmark this page\nRelease at the star you want",
       markToggleTitle: "Special Days",
+      dashToggleTitle: "Today's Agenda",
+      dashNoEvents: "No events for this day",
+      dashEventsWord: "events",
+      dashLinkedTodo: "Linked to Task",
+      dashNextLabel: "Next",
+      dashNewEventTitle: "New event today",
+      dashEventTitlePlaceholder: "Event title...",
+      dashSaveEnter: "Save (Enter)",
+      dashToggleDoneTitle: "Toggle done",
       markAddPlaceholder: "Title (e.g. Child's Birthday)",
       markAddBtn: "Add",
       markGoldenTitle: "Golden — keep every year",
@@ -299,6 +308,15 @@
       toastQuickAdded: "بوک‌مارک شد: {label} {stars}",
       hubHoldHint: "نگه دارید تا بوک‌مارک شود\nدر ستاره‌ی دلخواه رها کنید",
       markToggleTitle: "مناسبت‌ها",
+      dashToggleTitle: "برنامهٔ امروز",
+      dashNoEvents: "برای این روز رویدادی ثبت نشده",
+      dashEventsWord: "رویداد",
+      dashLinkedTodo: "متصل به کار",
+      dashNextLabel: "بعدی",
+      dashNewEventTitle: "رویداد جدید برای امروز",
+      dashEventTitlePlaceholder: "عنوان رویداد...",
+      dashSaveEnter: "ذخیره (Enter)",
+      dashToggleDoneTitle: "تغییر وضعیتِ انجام‌شده",
       markAddPlaceholder: "عنوان (مثلاً تولد فرزند)",
       markAddBtn: "افزودن",
       markGoldenTitle: "طلایی — هر سال نگه دار",
@@ -409,6 +427,10 @@
   const TODO_DAILY_TTL_MS = 24 * 60 * 60 * 1000;
   let userBirthYear = null; 
   let markedDays = []; // مناسبت‌های نشانه‌گذاری‌شده: [{ id, label, day, month }]
+  // رویدادهای ساعتی/روزانهٔ داشبورد زمان — کاملاً مستقل از سیستم TODO؛ ارتباط اختیاری با
+  // یک TODO فقط از طریق linkedTodoId برقرار می‌شود (بدون ادغام دو آرایه در هم).
+  // { id, title, date:'YYYY-MM-DD', startTime:'HH:mm', endTime, status, linkedTodoId, recurrence }
+  let timeEventsData = [];
   // تعطیلات رسمی آنلاین (کشوری) — مجزا از markedDays شخصی؛ فقط در رندر با هم ترکیب می‌شوند
   // تا هرگز در بکاپ/خروجی JSON کاربر مخلوط نشوند و با یک fetch جدید کامل جایگزین شوند.
   let publicHolidays = [];
@@ -1067,6 +1089,15 @@
     <div class="ai-clock-date-en" id="ai-date-en">...</div>
     <div class="ai-mark-dots-row" id="ai-mark-dots-row" style="display:none;"></div>
     <button type="button" class="ai-clock-marks-toggle-btn" id="ai-clock-marks-toggle" aria-label="Special days" aria-expanded="false"></button>
+    <button type="button" class="ai-clock-marks-toggle-btn ai-dash-toggle-btn" id="ai-dash-toggle" aria-label="Today's agenda" aria-expanded="false">🗓️</button>
+    <div class="ai-time-dashboard" id="ai-time-dashboard">
+      <div class="ai-dash-next-event" id="ai-next-event-widget" style="display:none;"></div>
+      <div class="ai-timeline-container" id="ai-timeline-container">
+        <div class="ai-timeline-now-line" id="ai-now-line" style="display:none;"><span class="ai-now-label" id="ai-now-label"></span></div>
+        <div class="ai-timeline-content" id="ai-timeline-content"></div>
+      </div>
+      <button type="button" class="ai-dash-add-btn" id="ai-dash-add-btn" title="Add event" aria-label="Add event">+</button>
+    </div>
     <div class="ai-clock-marks-panel" id="ai-clock-marks-panel">
       <section class="ai-season-context" aria-live="polite">
         <div class="ai-season-context-head"><span class="ai-season-context-dot" aria-hidden="true"></span><strong id="ai-season-name"></strong><span id="ai-season-hemisphere"></span></div>
@@ -1276,6 +1307,14 @@
     todoWhenTomorrow: todoPanel.querySelector('#ai-todo-when-tomorrow'),
     markDotsRow: clockPanel.querySelector('#ai-mark-dots-row'),
     markToggle: clockPanel.querySelector('#ai-clock-marks-toggle'),
+    dashToggle: clockPanel.querySelector('#ai-dash-toggle'),
+    dashPanel: clockPanel.querySelector('#ai-time-dashboard'),
+    nextEventWidget: clockPanel.querySelector('#ai-next-event-widget'),
+    timelineContainer: clockPanel.querySelector('#ai-timeline-container'),
+    timelineContent: clockPanel.querySelector('#ai-timeline-content'),
+    nowLine: clockPanel.querySelector('#ai-now-line'),
+    nowLabel: clockPanel.querySelector('#ai-now-label'),
+    dashAddBtn: clockPanel.querySelector('#ai-dash-add-btn'),
     markPanel: clockPanel.querySelector('#ai-clock-marks-panel'),
     markList: clockPanel.querySelector('#ai-clock-marks-list'),
     markLabelInput: clockPanel.querySelector('#ai-mark-label-input'),
@@ -1500,6 +1539,10 @@
 
     uiEls.markToggle.title = t('markToggleTitle');
     uiEls.markToggle.setAttribute('aria-label', t('markToggleTitle'));
+    if (uiEls.dashToggle) {
+      uiEls.dashToggle.title = t('dashToggleTitle');
+      uiEls.dashToggle.setAttribute('aria-label', t('dashToggleTitle'));
+    }
     uiEls.markLabelInput.placeholder = t('markAddPlaceholder');
     uiEls.markAddBtn.textContent = t('markAddBtn');
     if (uiEls.markGoldenRow) uiEls.markGoldenRow.title = t('markGoldenTitle');
@@ -1526,6 +1569,7 @@
     }
     if(todoPanel.classList.contains('active')) renderTodos();
     if(clockPanel.classList.contains('active')) { updateClockAge(); renderMarkedDays(); if (typeof renderRumiQuote === 'function') renderRumiQuote(); }
+    if(uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI();
     if(searchPanel.classList.contains('active')) renderSearchResults(uiEls.searchInput.value);
     renderTierDots();
     if(isOpen) setHubLabel(currentLayerMode === 0 ? t('hubCore') : ringDisplayLabel(RING_CONFIG[currentLayerMode]));
@@ -1617,11 +1661,22 @@
       } else {
          ageEl.textContent = ''; ageEl.style.display = 'none'; if (journeyEl) journeyEl.style.display = 'none';
       }
+      // داشبورد زمان: خطِ «اکنون» هر ثانیه (سبک، فقط جابه‌جاییِ یک خط)، اما وضعیتِ کارت‌ها
+      // (near/missed) و ویجتِ «رویداد بعدی» فقط هر دقیقه یک‌بار بازمحاسبه می‌شوند — تا با
+      // بازرسمِ کاملِ تایم‌لاین هر ثانیه، پرش/فلیکرِ بصری ایجاد نشود.
+      if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) {
+        if (typeof updateNowLine === 'function') updateNowLine();
+        if (now.getSeconds() === 0 && typeof renderTimeline === 'function') renderTimeline();
+      }
   }
   // Registered with lifecycle controller once it is constructed (see below).
   let clockAgeIntervalId = setInterval(updateClockAge, 1000);
 
   function saveMarkedDays() { try { if (chrome.runtime?.id) chrome.storage.sync.set({ aiTreeMarkedDays: markedDays }); } catch (e) {} }
+
+  // chrome.storage.local (نه sync) عمداً انتخاب شده: sync سقفِ حجمِ خیلی کمی دارد (~۸KB
+  // برای هر کلید) و رویدادهای روزانه/ساعتیِ کاربرِ فعال به‌سرعت از آن رد می‌شوند.
+  function saveTimeEvents() { try { if (chrome.runtime?.id) chrome.storage.local.set({ aiTreeTimeEvents: timeEventsData }); } catch (e) {} }
 
   // === تبدیل تقویم شمسی (جلالی) <-> میلادی — الگوریتم استاندارد، بدون کتابخانه‌ی خارجی ===
   function jdiv(a, b) { return ~~(a / b); }
@@ -1997,8 +2052,221 @@
     uiEls.markPanel.style.top = `${topOffset}px`;
   }
 
+  // ============================= داشبورد زمان (فقط برنامهٔ ساعتیِ «امروز» — طبق بازنگری) =============================
+  // به‌درخواست کاربر، پیچیدگیِ نوارِ هفتگی/جابه‌جایی بین روزها به‌طور کامل حذف شد؛ فقط
+  // «امروز» مدیریت می‌شود. هر رویداد هم‌زمان یک TODO روزانهٔ متناظر می‌سازد (linkedTodoId)
+  // تا در پنل TODO هم دیده شود؛ حذف/تیک‌زدنِ رویداد، TODOِ لینک‌شده را هم همگام می‌کند.
+  const expandedDashGroups = new Set(); // baseTime گروه‌هایی که کاربر باز کرده (تا رفرش بعدی حفظ شود)
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function isoFromDate(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+  function todayDashIso() { return isoFromDate(new Date()); }
+
+  function evaluateEventStatus(evt) {
+    if (evt.status === 'done') return 'done';
+    const eventTime = new Date(`${evt.date}T${evt.startTime}:00`);
+    if (isNaN(eventTime.getTime())) return 'future';
+    const diffMinutes = (eventTime - new Date()) / 60000;
+    if (diffMinutes < 0) return 'missed';
+    if (diffMinutes <= 30) return 'near';
+    return 'future';
+  }
+  function hhmmDiffMinutes(a, b) {
+    const [ah, am] = a.split(':').map(Number); const [bh, bm] = b.split(':').map(Number);
+    return Math.abs((bh * 60 + bm) - (ah * 60 + am));
+  }
+  function groupTimeEvents(events) {
+    const grouped = []; let currentGroup = null;
+    events.slice().sort((a, b) => a.startTime.localeCompare(b.startTime)).forEach(evt => {
+      if (!currentGroup) { currentGroup = { isGroup: false, events: [evt], baseTime: evt.startTime }; }
+      else if (hhmmDiffMinutes(currentGroup.baseTime, evt.startTime) <= 15) { currentGroup.isGroup = true; currentGroup.events.push(evt); }
+      else { grouped.push(currentGroup); currentGroup = { isGroup: false, events: [evt], baseTime: evt.startTime }; }
+    });
+    if (currentGroup) grouped.push(currentGroup);
+    return grouped;
+  }
+  function newLinkId(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+
+  function saveDashEvent(evt) {
+    // پل به TODO: هر رویداد ساعتیِ روزانه هم‌زمان یک TODو «روزانه» متناظر می‌سازد —
+    // آرایه‌ها کاملاً جدا می‌مانند، فقط شناسه‌ها به هم لینک می‌شوند.
+    const linkedTodo = { id: newLinkId('td'), text: `${evt.startTime} — ${evt.title}`, done: false, type: 'daily', createdAt: Date.now() };
+    todosData.push(linkedTodo); saveTodos();
+    if (todoPanel.classList.contains('active')) renderTodos();
+    evt.linkedTodoId = linkedTodo.id;
+    timeEventsData.push(evt); saveTimeEvents(); refreshDashUI();
+  }
+  function deleteDashEvent(id) {
+    const evt = timeEventsData.find(e => e.id === id);
+    if (evt && evt.linkedTodoId) {
+      const idx = todosData.findIndex(td => td.id === evt.linkedTodoId);
+      if (idx !== -1) { todosData.splice(idx, 1); saveTodos(); if (todoPanel.classList.contains('active')) renderTodos(); }
+    }
+    timeEventsData = timeEventsData.filter(e => e.id !== id); saveTimeEvents(); refreshDashUI();
+  }
+  function toggleDashEventDone(id) {
+    const evt = timeEventsData.find(e => e.id === id); if (!evt) return;
+    evt.status = (evt.status === 'done') ? 'future' : 'done';
+    if (evt.linkedTodoId) {
+      const linkedTodo = todosData.find(td => td.id === evt.linkedTodoId);
+      if (linkedTodo) { linkedTodo.done = (evt.status === 'done'); saveTodos(); if (todoPanel.classList.contains('active')) renderTodos(); }
+    }
+    saveTimeEvents(); refreshDashUI();
+  }
+  function refreshDashUI() { renderTimeline(); }
+
+  function buildDashEventCard(evt) {
+    const status = evaluateEventStatus(evt);
+    const card = document.createElement('div');
+    card.className = `ai-event-card status-${status}`;
+    const timeLabel = document.createElement('span'); timeLabel.className = 'ai-event-time-label'; timeLabel.textContent = evt.startTime;
+    const dot = document.createElement('div'); dot.className = 'ai-event-dot'; dot.title = t('dashToggleDoneTitle');
+    dot.addEventListener('click', (e) => { e.stopPropagation(); toggleDashEventDone(evt.id); });
+    const title = document.createElement('div'); title.className = 'ai-event-title'; title.textContent = evt.title;
+    const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-event-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
+    delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteDashEvent(evt.id); });
+    card.appendChild(timeLabel); card.appendChild(dot); card.appendChild(title); card.appendChild(delBtn);
+    if (evt.linkedTodoId) { const meta = document.createElement('div'); meta.className = 'ai-event-meta'; meta.textContent = '↗ ' + t('dashLinkedTodo'); card.appendChild(meta); }
+    return card;
+  }
+
+  function renderTimeline() {
+    const container = uiEls.timelineContent; if (!container) return;
+    const iso = todayDashIso();
+    container.innerHTML = '';
+    const todaysEvents = timeEventsData.filter(e => e.date === iso);
+    if (!todaysEvents.length) {
+      const empty = document.createElement('div'); empty.className = 'ai-dash-empty'; empty.textContent = t('dashNoEvents');
+      container.appendChild(empty);
+    } else {
+      groupTimeEvents(todaysEvents).forEach(group => {
+        if (group.isGroup && !expandedDashGroups.has(group.baseTime)) {
+          const card = document.createElement('div'); card.className = 'ai-event-card ai-event-group';
+          const timeLabel = document.createElement('span'); timeLabel.className = 'ai-event-time-label'; timeLabel.textContent = group.baseTime;
+          const dot = document.createElement('div'); dot.className = 'ai-event-dot';
+          const title = document.createElement('div'); title.className = 'ai-event-title'; title.textContent = `${group.events.length} ${t('dashEventsWord')}`;
+          card.appendChild(timeLabel); card.appendChild(dot); card.appendChild(title);
+          card.addEventListener('click', (e) => { e.stopPropagation(); expandedDashGroups.add(group.baseTime); renderTimeline(); });
+          container.appendChild(card);
+        } else {
+          group.events.forEach(evt => container.appendChild(buildDashEventCard(evt)));
+        }
+      });
+    }
+    updateNextEventWidget();
+    updateNowLine();
+  }
+
+  function updateNowLine() {
+    if (!uiEls.nowLine || !uiEls.timelineContainer) return;
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const percentOfDay = (now - startOfDay) / 86400000;
+    const trackHeight = uiEls.timelineContainer.scrollHeight || uiEls.timelineContainer.clientHeight || 0;
+    uiEls.nowLine.style.top = `${Math.max(0, Math.min(1, percentOfDay)) * trackHeight}px`;
+    if (uiEls.nowLabel) uiEls.nowLabel.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
+  function updateNextEventWidget() {
+    const widget = uiEls.nextEventWidget; if (!widget) return;
+    const now = new Date();
+    const upcoming = timeEventsData
+      .filter(e => e.status !== 'done')
+      .map(e => ({ e, t: new Date(`${e.date}T${e.startTime}:00`) }))
+      .filter(x => !isNaN(x.t.getTime()) && x.t >= now)
+      .sort((a, b) => a.t - b.t)[0];
+    if (!upcoming) { widget.style.display = 'none'; widget.textContent = ''; return; }
+    widget.textContent = `${t('dashNextLabel')}: ${upcoming.e.title} · ${upcoming.e.startTime}`;
+    widget.style.display = '';
+  }
+
+  function closeDashQuickAdd() {
+    if (uiEls.dashPanel) { const pop = uiEls.dashPanel.querySelector('.ai-time-quickadd-popover'); if (pop) pop.remove(); }
+  }
+
+  function openDashQuickAdd() {
+    if (!uiEls.dashPanel || !uiEls.timelineContainer) return;
+    closeDashQuickAdd();
+    const now = new Date();
+    const defaultTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    const popover = document.createElement('div'); popover.className = 'ai-time-quickadd-popover';
+    const header = document.createElement('div'); header.className = 'ai-popover-header'; header.textContent = t('dashNewEventTitle');
+    const titleInput = document.createElement('input'); titleInput.type = 'text'; titleInput.id = 'ai-quick-evt-title'; titleInput.placeholder = t('dashEventTitlePlaceholder'); titleInput.dir = 'auto';
+    const timeInput = document.createElement('input'); timeInput.type = 'time'; timeInput.id = 'ai-quick-evt-time'; timeInput.value = defaultTime;
+
+    const btnRow = document.createElement('div'); btnRow.className = 'ai-popover-btn-row';
+    const saveBtn = document.createElement('button'); saveBtn.type = 'button'; saveBtn.id = 'ai-quick-evt-save'; saveBtn.textContent = t('dashSaveEnter');
+    const cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'ai-popover-cancel'; cancelBtn.textContent = t('formCancelBtn');
+    btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn);
+    popover.appendChild(header); popover.appendChild(titleInput); popover.appendChild(timeInput); popover.appendChild(btnRow);
+    uiEls.dashPanel.appendChild(popover);
+    popover.addEventListener('mousedown', (e) => e.stopPropagation());
+    popover.addEventListener('click', (e) => e.stopPropagation());
+
+    function commitSave() {
+      const title = titleInput.value.trim(); if (!title) { titleInput.focus(); return; }
+      const startTime = timeInput.value || defaultTime;
+      const evt = {
+        id: newLinkId('evt'), title, date: todayDashIso(), startTime,
+        endTime: null, status: 'future', linkedTodoId: null, recurrence: null
+      };
+      saveDashEvent(evt); closeDashQuickAdd();
+    }
+    saveBtn.addEventListener('click', commitSave);
+    cancelBtn.addEventListener('click', closeDashQuickAdd);
+    titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') commitSave(); else if (e.key === 'Escape') closeDashQuickAdd(); });
+    timeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') commitSave(); else if (e.key === 'Escape') closeDashQuickAdd(); });
+    titleInput.focus();
+  }
+
+  // موقعیت‌دهیِ پنل داشبورد — دقیقاً همان منطق هوشمندِ پنل مناسبت‌ها (سمتی که جا دارد)
+  function positionDashPanelSide() {
+    if (!uiEls.dashPanel || !uiEls.dashPanel.classList.contains('active')) return;
+    const rect = clockPanel.getBoundingClientRect();
+    const panelW = (uiEls.dashPanel.offsetWidth || 300) + 36;
+    const vw = window.innerWidth; const vh = window.innerHeight;
+    const spaceRight = vw - rect.right; const spaceLeft = rect.left;
+    const clockCenterX = rect.left + rect.width / 2;
+    let openLeft;
+    if (clockCenterX < vw / 2) { openLeft = false; if (spaceRight < panelW && spaceLeft >= panelW) openLeft = true; }
+    else { openLeft = true; if (spaceLeft < panelW && spaceRight >= panelW) openLeft = false; }
+    uiEls.dashPanel.classList.toggle('side-left', openLeft);
+    clockPanel.classList.toggle('dash-open-left', openLeft);
+    const margin = 10; const panelH = uiEls.dashPanel.offsetHeight || 300; let topOffset = 0;
+    if (rect.top + panelH > vh - margin) topOffset = (vh - margin) - panelH - rect.top;
+    if (rect.top + topOffset < margin) topOffset = margin - rect.top;
+    uiEls.dashPanel.style.top = `${topOffset}px`;
+    updateNowLine();
+  }
+  function syncDashToggleRestSide() {
+    if (!uiEls.dashPanel) return;
+    if (uiEls.dashPanel.classList.contains('active')) { positionDashPanelSide(); return; }
+    const rect = clockPanel.getBoundingClientRect(); const vw = window.innerWidth;
+    const openLeft = (rect.left + rect.width / 2) >= vw / 2;
+    clockPanel.classList.toggle('dash-open-left', openLeft);
+  }
+
+  function closeMarksPanelOnly() {
+    if (!uiEls.markPanel || !uiEls.markPanel.classList.contains('active')) return;
+    closeDualPicker();
+    uiEls.markPanel.classList.remove('active', 'side-left');
+    uiEls.markToggle.classList.remove('is-open');
+    uiEls.markToggle.setAttribute('aria-expanded', 'false');
+    syncMarksToggleRestSide();
+  }
+  function closeDashPanelOnly() {
+    if (!uiEls.dashPanel || !uiEls.dashPanel.classList.contains('active')) return;
+    closeDashQuickAdd();
+    uiEls.dashPanel.classList.remove('active', 'side-left');
+    uiEls.dashToggle.classList.remove('is-open');
+    uiEls.dashToggle.setAttribute('aria-expanded', 'false');
+    syncDashToggleRestSide();
+  }
+
   uiEls.markToggle.addEventListener('click', (e) => {
     e.stopPropagation();
+    const willOpen = !uiEls.markPanel.classList.contains('active');
+    if (willOpen) closeDashPanelOnly(); // فقط یکی از دو پنل کناری هم‌زمان باز باشد
     uiEls.markPanel.classList.toggle('active');
     const isOpen = uiEls.markPanel.classList.contains('active');
     uiEls.markToggle.classList.toggle('is-open', isOpen);
@@ -2011,6 +2279,29 @@
       positionMarksPanelSide();
     }
   });
+
+  if (uiEls.dashToggle) {
+    uiEls.dashToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = !uiEls.dashPanel.classList.contains('active');
+      if (willOpen) closeMarksPanelOnly(); // فقط یکی از دو پنل کناری هم‌زمان باز باشد
+      closeDashQuickAdd();
+      uiEls.dashPanel.classList.toggle('active');
+      const isOpen = uiEls.dashPanel.classList.contains('active');
+      uiEls.dashToggle.classList.toggle('is-open', isOpen);
+      uiEls.dashToggle.setAttribute('aria-expanded', String(isOpen));
+      if (!isOpen) {
+        uiEls.dashPanel.classList.remove('side-left');
+        syncDashToggleRestSide();
+      } else {
+        refreshDashUI();
+        positionDashPanelSide();
+      }
+    });
+  }
+  if (uiEls.dashAddBtn) {
+    uiEls.dashAddBtn.addEventListener('click', (e) => { e.stopPropagation(); openDashQuickAdd(); });
+  }
 
   if (uiEls.markEventTab) {
     uiEls.markEventTab.addEventListener('click', (e) => {
@@ -2426,7 +2717,7 @@
     renderDualGrid();
   });
 
- [uiEls.markToggle, uiEls.markLabelInput, uiEls.smartDateInput, uiEls.smartDatePickerBtn, uiEls.markAddBtn, uiEls.markGoldenRow, uiEls.markPanel, uiEls.markList, uiEls.dualPicker].forEach(el => {
+ [uiEls.markToggle, uiEls.markLabelInput, uiEls.smartDateInput, uiEls.smartDatePickerBtn, uiEls.markAddBtn, uiEls.markGoldenRow, uiEls.markPanel, uiEls.markList, uiEls.dualPicker, uiEls.dashToggle, uiEls.dashPanel, uiEls.dashAddBtn].forEach(el => {
     if (!el) return;
     el.addEventListener('mousedown', (e) => e.stopPropagation());
     el.addEventListener('touchstart', (e) => e.stopPropagation(), { passive: false });
@@ -2530,6 +2821,7 @@
       clockPanel.style.left = `${leftPos}px`;
       clockPanel.style.top = `${topPos}px`;
       if (typeof syncMarksToggleRestSide === 'function') syncMarksToggleRestSide();
+      if (typeof syncDashToggleRestSide === 'function') syncDashToggleRestSide();
   }
   
   clockToggleDot.addEventListener('click', (e) => {
@@ -2604,6 +2896,7 @@
         } catch (err) {}
       }
       if (typeof syncMarksToggleRestSide === 'function') syncMarksToggleRestSide();
+      if (typeof syncDashToggleRestSide === 'function') syncDashToggleRestSide();
     }
   }
   document.addEventListener('mouseup', endClockDrag);
@@ -3809,6 +4102,13 @@
           if (uiEls.markToggle) uiEls.markToggle.classList.remove('is-open');
           if (uiEls.markToggle) uiEls.markToggle.setAttribute('aria-expanded', 'false');
           clockPanel.classList.remove('marks-open-left');
+        }
+        if (uiEls.dashPanel) {
+          if (typeof closeDashQuickAdd === 'function') closeDashQuickAdd();
+          uiEls.dashPanel.classList.remove('active', 'side-left');
+          if (uiEls.dashToggle) uiEls.dashToggle.classList.remove('is-open');
+          if (uiEls.dashToggle) uiEls.dashToggle.setAttribute('aria-expanded', 'false');
+          clockPanel.classList.remove('dash-open-left');
         }
         if (typeof closeDualPicker === 'function') { try { closeDualPicker(); } catch (_) {} }
         if (typeof collapseRumiQuote === 'function') collapseRumiQuote();
@@ -7058,7 +7358,7 @@
   async function loadDataAndRender() {
     const [syncData, localData] = await Promise.all([
       storageGet('sync', ['orbitX', 'orbitY', 'linksData', 'coreAIConfig', 'lastDeletedLink', 'userBirthYear', 'nodeSpacing', 'aiTreeTodos', 'appLanguage', 'aiTreeMarkedDays', 'clockCustomX', 'clockCustomY', 'coreSlots5Migrated']),
-      storageGet('local', ['linksData', 'linksData2', 'linksData3', 'linksData4', 'activeNoteAIIndex'])
+      storageGet('local', ['linksData', 'linksData2', 'linksData3', 'linksData4', 'activeNoteAIIndex', 'aiTreeTimeEvents'])
     ]);
 
     if (typeof localData.activeNoteAIIndex === 'number') {
@@ -7111,6 +7411,7 @@
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
     if(syncData.aiTreeTodos) { todosData = syncData.aiTreeTodos; migrateTodos(); pruneExpiredDailyTodos(); }
     if(Array.isArray(syncData.aiTreeMarkedDays)) { markedDays = syncData.aiTreeMarkedDays; pruneExpiredMarkedDays(); }
+    if(Array.isArray(localData.aiTreeTimeEvents)) timeEventsData = localData.aiTreeTimeEvents;
     try {
       if (chrome.runtime?.id) {
         chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry'], (res) => {
