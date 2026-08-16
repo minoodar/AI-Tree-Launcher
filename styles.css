@@ -4772,18 +4772,22 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 
 .ai-time-quickadd-popover {
   position: absolute;
-  inset: 0; /* کل پنل را می‌پوشاند — دیگر وابسته به میزان اسکرولِ محتوای زیرین نیست،
-               همیشه کاملاً در دیدِ کاربر است، صرف‌نظر از تعداد رویدادهای قبلی */
+  top: 0; left: 0; right: 0;
+  /* دیگر inset:0 نیست — چون ارتفاعِ پنل با ۰ یا ۱ رویداد خیلی کوچک است و محتوای
+     پاپ‌آور (عنوان + نشانگر ساعت + دکمه‌ها) داخلش جا نمی‌شد و برش می‌خورد. حالا
+     پاپ‌آور ارتفاعِ طبیعیِ خودش را می‌گیرد و کلاس quickadd-open روی پنل، جای کافی
+     برایش باز می‌کند (پایین‌تر در همین فایل). */
   background: rgba(9,15,28,.99);
   border-radius: 14px;
   padding: 14px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 8px;
   box-shadow: 0 10px 24px rgba(0,0,0,.5);
   z-index: 30;
-  overflow-y: auto;
+}
+.ai-time-dashboard.quickadd-open {
+  min-height: 280px; /* جای کافی برای عنوان + نشانگر ساعت + دکمه‌های ذخیره/لغو */
 }
 .ai-popover-header { font-size: 10px; color: var(--text-muted); }
 .ai-time-quickadd-popover input {
@@ -4814,6 +4818,96 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 .ai-time-quickadd-popover input[type="time"] {
   color-scheme: dark;
 }
+
+/* --- «افق آسمانی» — نوارِ لغزشیِ بصریِ انتخاب ساعت --- */
+.ai-horizon-scrubber {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 4px;
+  margin: 4px 0;
+  user-select: none;
+  -webkit-user-select: none;
+  direction: ltr;
+}
+.ai-scrubber-readout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.ai-scrubber-time {
+  font-family: 'SF Mono', Consolas, monospace;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--scrubber-color, #e0f2fe);
+  text-shadow: 0 0 16px var(--scrubber-glow, rgba(125, 211, 252, 0.4));
+  letter-spacing: 1px;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+.ai-scrubber-hint {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+}
+.ai-scrubber-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg,
+    #0F172A 0%,
+    #1E3A8A 25%,
+    #38BDF8 50%,
+    #F59E0B 75%,
+    #0F172A 100%
+  );
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.6), 0 1px 0 rgba(255,255,255,0.1);
+  cursor: pointer;
+  touch-action: none;
+  margin-top: 8px;
+}
+.ai-scrubber-progress {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 8px 0 0 8px;
+  pointer-events: none;
+}
+.ai-scrubber-thumb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1.5px solid var(--scrubber-color, #38BDF8);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 12px var(--scrubber-glow, rgba(56, 189, 248, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: grab;
+  z-index: 2;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.15s var(--ease-premium);
+}
+.ai-scrubber-thumb:active { cursor: grabbing; transform: translate(-50%, -50%) scale(1.15); }
+.ai-scrubber-mark {
+  position: absolute;
+  top: 100%;
+  width: 2px; height: 4px;
+  background: rgba(255,255,255,0.2);
+  margin-top: 4px;
+}
+.ai-scrubber-mark.mark-dawn { left: 25%; }
+.ai-scrubber-mark.mark-noon { left: 50%; }
+.ai-scrubber-mark.mark-dusk { left: 75%; }
 
 /* Hover / focus — spring lift */
 #ai-clock-marks-toggle:hover,

@@ -121,6 +121,7 @@
       dashEventTitlePlaceholder: "Event title...",
       dashSaveEnter: "Save (Enter)",
       dashToggleDoneTitle: "Toggle done",
+      scrubberNight: "Night", scrubberDawn: "Dawn", scrubberDay: "Day", scrubberDusk: "Dusk", scrubberEvening: "Evening",
       markAddPlaceholder: "Title (e.g. Child's Birthday)",
       markAddBtn: "Add",
       markGoldenTitle: "Golden — keep every year",
@@ -317,6 +318,7 @@
       dashEventTitlePlaceholder: "عنوان رویداد...",
       dashSaveEnter: "ذخیره (Enter)",
       dashToggleDoneTitle: "تغییر وضعیتِ انجام‌شده",
+      scrubberNight: "شب", scrubberDawn: "سپیده‌دم", scrubberDay: "روز", scrubberDusk: "غروب", scrubberEvening: "شامگاه",
       markAddPlaceholder: "عنوان (مثلاً تولد فرزند)",
       markAddBtn: "افزودن",
       markGoldenTitle: "طلایی — هر سال نگه دار",
@@ -2180,32 +2182,118 @@
     widget.style.display = '';
   }
 
+  // ---------- «افق آسمانی» — نوارِ لغزشیِ بصریِ انتخاب ساعت (جایگزین input زمان) ----------
+  function initializeTimeScrubber(containerEl, defaultHours, defaultMinutes) {
+    const track = containerEl.querySelector('.ai-scrubber-track');
+    const thumb = containerEl.querySelector('.ai-scrubber-thumb');
+    const progress = containerEl.querySelector('.ai-scrubber-progress');
+    const timeDisplay = containerEl.querySelector('.ai-scrubber-time');
+    const hintDisplay = containerEl.querySelector('.ai-scrubber-hint');
+    const rootStyle = containerEl.style;
+
+    let currentMinutes = (defaultHours * 60) + defaultMinutes; // 0 تا 1440
+    let isDragging = false;
+
+    function updateVisuals() {
+      const percent = Math.max(0, Math.min(100, (currentMinutes / 1440) * 100));
+      thumb.style.left = `${percent}%`;
+      progress.style.width = `${percent}%`;
+      const hrs = Math.floor(currentMinutes / 60);
+      const mins = currentMinutes % 60;
+      timeDisplay.textContent = `${pad2(hrs)}:${pad2(mins)}`;
+
+      let icon = '🌙', hintKey = 'scrubberNight', color = '#818CF8', glow = 'rgba(129, 140, 248, 0.5)';
+      if (hrs >= 5 && hrs < 9) { icon = '🌅'; hintKey = 'scrubberDawn'; color = '#FDE68A'; glow = 'rgba(253, 230, 138, 0.4)'; }
+      else if (hrs >= 9 && hrs < 16) { icon = '☀️'; hintKey = 'scrubberDay'; color = '#38BDF8'; glow = 'rgba(56, 189, 248, 0.4)'; }
+      else if (hrs >= 16 && hrs < 19) { icon = '🌇'; hintKey = 'scrubberDusk'; color = '#F59E0B'; glow = 'rgba(245, 158, 11, 0.4)'; }
+      else if (hrs >= 19 && hrs <= 23) { icon = '✨'; hintKey = 'scrubberEvening'; color = '#C4B5FD'; glow = 'rgba(196, 181, 253, 0.4)'; }
+
+      thumb.textContent = icon;
+      hintDisplay.textContent = t(hintKey);
+      rootStyle.setProperty('--scrubber-color', color);
+      rootStyle.setProperty('--scrubber-glow', glow);
+    }
+
+    function handleDrag(clientX) {
+      const rect = track.getBoundingClientRect();
+      let x = clientX - rect.left;
+      x = Math.max(0, Math.min(x, rect.width));
+      const percent = x / rect.width;
+      let rawMinutes = percent * 1440;
+      currentMinutes = Math.round(rawMinutes / 15) * 15; // اسنپ به بازه‌های ۱۵ دقیقه‌ای
+      if (currentMinutes >= 1440) currentMinutes = 1439;
+      updateVisuals();
+    }
+
+    function onPointerDown(e) { e.stopPropagation(); isDragging = true; handleDrag(e.touches ? e.touches[0].clientX : e.clientX); }
+    function onPointerMove(e) { if (!isDragging) return; handleDrag(e.touches ? e.touches[0].clientX : e.clientX); }
+    function onPointerUp() { isDragging = false; }
+
+    track.addEventListener('mousedown', onPointerDown);
+    track.addEventListener('touchstart', onPointerDown, { passive: true });
+    document.addEventListener('mousemove', onPointerMove);
+    document.addEventListener('touchmove', onPointerMove, { passive: true });
+    document.addEventListener('mouseup', onPointerUp);
+    document.addEventListener('touchend', onPointerUp);
+
+    updateVisuals();
+    return {
+      getValue: () => `${pad2(Math.floor(currentMinutes / 60))}:${pad2(currentMinutes % 60)}`,
+      destroy: () => { document.removeEventListener('mousemove', onPointerMove); document.removeEventListener('touchmove', onPointerMove); document.removeEventListener('mouseup', onPointerUp); document.removeEventListener('touchend', onPointerUp); }
+    };
+  }
+  function buildTimeScrubberEl() {
+    const wrap = document.createElement('div'); wrap.className = 'ai-horizon-scrubber';
+    const readout = document.createElement('div'); readout.className = 'ai-scrubber-readout';
+    const timeSpan = document.createElement('span'); timeSpan.className = 'ai-scrubber-time'; timeSpan.textContent = '12:00';
+    const hintSpan = document.createElement('span'); hintSpan.className = 'ai-scrubber-hint';
+    readout.appendChild(timeSpan); readout.appendChild(hintSpan);
+    const track = document.createElement('div'); track.className = 'ai-scrubber-track';
+    const progress = document.createElement('div'); progress.className = 'ai-scrubber-progress';
+    const thumb = document.createElement('div'); thumb.className = 'ai-scrubber-thumb'; thumb.textContent = '☀️';
+    const markDawn = document.createElement('div'); markDawn.className = 'ai-scrubber-mark mark-dawn';
+    const markNoon = document.createElement('div'); markNoon.className = 'ai-scrubber-mark mark-noon';
+    const markDusk = document.createElement('div'); markDusk.className = 'ai-scrubber-mark mark-dusk';
+    track.append(progress, thumb, markDawn, markNoon, markDusk);
+    wrap.append(readout, track);
+    return wrap;
+  }
+
   function closeDashQuickAdd() {
-    if (uiEls.dashPanel) { const pop = uiEls.dashPanel.querySelector('.ai-time-quickadd-popover'); if (pop) pop.remove(); }
+    if (uiEls.dashPanel) {
+      const pop = uiEls.dashPanel.querySelector('.ai-time-quickadd-popover');
+      if (pop) { if (pop._scrubber) pop._scrubber.destroy(); pop.remove(); }
+      uiEls.dashPanel.classList.remove('quickadd-open');
+      if (typeof positionDashPanelSide === 'function') positionDashPanelSide();
+    }
   }
 
   function openDashQuickAdd() {
     if (!uiEls.dashPanel || !uiEls.timelineContainer) return;
     closeDashQuickAdd();
+    uiEls.dashPanel.classList.add('quickadd-open'); // جای کافی برای عنوان + نشانگر ساعت + دکمه‌ها باز می‌کند
     const now = new Date();
-    const defaultTime = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
     const popover = document.createElement('div'); popover.className = 'ai-time-quickadd-popover';
     const header = document.createElement('div'); header.className = 'ai-popover-header'; header.textContent = t('dashNewEventTitle');
     const titleInput = document.createElement('input'); titleInput.type = 'text'; titleInput.id = 'ai-quick-evt-title'; titleInput.placeholder = t('dashEventTitlePlaceholder'); titleInput.dir = 'auto';
-    const timeInput = document.createElement('input'); timeInput.type = 'time'; timeInput.id = 'ai-quick-evt-time'; timeInput.value = defaultTime;
+    const scrubberEl = buildTimeScrubberEl();
 
     const btnRow = document.createElement('div'); btnRow.className = 'ai-popover-btn-row';
     const saveBtn = document.createElement('button'); saveBtn.type = 'button'; saveBtn.id = 'ai-quick-evt-save'; saveBtn.textContent = t('dashSaveEnter');
     const cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'ai-popover-cancel'; cancelBtn.textContent = t('formCancelBtn');
     btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn);
-    popover.appendChild(header); popover.appendChild(titleInput); popover.appendChild(timeInput); popover.appendChild(btnRow);
+    popover.appendChild(header); popover.appendChild(titleInput); popover.appendChild(scrubberEl); popover.appendChild(btnRow);
     uiEls.dashPanel.appendChild(popover);
     popover.addEventListener('mousedown', (e) => e.stopPropagation());
     popover.addEventListener('click', (e) => e.stopPropagation());
+    if (typeof positionDashPanelSide === 'function') positionDashPanelSide(); // پنل بزرگ‌تر شد، دوباره کلمپ کن تا از صفحه بیرون نزند
+
+    const scrubber = initializeTimeScrubber(scrubberEl, now.getHours(), now.getMinutes());
+    popover._scrubber = scrubber;
 
     function commitSave() {
       const title = titleInput.value.trim(); if (!title) { titleInput.focus(); return; }
-      const startTime = timeInput.value || defaultTime;
+      const startTime = scrubber.getValue();
       const evt = {
         id: newLinkId('evt'), title, date: todayDashIso(), startTime,
         endTime: null, status: 'future', linkedTodoId: null, recurrence: null
@@ -2215,7 +2303,6 @@
     saveBtn.addEventListener('click', commitSave);
     cancelBtn.addEventListener('click', closeDashQuickAdd);
     titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') commitSave(); else if (e.key === 'Escape') closeDashQuickAdd(); });
-    timeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') commitSave(); else if (e.key === 'Escape') closeDashQuickAdd(); });
     titleInput.focus();
   }
 
