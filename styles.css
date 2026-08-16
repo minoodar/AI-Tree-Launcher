@@ -1557,14 +1557,18 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-clock-time { margin-top: 2px; color: #e0f2fe; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 29px; line-height: 1.05; font-weight: 650; letter-spacing: 0.45px; text-shadow: 0 0 15px rgba(125,211,252,.26); }
 .ai-clock-date-fa { margin-top: 2px; color: #e2e8f0; font-size: 12.5px; font-weight: 650; text-align: center; direction: rtl; }
 .ai-clock-date-en { color: rgba(224,242,254,.88); font-size: 10.5px; font-weight: 600; letter-spacing: .3px; margin-top: 2px; text-align: center; direction: ltr; text-shadow: 0 0 8px rgba(125,211,252,.55), 0 0 2px rgba(125,211,252,.4); }
-.ai-life-journey { --life-progress: 12%; width: 100%; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(186,230,253,.12); }
-.ai-life-horizon { position: relative; height: 12px; margin: 0 4px; }
+/* مسیرِ عمر/ساعت همیشه باید از «آغاز» به «اکنون» پر شود — چون این یک نوار زمانیِ
+   فیزیکی (نه یک متن) است، جهتش را از زبان برنامه (فارسی=rtl) مستقل نگه می‌داریم؛
+   وگرنه در فارسی، ترتیب برچسب‌ها (فلکس) برعکس می‌شد ولی نقطه‌ها/مسیر (left فیزیکی)
+   برعکس نمی‌شدند و این دو با هم ناهماهنگ می‌شدند. */
+.ai-life-journey { --life-progress: 12%; width: 100%; margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(186,230,253,.12); direction: ltr; }
+.ai-life-horizon { position: relative; height: 12px; margin: 0 4px; direction: ltr; }
 .ai-life-horizon::before { content: ""; position: absolute; left: 1px; right: 1px; top: 6px; height: 1px; background: rgba(186,230,253,.18); }
 .ai-life-path { position: absolute; left: 1px; top: 6px; width: var(--life-progress); height: 1px; background: linear-gradient(90deg, rgba(167,139,250,.45), rgba(103,232,249,.92)); box-shadow: 0 0 8px rgba(103,232,249,.48); transition: width .7s cubic-bezier(.19,1,.22,1); }
 .ai-life-origin, .ai-life-now { position: absolute; z-index: 1; top: 3px; width: 6px; height: 6px; border-radius: 50%; }
 .ai-life-origin { left: -2px; background: #a78bfa; box-shadow: 0 0 7px rgba(167,139,250,.6); }
 .ai-life-now { left: calc(var(--life-progress) - 4px); background: #e0f2fe; box-shadow: 0 0 0 3px rgba(103,232,249,.13), 0 0 10px rgba(103,232,249,.75); animation: presentPulse 2.8s ease-in-out infinite; transition: left .7s cubic-bezier(.19,1,.22,1); }
-.ai-life-copy { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: rgba(186,230,253,.50); font-size: 7px; font-weight: 700; letter-spacing: .3px; }
+.ai-life-copy { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: rgba(186,230,253,.50); font-size: 7px; font-weight: 700; letter-spacing: .3px; direction: ltr; }
 #ai-life-caption { color: rgba(224,242,254,.88); font-size: 9px; font-weight: 600; letter-spacing: 0; direction: rtl; }
 .ai-clock-age { display: none !important; }
 
@@ -3382,6 +3386,44 @@ body.rtl .ai-note-history-menu,
   cursor: wait;
 }
 
+/* Inline text-to-speech (format bar) — Web Speech API, runs directly on the host page */
+.ai-tts-btn {
+  width: auto !important;
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px !important;
+  font-size: 13px;
+  line-height: 1;
+  background: rgba(56, 189, 248, 0.14) !important;
+  border: 1px solid rgba(56, 189, 248, 0.34) !important;
+  color: #7DD3FC;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+.ai-tts-btn:hover {
+  background: rgba(56, 189, 248, 0.28) !important;
+  border-color: rgba(125, 211, 252, 0.55) !important;
+  color: #E0F2FE;
+  filter: none;
+}
+.ai-tts-btn:active { transform: scale(0.96); }
+.ai-tts-btn:focus-visible {
+  outline: 2px solid rgba(125, 211, 252, 0.85);
+  outline-offset: 2px;
+}
+.ai-tts-btn.active {
+  background: rgba(56, 189, 248, 0.34) !important;
+  border-color: rgba(125, 211, 252, 0.7) !important;
+  color: #E0F2FE;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5), 0 0 10px rgba(56, 189, 248, 0.45);
+}
+.ai-tts-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+#ai-note-tts-btn { order: 9; }
+
 .ai-emoji-online-btn {
   flex: 0 0 auto;
   background: rgba(56, 189, 248, 0.12);
@@ -4234,7 +4276,7 @@ body.rtl .ai-note-history-menu,
 #ai-clock-panel[data-cal-month] .ai-clock-date-fa { color: var(--cal-ink); }
 #ai-clock-panel[data-cal-month] .ai-clock-marks-panel { border-color: var(--cal-line); }
 #ai-clock-panel[data-cal-month] .day-cell:not(.empty):hover { background: var(--cal-today-bg); }
-#ai-clock-panel[data-cal-month] .day-cell.is-today { border-color: var(--cal-badge-bg); background: var(--cal-today-bg); box-shadow: 0 0 0 1px var(--cal-line), 0 0 12px var(--cal-line); }
+#ai-clock-panel[data-cal-month] .day-cell.is-today { background: var(--cal-today-bg); box-shadow: 0 0 0 1px var(--cal-line), 0 0 12px var(--cal-line); }
 #ai-clock-panel[data-cal-month] .day-cell.is-today .primary-day { color: var(--cal-ink); }
 /* بج نام ماه — پس‌زمینه و رنگ فونتِ همان ماه، دقیقاً طبق پالت پیشنهادی */
 #ai-clock-panel[data-cal-month] #ai-dual-month-label { background: var(--cal-badge-bg); color: var(--cal-badge-ink); }

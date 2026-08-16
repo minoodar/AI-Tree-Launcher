@@ -366,6 +366,26 @@
     cursor: wait;
   }
 
+  .fmt-btn.speak-btn {
+    background: rgba(56, 189, 248, 0.14);
+    border: 1px solid rgba(56, 189, 248, 0.34);
+    color: #7DD3FC;
+    min-width: 30px;
+  }
+  .fmt-btn.speak-btn:hover {
+    background: rgba(56, 189, 248, 0.28);
+    color: #E0F2FE;
+  }
+  .fmt-btn.speak-btn.is-speaking {
+    background: rgba(56, 189, 248, 0.34);
+    color: #E0F2FE;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5), 0 0 10px rgba(56, 189, 248, 0.4);
+  }
+  .fmt-btn.speak-btn:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
+
   /* Online emoji vault modal */
   .fmt-btn.emoji-online-btn {
     background: rgba(56, 189, 248, 0.12);
@@ -503,6 +523,7 @@
       <button type="button" class="fmt-btn emoji-online-btn" id="emoji-online-btn" title="Online emoji vault">🌐</button>
       <button type="button" class="fmt-btn translate-btn" id="translate-btn" title="Translate (FA ↔ EN)">🔤</button>
       <button type="button" class="fmt-btn spellcheck-btn" id="spellcheck-btn" title="Clean & Spell Check (FA/EN)">✍️</button>
+      <button type="button" class="fmt-btn speak-btn" id="speak-btn" title="Read aloud">🔊</button>
       <div class="toolbar-spacer"></div>
       <div class="ai-select-wrap">
         <select class="ai-select" id="ai-select"></select>

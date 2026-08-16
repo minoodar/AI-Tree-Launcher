@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
       toastSpellcheckLong: 'Text is too long for spell-check',
       toastSpellcheckFaFixed: 'Persian formatting fixed! 🧹',
       toastSpellcheckFaClean: 'Text is already tidy! ✨',
+      speak: 'Speak', speakTitle: 'Read note aloud', speakStopTitle: 'Stop reading',
+      toastSpeakUnsupported: 'Read-aloud is not supported in this browser',
+      toastSpeakStopped: 'Stopped',
       emojiOnline: 'Online vault', emojiOnlineTitle: 'Online emoji vault',
       emojiOnlineSearch: 'Search… fire, heart, book',
       emojiOnlineLoading: 'Loading vault…', emojiOnlineEmpty: 'No emoji found',
@@ -51,6 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
       toastSpellcheckLong: 'متن برای غلط‌یابی خیلی بلند است',
       toastSpellcheckFaFixed: 'نیم‌فاصله‌ها و علائم اصلاح شدند! 🧹',
       toastSpellcheckFaClean: 'متن شما از قبل مرتب است! ✨',
+      speak: 'خواندن', speakTitle: 'خواندن یادداشت با صدا', speakStopTitle: 'توقف خواندن',
+      toastSpeakUnsupported: 'خواندن با صدا در این مرورگر پشتیبانی نمی‌شود',
+      toastSpeakStopped: 'متوقف شد',
       emojiOnline: 'گنجینه آنلاین', emojiOnlineTitle: 'گنجینه آنلاین ایموجی',
       emojiOnlineSearch: 'جستجو… آتش، قلب، کتاب',
       emojiOnlineLoading: 'در حال بارگذاری…', emojiOnlineEmpty: 'ایموجی یافت نشد',
@@ -87,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
     sendLabel: document.getElementById('send-label'),
     translateBtn: document.getElementById('translate-btn'),
     spellcheckBtn: document.getElementById('spellcheck-btn'),
+    speakBtn: document.getElementById('speak-btn'),
     emojiOnlineBtn: document.getElementById('emoji-online-btn'),
     emojiOnlineModal: document.getElementById('emoji-online-modal'),
     emojiOnlineTitle: document.getElementById('emoji-online-title'),
@@ -119,6 +126,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (els.spellcheckBtn) {
       els.spellcheckBtn.title = t('spellcheckTitle');
       els.spellcheckBtn.setAttribute('aria-label', t('spellcheckTitle'));
+    }
+    if (els.speakBtn) {
+      els.speakBtn.title = t('speakTitle');
+      els.speakBtn.setAttribute('aria-label', t('speakTitle'));
     }
     if (els.emojiOnlineBtn) {
       els.emojiOnlineBtn.title = t('emojiOnline');
@@ -506,6 +517,51 @@ document.addEventListener('DOMContentLoaded', () => {
     els.translateBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       runTranslate();
+    });
+  }
+
+  // ============================= خواندن با صدا (Web Speech API — رایگان و آفلاین) =============================
+  function detectSpeechLang(text) {
+    const fa = (text.match(/[\u0600-\u06FF]/g) || []).length;
+    const la = (text.match(/[A-Za-z]/g) || []).length;
+    return fa > la ? 'fa-IR' : 'en-US';
+  }
+  function stopSpeaking() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (els.speakBtn) { els.speakBtn.classList.remove('is-speaking'); els.speakBtn.title = t('speakTitle'); }
+  }
+  function runSpeak() {
+    if (!('speechSynthesis' in window)) { showToast(t('toastSpeakUnsupported')); return; }
+    // اگر همین الان در حال خواندن است، دکمه به‌عنوان توقف عمل کند
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      stopSpeaking();
+      showToast(t('toastSpeakStopped'));
+      return;
+    }
+    const textVal = (els.textarea.value || '').trim();
+    if (!textVal) { showToast(t('toastEmptyPrompt')); return; }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(textVal);
+    utterance.lang = detectSpeechLang(textVal);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const matchingVoice = voices.find(v => v.lang === utterance.lang)
+      || voices.find(v => v.lang && v.lang.startsWith(utterance.lang.slice(0, 2)))
+      || voices.find(v => v.name.includes('Google US English'));
+    if (matchingVoice) utterance.voice = matchingVoice;
+
+    utterance.onend = () => stopSpeaking();
+    utterance.onerror = () => stopSpeaking();
+
+    if (els.speakBtn) { els.speakBtn.classList.add('is-speaking'); els.speakBtn.title = t('speakStopTitle'); }
+    window.speechSynthesis.speak(utterance);
+  }
+  if (els.speakBtn) {
+    els.speakBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      runSpeak();
     });
   }
 

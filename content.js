@@ -59,6 +59,9 @@
       formDescPlaceholder: "Description (optional, shown on hover)",
       formGalaxyLabel: "Galaxy (drag to move)",
       toastGalaxyMoved: "Moved to Galaxy {n}",
+      toastGalaxySwapped: "{tier} tier in Galaxy {n} was full — swapped with the oldest item there",
+      formCoreLabel: "Core slot in the selected Galaxy (drag)",
+      toastCoreSwapped: "Swapped with Core {n} in Galaxy {g}",
       formImportanceLabel: "Importance",
       noteInput: "Type prompt or note here...",
       noteClearBtn: "Clear / Close",
@@ -186,7 +189,11 @@
       toastSpellcheckFail: "Server error",
       toastSpellcheckLong: "Text is too long for spell-check",
       toastSpellcheckFaFixed: "Persian formatting fixed! 🧹",
-      toastSpellcheckFaClean: "Text is already tidy! ✨"
+      toastSpellcheckFaClean: "Text is already tidy! ✨",
+      noteTtsTitle: "Read aloud",
+      noteTtsStopTitle: "Stop reading",
+      toastTtsUnsupported: "Read-aloud is not supported in this browser",
+      toastTtsStopped: "Stopped"
     },
     fa: {
       todoTitle: "📝 کارهای روزانه",
@@ -239,6 +246,9 @@
       formDescPlaceholder: "توضیحات (اختیاری، هنگام هاور نمایش داده می‌شود)",
       formGalaxyLabel: "کهکشان (برای انتقال بکشید)",
       toastGalaxyMoved: "به کهکشان {n} منتقل شد",
+      toastGalaxySwapped: "رده {tier} در کهکشان {n} پر بود — با قدیمی‌ترین موردِ آن‌جا جابجا شد",
+      formCoreLabel: "جایگاه هسته در کهکشانِ انتخاب‌شده (بکشید)",
+      toastCoreSwapped: "با هسته {n} در کهکشان {g} جابجا شد",
       formImportanceLabel: "اهمیت",
       noteInput: "متن یا درخواست خود را بنویسید...",
       noteClearBtn: "پاک / بستن",
@@ -366,7 +376,11 @@
       toastSpellcheckFail: "خطا در ارتباط با سرور",
       toastSpellcheckLong: "متن برای غلط‌یابی خیلی بلند است",
       toastSpellcheckFaFixed: "نیم‌فاصله‌ها و علائم اصلاح شدند! 🧹",
-      toastSpellcheckFaClean: "متن شما از قبل مرتب است! ✨"
+      toastSpellcheckFaClean: "متن شما از قبل مرتب است! ✨",
+      noteTtsTitle: "خواندن با صدا",
+      noteTtsStopTitle: "توقف خواندن",
+      toastTtsUnsupported: "خواندن با صدا در این مرورگر پشتیبانی نمی‌شود",
+      toastTtsStopped: "متوقف شد"
     }
   };
 
@@ -931,6 +945,17 @@
         <div class="ai-galaxy-knob" id="ai-galaxy-knob">🪐</div>
       </div>
     </div>
+    <div class="ai-form-galaxy" id="ai-form-core" style="display:none;">
+      <span class="ai-form-galaxy-label" id="ai-form-core-label"></span>
+      <div class="ai-galaxy-track" id="ai-core-track">
+        <div class="ai-galaxy-stop" data-core="0">⚛️<b>۱</b></div>
+        <div class="ai-galaxy-stop" data-core="1">⚛️<b>۲</b></div>
+        <div class="ai-galaxy-stop" data-core="2">⚛️<b>۳</b></div>
+        <div class="ai-galaxy-stop" data-core="3">⚛️<b>۴</b></div>
+        <div class="ai-galaxy-stop" data-core="4">⚛️<b>۵</b></div>
+        <div class="ai-galaxy-knob" id="ai-core-knob">🪐</div>
+      </div>
+    </div>
     <div class="ai-form-actions">
       <button id="ai-form-delete" class="ai-form-btn-delete" style="display:none;"></button>
       <button id="ai-form-cancel" class="ai-form-btn-cancel"></button>
@@ -963,6 +988,7 @@
       </div>
       <button type="button" id="ai-note-translate-btn" class="ai-format-btn ai-translate-btn" title="Translate (Auto-detect)" aria-label="Translate text">🔤</button>
       <button type="button" id="ai-note-spellcheck-btn" class="ai-format-btn ai-spellcheck-btn" title="Clean & Spell Check (FA/EN)" aria-label="Fix Spelling">✍️</button>
+      <button type="button" id="ai-note-tts-btn" class="ai-format-btn ai-tts-btn" title="Read aloud" aria-label="Read aloud">🔊</button>
       <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown">📄</button>
     </div>
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
@@ -1184,6 +1210,10 @@
     formGalaxyLabel: inlineForm.querySelector('#ai-form-galaxy-label'),
     formGalaxyTrack: inlineForm.querySelector('#ai-galaxy-track'),
     formGalaxyKnob: inlineForm.querySelector('#ai-galaxy-knob'),
+    formCoreWrap: inlineForm.querySelector('#ai-form-core'),
+    formCoreLabel: inlineForm.querySelector('#ai-form-core-label'),
+    formCoreTrack: inlineForm.querySelector('#ai-core-track'),
+    formCoreKnob: inlineForm.querySelector('#ai-core-knob'),
     formImpLabel: inlineForm.querySelector('#ai-form-imp-label'),
     formImportanceWrap: inlineForm.querySelector('.ai-form-importance'),
     formCancel: inlineForm.querySelector('#ai-form-cancel'),
@@ -1206,6 +1236,7 @@
     emojiPopover: quickNoteForm.querySelector('#ai-emoji-popover'),
     translateBtn: quickNoteForm.querySelector('#ai-note-translate-btn'),
     spellcheckBtn: quickNoteForm.querySelector('#ai-note-spellcheck-btn'),
+    ttsBtn: quickNoteForm.querySelector('#ai-note-tts-btn'),
     extractDocBtn: quickNoteForm.querySelector('#ai-note-extract-doc-btn'),
     socialWrap: quickNoteForm.querySelector('#ai-social-share-wrap'),
     socialToggleBtn: quickNoteForm.querySelector('#ai-social-toggle-btn'),
@@ -1415,6 +1446,7 @@
     uiEls.formLabel.placeholder = t('formLabelPlaceholder');
     uiEls.formDescription.placeholder = t('formDescPlaceholder');
     uiEls.formGalaxyLabel.textContent = t('formGalaxyLabel');
+    uiEls.formCoreLabel.textContent = t('formCoreLabel');
     uiEls.formImpLabel.textContent = t('formImportanceLabel');
     uiEls.formCancel.textContent = t('formCancelBtn');
     uiEls.formDelete.textContent = t('formDeleteBtn');
@@ -1439,6 +1471,10 @@
     if (uiEls.spellcheckBtn) {
       uiEls.spellcheckBtn.title = t('noteSpellcheckTitle');
       uiEls.spellcheckBtn.setAttribute('aria-label', t('noteSpellcheckTitle'));
+    }
+    if (uiEls.ttsBtn && !uiEls.ttsBtn.classList.contains('active')) {
+      uiEls.ttsBtn.title = t('noteTtsTitle');
+      uiEls.ttsBtn.setAttribute('aria-label', t('noteTtsTitle'));
     }
     if (uiEls.extractDocBtn) {
       uiEls.extractDocBtn.title = t('noteExtractTitle');
@@ -3755,6 +3791,7 @@
       if (exceptStr !== 'note') {
         if (force || !isNotePinned) {
           if (typeof exitNoteSplit === 'function') exitNoteSplit(false);
+          if (typeof stopNoteTTS === 'function') stopNoteTTS();
           quickNoteForm.classList.remove('active');
           root.classList.remove('show-notepad');
           isNotePinned = false;
@@ -5628,6 +5665,71 @@
     });
   }
 
+  // --- خواندن با صدا (Web Speech API) — روی همان window میزبان اجرا می‌شود، بدون تب جدید ---
+  let noteIsSpeaking = false;
+  function detectNoteSpeechLang(text) {
+    const fa = (text.match(/[\u0600-\u06FF]/g) || []).length;
+    const la = (text.match(/[A-Za-z]/g) || []).length;
+    return fa > la ? 'fa-IR' : 'en-US';
+  }
+  function stopNoteTTS() {
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    noteIsSpeaking = false;
+    if (uiEls.ttsBtn) {
+      uiEls.ttsBtn.classList.remove('active');
+      uiEls.ttsBtn.title = t('noteTtsTitle');
+      uiEls.ttsBtn.setAttribute('aria-label', t('noteTtsTitle'));
+    }
+  }
+  function runNoteTTS() {
+    if (!('speechSynthesis' in window)) {
+      showToastNotification(t('toastTtsUnsupported'), true);
+      return;
+    }
+    // اگر همین الان در حال خواندن است، همین دکمه نقش توقف را ایفا کند
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      stopNoteTTS();
+      showToastNotification(t('toastTtsStopped'));
+      return;
+    }
+    const textVal = noteTextarea ? noteTextarea.value.trim() : '';
+    if (!textVal) {
+      showToastNotification(t('toastTranslateEmpty') || t('dockEmptyPrompt'), true);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(textVal);
+    utterance.lang = detectNoteSpeechLang(textVal);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const matchingVoice = voices.find(v => v.lang === utterance.lang)
+      || voices.find(v => v.lang && v.lang.startsWith(utterance.lang.slice(0, 2)))
+      || voices.find(v => v.name.includes('Google US English'));
+    if (matchingVoice) utterance.voice = matchingVoice;
+
+    utterance.onstart = () => {
+      noteIsSpeaking = true;
+      if (uiEls.ttsBtn) {
+        uiEls.ttsBtn.classList.add('active');
+        uiEls.ttsBtn.title = t('noteTtsStopTitle');
+        uiEls.ttsBtn.setAttribute('aria-label', t('noteTtsStopTitle'));
+      }
+    };
+    utterance.onend = () => stopNoteTTS();
+    utterance.onerror = () => stopNoteTTS();
+
+    window.speechSynthesis.speak(utterance);
+  }
+  if (uiEls.ttsBtn) {
+    uiEls.ttsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      runNoteTTS();
+    });
+  }
+
   // --- Hybrid spell-check: offline Persian normalizer + LanguageTool for English ---
   let noteSpellcheckBusy = false;
 
@@ -7310,10 +7412,15 @@
     uiEls.formLabel.classList.remove('invalid'); uiEls.formUrl.classList.remove('invalid');
     selectedImportance = link.importance || DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     uiEls.formImportanceWrap.style.display = (globalIdx < 5) ? 'none' : '';
-    uiEls.formGalaxyWrap.style.display = (isAddFlow || globalIdx < 5) ? 'none' : '';
-    if (!isAddFlow && globalIdx >= 5) {
+    uiEls.formGalaxyWrap.style.display = isAddFlow ? 'none' : '';
+    uiEls.formCoreWrap.style.display = (!isAddFlow && globalIdx < 5) ? '' : 'none';
+    if (!isAddFlow) {
       selectedGalaxy = currentHubIndex;
       requestAnimationFrame(() => snapGalaxyKnobTo(selectedGalaxy, false));
+    }
+    if (!isAddFlow && globalIdx < 5) {
+      selectedCoreSlot = globalIdx;
+      requestAnimationFrame(() => snapCoreKnobTo(selectedCoreSlot, false));
     }
     if (isAddFlow) { uiEls.formMainTitle.textContent = t('formAddTitle'); uiEls.formSave.textContent = t('formSaveBtn'); }
     else { uiEls.formMainTitle.textContent = t('formEditTitle'); uiEls.formSave.textContent = t('formUpdateBtn'); }
@@ -7462,6 +7569,52 @@
   document.addEventListener('touchend', galaxyDragEnd);
   window.addEventListener('resize', () => { if (uiEls.formGalaxyWrap.style.display !== 'none') snapGalaxyKnobTo(selectedGalaxy, false); });
 
+  // --- جابجایی هسته‌ها (Core swap) — دقیقاً مثل جابجایی کهکشان، اما بین ۵ جایگاه هستهٔ همان کانون ---
+  let selectedCoreSlot = null;
+  const coreStops = Array.from(uiEls.formCoreTrack.querySelectorAll('.ai-galaxy-stop'));
+  function snapCoreKnobTo(coreIdx, animate = true) {
+    const stopEl = coreStops.find(s => parseInt(s.dataset.core, 10) === coreIdx);
+    if (!stopEl) return;
+    uiEls.formCoreKnob.classList.toggle('no-anim', !animate);
+    const trackRect = uiEls.formCoreTrack.getBoundingClientRect();
+    const stopRect = stopEl.getBoundingClientRect();
+    const leftPx = stopRect.left + stopRect.width / 2 - trackRect.left - uiEls.formCoreKnob.offsetWidth / 2;
+    uiEls.formCoreKnob.style.left = `${leftPx}px`;
+    coreStops.forEach(s => s.classList.toggle('active', parseInt(s.dataset.core, 10) === coreIdx));
+  }
+  coreStops.forEach(stopEl => {
+    stopEl.addEventListener('click', (e) => { e.stopPropagation(); selectedCoreSlot = parseInt(stopEl.dataset.core, 10); snapCoreKnobTo(selectedCoreSlot); });
+  });
+  let isCoreDragging = false;
+  function coreDragStart(e) { e.stopPropagation(); e.preventDefault(); isCoreDragging = true; uiEls.formCoreKnob.classList.add('dragging', 'no-anim'); }
+  uiEls.formCoreKnob.addEventListener('mousedown', coreDragStart);
+  uiEls.formCoreKnob.addEventListener('touchstart', coreDragStart, { passive: false });
+  function coreDragMove(e) {
+    if (!isCoreDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const trackRect = uiEls.formCoreTrack.getBoundingClientRect();
+    let leftPx = clientX - trackRect.left - uiEls.formCoreKnob.offsetWidth / 2;
+    leftPx = Math.max(0, Math.min(trackRect.width - uiEls.formCoreKnob.offsetWidth, leftPx));
+    uiEls.formCoreKnob.style.left = `${leftPx}px`;
+  }
+  document.addEventListener('mousemove', coreDragMove);
+  document.addEventListener('touchmove', coreDragMove, { passive: false });
+  function coreDragEnd() {
+    if (!isCoreDragging) return;
+    isCoreDragging = false; uiEls.formCoreKnob.classList.remove('dragging');
+    const knobRect = uiEls.formCoreKnob.getBoundingClientRect(); const knobCenterX = knobRect.left + knobRect.width / 2;
+    let nearest = coreStops[0]; let nearestDist = Infinity;
+    coreStops.forEach(s => {
+      const r = s.getBoundingClientRect(); const dist = Math.abs((r.left + r.width / 2) - knobCenterX);
+      if (dist < nearestDist) { nearestDist = dist; nearest = s; }
+    });
+    selectedCoreSlot = parseInt(nearest.dataset.core, 10);
+    snapCoreKnobTo(selectedCoreSlot);
+  }
+  document.addEventListener('mouseup', coreDragEnd);
+  document.addEventListener('touchend', coreDragEnd);
+  window.addEventListener('resize', () => { if (uiEls.formCoreWrap.style.display !== 'none') snapCoreKnobTo(selectedCoreSlot, false); });
+
   addNodeBtn.addEventListener('click', (e) => {
     e.stopPropagation(); addNodeBtn.classList.add('blinking'); document.querySelectorAll('.ai-node').forEach(node => node.classList.add('faded'));
     editingNodeIndex = null; isLabelManuallyEdited = false; 
@@ -7473,6 +7626,7 @@
     uiEls.formImportanceWrap.style.display = '';
     uiEls.formDelete.style.display = 'none';
     uiEls.formGalaxyWrap.style.display = 'none';
+    uiEls.formCoreWrap.style.display = 'none';
     selectedImportance = DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     inlineForm.classList.add('active'); uiEls.formUrl.focus();
   });
@@ -7492,7 +7646,7 @@
     const isEditingCore = editingNodeIndex !== null && editingNodeIndex < 5 && !!activeDataForCheck[editingNodeIndex];
     if (isEditingCore && !label && !url) {
       activeDataForCheck[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
-      editingNodeIndex = null; saveLinksAll(); renderSpiral(); closeTree();
+      editingNodeIndex = null; selectedCoreSlot = null; saveLinksAll(); renderSpiral(); closeTree();
       showToastNotification(t('toastDeleted'), true); return;
     }
 
@@ -7508,14 +7662,62 @@
     if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
 
     if (isEditing) {
+        // منبعِ حقیقتِ مقصدِ سواپ را از خودِ DOM (توقف‌گاهِ فعال) هم می‌خوانیم، نه فقط از
+        // متغیر selectedCoreSlot — تا اگر رویداد drag-end به هر دلیلی این متغیر را
+        // به‌روزرسانی نکرده باشد، وضعیت واقعیِ نمایش‌داده‌شده به کاربر ملاک عمل باشد.
+        const activeCoreStopEl = uiEls.formCoreWrap.style.display !== 'none'
+          ? coreStops.find(s => s.classList.contains('active'))
+          : null;
+        const domCoreSlot = activeCoreStopEl ? parseInt(activeCoreStopEl.dataset.core, 10) : null;
+        const effectiveCoreSlot = (typeof domCoreSlot === 'number' && !Number.isNaN(domCoreSlot)) ? domCoreSlot : selectedCoreSlot;
+
+        if (editingNodeIndex < 5) {
+          const destGalaxy = (typeof selectedGalaxy === 'number') ? selectedGalaxy : currentHubIndex;
+          const destSlot = (typeof effectiveCoreSlot === 'number') ? effectiveCoreSlot : editingNodeIndex;
+          const movedWithinOrAcross = (destGalaxy !== currentHubIndex) || (destSlot !== editingNodeIndex);
+          const destData = hubData(destGalaxy);
+          if (movedWithinOrAcross && destData[destSlot]) {
+            const srcData = activeData; // hubData(currentHubIndex)
+            const srcGalaxy = currentHubIndex;
+            const tmp = destData[destSlot];
+            destData[destSlot] = srcData[editingNodeIndex];
+            srcData[editingNodeIndex] = tmp;
+            destData[destSlot].label = label; destData[destSlot].url = url; destData[destSlot].description = description;
+            editingNodeIndex = null; selectedCoreSlot = null; selectedGalaxy = 1;
+            saveLinksAll(); closeTree();
+            if (destGalaxy !== srcGalaxy) switchHub(destGalaxy, true); else renderSpiral();
+            showToastNotification(t('toastCoreSwapped').replace('{n}', String(destSlot + 1)).replace('{g}', String(destGalaxy)));
+            return;
+          }
+        }
         if (editingNodeIndex >= 5 && selectedGalaxy && selectedGalaxy !== currentHubIndex) {
+          const destData = hubData(selectedGalaxy);
+          const ring = tierRingForImportance(selectedImportance);
+          const destFull = tierCountInHub(selectedGalaxy, ring) >= ring.max || destData.length >= MAX_NODES;
+
+          // اگر رده‌ی مقصد پر است، به‌جای رد کردن یا سرریزِ خودکار، با قدیمی‌ترین موردِ
+          // همان رده در کهکشان مقصد جا عوض کن — کاربر می‌تواند با تکرار این کار،
+          // کل یک کهکشان را قدم‌به‌قدم با کهکشان دیگر جابجا کند.
+          let swappedBackItem = null;
+          if (destFull) {
+            for (let i = 5; i < destData.length; i++) {
+              const candidate = destData[i];
+              const matches = ring.comet ? !!candidate.overflow : (!candidate.overflow && importanceMatchesRing(candidate.importance || 3, ring));
+              if (matches) { swappedBackItem = destData.splice(i, 1)[0]; break; }
+            }
+          }
+
           const movedItem = activeData.splice(editingNodeIndex, 1)[0];
           movedItem.label = label; movedItem.url = url; movedItem.importance = selectedImportance; movedItem.description = description;
-          hubData(selectedGalaxy).push(movedItem);
+          destData.push(movedItem);
+          if (swappedBackItem) activeData.push(swappedBackItem);
+
           const destGalaxy = selectedGalaxy;
           editingNodeIndex = null; saveLinksAll(); closeTree();
           switchHub(destGalaxy, true);
-          showToastNotification(t('toastGalaxyMoved').replace('{n}', destGalaxy));
+          showToastNotification(swappedBackItem
+            ? t('toastGalaxySwapped').replace('{tier}', ringDisplayLabel(ring)).replace('{n}', destGalaxy)
+            : t('toastGalaxyMoved').replace('{n}', destGalaxy));
           return;
         }
         activeData[editingNodeIndex].label = label; activeData[editingNodeIndex].url = url; activeData[editingNodeIndex].importance = selectedImportance; activeData[editingNodeIndex].description = description;
@@ -7631,7 +7833,7 @@
   document.addEventListener('mousedown', (e) => { if (!inlineForm.classList.contains('active')) return; if (inlineForm.contains(e.target) || e.target === addNodeBtn) return; closeInlineForm(); });
 
   function closeTree() {
-    isOpen = false; showAllOverride = false; currentLayerMode = 0; editingNodeIndex = null; 
+    isOpen = false; showAllOverride = false; currentLayerMode = 0; editingNodeIndex = null; selectedCoreSlot = null; selectedGalaxy = 1;
     root.classList.remove('open', 'show-all-active'); inlineForm.classList.remove('active'); addNodeBtn.classList.remove('blinking');
     setHubLabel('AI');
     document.querySelectorAll('.ai-node').forEach(node => { node.classList.remove('faded'); node.style.transitionDelay = '0s'; }); resetToggleTimeout();
