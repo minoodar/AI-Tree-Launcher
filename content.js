@@ -121,6 +121,7 @@
       dashEventTitlePlaceholder: "Event title...",
       dashSaveEnter: "Save (Enter)",
       dashToggleDoneTitle: "Toggle done",
+      toastEventOneHour: "1 hour left until: {title}",
       scrubberNight: "Night", scrubberDawn: "Dawn", scrubberDay: "Day", scrubberDusk: "Dusk", scrubberEvening: "Evening",
       markAddPlaceholder: "Title (e.g. Child's Birthday)",
       markAddBtn: "Add",
@@ -318,6 +319,7 @@
       dashEventTitlePlaceholder: "عنوان رویداد...",
       dashSaveEnter: "ذخیره (Enter)",
       dashToggleDoneTitle: "تغییر وضعیتِ انجام‌شده",
+      toastEventOneHour: "یک ساعت تا: {title}",
       scrubberNight: "شب", scrubberDawn: "سپیده‌دم", scrubberDay: "روز", scrubberDusk: "غروب", scrubberEvening: "شامگاه",
       markAddPlaceholder: "عنوان (مثلاً تولد فرزند)",
       markAddBtn: "افزودن",
@@ -1091,7 +1093,7 @@
     <div class="ai-clock-date-en" id="ai-date-en">...</div>
     <div class="ai-mark-dots-row" id="ai-mark-dots-row" style="display:none;"></div>
     <button type="button" class="ai-clock-marks-toggle-btn" id="ai-clock-marks-toggle" aria-label="Special days" aria-expanded="false"></button>
-    <button type="button" class="ai-clock-marks-toggle-btn ai-dash-toggle-btn" id="ai-dash-toggle" aria-label="Today's agenda" aria-expanded="false">🗓️</button>
+    <button type="button" class="ai-clock-marks-toggle-btn ai-dash-toggle-btn" id="ai-dash-toggle" aria-label="Today's agenda" aria-expanded="false"><span id="ai-dash-notify-dot" class="ai-dash-notify-dot"></span></button>
     <div class="ai-time-dashboard" id="ai-time-dashboard">
       <div class="ai-dash-next-event" id="ai-next-event-widget" style="display:none;"></div>
       <div class="ai-timeline-container" id="ai-timeline-container">
@@ -1317,6 +1319,7 @@
     nowLine: clockPanel.querySelector('#ai-now-line'),
     nowLabel: clockPanel.querySelector('#ai-now-label'),
     dashAddBtn: clockPanel.querySelector('#ai-dash-add-btn'),
+    dashNotifyDot: clockPanel.querySelector('#ai-dash-notify-dot'),
     markPanel: clockPanel.querySelector('#ai-clock-marks-panel'),
     markList: clockPanel.querySelector('#ai-clock-marks-list'),
     markLabelInput: clockPanel.querySelector('#ai-mark-label-input'),
@@ -1670,6 +1673,9 @@
         if (typeof updateNowLine === 'function') updateNowLine();
         if (now.getSeconds() === 0 && typeof renderTimeline === 'function') renderTimeline();
       }
+      // نقطه‌ی هشدارِ روی خودِ دکمه‌ی تاگل باید حتی وقتی زیرپنلِ داشبورد بسته است هم
+      // به‌روز بماند — چون کاربر قرار است بدونِ باز کردنِ پنل، فقط با نگاه به دکمه بفهمد.
+      if (now.getSeconds() === 0 && typeof checkUpcomingEventsReminder === 'function') checkUpcomingEventsReminder();
   }
   // Registered with lifecycle controller once it is constructed (see below).
   let clockAgeIntervalId = setInterval(updateClockAge, 1000);
@@ -2115,7 +2121,36 @@
     }
     saveTimeEvents(); refreshDashUI();
   }
-  function refreshDashUI() { renderTimeline(); }
+  function refreshDashUI() { renderTimeline(); checkUpcomingEventsReminder(); }
+
+  // --- موتور یادآوریِ هوشمند: نقطه‌ی چشمک‌زن + یک اعلانِ محوشونده (toast) دقیقاً وقتی
+  // یک ساعت تا نزدیک‌ترین رویدادِ امروز مانده — بدون باز کردنِ خودکارِ ویجت. ---
+  const notifiedEventIds = new Set();
+  function checkUpcomingEventsReminder() {
+    const dot = uiEls.dashNotifyDot; if (!dot) return;
+    const now = new Date();
+    const iso = todayDashIso();
+    const upcoming = (timeEventsData || [])
+      .filter(e => e.date === iso && e.status !== 'done' && e.status !== 'missed')
+      .map(e => ({ e, t: new Date(`${e.date}T${e.startTime}:00`) }))
+      .filter(x => !isNaN(x.t.getTime()) && x.t >= now)
+      .sort((a, b) => a.t - b.t)[0];
+
+    if (!upcoming) { dot.className = 'ai-dash-notify-dot'; return; }
+
+    const diffMinutes = (upcoming.t - now) / 60000;
+    let pulseClass = 'pulse-slow';
+    if (diffMinutes <= 15) pulseClass = 'pulse-fast';
+    else if (diffMinutes <= 60) pulseClass = 'pulse-med';
+    dot.className = `ai-dash-notify-dot visible ${pulseClass}`;
+
+    // یک‌بار، دقیقاً همان لحظه‌ای که فاصله به ۶۰ دقیقه یا کمتر می‌رسد — یک toast محوشونده
+    // (نه بازکردنِ خودکارِ ویجت، طبق تصمیمِ کاربر).
+    if (diffMinutes <= 60 && !notifiedEventIds.has(upcoming.e.id)) {
+      notifiedEventIds.add(upcoming.e.id);
+      showToastNotification(t('toastEventOneHour').replace('{title}', upcoming.e.title));
+    }
+  }
 
   function buildDashEventCard(evt) {
     const status = evaluateEventStatus(evt);
@@ -2187,7 +2222,7 @@
     const track = containerEl.querySelector('.ai-scrubber-track');
     const thumb = containerEl.querySelector('.ai-scrubber-thumb');
     const progress = containerEl.querySelector('.ai-scrubber-progress');
-    const timeDisplay = containerEl.querySelector('.ai-scrubber-time');
+    const timeInput = containerEl.querySelector('.ai-scrubber-time-input');
     const hintDisplay = containerEl.querySelector('.ai-scrubber-hint');
     const rootStyle = containerEl.style;
 
@@ -2200,7 +2235,9 @@
       progress.style.width = `${percent}%`;
       const hrs = Math.floor(currentMinutes / 60);
       const mins = currentMinutes % 60;
-      timeDisplay.textContent = `${pad2(hrs)}:${pad2(mins)}`;
+      // وقتی خودِ کاربر داره توی این ورودی تایپ می‌کنه، مقدارش رو بازنویسی نکن —
+      // وگرنه هر رویداد input وسطِ تایپ‌کردن، امتیازِ کرسر رو به‌هم می‌ریزه.
+      if (document.activeElement !== timeInput) timeInput.value = `${pad2(hrs)}:${pad2(mins)}`;
 
       let icon = '🌙', hintKey = 'scrubberNight', color = '#818CF8', glow = 'rgba(129, 140, 248, 0.5)';
       if (hrs >= 5 && hrs < 9) { icon = '🌅'; hintKey = 'scrubberDawn'; color = '#FDE68A'; glow = 'rgba(253, 230, 138, 0.4)'; }
@@ -2236,18 +2273,36 @@
     document.addEventListener('mouseup', onPointerUp);
     document.addEventListener('touchend', onPointerUp);
 
+    // همگام‌سازیِ دوطرفه: تایپِ مستقیمِ ساعت هم اسلایدر و هم رنگ/آیکون را به‌روز می‌کند
+    function onTimeInputChange(e) {
+      e.stopPropagation();
+      const val = e.target.value; if (!val) return;
+      const [h, m] = val.split(':').map(Number);
+      if (!isNaN(h) && !isNaN(m)) { currentMinutes = Math.max(0, Math.min(1439, h * 60 + m)); updateVisuals(); }
+    }
+    timeInput.addEventListener('input', onTimeInputChange);
+    timeInput.addEventListener('change', onTimeInputChange);
+    timeInput.addEventListener('mousedown', (e) => e.stopPropagation());
+    timeInput.addEventListener('click', (e) => e.stopPropagation());
+
     updateVisuals();
     return {
       getValue: () => `${pad2(Math.floor(currentMinutes / 60))}:${pad2(currentMinutes % 60)}`,
-      destroy: () => { document.removeEventListener('mousemove', onPointerMove); document.removeEventListener('touchmove', onPointerMove); document.removeEventListener('mouseup', onPointerUp); document.removeEventListener('touchend', onPointerUp); }
+      destroy: () => {
+        document.removeEventListener('mousemove', onPointerMove); document.removeEventListener('touchmove', onPointerMove);
+        document.removeEventListener('mouseup', onPointerUp); document.removeEventListener('touchend', onPointerUp);
+      }
     };
   }
   function buildTimeScrubberEl() {
     const wrap = document.createElement('div'); wrap.className = 'ai-horizon-scrubber';
     const readout = document.createElement('div'); readout.className = 'ai-scrubber-readout';
-    const timeSpan = document.createElement('span'); timeSpan.className = 'ai-scrubber-time'; timeSpan.textContent = '12:00';
+    // input بومیِ ساعت به‌جای متنِ ثابت — کاربر می‌تونه هم تایپ کنه هم بکشه؛ ظاهرش
+    // با CSS دقیقاً مثل همون متنِ درخشانِ قبلی استایل شده (بدون ظاهرِ پیش‌فرضِ مرورگر).
+    const timeInput = document.createElement('input');
+    timeInput.type = 'time'; timeInput.className = 'ai-scrubber-time-input'; timeInput.required = true;
     const hintSpan = document.createElement('span'); hintSpan.className = 'ai-scrubber-hint';
-    readout.appendChild(timeSpan); readout.appendChild(hintSpan);
+    readout.appendChild(timeInput); readout.appendChild(hintSpan);
     const track = document.createElement('div'); track.className = 'ai-scrubber-track';
     const progress = document.createElement('div'); progress.className = 'ai-scrubber-progress';
     const thumb = document.createElement('div'); thumb.className = 'ai-scrubber-thumb'; thumb.textContent = '☀️';
@@ -2339,6 +2394,7 @@
     uiEls.markPanel.classList.remove('active', 'side-left');
     uiEls.markToggle.classList.remove('is-open');
     uiEls.markToggle.setAttribute('aria-expanded', 'false');
+    if (uiEls.dashToggle) uiEls.dashToggle.classList.remove('is-dimmed');
     syncMarksToggleRestSide();
   }
   function closeDashPanelOnly() {
@@ -2347,6 +2403,7 @@
     uiEls.dashPanel.classList.remove('active', 'side-left');
     uiEls.dashToggle.classList.remove('is-open');
     uiEls.dashToggle.setAttribute('aria-expanded', 'false');
+    if (uiEls.markToggle) uiEls.markToggle.classList.remove('is-dimmed');
     syncDashToggleRestSide();
   }
 
@@ -2358,6 +2415,7 @@
     const isOpen = uiEls.markPanel.classList.contains('active');
     uiEls.markToggle.classList.toggle('is-open', isOpen);
     uiEls.markToggle.setAttribute('aria-expanded', String(isOpen));
+    if (uiEls.dashToggle) uiEls.dashToggle.classList.toggle('is-dimmed', isOpen);
     if (!isOpen) {
       closeDualPicker();
       uiEls.markPanel.classList.remove('side-left');
@@ -2377,6 +2435,7 @@
       const isOpen = uiEls.dashPanel.classList.contains('active');
       uiEls.dashToggle.classList.toggle('is-open', isOpen);
       uiEls.dashToggle.setAttribute('aria-expanded', String(isOpen));
+      uiEls.markToggle.classList.toggle('is-dimmed', isOpen);
       if (!isOpen) {
         uiEls.dashPanel.classList.remove('side-left');
         syncDashToggleRestSide();
@@ -4186,14 +4245,14 @@
         root.classList.remove('show-clock');
         if (uiEls.markPanel) {
           uiEls.markPanel.classList.remove('active', 'side-left');
-          if (uiEls.markToggle) uiEls.markToggle.classList.remove('is-open');
+          if (uiEls.markToggle) uiEls.markToggle.classList.remove('is-open', 'is-dimmed');
           if (uiEls.markToggle) uiEls.markToggle.setAttribute('aria-expanded', 'false');
           clockPanel.classList.remove('marks-open-left');
         }
         if (uiEls.dashPanel) {
           if (typeof closeDashQuickAdd === 'function') closeDashQuickAdd();
           uiEls.dashPanel.classList.remove('active', 'side-left');
-          if (uiEls.dashToggle) uiEls.dashToggle.classList.remove('is-open');
+          if (uiEls.dashToggle) uiEls.dashToggle.classList.remove('is-open', 'is-dimmed');
           if (uiEls.dashToggle) uiEls.dashToggle.setAttribute('aria-expanded', 'false');
           clockPanel.classList.remove('dash-open-left');
         }

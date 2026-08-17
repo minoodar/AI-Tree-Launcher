@@ -4607,6 +4607,43 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   right: auto;
 }
 #ai-dash-toggle > *, #ai-dash-toggle svg { display: none; pointer-events: none; }
+#ai-dash-toggle > .ai-dash-notify-dot { display: block; }
+
+/* --- کم‌رنگ‌شدنِ متقابلِ دو تاگل — وقتی یکی باز است، آن یکی محو می‌شود --- */
+#ai-clock-marks-toggle.is-dimmed,
+#ai-dash-toggle.is-dimmed {
+  opacity: 0.35 !important;
+  filter: grayscale(0.8) brightness(0.7);
+  transform: translateY(-50%) scale(0.88) !important;
+  box-shadow: none !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* --- نقطه‌ی هشدارِ هوشمند — هرچه رویدادِ بعدی نزدیک‌تر، چشمک تندتر --- */
+.ai-dash-notify-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 6.5px;
+  height: 6.5px;
+  background: #EF4444;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #EF4444, 0 0 8px rgba(239, 68, 68, 0.6);
+  border: 1px solid rgba(8, 15, 29, 0.9);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-premium);
+  z-index: 50;
+}
+.ai-dash-notify-dot.visible { opacity: 1; }
+.ai-dash-notify-dot.pulse-slow { animation: notifyPulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.ai-dash-notify-dot.pulse-med { animation: notifyPulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; background: #F59E0B; box-shadow: 0 0 4px #F59E0B; }
+.ai-dash-notify-dot.pulse-fast { animation: notifyPulse 0.6s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes notifyPulse {
+  0% { transform: scale(0.9); opacity: 0.65; }
+  50% { transform: scale(1.4); opacity: 1; filter: brightness(1.2); }
+  100% { transform: scale(0.9); opacity: 0.65; }
+}
 #ai-dash-toggle::before {
   content: "";
   display: block;
@@ -4837,14 +4874,28 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   align-items: center;
   gap: 2px;
 }
-.ai-scrubber-time {
-  font-family: 'SF Mono', Consolas, monospace;
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--scrubber-color, #e0f2fe);
-  text-shadow: 0 0 16px var(--scrubber-glow, rgba(125, 211, 252, 0.4));
-  letter-spacing: 1px;
+.ai-scrubber-time-input {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  font-family: 'SF Mono', Consolas, monospace !important;
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: var(--scrubber-color, #e0f2fe) !important;
+  text-shadow: 0 0 16px var(--scrubber-glow, rgba(125, 211, 252, 0.4)) !important;
+  letter-spacing: 1px !important;
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: text !important;
+  width: 100px !important;
+  color-scheme: dark;
   transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+/* آیکونِ پیش‌فرضِ ساعتِ مرورگر (Webkit/Blink) را مخفی کن — ظاهرش باید مثل متنِ خالص باشد */
+.ai-scrubber-time-input::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
 }
 .ai-scrubber-hint {
   font-size: 10px;
