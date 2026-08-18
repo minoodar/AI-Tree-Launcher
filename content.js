@@ -3,7 +3,11 @@
   'use strict';
 
   const isTopFrame = (window === window.top);
-  if (!isTopFrame || document.getElementById('ai-orbit-root')) return;
+  // پنجره‌های پاپ‌آپ (مثلاً بازشده با window.open و toolbar=no) نوار ابزار مرورگر
+  // ندارند — افزونه در این پنجره‌ها نیازی به فعال‌بودن ندارد.
+  let isPopupWindow = false;
+  try { isPopupWindow = !!(window.toolbar && window.toolbar.visible === false); } catch (e) {}
+  if (!isTopFrame || isPopupWindow || document.getElementById('ai-orbit-root')) return;
 
   // --- سیستم ترجمه (i18n) ---
   let currentLang = 'en';
@@ -54,10 +58,16 @@
       formUpdateBtn: "Update",
       formDeleteBtn: "Delete Bookmark",
       formClearCoreBtn: "Reset to Empty",
+      formMoveToGalaxyBtn: "Move into Galaxy (5★)",
+      toastCoreToStar: "Moved into the galaxy as a 5★ bookmark",
       formUrlPlaceholder: "URL: https://example.com",
       formLabelPlaceholder: "Name (Auto)",
       formDescPlaceholder: "Description (optional, shown on hover)",
       formGalaxyLabel: "Galaxy (drag to move)",
+      formReleaseCoreBtn: "Release into Galaxy (★5)",
+      toastReleasedToGalaxy: "Released into this Galaxy's 5★ tier",
+      toastReleasedToComet: "5★ tier was full — released into the comet-tail set",
+      toastReleaseCoreFullyFull: "This Galaxy is full — couldn't release it",
       toastGalaxyMoved: "Moved to Galaxy {n}",
       toastGalaxySwapped: "{tier} tier in Galaxy {n} was full — swapped with the oldest item there",
 
@@ -108,6 +118,7 @@
       toastOverflowed: "{tier} tier is full — saved to Extended Network {hub} instead.",
       toastOverflowedToComet: "{tier} tier is full everywhere — moved to the Comet Stars mix in Network {hub}.",
       toastTierFullEverywhere: "{tier} tier is full across all networks!",
+      toastGalaxyFullNoOverflow: "This galaxy (including its Comet Stars mix) is completely full!",
       toastQuickAdded: "Bookmarked: {label} {stars}",
       hubHoldHint: "Hold to bookmark this page\nRelease at the star you want",
       markToggleTitle: "Special Days",
@@ -120,6 +131,8 @@
       dashEventTitlePlaceholder: "Event title...",
       dashSaveEnter: "Save (Enter)",
       dashToggleDoneTitle: "Toggle done",
+      dashRecurringToggle: "Repeat tomorrow (e.g. medication)",
+      dashRecurringBadge: "Repeats daily",
       markDayAgenda: "This day's schedule",
       toastEventOneHour: "1 hour left until: {title}",
       scrubberNight: "Night", scrubberDawn: "Dawn", scrubberDay: "Day", scrubberDusk: "Dusk", scrubberEvening: "Evening",
@@ -252,10 +265,16 @@
       formUpdateBtn: "به‌روزرسانی",
       formDeleteBtn: "حذف بوک‌مارک",
       formClearCoreBtn: "بازنشانی به خالی",
+      formMoveToGalaxyBtn: "انتقال به داخل کهکشان (۵ ستاره)",
+      toastCoreToStar: "به‌عنوان بوک‌مارک ۵ ستاره وارد کهکشان شد",
       formUrlPlaceholder: "لینک: https://example.com",
       formLabelPlaceholder: "نام بوک‌مارک (خودکار)",
       formDescPlaceholder: "توضیحات (اختیاری، هنگام هاور نمایش داده می‌شود)",
       formGalaxyLabel: "کهکشان (برای انتقال بکشید)",
+      formReleaseCoreBtn: "آزادسازی به داخلِ کهکشان (۵★)",
+      toastReleasedToGalaxy: "به ردهٔ ۵ ستارهٔ همین کهکشان منتقل شد",
+      toastReleasedToComet: "ردهٔ ۵ ستاره پر بود — به مجموعهٔ ستاره‌های دنباله‌دار منتقل شد",
+      toastReleaseCoreFullyFull: "این کهکشان پر است — امکان انتقال نبود",
       toastGalaxyMoved: "به کهکشان {n} منتقل شد",
       toastGalaxySwapped: "رده {tier} در کهکشان {n} پر بود — با قدیمی‌ترین موردِ آن‌جا جابجا شد",
 
@@ -306,6 +325,7 @@
       toastOverflowed: "رده‌ی {tier} پر شد؛ در منظومه‌ی فرعی {hub} ذخیره شد.",
       toastOverflowedToComet: "اسلات {tier} همه‌جا پر شده؛ بوک‌مارک شما به ستاره‌های دنبال‌دار میکسِ کهکشان {hub} منتقل شد.",
       toastTierFullEverywhere: "رده‌ی {tier} در همه‌ی منظومه‌ها پر است!",
+      toastGalaxyFullNoOverflow: "این کهکشان (حتی با احتساب ستاره‌های دنباله‌دارش) کاملاً پر است!",
       toastQuickAdded: "بوک‌مارک شد: {label} {stars}",
       hubHoldHint: "نگه دارید تا بوک‌مارک شود\nدر ستاره‌ی دلخواه رها کنید",
       markToggleTitle: "مناسبت‌ها",
@@ -318,6 +338,8 @@
       dashEventTitlePlaceholder: "عنوان رویداد...",
       dashSaveEnter: "ذخیره (Enter)",
       dashToggleDoneTitle: "تغییر وضعیتِ انجام‌شده",
+      dashRecurringToggle: "تکرار برای فردا هم (مثلاً دارو)",
+      dashRecurringBadge: "هر روز تکرار می‌شود",
       markDayAgenda: "برنامهٔ این روز",
       toastEventOneHour: "یک ساعت تا: {title}",
       scrubberNight: "شب", scrubberDawn: "سپیده‌دم", scrubberDay: "روز", scrubberDusk: "غروب", scrubberEvening: "شامگاه",
@@ -971,8 +993,10 @@
         <div class="ai-galaxy-knob" id="ai-galaxy-knob">🪐</div>
       </div>
     </div>
+    <button type="button" id="ai-form-release-core" class="ai-form-btn-release-core" style="display:none;"></button>
     <div class="ai-form-actions">
       <button id="ai-form-delete" class="ai-form-btn-delete" style="display:none;"></button>
+      <button id="ai-form-move-galaxy" class="ai-form-btn-move" style="display:none;"></button>
       <button id="ai-form-cancel" class="ai-form-btn-cancel"></button>
       <button id="ai-form-save" class="ai-form-btn-save"></button>
     </div>`;
@@ -1233,12 +1257,14 @@
     formDescription: inlineForm.querySelector('#ai-form-description'),
     formGalaxyWrap: inlineForm.querySelector('#ai-form-galaxy'),
     formGalaxyLabel: inlineForm.querySelector('#ai-form-galaxy-label'),
+    formReleaseCoreBtn: inlineForm.querySelector('#ai-form-release-core'),
     formGalaxyTrack: inlineForm.querySelector('#ai-galaxy-track'),
     formGalaxyKnob: inlineForm.querySelector('#ai-galaxy-knob'),
     formImpLabel: inlineForm.querySelector('#ai-form-imp-label'),
     formImportanceWrap: inlineForm.querySelector('.ai-form-importance'),
     formCancel: inlineForm.querySelector('#ai-form-cancel'),
     formDelete: inlineForm.querySelector('#ai-form-delete'),
+    formMoveGalaxy: inlineForm.querySelector('#ai-form-move-galaxy'),
     formSave: inlineForm.querySelector('#ai-form-save'),
     noteText: quickNoteForm.querySelector('#ai-note-text'),
     noteNewTabBtn: quickNoteForm.querySelector('#ai-note-newtab-btn'),
@@ -1477,6 +1503,7 @@
     uiEls.formLabel.placeholder = t('formLabelPlaceholder');
     uiEls.formDescription.placeholder = t('formDescPlaceholder');
     uiEls.formGalaxyLabel.textContent = t('formGalaxyLabel');
+    uiEls.formReleaseCoreBtn.textContent = t('formReleaseCoreBtn');
     uiEls.formImpLabel.textContent = t('formImportanceLabel');
     uiEls.formCancel.textContent = t('formCancelBtn');
     uiEls.formDelete.textContent = t('formDeleteBtn');
@@ -1568,6 +1595,10 @@
   }
 
   function updateClockAge() {
+      // بهینه‌سازیِ کارایی: وقتی پنل ساعت باز نیست یا خودِ تب در پس‌زمینه است، این
+      // محاسبات (تبدیل جلالی، فرمت‌بندیِ چندزبانه‌ی تاریخ و...) هر ثانیه بی‌فایده
+      // اجرا می‌شدند حتی وقتی هیچ‌کس نمی‌دیدشون — این تیک‌های بی‌اثر رو حذف می‌کنیم.
+      if (document.hidden || !clockPanel.classList.contains('active')) return;
       const timeEl = document.getElementById('ai-time'); if (!timeEl) return; 
       const now = new Date();
       // Northern hemisphere is the default audience. This is a visual theme only;
@@ -2117,6 +2148,12 @@
   function pad2(n) { return String(n).padStart(2, '0'); }
   function isoFromDate(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
   function todayDashIso() { return isoFromDate(new Date()); }
+  // نمایشِ گرافیکیِ روز/شب کنار ساعتِ هر رویداد — بر اساسِ ساعتِ شروع (۰۶ تا ۱۸ = روز)
+  function dayNightIcon(hhmm) {
+    const hour = parseInt(String(hhmm).split(':')[0], 10);
+    if (isNaN(hour)) return '';
+    return (hour >= 6 && hour < 18) ? '☀️' : '🌙';
+  }
 
   function evaluateEventStatus(evt) {
     if (evt.status === 'done') return 'done';
@@ -2169,7 +2206,45 @@
     }
     saveTimeEvents(); refreshDashUI();
   }
-  function refreshDashUI() { renderTimeline(); checkUpcomingEventsReminder(); }
+  function refreshDashUI() { pruneExpiredDashEvents(); renderTimeline(); checkUpcomingEventsReminder(); }
+
+  // رویدادهای ساعتی/روزانه پس از گذشتِ یک روز از تاریخِ ثبت‌شده‌شان به‌صورت خودکار حذف
+  // می‌شوند — مگر آن‌هایی که با ستارهٔ طلایی «تکرارشونده» علامت خورده‌اند (مثلاً یادآور
+  // دارو): این‌ها به‌جای حذف، برای همان روزِ جدید «تازه» می‌شوند — تاریخ به امروز
+  // منتقل، وضعیت/تیک ریست، و یک TODوی روزانهٔ تازه برایشان ساخته می‌شود (چون TODوی
+  // دیروز جداگانه و به‌مرور منقضی می‌شود).
+  function pruneExpiredDashEvents() {
+    const iso = todayDashIso();
+    const stale = timeEventsData.filter(e => e.date < iso);
+    if (!stale.length) return false;
+
+    const deleteIds = new Set();
+    let changed = false;
+    stale.forEach(evt => {
+      if (evt.recurring) {
+        if (evt.linkedTodoId) {
+          const idx = todosData.findIndex(td => td.id === evt.linkedTodoId);
+          if (idx !== -1) todosData.splice(idx, 1);
+        }
+        evt.date = iso;
+        evt.status = 'future';
+        const linkedTodo = { id: newLinkId('td'), text: `${evt.startTime} — ${evt.title}`, done: false, type: 'daily', createdAt: Date.now() };
+        todosData.push(linkedTodo);
+        evt.linkedTodoId = linkedTodo.id;
+        changed = true;
+      } else {
+        deleteIds.add(evt.id);
+        if (evt.linkedTodoId) {
+          const idx = todosData.findIndex(td => td.id === evt.linkedTodoId);
+          if (idx !== -1) { todosData.splice(idx, 1); changed = true; }
+        }
+      }
+    });
+    if (deleteIds.size) { timeEventsData = timeEventsData.filter(e => !deleteIds.has(e.id)); changed = true; }
+
+    if (changed) { saveTodos(); saveTimeEvents(); if (todoPanel.classList.contains('active')) renderTodos(); }
+    return changed;
+  }
 
   // --- موتور یادآوریِ هوشمند: نقطه‌ی چشمک‌زن + یک اعلانِ محوشونده (toast) دقیقاً وقتی
   // یک ساعت تا نزدیک‌ترین رویدادِ امروز مانده — بدون باز کردنِ خودکارِ ویجت. ---
@@ -2204,13 +2279,18 @@
     const status = evaluateEventStatus(evt);
     const card = document.createElement('div');
     card.className = `ai-event-card status-${status}`;
+    const timeWrap = document.createElement('span'); timeWrap.className = 'ai-event-time-wrap';
+    const timeIcon = document.createElement('span'); timeIcon.className = 'ai-event-time-icon'; timeIcon.textContent = dayNightIcon(evt.startTime);
     const timeLabel = document.createElement('span'); timeLabel.className = 'ai-event-time-label'; timeLabel.textContent = evt.startTime;
     const dot = document.createElement('div'); dot.className = 'ai-event-dot'; dot.title = t('dashToggleDoneTitle');
     dot.addEventListener('click', (e) => { e.stopPropagation(); toggleDashEventDone(evt.id); });
+    timeWrap.appendChild(timeIcon); timeWrap.appendChild(timeLabel); timeWrap.appendChild(dot);
     const title = document.createElement('div'); title.className = 'ai-event-title'; title.textContent = evt.title;
     const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-event-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
     delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteDashEvent(evt.id); });
-    card.appendChild(timeLabel); card.appendChild(dot); card.appendChild(title); card.appendChild(delBtn);
+    card.appendChild(timeWrap); card.appendChild(title);
+    if (evt.recurring) { const badge = document.createElement('span'); badge.className = 'ai-event-recur-badge'; badge.title = t('dashRecurringBadge'); badge.textContent = '★'; card.appendChild(badge); }
+    card.appendChild(delBtn);
     if (evt.linkedTodoId) { const meta = document.createElement('div'); meta.className = 'ai-event-meta'; meta.textContent = '↗ ' + t('dashLinkedTodo'); card.appendChild(meta); }
     return card;
   }
@@ -2227,10 +2307,13 @@
       groupTimeEvents(todaysEvents).forEach(group => {
         if (group.isGroup && !expandedDashGroups.has(group.baseTime)) {
           const card = document.createElement('div'); card.className = 'ai-event-card ai-event-group';
+          const timeWrap = document.createElement('span'); timeWrap.className = 'ai-event-time-wrap';
+          const timeIcon = document.createElement('span'); timeIcon.className = 'ai-event-time-icon'; timeIcon.textContent = dayNightIcon(group.baseTime);
           const timeLabel = document.createElement('span'); timeLabel.className = 'ai-event-time-label'; timeLabel.textContent = group.baseTime;
           const dot = document.createElement('div'); dot.className = 'ai-event-dot';
+          timeWrap.appendChild(timeIcon); timeWrap.appendChild(timeLabel); timeWrap.appendChild(dot);
           const title = document.createElement('div'); title.className = 'ai-event-title'; title.textContent = `${group.events.length} ${t('dashEventsWord')}`;
-          card.appendChild(timeLabel); card.appendChild(dot); card.appendChild(title);
+          card.appendChild(timeWrap); card.appendChild(title);
           card.addEventListener('click', (e) => { e.stopPropagation(); expandedDashGroups.add(group.baseTime); renderTimeline(); });
           container.appendChild(card);
         } else {
@@ -2424,14 +2507,23 @@
     const now = new Date();
     const popover = document.createElement('div'); popover.className = 'ai-time-quickadd-popover';
     const header = document.createElement('div'); header.className = 'ai-popover-header'; header.textContent = t('dashNewEventTitle');
+    const titleRow = document.createElement('div'); titleRow.className = 'ai-quickadd-title-row';
     const titleInput = document.createElement('input'); titleInput.type = 'text'; titleInput.id = 'ai-quick-evt-title'; titleInput.placeholder = t('dashEventTitlePlaceholder'); titleInput.dir = 'auto';
+    // ستارهٔ طلایی: علامت‌گذاریِ رویداد به‌عنوان «تکرارشونده» — برخلاف رویدادهای معمولی
+    // که بعد از یک روز خودکار حذف می‌شوند، این‌ها هر روز به‌جای حذف، برای همان روز
+    // تازه می‌شوند (وضعیت/تیک ریست می‌شود) — دقیقاً برای مواردی مثل یادآور دارو.
+    const recurToggle = document.createElement('button');
+    recurToggle.type = 'button'; recurToggle.className = 'ai-quickadd-recur-toggle';
+    recurToggle.title = t('dashRecurringToggle'); recurToggle.textContent = '★';
+    recurToggle.addEventListener('click', (e) => { e.stopPropagation(); recurToggle.classList.toggle('active'); });
+    titleRow.appendChild(titleInput); titleRow.appendChild(recurToggle);
     const scrubberEl = buildTimeScrubberEl();
 
     const btnRow = document.createElement('div'); btnRow.className = 'ai-popover-btn-row';
     const saveBtn = document.createElement('button'); saveBtn.type = 'button'; saveBtn.id = 'ai-quick-evt-save'; saveBtn.textContent = t('dashSaveEnter');
     const cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'ai-popover-cancel'; cancelBtn.textContent = t('formCancelBtn');
     btnRow.appendChild(saveBtn); btnRow.appendChild(cancelBtn);
-    popover.appendChild(header); popover.appendChild(titleInput); popover.appendChild(scrubberEl); popover.appendChild(btnRow);
+    popover.appendChild(header); popover.appendChild(titleRow); popover.appendChild(scrubberEl); popover.appendChild(btnRow);
     uiEls.dashPanel.appendChild(popover);
     popover.addEventListener('mousedown', (e) => e.stopPropagation());
     popover.addEventListener('click', (e) => e.stopPropagation());
@@ -2445,7 +2537,7 @@
       const startTime = scrubber.getValue();
       const evt = {
         id: newLinkId('evt'), title, date: todayDashIso(), startTime,
-        endTime: null, status: 'future', linkedTodoId: null, recurrence: null
+        endTime: null, status: 'future', linkedTodoId: null, recurring: recurToggle.classList.contains('active')
       };
       saveDashEvent(evt); closeDashQuickAdd();
     }
@@ -3490,6 +3582,7 @@
   }
 
   setInterval(() => { if (pruneExpiredDailyTodos() && todoPanel.classList.contains('active')) renderTodos(); }, 5 * 60 * 1000);
+  setInterval(() => { if (pruneExpiredDashEvents()) renderTimeline(); }, 5 * 60 * 1000);
 
   document.getElementById('ai-todo-add-btn').onclick = (e) => {
     e.stopPropagation(); const input = document.getElementById('ai-todo-input'); const text = input.value.trim();
@@ -4038,18 +4131,28 @@
       const self = this;
       try {
         this.domWatchdog = new MutationObserver(() => {
-          if (self.isRelaunching) return;
-          if (!document.getElementById('ai-orbit-root')) {
-            // SPA wiped our root — soft re-attach without full storage round-trip
-            try { self.attachDomArtifacts(); } catch (err) {}
-            try {
-              root.style.display = '';
-              hub.classList.remove('hub-collapsed');
-              root.classList.remove('hide-toggles');
-              if (typeof resetAutoCollapseTimer === 'function') resetAutoCollapseTimer();
-              if (typeof resetToggleTimeout === 'function') resetToggleTimeout();
-            } catch (err) {}
-          }
+          // در فیدهای پُرتغییر (اسکرول بی‌نهایتِ توییتر/اینستاگرام و مشابه)، ممکنه این
+          // callback صدها بار در ثانیه صدا زده بشه. به‌جای اجرای فوریِ چکِ سنگین روی هر
+          // رخداد، با یک تأخیر کوتاه batch می‌کنیم و تا وقتی یک چک در انتظار است، از
+          // زمان‌بندیِ چک‌های تکراری خودداری می‌کنیم — فشار روی ترد اصلی به حداقل می‌رسد
+          // بدون این‌که قابلیت خودترمیمی (re-attach بعد از پاک‌شدن توسط SPA) از دست برود.
+          if (self.isRelaunching || self._watchdogPending) return;
+          self._watchdogPending = true;
+          setTimeout(() => {
+            self._watchdogPending = false;
+            if (self.isRelaunching) return;
+            if (!document.getElementById('ai-orbit-root')) {
+              // SPA wiped our root — soft re-attach without full storage round-trip
+              try { self.attachDomArtifacts(); } catch (err) {}
+              try {
+                root.style.display = '';
+                hub.classList.remove('hub-collapsed');
+                root.classList.remove('hide-toggles');
+                if (typeof resetAutoCollapseTimer === 'function') resetAutoCollapseTimer();
+                if (typeof resetToggleTimeout === 'function') resetToggleTimeout();
+              } catch (err) {}
+            }
+          }, 500);
         });
         const observeTarget = document.body || document.documentElement;
         if (observeTarget) {
@@ -7660,7 +7763,7 @@
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
     if(syncData.aiTreeTodos) { todosData = syncData.aiTreeTodos; migrateTodos(); pruneExpiredDailyTodos(); }
     if(Array.isArray(syncData.aiTreeMarkedDays)) { markedDays = syncData.aiTreeMarkedDays; pruneExpiredMarkedDays(); }
-    if(Array.isArray(localData.aiTreeTimeEvents)) timeEventsData = localData.aiTreeTimeEvents;
+    if(Array.isArray(localData.aiTreeTimeEvents)) { timeEventsData = localData.aiTreeTimeEvents; pruneExpiredDashEvents(); }
     try {
       if (chrome.runtime?.id) {
         chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry'], (res) => {
@@ -7971,6 +8074,8 @@
     else { uiEls.formMainTitle.textContent = t('formEditTitle'); uiEls.formSave.textContent = t('formUpdateBtn'); }
     uiEls.formDelete.style.display = isAddFlow ? 'none' : '';
     uiEls.formDelete.textContent = (globalIdx < 5) ? t('formClearCoreBtn') : t('formDeleteBtn');
+    uiEls.formMoveGalaxy.style.display = (!isAddFlow && globalIdx < 5) ? '' : 'none';
+    uiEls.formMoveGalaxy.textContent = t('formMoveToGalaxyBtn');
     inlineForm.classList.add('active');
     if (isAddFlow) uiEls.formUrl.focus(); else uiEls.formLabel.focus();
   }
@@ -8124,6 +8229,7 @@
     uiEls.formLabel.classList.remove('invalid'); uiEls.formUrl.classList.remove('invalid');
     uiEls.formImportanceWrap.style.display = '';
     uiEls.formDelete.style.display = 'none';
+    uiEls.formMoveGalaxy.style.display = 'none';
     uiEls.formGalaxyWrap.style.display = 'none';
     selectedImportance = DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     inlineForm.classList.add('active'); uiEls.formUrl.focus();
@@ -8324,6 +8430,54 @@
     try { chrome.storage.sync.set({ lastDeletedLink: deletedItem }); } catch (err) {}
     saveLinksAll(); renderSpiral(); showToastNotification(t('toastDeleted'), true); setUndoState('bookmark', deletedItem, currentHubIndex);
     closeTree();
+  });
+  // این هسته دیگر لازم نیست ثابت بماند — با این دکمه به‌عنوان یک بوک‌مارکِ عادیِ ۵ ستاره
+  // وارد همین کهکشان می‌شود؛ دقیقاً با همان منطقِ سرریزِ استانداردِ افزودنِ بوک‌مارک
+  // (اگر ردهٔ ۵ ستارهٔ همین کهکشان پر بود، به کهکشان بعدی، و در نهایت به ستاره‌های
+  // دنباله‌دار سرریز می‌کند). جایگاه هستهٔ مبدأ (ثابت، همیشه موجود) خالی می‌شود.
+  uiEls.formMoveGalaxy.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (editingNodeIndex === null || editingNodeIndex >= 5) return;
+    const activeData = hubData(currentHubIndex);
+    if (!activeData[editingNodeIndex]) return;
+
+    const labelInput = uiEls.formLabel; const urlInput = uiEls.formUrl;
+    const label = labelInput.value.trim(); let url = urlInput.value.trim();
+    const description = uiEls.formDescription.value.trim();
+    labelInput.classList.remove('invalid'); urlInput.classList.remove('invalid');
+    if (!label) { labelInput.classList.add('invalid'); labelInput.focus(); return; }
+    if (!url) { urlInput.classList.add('invalid'); urlInput.focus(); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    try { new URL(url); } catch (err) { urlInput.classList.add('invalid'); urlInput.focus(); showToastNotification(t('toastInvalidUrl'), true); return; }
+
+    const dupHub = isDuplicateNodeAll(url, label, editingNodeIndex, currentHubIndex);
+    if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
+
+    // برخلافِ افزودنِ بوک‌مارکِ معمولی، این انتقال هرگز به کهکشانِ دیگری سرریز نمی‌کند —
+    // مقصد همیشه همان کهکشانی‌ست که هسته الان در آن است: اول ردهٔ ۵ ستارهٔ همین کهکشان،
+    // و فقط اگر آن پر بود، مجموعهٔ سرریزِ «ستاره‌های دنباله‌دار» همین کهکشان.
+    const ring = RING_CONFIG[1]; // 5★
+    const cometRing = RING_CONFIG[RING_CONFIG.length - 1];
+    const star5Full = tierCountInHub(currentHubIndex, ring) >= ring.max || activeData.length >= MAX_NODES;
+    let targetRing = ring;
+    if (star5Full) {
+      const cometFull = tierCountInHub(currentHubIndex, cometRing) >= cometRing.max || activeData.length >= MAX_NODES;
+      if (cometFull) {
+        showToastNotification(t('toastGalaxyFullNoOverflow'), true);
+        return;
+      }
+      targetRing = cometRing;
+    }
+
+    const movedItem = { label, url, description, importance: 5 };
+    if (targetRing.comet) movedItem.overflow = true;
+    activeData.push(movedItem);
+    activeData[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+
+    showToastNotification(targetRing.comet
+      ? t('toastOverflowedToComet').replace('{tier}', ringDisplayLabel(ring)).replace('{hub}', currentHubIndex)
+      : t('toastCoreToStar'));
+    renderSpiral(); saveLinksAll(); closeTree();
   });
   inlineForm.querySelector('#ai-form-close').addEventListener('click', (e) => { e.stopPropagation(); closeTree(); });
 

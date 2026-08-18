@@ -1794,6 +1794,9 @@ transition: left 0.22s var(--ease-bounce);
 .ai-form-btn-save:hover { filter: brightness(1.1); }
 .ai-form-btn-delete { flex-basis: 100%; order: 3; background: rgba(239, 68, 68, 0.14); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
 .ai-form-btn-delete:hover { background: rgba(239, 68, 68, 0.28); color: #fecaca; }
+.ai-form-btn-move { flex-basis: 100%; order: 2; padding: 10px 0; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid rgba(96, 165, 250, 0.35); background: rgba(59, 130, 246, 0.14); color: #93c5fd; transition: filter 0.15s var(--ease-premium), transform 0.1s var(--ease-bounce), background 0.15s var(--ease-premium); }
+.ai-form-btn-move:hover { background: rgba(59, 130, 246, 0.26); color: #bfdbfe; }
+.ai-form-btn-move:active { transform: scale(0.96); }
 .ai-form-btn-cancel:active, .ai-form-btn-save:active, .ai-form-btn-delete:active { transform: scale(0.96); }
 
 .ai-toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); border: 1px solid var(--c-emerald); color: #fff; padding: 12px 24px; border-radius: 30px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; font-weight: 600; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3); backdrop-filter: var(--glass-blur); z-index: 2147483647; opacity: 0; pointer-events: none; transition: all 0.3s var(--ease-bounce); }
@@ -4718,7 +4721,7 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   max-height: 300px;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-left: 32px;
+  padding-left: 80px;
   padding-right: 2px;
   direction: ltr;
 }
@@ -4761,18 +4764,40 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   transition: background 0.2s var(--ease-premium);
 }
 .ai-event-card:hover { background: rgba(255, 255, 255, 0.08); }
-.ai-event-time-label {
+.ai-event-time-wrap {
   position: absolute;
-  left: -36px; top: 9px;
-  font-size: 9.5px; color: var(--text-muted);
-  font-family: 'SF Mono', Consolas, monospace;
+  left: -80px; top: 0; bottom: 0;
+  width: 76px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  direction: ltr;
 }
+.ai-event-time-label {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--c-amber-light);
+  font-family: 'SF Mono', Consolas, monospace;
+  letter-spacing: -0.3px;
+  text-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
+  -webkit-text-stroke: 0.35px currentColor;
+  white-space: nowrap;
+}
+.ai-event-time-icon {
+  font-size: 12px;
+  line-height: 1;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.45));
+}
+.ai-event-card.status-missed .ai-event-time-label { color: rgba(251, 191, 36, 0.4); text-decoration: line-through; }
+.ai-event-card.status-done .ai-event-time-label { color: rgba(251, 191, 36, 0.35); }
+.ai-event-card.status-near .ai-event-time-label { text-shadow: 0 0 9px rgba(251, 191, 36, 0.65); }
 .ai-event-dot {
-  position: absolute;
-  left: -12px; top: 13px;
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--c-blue);
   cursor: pointer;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
 }
 .ai-event-card.status-near .ai-event-dot { background: var(--c-amber); box-shadow: 0 0 6px var(--c-amber); }
 .ai-event-card.status-near { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.05); }
@@ -4783,6 +4808,13 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 .ai-event-card.status-done .ai-event-dot { background: var(--text-muted); }
 .ai-event-title { font-size: 12px; font-weight: 600; color: #fff; direction: auto; text-align: start; }
 .ai-event-meta { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 3px; }
+.ai-event-recur-badge {
+  position: absolute; right: 24px; top: 7px;
+  font-size: 10px;
+  color: var(--c-amber);
+  text-shadow: 0 0 5px rgba(251, 191, 36, 0.55);
+  pointer-events: none;
+}
 .ai-event-del {
   position: absolute; right: 5px; top: 5px;
   width: 16px; height: 16px; border: none; border-radius: 50%;
@@ -4827,6 +4859,29 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   min-height: 280px; /* جای کافی برای عنوان + نشانگر ساعت + دکمه‌های ذخیره/لغو */
 }
 .ai-popover-header { font-size: 10px; color: var(--text-muted); }
+.ai-quickadd-title-row { display: flex; align-items: center; gap: 6px; }
+.ai-quickadd-title-row input { flex: 1 1 auto; min-width: 0; }
+.ai-quickadd-recur-toggle {
+  flex: 0 0 auto;
+  width: 26px; height: 26px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.35);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s var(--ease-premium), color 0.15s var(--ease-premium), border-color 0.15s var(--ease-premium), transform 0.1s var(--ease-bounce);
+}
+.ai-quickadd-recur-toggle:hover { background: rgba(255,255,255,.1); color: rgba(255,255,255,.6); }
+.ai-quickadd-recur-toggle:active { transform: scale(0.92); }
+.ai-quickadd-recur-toggle.active {
+  background: rgba(251, 191, 36, 0.18);
+  border-color: rgba(251, 191, 36, 0.55);
+  color: var(--c-amber);
+  text-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+}
 .ai-time-quickadd-popover input {
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.12);
