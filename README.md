@@ -5,8 +5,7 @@ Floating Orbital Workspace · 4-Ring Galactic Vault · Smart Linguistic Studio
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
-ارسی (Persin Guide) ↓
-
+فارسی (Persian Guide) ↓
 AI Tree Launcher is not just a bookmark manager — it is a spatial productivity workspace for the web.
 
 A progressive, self-healing Chromium extension that transforms traditional bookmark clutter into a floating orbital environment powered by:
