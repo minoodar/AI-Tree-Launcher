@@ -1,11 +1,8 @@
 🌌 AI Tree Launcher (V32.2)
 
-![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
-![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
-
 Floating Orbital Workspace, 4-Ring Galactic Vault & Smart Linguistic Studio
-فارسی (Persan Guide) ↓
+
+فارسی (Persian Guide) ↓
 
 A progressive, self-healing extension for Chromium-based browsers that replaces traditional bookmark clutter with a floating, ergonomic, and 4-ring orbital workspace. Combining a Golden Angle Spiral (137.51°), an Anydoc-powered Page-to-Markdown extractor, a Triple Calendar, and bilingual mindfulness, AI Tree Launcher is engineered for deep focus.
 
