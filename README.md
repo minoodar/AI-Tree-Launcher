@@ -1,1 +1,95 @@
-🌌 AI Tree Launcher (V32.2)فارسی (Persian Guide) ↓ فارسی (Persian Guide) ↓Adding these badges right below the main title gives visitors an immediate snapshot of your project's framework, licensing, and language." type="suggestion">Floating Orbital Workspace · 4-Ring Galactic Vault · Smart Linguistic StudioA progressive, self-healing Chromium extension that transforms traditional bookmark clutter into a floating orbital environment powered by a Golden Angle Spiral (137.51°), AI integrations, and smart time management.🚀 What's New in V32.2⚡ Eco-Mode Performance: Intelligently suspends in inactive tabs and ignores popups, drastically reducing CPU/memory usage for smoother animations.⏰ Advanced Hourly Tracker: Schedule events with a fluid slider or exact numerical input. Get smart notifications exactly 1 hour before your event.👁️ 3-Second Hover Peek: Simply hover over the launcher for 3 seconds to instantly view your nearest upcoming event without opening menus.✨ Core Features🌌 4-Ring Galactic Vault: Manage up to 160 bookmarks across 4 hubs. Edit galaxy cores, transfer links, and use "Hold-to-Bookmark" to assign star ratings and save tabs instantly.🤖 Linguistic AI Studio & Anydoc Extractor: A smart notepad featuring English TTS, spell-check, and Persian ↔ English translation. The built-in Anydoc engine converts complex web pages into clean Markdown, ready for 12 custom AI slots.📅 Triple Calendar & Time System: Hour-level precise scheduling with an intelligent reminder system built right into your browser.📖 Mindfulness & 🧠 Self-Healing Engine: Enjoy bilingual daily Quranic verses and Rumi poetry. Features a persistent Zero-TTL Undo stack and a DOM Watchdog that automatically restores the UI in dynamic React/Next.js apps.🏗️ Architecture Overview|| Module | Core Responsibility | Key Highlights || Orbit Hub | Central Floating Interface | 4 Rings, Golden Angle (137.51°), Eco-Mode Suspend || Linguistic AI Studio | Prompting & Translation | TTS, Bi-directional Translation, Spell-check, 4-Axis Docking || Galactic Vault | Bookmark Management | 160-Link Limit, Core Editing, 1★–5★ Tiers, Cross-Galaxy Migration || Time & Heritage | Events & Mindfulness | Triple Calendar, Slider-Time UI, 1-Hour Alerts, 3-Sec Hover Peek || Self-Healing Engine | Undo/Redo & Soft Relaunch | Zero-TTL Undo, DOM Watchdog for Active Tabs |💻 How to Install in Chrome (Developer Mode)Download this repository and unzip the file.Open Chrome and go to chrome://extensions/.Enable Developer mode (toggle in the top-right corner).Click Load unpacked and select the project root folder.Done! The floating 4-ring workspace will now appear on your web pages.🌌 AI Tree Launcher (V32.2) | راهنمای فارسیمنظومهٔ شناور کاری · کهکشان ۴ حلقه‌ای · استودیوی هوشمند زبانییک افزونه پیشرفته و خوددرمان که شلوغی بوک‌مارک‌های سنتی را به یک محیط مداری شناور با زاویه طلایی (۱۳۷.۵۱ درجه) تبدیل می‌کند و ابزارهای هوش مصنوعی و مدیریت زمان را در اختیار شما می‌گذارد.🚀 تازه‌های نسخه V32.2⚡ موتور Eco-Mode: تعلیق خودکار افزونه در تب‌های غیرفعال و پنجره‌های پاپ‌آپ برای کاهش چشمگیر مصرف منابع (RAM/CPU) و اجرای روان‌تر.⏰ ردیاب رویدادهای ساعتی: برنامه‌ریزی دقیق با اسلایدر روان و امکان ثبت عددی. دریافت هشدار هوشمند دقیقاً یک ساعت قبل از موعد رویداد.👁️ نگاه سریع ۳ ثانیه‌ای (Hover Peek): تنها با ۳ ثانیه نگه داشتن موس روی افزونه، نزدیک‌ترین رویداد پیش‌روی خود را بدون باز کردن منوها ببینید.✨ امکانات کلیدی🌌 خزانه ۴ حلقه‌ای کهکشانی: مدیریت ۱۶۰ بوک‌مارک در ۴ حلقه مجزا. امکان ویرایش هسته‌ها، انتقال لینک‌ها بین کهکشان‌ها و ذخیره فوری تب‌ها با نگه داشتن کلیک (Hold-to-Bookmark).🤖 استودیوی زبانی و Anydoc: دفترچه یادداشت مجهز به روخوانی انگلیسی (TTS)، ترجمه دوطرفه فارسی/انگلیسی و غلط‌گیری. موتور Anydoc مقالات سایت‌ها را به Markdown تمیز برای ۱۲ جایگاه هوش مصنوعی تبدیل می‌کند.📅 تقویم سه‌گانه و زمان‌بندی: ایجاد رویداد در سطح ساعت با سیستم یادآوری هوشمند و یکپارچه در مرورگر.📖 آرامش‌بخش‌ها و 🧠 موتور خوددرمان: نمایش روزانه آیات قرآن و اشعار مولانا. دارای پشته Undo بدون انقضا و نگهبان DOM برای بازسازی خودکار افزونه در سایت‌های پویا (React/Next.js).🏗️ نمای کلی معماری| ماژول | مسئولیت اصلی | ویژگی‌های کلیدی || هاب مداری | رابط کاربری مرکزی شناور | ۴ حلقه، زاویه طلایی (۱۳۷.۵۱°)، حالت Eco-Mode || استودیوی زبانی | اعلان‌ها، ترجمه و گفتار | روخوانی (TTS)، ترجمه دوطرفه، غلط‌گیری، داک ۴ جهته || خزانه کهکشانی | مدیریت بوک‌مارک‌ها | محدودیت ۱۶۰ لینک، ویرایش هسته، امتیازدهی ستاره‌ای، انتقال بین کهکشانی || زمان و میراث | رویدادها و آرامش‌بخش‌ها | تقویم سه‌گانه، اسلایدر زمان، هشدار ۱ ساعته، پیش‌نمایش ۳ ثانیه‌ای || موتور خوددرمان | اجرای نرم و پایدار | Undo بدون انقضا، نگهبان DOM برای بازسازی خودکار رابط کاربری |💻 آموزش نصب در کروم (Developer Mode)۱. این مخزن را دانلود کرده و از حالت فشرده خارج کنید.۲. در مرورگر کروم به آدرس chrome://extensions/ بروید.۳. از بالا سمت راست، گزینه Developer mode را روشن کنید.۴. روی Load unpacked کلیک کرده و پوشه اصلی پروژه را انتخاب کنید.۵. تمام شد! منظومه شناور اکنون روی صفحات وب شما آماده استفاده است.
+🌌 AI Tree Launcher (V32.2)
+
+![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
+![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
+
+فارسی (Persian Guide) ↓ فارسی (Persian Guide) ↓
+
+Adding these badges right below the main title gives visitors an immediate snapshot of your project's framework, licensing, and language." type="suggestion">
+
+Floating Orbital Workspace · 4-Ring Galactic Vault · Smart Linguistic Studio
+
+A progressive, self-healing Chromium extension that transforms traditional bookmark clutter into a floating orbital environment powered by a Golden Angle Spiral (137.51°), AI integrations, and smart time management.
+
+🚀 What's New in V32.2
+
+⚡ Eco-Mode Performance: Intelligently suspends in inactive tabs and ignores popups, drastically reducing CPU/memory usage for smoother animations.
+
+⏰ Advanced Hourly Tracker: Schedule events with a fluid slider or exact numerical input. Get smart notifications exactly 1 hour before your event.
+
+👁️ 3-Second Hover Peek: Simply hover over the launcher for 3 seconds to instantly view your nearest upcoming event without opening menus.
+
+✨ Core Features
+
+🌌 4-Ring Galactic Vault: Manage up to 160 bookmarks across 4 hubs. Edit galaxy cores, transfer links, and use "Hold-to-Bookmark" to assign star ratings and save tabs instantly.
+
+🤖 Linguistic AI Studio & Anydoc Extractor: A smart notepad featuring English TTS, spell-check, and Persian ↔ English translation. The built-in Anydoc engine converts complex web pages into clean Markdown, ready for 12 custom AI slots.
+
+📅 Triple Calendar & Time System: Hour-level precise scheduling with an intelligent reminder system built right into your browser.
+
+📖 Mindfulness & 🧠 Self-Healing Engine: Enjoy bilingual daily Quranic verses and Rumi poetry. Features a persistent Zero-TTL Undo stack and a DOM Watchdog that automatically restores the UI in dynamic React/Next.js apps.
+
+🏗️ Architecture Overview
+
+|
+
+| Module | Core Responsibility | Key Highlights |
+| Orbit Hub | Central Floating Interface | 4 Rings, Golden Angle (137.51°), Eco-Mode Suspend |
+| Linguistic AI Studio | Prompting & Translation | TTS, Bi-directional Translation, Spell-check, 4-Axis Docking |
+| Galactic Vault | Bookmark Management | 160-Link Limit, Core Editing, 1★–5★ Tiers, Cross-Galaxy Migration |
+| Time & Heritage | Events & Mindfulness | Triple Calendar, Slider-Time UI, 1-Hour Alerts, 3-Sec Hover Peek |
+| Self-Healing Engine | Undo/Redo & Soft Relaunch | Zero-TTL Undo, DOM Watchdog for Active Tabs |
+
+💻 How to Install in Chrome (Developer Mode)
+
+Download this repository and unzip the file.
+
+Open Chrome and go to chrome://extensions/.
+
+Enable Developer mode (toggle in the top-right corner).
+
+Click Load unpacked and select the project root folder.
+
+Done! The floating 4-ring workspace will now appear on your web pages.
+
+🌌 AI Tree Launcher (V32.2) | راهنمای فارسی
+
+منظومهٔ شناور کاری · کهکشان ۴ حلقه‌ای · استودیوی هوشمند زبانی
+
+یک افزونه پیشرفته و خوددرمان که شلوغی بوک‌مارک‌های سنتی را به یک محیط مداری شناور با زاویه طلایی (۱۳۷.۵۱ درجه) تبدیل می‌کند و ابزارهای هوش مصنوعی و مدیریت زمان را در اختیار شما می‌گذارد.
+
+🚀 تازه‌های نسخه V32.2
+
+⚡ موتور Eco-Mode: تعلیق خودکار افزونه در تب‌های غیرفعال و پنجره‌های پاپ‌آپ برای کاهش چشمگیر مصرف منابع (RAM/CPU) و اجرای روان‌تر.
+
+⏰ ردیاب رویدادهای ساعتی: برنامه‌ریزی دقیق با اسلایدر روان و امکان ثبت عددی. دریافت هشدار هوشمند دقیقاً یک ساعت قبل از موعد رویداد.
+
+👁️ نگاه سریع ۳ ثانیه‌ای (Hover Peek): تنها با ۳ ثانیه نگه داشتن موس روی افزونه، نزدیک‌ترین رویداد پیش‌روی خود را بدون باز کردن منوها ببینید.
+
+✨ امکانات کلیدی
+
+🌌 خزانه ۴ حلقه‌ای کهکشانی: مدیریت ۱۶۰ بوک‌مارک در ۴ حلقه مجزا. امکان ویرایش هسته‌ها، انتقال لینک‌ها بین کهکشان‌ها و ذخیره فوری تب‌ها با نگه داشتن کلیک (Hold-to-Bookmark).
+
+🤖 استودیوی زبانی و Anydoc: دفترچه یادداشت مجهز به روخوانی انگلیسی (TTS)، ترجمه دوطرفه فارسی/انگلیسی و غلط‌گیری. موتور Anydoc مقالات سایت‌ها را به Markdown تمیز برای ۱۲ جایگاه هوش مصنوعی تبدیل می‌کند.
+
+📅 تقویم سه‌گانه و زمان‌بندی: ایجاد رویداد در سطح ساعت با سیستم یادآوری هوشمند و یکپارچه در مرورگر.
+
+📖 آرامش‌بخش‌ها و 🧠 موتور خوددرمان: نمایش روزانه آیات قرآن و اشعار مولانا. دارای پشته Undo بدون انقضا و نگهبان DOM برای بازسازی خودکار افزونه در سایت‌های پویا (React/Next.js).
+
+🏗️ نمای کلی معماری
+
+| ماژول | مسئولیت اصلی | ویژگی‌های کلیدی |
+| هاب مداری | رابط کاربری مرکزی شناور | ۴ حلقه، زاویه طلایی (۱۳۷.۵۱°)، حالت Eco-Mode |
+| استودیوی زبانی | اعلان‌ها، ترجمه و گفتار | روخوانی (TTS)، ترجمه دوطرفه، غلط‌گیری، داک ۴ جهته |
+| خزانه کهکشانی | مدیریت بوک‌مارک‌ها | محدودیت ۱۶۰ لینک، ویرایش هسته، امتیازدهی ستاره‌ای، انتقال بین کهکشانی |
+| زمان و میراث | رویدادها و آرامش‌بخش‌ها | تقویم سه‌گانه، اسلایدر زمان، هشدار ۱ ساعته، پیش‌نمایش ۳ ثانیه‌ای |
+| موتور خوددرمان | اجرای نرم و پایدار | Undo بدون انقضا، نگهبان DOM برای بازسازی خودکار رابط کاربری |
+
+💻 آموزش نصب در کروم (Developer Mode)
+
+۱. این مخزن را دانلود کرده و از حالت فشرده خارج کنید.
+۲. در مرورگر کروم به آدرس chrome://extensions/ بروید.
+۳. از بالا سمت راست، گزینه Developer mode را روشن کنید.
+۴. روی Load unpacked کلیک کرده و پوشه اصلی پروژه را انتخاب کنید.
+۵. تمام شد! منظومه شناور اکنون روی صفحات وب شما آماده استفاده است.
