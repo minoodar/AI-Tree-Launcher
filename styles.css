@@ -5160,4 +5160,61 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   letter-spacing: 0.15px;
 }
 
+/* فهرست رویدادهای ساعتی/روزانهٔ همان روز (از داشبورد زمان)، زیر مناسبت/پیام روز */
+.ai-mark-event-daily-list {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(202, 164, 92, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 132px;
+  overflow-y: auto;
+  text-align: start;
+}
+.ai-mark-event-daily-list.is-empty { display: none; }
+.ai-mark-event-daily-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.ai-mark-event-daily-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: #ca8a04;
+}
+.ai-mark-event-daily-row.status-near .ai-mark-event-daily-dot {
+  background: #d97706;
+  box-shadow: 0 0 4px rgba(217, 119, 6, 0.6);
+}
+.ai-mark-event-daily-row.status-missed .ai-mark-event-daily-dot { background: #dc2626; }
+.ai-mark-event-daily-row.status-missed .ai-mark-event-daily-title { color: #b91c1c; }
+.ai-mark-event-daily-row.status-done { opacity: 0.55; }
+.ai-mark-event-daily-row.status-done .ai-mark-event-daily-title { text-decoration: line-through; }
+.ai-mark-event-daily-time {
+  font-weight: 700;
+  color: rgba(124, 90, 23, 0.85);
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+}
+.ai-mark-event-daily-title {
+  color: #3a2f1c;
+  font-weight: 600;
+  direction: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ai-mark-event-daily-link {
+  flex: 0 0 auto;
+  color: rgba(124, 90, 23, 0.6);
+  font-size: 10px;
+}
+
 #ai-clock-panel { overflow: visible !important; }

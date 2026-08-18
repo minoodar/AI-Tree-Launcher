@@ -60,8 +60,7 @@
       formGalaxyLabel: "Galaxy (drag to move)",
       toastGalaxyMoved: "Moved to Galaxy {n}",
       toastGalaxySwapped: "{tier} tier in Galaxy {n} was full — swapped with the oldest item there",
-      formCoreLabel: "Core slot in the selected Galaxy (drag)",
-      toastCoreSwapped: "Swapped with Core {n} in Galaxy {g}",
+
       formImportanceLabel: "Importance",
       noteInput: "Type prompt or note here...",
       noteClearBtn: "Clear / Close",
@@ -121,6 +120,7 @@
       dashEventTitlePlaceholder: "Event title...",
       dashSaveEnter: "Save (Enter)",
       dashToggleDoneTitle: "Toggle done",
+      markDayAgenda: "This day's schedule",
       toastEventOneHour: "1 hour left until: {title}",
       scrubberNight: "Night", scrubberDawn: "Dawn", scrubberDay: "Day", scrubberDusk: "Dusk", scrubberEvening: "Evening",
       markAddPlaceholder: "Title (e.g. Child's Birthday)",
@@ -258,8 +258,7 @@
       formGalaxyLabel: "کهکشان (برای انتقال بکشید)",
       toastGalaxyMoved: "به کهکشان {n} منتقل شد",
       toastGalaxySwapped: "رده {tier} در کهکشان {n} پر بود — با قدیمی‌ترین موردِ آن‌جا جابجا شد",
-      formCoreLabel: "جایگاه هسته در کهکشانِ انتخاب‌شده (بکشید)",
-      toastCoreSwapped: "با هسته {n} در کهکشان {g} جابجا شد",
+
       formImportanceLabel: "اهمیت",
       noteInput: "متن یا درخواست خود را بنویسید...",
       noteClearBtn: "پاک / بستن",
@@ -319,6 +318,7 @@
       dashEventTitlePlaceholder: "عنوان رویداد...",
       dashSaveEnter: "ذخیره (Enter)",
       dashToggleDoneTitle: "تغییر وضعیتِ انجام‌شده",
+      markDayAgenda: "برنامهٔ این روز",
       toastEventOneHour: "یک ساعت تا: {title}",
       scrubberNight: "شب", scrubberDawn: "سپیده‌دم", scrubberDay: "روز", scrubberDusk: "غروب", scrubberEvening: "شامگاه",
       markAddPlaceholder: "عنوان (مثلاً تولد فرزند)",
@@ -971,17 +971,6 @@
         <div class="ai-galaxy-knob" id="ai-galaxy-knob">🪐</div>
       </div>
     </div>
-    <div class="ai-form-galaxy" id="ai-form-core" style="display:none;">
-      <span class="ai-form-galaxy-label" id="ai-form-core-label"></span>
-      <div class="ai-galaxy-track" id="ai-core-track">
-        <div class="ai-galaxy-stop" data-core="0">⚛️<b>۱</b></div>
-        <div class="ai-galaxy-stop" data-core="1">⚛️<b>۲</b></div>
-        <div class="ai-galaxy-stop" data-core="2">⚛️<b>۳</b></div>
-        <div class="ai-galaxy-stop" data-core="3">⚛️<b>۴</b></div>
-        <div class="ai-galaxy-stop" data-core="4">⚛️<b>۵</b></div>
-        <div class="ai-galaxy-knob" id="ai-core-knob">🪐</div>
-      </div>
-    </div>
     <div class="ai-form-actions">
       <button id="ai-form-delete" class="ai-form-btn-delete" style="display:none;"></button>
       <button id="ai-form-cancel" class="ai-form-btn-cancel"></button>
@@ -1079,6 +1068,7 @@
             <div class="ai-mark-event-badge" id="ai-mark-event-badge"></div>
             <div class="ai-mark-event-text" id="ai-mark-event-text"></div>
             <div class="ai-mark-event-meta" id="ai-mark-event-meta"></div>
+            <div class="ai-mark-event-daily-list is-empty" id="ai-mark-event-daily-list"></div>
           </div>
         </div>
       </div>
@@ -1245,10 +1235,6 @@
     formGalaxyLabel: inlineForm.querySelector('#ai-form-galaxy-label'),
     formGalaxyTrack: inlineForm.querySelector('#ai-galaxy-track'),
     formGalaxyKnob: inlineForm.querySelector('#ai-galaxy-knob'),
-    formCoreWrap: inlineForm.querySelector('#ai-form-core'),
-    formCoreLabel: inlineForm.querySelector('#ai-form-core-label'),
-    formCoreTrack: inlineForm.querySelector('#ai-core-track'),
-    formCoreKnob: inlineForm.querySelector('#ai-core-knob'),
     formImpLabel: inlineForm.querySelector('#ai-form-imp-label'),
     formImportanceWrap: inlineForm.querySelector('.ai-form-importance'),
     formCancel: inlineForm.querySelector('#ai-form-cancel'),
@@ -1340,6 +1326,7 @@
     markEventBadge: clockPanel.querySelector('#ai-mark-event-badge'),
     markEventText: clockPanel.querySelector('#ai-mark-event-text'),
     markEventMeta: clockPanel.querySelector('#ai-mark-event-meta'),
+    markEventDailyList: clockPanel.querySelector('#ai-mark-event-daily-list'),
     clockQuote: clockPanel.querySelector('#ai-clock-quote'),
     clockQuoteTab: clockPanel.querySelector('#ai-rumi-tab'),
     clockQuoteChevron: clockPanel.querySelector('#ai-rumi-tab-chevron'),
@@ -1490,7 +1477,6 @@
     uiEls.formLabel.placeholder = t('formLabelPlaceholder');
     uiEls.formDescription.placeholder = t('formDescPlaceholder');
     uiEls.formGalaxyLabel.textContent = t('formGalaxyLabel');
-    uiEls.formCoreLabel.textContent = t('formCoreLabel');
     uiEls.formImpLabel.textContent = t('formImportanceLabel');
     uiEls.formCancel.textContent = t('formCancelBtn');
     uiEls.formDelete.textContent = t('formDeleteBtn');
@@ -1877,10 +1863,47 @@
     if (uiEls.markDotsRow) {
       uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
     }
+    if (uiEls.markEventDailyList) { uiEls.markEventDailyList.innerHTML = ''; uiEls.markEventDailyList.classList.add('is-empty'); }
+  }
+
+  // رویدادهای ساعتی/روزانهٔ داشبورد زمان (timeEventsData) برای یک تاریخ مشخص —
+  // پلِ نمایشیِ یک‌طرفه بین «مناسبت‌های تقویم» (markedDays) و «داشبورد روزانه»،
+  // بدون ادغام دو آرایه در هم؛ فقط برای نمایشِ هماهنگ زیر کشوی کاغذیِ روز.
+  function getDayTimeEvents(iso) {
+    return (timeEventsData || [])
+      .filter(e => e.date === iso)
+      .slice()
+      .sort((a, b) => a.startTime.localeCompare(b.startTime));
+  }
+
+  function renderMarkEventDailyList(iso) {
+    if (!uiEls.markEventDailyList) return;
+    const dayEvents = getDayTimeEvents(iso);
+    uiEls.markEventDailyList.innerHTML = '';
+    if (!dayEvents.length) {
+      uiEls.markEventDailyList.classList.add('is-empty');
+      return;
+    }
+    uiEls.markEventDailyList.classList.remove('is-empty');
+    dayEvents.forEach(evt => {
+      const status = evaluateEventStatus(evt);
+      const row = document.createElement('div');
+      row.className = `ai-mark-event-daily-row status-${status}`;
+      const dot = document.createElement('span'); dot.className = 'ai-mark-event-daily-dot';
+      const time = document.createElement('span'); time.className = 'ai-mark-event-daily-time'; time.textContent = evt.startTime;
+      const title = document.createElement('span'); title.className = 'ai-mark-event-daily-title'; title.textContent = evt.title;
+      row.appendChild(dot); row.appendChild(time); row.appendChild(title);
+      if (evt.linkedTodoId) {
+        const link = document.createElement('span'); link.className = 'ai-mark-event-daily-link'; link.textContent = '↗'; link.title = t('dashLinkedTodo');
+        row.appendChild(link);
+      }
+      uiEls.markEventDailyList.appendChild(row);
+    });
   }
 
   // وقتی روی «روز جاری» کلیک می‌شود ولی هیچ مناسبت ثبت‌شده‌ای ندارد، به‌جای سکوت،
-  // همان بنر کاغذی رویداد را با یک پیام خلاقانهٔ مخصوص امروز باز می‌کنیم.
+  // همان بنر کاغذی رویداد را با یک پیام خلاقانهٔ مخصوص امروز باز می‌کنیم — و زیرِ آن،
+  // رویدادهای ساعتی/روزانهٔ همان روز از داشبورد زمان را هم فهرست می‌کنیم.
   function openTodayGreetingSheet(iso) {
     if (!uiEls.markEventSheet) return;
     if (uiEls.markEventBadge) uiEls.markEventBadge.textContent = '✨';
@@ -1888,6 +1911,31 @@
     if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = currentLang === 'fa' ? 'امروز' : 'Today';
     uiEls.markEventSheet.classList.remove('is-collapsed');
     dayEventSheetOpenIso = iso;
+    renderMarkEventDailyList(iso);
+  }
+
+  // روزی غیر از امروز که مناسبتِ ثبت‌شده (markedDays) ندارد ولی در داشبورد زمان
+  // رویداد ساعتی/روزانه برایش ثبت شده — به‌جای سکوتِ قبلی، همان کشوی کاغذی را با
+  // عنوانی خنثی + فهرست رویدادهای همان روز باز می‌کنیم؛ هماهنگیِ منطقی بین دو محل ثبت.
+  function openDayEventsSheet(iso) {
+    if (!uiEls.markEventSheet) return;
+    const [gy, gm, gd] = iso.split('-').map(Number);
+    const fa = currentLang === 'fa';
+    let dateStr;
+    if (fa) {
+      const j = gregorianToJalaali(gy, gm, gd);
+      const monthName = JALALI_MONTHS_FA[j.jm - 1] || '';
+      dateStr = `${toPersianDigits(j.jd)} ${monthName}`;
+    } else {
+      const monthName = getDisplayGregorianMonth(gm - 1) || '';
+      dateStr = `${gd} ${monthName}`;
+    }
+    if (uiEls.markEventBadge) uiEls.markEventBadge.textContent = '🗓️';
+    if (uiEls.markEventText) uiEls.markEventText.textContent = t('markDayAgenda');
+    if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = dateStr;
+    uiEls.markEventSheet.classList.remove('is-collapsed');
+    dayEventSheetOpenIso = iso;
+    renderMarkEventDailyList(iso);
   }
 
   // تعطیلات رسمی آنلاین: کشور را حدس می‌زند (فعلاً بر پایهٔ زبان برنامه، تا وقتی
@@ -2204,18 +2252,64 @@
     if (uiEls.nowLabel) uiEls.nowLabel.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
-  function updateNextEventWidget() {
-    const widget = uiEls.nextEventWidget; if (!widget) return;
+  // نزدیک‌ترین رویدادِ آیندهٔ ثبت‌نشده‌به‌عنوان‌انجام‌شده — هم برای ویجت «بعدی» در
+  // داشبورد استفاده می‌شود، هم برای نوتیفیکیشنِ هاوِر روی خودِ افزونه (پایین‌تر).
+  function getNearestUpcomingEvent() {
     const now = new Date();
-    const upcoming = timeEventsData
+    return (timeEventsData || [])
       .filter(e => e.status !== 'done')
       .map(e => ({ e, t: new Date(`${e.date}T${e.startTime}:00`) }))
       .filter(x => !isNaN(x.t.getTime()) && x.t >= now)
       .sort((a, b) => a.t - b.t)[0];
+  }
+
+  function updateNextEventWidget() {
+    const widget = uiEls.nextEventWidget; if (!widget) return;
+    const upcoming = getNearestUpcomingEvent();
     if (!upcoming) { widget.style.display = 'none'; widget.textContent = ''; return; }
     widget.textContent = `${t('dashNextLabel')}: ${upcoming.e.title} · ${upcoming.e.startTime}`;
     widget.style.display = '';
   }
+
+  // --- نوتیفیکیشنِ هاورِ روی افزونه: وقتی موس ~۳ ثانیه بدون حرکت روی هاب (در حالت
+  // جمع‌شده) می‌ماند، نزدیک‌ترین رویدادِ آینده را به‌صورت toast نشان می‌دهد؛ بدون باز
+  // کردنِ ویجت و بدون تکرار تا وقتی موس یک‌بار خارج و دوباره وارد شود. ---
+  function formatNearestEventWhen(evt) {
+    const fa = currentLang === 'fa';
+    if (evt.date === todayDashIso()) {
+      return fa ? `امروز ${evt.startTime}` : `Today ${evt.startTime}`;
+    }
+    const [gy, gm, gd] = evt.date.split('-').map(Number);
+    const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((new Date(gy, gm - 1, gd) - startOfToday) / 86400000);
+    const dayLabel = fa ? `${toPersianDigits(diffDays)} روز دیگر` : `in ${diffDays}d`;
+    return `${dayLabel} · ${evt.startTime}`;
+  }
+  function showNearestEventHoverToast() {
+    const upcoming = getNearestUpcomingEvent();
+    if (!upcoming) return;
+    showToastNotification(`${t('dashNextLabel')}: ${upcoming.e.title} · ${formatNearestEventWhen(upcoming.e)}`);
+  }
+  let hubNearestEventTimer = null;
+  let hubNearestEventShownThisHover = false;
+  function scheduleHubNearestEventPeek() {
+    if (hubNearestEventShownThisHover || isDragging) return;
+    clearTimeout(hubNearestEventTimer);
+    hubNearestEventTimer = setTimeout(() => {
+      if (!hub.classList.contains('hub-collapsed') || isDragging) return;
+      hubNearestEventShownThisHover = true;
+      showNearestEventHoverToast();
+    }, 3000);
+  }
+  function cancelHubNearestEventPeek() {
+    clearTimeout(hubNearestEventTimer);
+    hubNearestEventShownThisHover = false;
+  }
+  hub.addEventListener('mouseenter', () => {
+    if (hub.classList.contains('hub-collapsed')) scheduleHubNearestEventPeek();
+  });
+  hub.addEventListener('mouseleave', cancelHubNearestEventPeek);
+  hub.addEventListener('mousedown', cancelHubNearestEventPeek);
 
   // ---------- «افق آسمانی» — نوارِ لغزشیِ بصریِ انتخاب ساعت (جایگزین input زمان) ----------
   function initializeTimeScrubber(containerEl, defaultHours, defaultMinutes) {
@@ -2823,6 +2917,9 @@
           hits.sort((a, b) => a.days - b.days);
           openMarkEventSheet(hits[0]);
           dayEventSheetOpenIso = iso;
+          // همان روز ممکن است هم مناسبتِ ثبت‌شده داشته باشد و هم رویدادِ ساعتی/روزانهٔ
+          // داشبورد زمان — هر دو منبع را زیر هم نشان می‌دهیم، بدون ادغام دو آرایه.
+          renderMarkEventDailyList(iso);
           // Highlight matching mark-dot if visible
           if (uiEls.markDotsRow) {
             uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
@@ -2835,6 +2932,10 @@
         } else if (iso === todayISO) {
           // روز جاری حتی بدون مناسبتِ ثبت‌شده هم بی‌جواب نمی‌ماند
           openTodayGreetingSheet(iso);
+        } else if (getDayTimeEvents(iso).length) {
+          // بدون مناسبتِ ثبت‌شده، ولی داشبورد زمان برای این روز رویداد دارد —
+          // به‌جای بستنِ سکوت‌آمیزِ قبلی، همان‌ها را نشان می‌دهیم
+          openDayEventsSheet(iso);
         } else {
           closeMarkEventSheet();
           closeDualPicker();
@@ -7079,6 +7180,8 @@
     const textArea = document.createElement('textarea');
     textArea.value = text;
     textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
     textArea.style.opacity = '0';
     textArea.style.pointerEvents = 'none';
     document.body.appendChild(textArea);
@@ -7860,14 +7963,9 @@
     selectedImportance = link.importance || DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     uiEls.formImportanceWrap.style.display = (globalIdx < 5) ? 'none' : '';
     uiEls.formGalaxyWrap.style.display = isAddFlow ? 'none' : '';
-    uiEls.formCoreWrap.style.display = (!isAddFlow && globalIdx < 5) ? '' : 'none';
     if (!isAddFlow) {
       selectedGalaxy = currentHubIndex;
       requestAnimationFrame(() => snapGalaxyKnobTo(selectedGalaxy, false));
-    }
-    if (!isAddFlow && globalIdx < 5) {
-      selectedCoreSlot = globalIdx;
-      requestAnimationFrame(() => snapCoreKnobTo(selectedCoreSlot, false));
     }
     if (isAddFlow) { uiEls.formMainTitle.textContent = t('formAddTitle'); uiEls.formSave.textContent = t('formSaveBtn'); }
     else { uiEls.formMainTitle.textContent = t('formEditTitle'); uiEls.formSave.textContent = t('formUpdateBtn'); }
@@ -8016,52 +8114,6 @@
   document.addEventListener('touchend', galaxyDragEnd);
   window.addEventListener('resize', () => { if (uiEls.formGalaxyWrap.style.display !== 'none') snapGalaxyKnobTo(selectedGalaxy, false); });
 
-  // --- جابجایی هسته‌ها (Core swap) — دقیقاً مثل جابجایی کهکشان، اما بین ۵ جایگاه هستهٔ همان کانون ---
-  let selectedCoreSlot = null;
-  const coreStops = Array.from(uiEls.formCoreTrack.querySelectorAll('.ai-galaxy-stop'));
-  function snapCoreKnobTo(coreIdx, animate = true) {
-    const stopEl = coreStops.find(s => parseInt(s.dataset.core, 10) === coreIdx);
-    if (!stopEl) return;
-    uiEls.formCoreKnob.classList.toggle('no-anim', !animate);
-    const trackRect = uiEls.formCoreTrack.getBoundingClientRect();
-    const stopRect = stopEl.getBoundingClientRect();
-    const leftPx = stopRect.left + stopRect.width / 2 - trackRect.left - uiEls.formCoreKnob.offsetWidth / 2;
-    uiEls.formCoreKnob.style.left = `${leftPx}px`;
-    coreStops.forEach(s => s.classList.toggle('active', parseInt(s.dataset.core, 10) === coreIdx));
-  }
-  coreStops.forEach(stopEl => {
-    stopEl.addEventListener('click', (e) => { e.stopPropagation(); selectedCoreSlot = parseInt(stopEl.dataset.core, 10); snapCoreKnobTo(selectedCoreSlot); });
-  });
-  let isCoreDragging = false;
-  function coreDragStart(e) { e.stopPropagation(); e.preventDefault(); isCoreDragging = true; uiEls.formCoreKnob.classList.add('dragging', 'no-anim'); }
-  uiEls.formCoreKnob.addEventListener('mousedown', coreDragStart);
-  uiEls.formCoreKnob.addEventListener('touchstart', coreDragStart, { passive: false });
-  function coreDragMove(e) {
-    if (!isCoreDragging) return;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const trackRect = uiEls.formCoreTrack.getBoundingClientRect();
-    let leftPx = clientX - trackRect.left - uiEls.formCoreKnob.offsetWidth / 2;
-    leftPx = Math.max(0, Math.min(trackRect.width - uiEls.formCoreKnob.offsetWidth, leftPx));
-    uiEls.formCoreKnob.style.left = `${leftPx}px`;
-  }
-  document.addEventListener('mousemove', coreDragMove);
-  document.addEventListener('touchmove', coreDragMove, { passive: false });
-  function coreDragEnd() {
-    if (!isCoreDragging) return;
-    isCoreDragging = false; uiEls.formCoreKnob.classList.remove('dragging');
-    const knobRect = uiEls.formCoreKnob.getBoundingClientRect(); const knobCenterX = knobRect.left + knobRect.width / 2;
-    let nearest = coreStops[0]; let nearestDist = Infinity;
-    coreStops.forEach(s => {
-      const r = s.getBoundingClientRect(); const dist = Math.abs((r.left + r.width / 2) - knobCenterX);
-      if (dist < nearestDist) { nearestDist = dist; nearest = s; }
-    });
-    selectedCoreSlot = parseInt(nearest.dataset.core, 10);
-    snapCoreKnobTo(selectedCoreSlot);
-  }
-  document.addEventListener('mouseup', coreDragEnd);
-  document.addEventListener('touchend', coreDragEnd);
-  window.addEventListener('resize', () => { if (uiEls.formCoreWrap.style.display !== 'none') snapCoreKnobTo(selectedCoreSlot, false); });
-
   addNodeBtn.addEventListener('click', (e) => {
     e.stopPropagation(); addNodeBtn.classList.add('blinking'); document.querySelectorAll('.ai-node').forEach(node => node.classList.add('faded'));
     editingNodeIndex = null; isLabelManuallyEdited = false; 
@@ -8073,7 +8125,6 @@
     uiEls.formImportanceWrap.style.display = '';
     uiEls.formDelete.style.display = 'none';
     uiEls.formGalaxyWrap.style.display = 'none';
-    uiEls.formCoreWrap.style.display = 'none';
     selectedImportance = DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     inlineForm.classList.add('active'); uiEls.formUrl.focus();
   });
@@ -8093,7 +8144,7 @@
     const isEditingCore = editingNodeIndex !== null && editingNodeIndex < 5 && !!activeDataForCheck[editingNodeIndex];
     if (isEditingCore && !label && !url) {
       activeDataForCheck[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
-      editingNodeIndex = null; selectedCoreSlot = null; saveLinksAll(); renderSpiral(); closeTree();
+      editingNodeIndex = null; saveLinksAll(); renderSpiral(); closeTree();
       showToastNotification(t('toastDeleted'), true); return;
     }
 
@@ -8109,33 +8160,41 @@
     if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
 
     if (isEditing) {
-        // منبعِ حقیقتِ مقصدِ سواپ را از خودِ DOM (توقف‌گاهِ فعال) هم می‌خوانیم، نه فقط از
-        // متغیر selectedCoreSlot — تا اگر رویداد drag-end به هر دلیلی این متغیر را
-        // به‌روزرسانی نکرده باشد، وضعیت واقعیِ نمایش‌داده‌شده به کاربر ملاک عمل باشد.
-        const activeCoreStopEl = uiEls.formCoreWrap.style.display !== 'none'
-          ? coreStops.find(s => s.classList.contains('active'))
-          : null;
-        const domCoreSlot = activeCoreStopEl ? parseInt(activeCoreStopEl.dataset.core, 10) : null;
-        const effectiveCoreSlot = (typeof domCoreSlot === 'number' && !Number.isNaN(domCoreSlot)) ? domCoreSlot : selectedCoreSlot;
-
-        if (editingNodeIndex < 5) {
-          const destGalaxy = (typeof selectedGalaxy === 'number') ? selectedGalaxy : currentHubIndex;
-          const destSlot = (typeof effectiveCoreSlot === 'number') ? effectiveCoreSlot : editingNodeIndex;
-          const movedWithinOrAcross = (destGalaxy !== currentHubIndex) || (destSlot !== editingNodeIndex);
+        // هستهٔ ثابت دیگر جایگاه‌به‌جایگاه بین ۵ اسلاتِ همان کانون جابجا نمی‌شود (نمایشِ
+        // مداری خطی نیست که «جایگاه» در آن معنا داشته باشد). به‌جایش، وقتی هستهٔ ثابت به
+        // کهکشانِ دیگری منتقل می‌شود، دیگر «هسته» نیست: به یک بوک‌مارکِ عادیِ ردهٔ ۵ ستاره
+        // در همان کهکشانِ مقصد تبدیل می‌شود — دقیقاً مثل انتقالِ یک بوک‌مارکِ عادی؛ جایگاهِ
+        // هستهٔ مبدأ هم به حالتِ خالی برمی‌گردد (مثل «بازنشانی به خالی»).
+        if (editingNodeIndex < 5 && selectedGalaxy && selectedGalaxy !== currentHubIndex) {
+          const destGalaxy = selectedGalaxy;
           const destData = hubData(destGalaxy);
-          if (movedWithinOrAcross && destData[destSlot]) {
-            const srcData = activeData; // hubData(currentHubIndex)
-            const srcGalaxy = currentHubIndex;
-            const tmp = destData[destSlot];
-            destData[destSlot] = srcData[editingNodeIndex];
-            srcData[editingNodeIndex] = tmp;
-            destData[destSlot].label = label; destData[destSlot].url = url; destData[destSlot].description = description;
-            editingNodeIndex = null; selectedCoreSlot = null; selectedGalaxy = 1;
-            saveLinksAll(); closeTree();
-            if (destGalaxy !== srcGalaxy) switchHub(destGalaxy, true); else renderSpiral();
-            showToastNotification(t('toastCoreSwapped').replace('{n}', String(destSlot + 1)).replace('{g}', String(destGalaxy)));
-            return;
+          const ring = RING_CONFIG[1]; // 5★
+          const destFull = tierCountInHub(destGalaxy, ring) >= ring.max || destData.length >= MAX_NODES;
+
+          // اگر ردهٔ ۵ ستارهٔ مقصد پر است، با قدیمی‌ترین موردِ همان رده در کهکشانِ مقصد
+          // جا عوض کن — همان الگویِ سرریزِ کهکشانیِ بوک‌مارک‌های عادی.
+          let swappedBackItem = null;
+          if (destFull) {
+            for (let i = 5; i < destData.length; i++) {
+              const candidate = destData[i];
+              const matches = !candidate.overflow && importanceMatchesRing(candidate.importance || 3, ring);
+              if (matches) { swappedBackItem = destData.splice(i, 1)[0]; break; }
+            }
           }
+
+          const movedItem = { label, url, description, importance: 5 };
+          destData.push(movedItem);
+          // جایگاهِ هستهٔ مبدأ ثابت می‌ماند (اندیس‌های ۰ تا ۴ همیشه باید وجود داشته باشند) — فقط خالی می‌شود
+          activeData[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+          if (swappedBackItem) activeData.push(swappedBackItem);
+
+          editingNodeIndex = null; selectedGalaxy = 1;
+          saveLinksAll(); closeTree();
+          switchHub(destGalaxy, true);
+          showToastNotification(swappedBackItem
+            ? t('toastGalaxySwapped').replace('{tier}', ringDisplayLabel(ring)).replace('{n}', destGalaxy)
+            : t('toastGalaxyMoved').replace('{n}', destGalaxy));
+          return;
         }
         if (editingNodeIndex >= 5 && selectedGalaxy && selectedGalaxy !== currentHubIndex) {
           const destData = hubData(selectedGalaxy);
@@ -8280,7 +8339,7 @@
   document.addEventListener('mousedown', (e) => { if (!inlineForm.classList.contains('active')) return; if (inlineForm.contains(e.target) || e.target === addNodeBtn) return; closeInlineForm(); });
 
   function closeTree() {
-    isOpen = false; showAllOverride = false; currentLayerMode = 0; editingNodeIndex = null; selectedCoreSlot = null; selectedGalaxy = 1;
+    isOpen = false; showAllOverride = false; currentLayerMode = 0; editingNodeIndex = null; selectedGalaxy = 1;
     root.classList.remove('open', 'show-all-active'); inlineForm.classList.remove('active'); addNodeBtn.classList.remove('blinking');
     setHubLabel('AI');
     document.querySelectorAll('.ai-node').forEach(node => { node.classList.remove('faded'); node.style.transitionDelay = '0s'; }); resetToggleTimeout();
