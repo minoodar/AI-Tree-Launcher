@@ -4,9 +4,7 @@
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
-فارسی (Persian Guide) ↓ فارسی (Persian Guide) ↓
-
-Adding these badges right below the main title gives visitors an immediate snapshot of your project's framework, licensing, and language." type="suggestion">
+فارسی (Persian Guide) ↓
 
 Floating Orbital Workspace · 4-Ring Galactic Vault · Smart Linguistic Studio
 
