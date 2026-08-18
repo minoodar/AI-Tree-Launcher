@@ -1,4 +1,4 @@
-# 🌌 AI Tree Launcher (V32.0)
+# 🌌 AI Tree Launcher (V32.2)
 > **Floating Orbital Workspace, 4-Ring Galactic Vault & Anydoc LLM Studio**
 
 ![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
