@@ -1,93 +1,120 @@
-🌌 AI Tree Launcher (V32.2)
+# 🌌 AI Tree Launcher (V33.0): The Global Wisdom Update
 
 ![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
-![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
+![License: MIT](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
-فارسی (Persian Guide) ↓
+> **[فارسی (Persian Guide) ↓](#--ai-tree-launcher-v330--راهنمای-فارسی)**
 
-Floating Orbital Workspace · 4-Ring Galactic Vault · Smart Linguistic Studio
+**Floating Orbital Workspace · 4-Ring Galactic Vault · Smart Linguistic Studio · Universal Heritage**
 
-A progressive, self-healing Chromium extension that transforms traditional bookmark clutter into a floating orbital environment powered by a Golden Angle Spiral (137.51°), AI integrations, and smart time management.
+A progressive, self-healing Chromium extension built with pure Vanilla JavaScript and custom CSS. It transforms traditional bookmark clutter into a floating orbital environment powered by a Golden Angle Spiral (`137.51°`), AI integrations, smart time management, and a newly expanded global library of human wisdom.
 
-🚀 What's New in V32.2
+---
 
-⚡ Eco-Mode Performance: Intelligently suspends in inactive tabs and ignores popups, drastically reducing CPU/memory usage for smoother animations.
+## 🌍 What's New in V33.0 (The Global Wisdom Update)
 
-⏰ Advanced Hourly Tracker: Schedule events with a fluid slider or exact numerical input. Get smart notifications exactly 1 hour before your event.
+AI Tree Launcher has evolved into a universal workspace. The daily mindfulness engine has been completely reimagined to include a vast repository of global philosophy, literature, and spirituality:
+*   **Eastern Wisdom:** Deep philosophical roots from the Bhagavad Gita and Buddhist texts like the Dhammapada[cite: 1].
+*   **Persian Mysticism:** Timeless bilingual couplets from Rumi[cite: 2].
+*   **Western Literature:** Masterpieces from William Shakespeare, George Orwell, Ralph Waldo Emerson, and more[cite: 3].
+*   **Christianity:** Inspiring parables and teachings from the Gospel of Luke[cite: 4].
+*   **Judaism:** Profound insights from the Torah, Zohar, Sefer Yetzirah, and Kabbalistic traditions[cite: 5].
 
-👁️ 3-Second Hover Peek: Simply hover over the launcher for 3 seconds to instantly view your nearest upcoming event without opening menus.
+## ⚡ Technical Advancements (from V32.2)
 
-✨ Core Features
+*   **Eco-Mode Performance:** Intelligently suspends in inactive tabs and ignores popups, drastically reducing CPU/memory footprint for smoother 60fps glassmorphic animations.
+*   **Advanced Hourly Tracker:** Schedule events with a fluid slider or exact numerical input. Get smart push notifications exactly 1 hour before your event.
+*   **3-Second Hover Peek:** Simply hover over the launcher for 3 seconds to instantly view your nearest upcoming event without interacting with the DOM.
 
-🌌 4-Ring Galactic Vault: Manage up to 160 bookmarks across 4 hubs. Edit galaxy cores, transfer links, and use "Hold-to-Bookmark" to assign star ratings and save tabs instantly.
+---
 
-🤖 Linguistic AI Studio & Anydoc Extractor: A smart notepad featuring English TTS, spell-check, and Persian ↔ English translation. The built-in Anydoc engine converts complex web pages into clean Markdown, ready for 12 custom AI slots.
+## ✨ Core Features & Architecture
 
-📅 Triple Calendar & Time System: Hour-level precise scheduling with an intelligent reminder system built right into your browser.
+### 🌌 1. 4-Ring Galactic Vault
+Manage up to 160 bookmarks across 4 dynamic hubs. Edit galaxy cores, transfer links seamlessly across constellations, and use the "Hold-to-Bookmark" feature to assign 1★–5★ ratings and save tabs instantly.
 
-📖 Mindfulness & 🧠 Self-Healing Engine: Enjoy bilingual daily Quranic verses and Rumi poetry. Features a persistent Zero-TTL Undo stack and a DOM Watchdog that automatically restores the UI in dynamic React/Next.js apps.
+### 🤖 2. Linguistic AI Studio & Anydoc Extractor
+A smart, 4-axis dockable notepad featuring English Text-to-Speech (TTS), intelligent spell-check, and bi-directional translation (Persian ↔ English). The built-in client-side **Anydoc engine** extracts complex web DOMs into clean, structured Markdown, routing them directly to 12 custom AI slots.
 
-🏗️ Architecture Overview
+### 📅 3. Triple Calendar & Time System
+Hour-level precise scheduling powered by a 3-in-1 algorithmic calendar (Gregorian, Jalali, Lunar) without external heavy dependencies.
 
-|
+### 🧠 4. Self-Healing Engine
+Engineered for modern Single-Page Applications (React, Next.js, Vue). Features a persistent **Zero-TTL Undo stack** (5-15 steps) and a **DOM Watchdog** that automatically re-injects the UI if the host page overwrites the DOM, completely avoiding memory leaks.
+
+---
+
+## 🏗️ Architecture Overview
 
 | Module | Core Responsibility | Key Highlights |
-| Orbit Hub | Central Floating Interface | 4 Rings, Golden Angle (137.51°), Eco-Mode Suspend |
-| Linguistic AI Studio | Prompting & Translation | TTS, Bi-directional Translation, Spell-check, 4-Axis Docking |
-| Galactic Vault | Bookmark Management | 160-Link Limit, Core Editing, 1★–5★ Tiers, Cross-Galaxy Migration |
-| Time & Heritage | Events & Mindfulness | Triple Calendar, Slider-Time UI, 1-Hour Alerts, 3-Sec Hover Peek |
-| Self-Healing Engine | Undo/Redo & Soft Relaunch | Zero-TTL Undo, DOM Watchdog for Active Tabs |
+|---|---|---|
+| **Orbit Hub** | Central Floating Interface | 4 Rings, Golden Angle (`137.51°`), Eco-Mode Suspend |
+| **Linguistic AI Studio** | Prompting & Translation | TTS, Bi-directional Translation, Spell-check, 4-Axis Docking |
+| **Galactic Vault** | Bookmark Management | 160-Link Limit, Core Editing, 1★–5★ Tiers, Cross-Galaxy Migration |
+| **Universal Heritage** | Time & Mindfulness | Triple Calendar, 1-Hour Alerts, 3-Sec Hover Peek, Global Wisdom Engine |
+| **Self-Healing Engine** | UI Stability & Memory | Zero-TTL Undo, DOM Watchdog for Active Tabs |
 
-💻 How to Install in Chrome (Developer Mode)
+---
 
-Download this repository and unzip the file.
+## 💻 How to Install in Chrome (Developer Mode)
 
-Open Chrome and go to chrome://extensions/.
+1. Clone the `minoodar/AI-Tree-Launcher` repository or download the ZIP archive and extract it.
+2. Open your Chromium browser and navigate to `chrome://extensions/`.
+3. Enable **Developer mode** (toggle in the top-right corner).
+4. Click **Load unpacked** and select the project root folder (where `manifest.json` is located).
+5. Done! Your floating 4-ring workspace is now live across your web pages.
 
-Enable Developer mode (toggle in the top-right corner).
+---
+---
 
-Click Load unpacked and select the project root folder.
+<a name="--ai-tree-launcher-v330--راهنمای-فارسی"></a>
 
-Done! The floating 4-ring workspace will now appear on your web pages.
+# 🌌 AI Tree Launcher (V33.0) | راهنمای فارسی
 
-🌌 AI Tree Launcher (V32.2) | راهنمای فارسی
+**منظومهٔ شناور کاری · کهکشان ۴ حلقه‌ای · استودیوی هوشمند زبانی · میراث جهانی**
 
-منظومهٔ شناور کاری · کهکشان ۴ حلقه‌ای · استودیوی هوشمند زبانی
+یک افزونه پیشرفته و خوددرمان، توسعه‌یافته با Vanilla JavaScript خالص که شلوغی بوک‌مارک‌های سنتی را به یک محیط مداری شناور با زاویه طلایی (۱۳۷.۵۱ درجه) تبدیل می‌کند. این ابزار، مدیریت زمان، هوش مصنوعی و اکنون گنجینه‌ای از خرد جهانی را مستقیماً به مرورگر شما می‌آورد.
 
-یک افزونه پیشرفته و خوددرمان که شلوغی بوک‌مارک‌های سنتی را به یک محیط مداری شناور با زاویه طلایی (۱۳۷.۵۱ درجه) تبدیل می‌کند و ابزارهای هوش مصنوعی و مدیریت زمان را در اختیار شما می‌گذارد.
+---
 
-🚀 تازه‌های نسخه V32.2
+## 🌍 تازه‌های نسخه V33.0 (به‌روزرسانی خرد جهانی)
 
-⚡ موتور Eco-Mode: تعلیق خودکار افزونه در تب‌های غیرفعال و پنجره‌های پاپ‌آپ برای کاهش چشمگیر مصرف منابع (RAM/CPU) و اجرای روان‌تر.
+در این نسخه، AI Tree Launcher به یک دستیار با دیدگاه جهانی تبدیل شده است. بخش آرامش‌بخش روزانه اکنون به یک کتابخانه جامع از فلسفه، ادبیات و معنویت سراسر جهان ارتقا یافته است:
+*   **خرد شرق:** ریشه‌های عمیق فلسفی از متون بهاگاواد گیتا و آموزه‌های بودایی مانند داماپادا[cite: 1].
+*   **عرفان پارسی:** ابیات جاودانه و دوزبانه از مولانا[cite: 2].
+*   **ادبیات غرب:** شاهکارهایی از ویلیام شکسپیر، جرج اورول، رالف والدو امرسون و دیگر اندیشمندان[cite: 3].
+*   **مسیحیت:** تمثیل‌ها و آموزه‌های الهام‌بخش از انجیل لوقا[cite: 4].
+*   **یهودیت:** حکمت‌های عمیق از تورات، زوهر، سفر یتزیرا و سنت‌های عرفانی کابالا[cite: 5].
 
-⏰ ردیاب رویدادهای ساعتی: برنامه‌ریزی دقیق با اسلایدر روان و امکان ثبت عددی. دریافت هشدار هوشمند دقیقاً یک ساعت قبل از موعد رویداد.
+## ⚡ پیشرفت‌های فنی (از نسخه V32.2)
 
-👁️ نگاه سریع ۳ ثانیه‌ای (Hover Peek): تنها با ۳ ثانیه نگه داشتن موس روی افزونه، نزدیک‌ترین رویداد پیش‌روی خود را بدون باز کردن منوها ببینید.
+*   **موتور Eco-Mode:** تعلیق هوشمندانهٔ افزونه در تب‌های غیرفعال و پاپ‌آپ‌ها، که مصرف RAM و CPU را به حداقل رسانده و انیمیشن‌های گلس‌مورفیسم را با نرخ 60fps اجرا می‌کند.
+*   **ردیاب پیشرفته ساعتی:** ثبت دقیق رویدادها با اسلایدر روان یا ورودی عددی، همراه با سیستم پوش‌نوتیفیکیشن که دقیقاً ۱ ساعت قبل از موعد به شما هشدار می‌دهد.
+*   **نگاه سریع ۳ ثانیه‌ای (Hover Peek):** بدون نیاز به کلیک، تنها موس را ۳ ثانیه روی افزونه نگه دارید تا نزدیک‌ترین وظیفهٔ پیش‌روی خود را ببینید.
 
-✨ امکانات کلیدی
+---
 
-🌌 خزانه ۴ حلقه‌ای کهکشانی: مدیریت ۱۶۰ بوک‌مارک در ۴ حلقه مجزا. امکان ویرایش هسته‌ها، انتقال لینک‌ها بین کهکشان‌ها و ذخیره فوری تب‌ها با نگه داشتن کلیک (Hold-to-Bookmark).
+## ✨ امکانات کلیدی و معماری
 
-🤖 استودیوی زبانی و Anydoc: دفترچه یادداشت مجهز به روخوانی انگلیسی (TTS)، ترجمه دوطرفه فارسی/انگلیسی و غلط‌گیری. موتور Anydoc مقالات سایت‌ها را به Markdown تمیز برای ۱۲ جایگاه هوش مصنوعی تبدیل می‌کند.
+### 🌌 ۱. خزانه ۴ حلقه‌ای کهکشانی
+مدیریت تا ۱۶۰ بوک‌مارک در ۴ حلقه مجزا. امکان ویرایش هسته‌ها، انتقال یکپارچه لینک‌ها بین منظومه‌ها، و ثبت سریع تب‌ها با استفاده از قابلیت Hold-to-Bookmark همراه با رده‌بندی ۱ تا ۵ ستاره.
 
-📅 تقویم سه‌گانه و زمان‌بندی: ایجاد رویداد در سطح ساعت با سیستم یادآوری هوشمند و یکپارچه در مرورگر.
+### 🤖 ۲. استودیوی زبانی و استخراج‌گر Anydoc
+یک دفترچه یادداشت با قابلیت اتصال (Dock) به ۴ جهت مانیتور، مجهز به روخوانی متن انگلیسی (TTS)، غلط‌گیر هوشمند و ترجمه دوطرفه. موتور استخراج‌گر **Anydoc** نیز ساختار پیچیده وب‌سایت‌ها را به زبان تمیز Markdown تبدیل کرده و برای ۱۲ اسلات هوش مصنوعی آماده می‌کند.
 
-📖 آرامش‌بخش‌ها و 🧠 موتور خوددرمان: نمایش روزانه آیات قرآن و اشعار مولانا. دارای پشته Undo بدون انقضا و نگهبان DOM برای بازسازی خودکار افزونه در سایت‌های پویا (React/Next.js).
+### 📅 ۳. تقویم سه‌گانه و زمان‌بندی
+تقویم الگوریتمی ۳ در ۱ (جلالی، میلادی، قمری) بدون نیاز به کتابخانه‌های سنگین خارجی برای برنامه‌ریزی دقیق.
 
-🏗️ نمای کلی معماری
+### 🧠 ۴. موتور خوددرمان (Self-Healing)
+طراحی‌شده برای سایت‌های مدرن (React, Next.js). مجهز به پشتهٔ **Undo بدون انقضا** (۵ تا ۱۵ مرحله) و یک **نگهبان DOM Watchdog** که در صورت پاک شدن افزونه توسط سایت میزبان، آن را بدون نشت حافظه به‌طور خودکار بازسازی می‌کند.
 
-| ماژول | مسئولیت اصلی | ویژگی‌های کلیدی |
-| هاب مداری | رابط کاربری مرکزی شناور | ۴ حلقه، زاویه طلایی (۱۳۷.۵۱°)، حالت Eco-Mode |
-| استودیوی زبانی | اعلان‌ها، ترجمه و گفتار | روخوانی (TTS)، ترجمه دوطرفه، غلط‌گیری، داک ۴ جهته |
-| خزانه کهکشانی | مدیریت بوک‌مارک‌ها | محدودیت ۱۶۰ لینک، ویرایش هسته، امتیازدهی ستاره‌ای، انتقال بین کهکشانی |
-| زمان و میراث | رویدادها و آرامش‌بخش‌ها | تقویم سه‌گانه، اسلایدر زمان، هشدار ۱ ساعته، پیش‌نمایش ۳ ثانیه‌ای |
-| موتور خوددرمان | اجرای نرم و پایدار | Undo بدون انقضا، نگهبان DOM برای بازسازی خودکار رابط کاربری |
+---
 
-💻 آموزش نصب در کروم (Developer Mode)
+## 💻 آموزش نصب در کروم (Developer Mode)
 
-۱. این مخزن را دانلود کرده و از حالت فشرده خارج کنید.
-۲. در مرورگر کروم به آدرس chrome://extensions/ بروید.
-۳. از بالا سمت راست، گزینه Developer mode را روشن کنید.
-۴. روی Load unpacked کلیک کرده و پوشه اصلی پروژه را انتخاب کنید.
-۵. تمام شد! منظومه شناور اکنون روی صفحات وب شما آماده استفاده است.
+۱. مخزن `minoodar/AI-Tree-Launcher` را کلون کرده یا فایل ZIP آن را دانلود و استخراج کنید.
+۲. مرورگر کرومیوم خود را باز کرده و به آدرس `chrome://extensions/` بروید.
+۳. از بالا سمت راست، حالت برنامه‌نویس (**Developer mode**) را روشن کنید.
+۴. روی دکمه **Load unpacked** کلیک کرده و پوشه اصلی پروژه (محل قرارگیری `manifest.json`) را انتخاب کنید.
+۵. نصب کامل شد! فضای کاری مداری شما اکنون در تمامی صفحات وب در دسترس است.
