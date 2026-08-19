@@ -492,342 +492,6 @@
     } catch (e) { return ''; }
   }
 
-  const DAILY_QUOTES = [
-    { 
-        text: "إِنَّ مَعِيَ رَبِّي سَيَهْدِينِ", 
-        ref: "شعراء: 62", 
-        refEn: "Ash-Shu'ara: 62",
-        fa: "بی‌گمان پروردگارم با من است و مرا هدایت خواهد کرد.",
-        en: "Indeed, with me is my Lord; He will guide me." 
-    },
-    { 
-        text: "هُوَ مَعَكُمْ أَيْنَ مَا كُنتُمْ", 
-        ref: "حدید: 4", 
-        refEn: "Al-Hadid: 4",
-        fa: "و او با شماست هر جا که باشید.",
-        en: "And He is with you wherever you are." 
-    },
-    { 
-        text: "وَنَحْنُ أَقْرَبُ إِلَيْهِ مِنْ حَبْلِ الْوَرِيدِ", 
-        ref: "ق: 16", 
-        refEn: "Qaf: 16",
-        fa: "و ما از رگ گردن به او نزدیک‌تریم.",
-        en: "And We are closer to him than [his] jugular vein." 
-    },
-    { 
-        text: "وَاللَّهُ خَيْرٌ حَافِظًا", 
-        ref: "یوسف: 64", 
-        refEn: "Yusuf: 64",
-        fa: "و خداوند بهترین نگهبان است.",
-        en: "But Allah is the best guardian." 
-    },
-    { 
-        text: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ", 
-        ref: "آل‌عمران: 173", 
-        refEn: "Ali 'Imran: 173",
-        fa: "خداوند ما را بس است و او بهترین حامی و کارگزار است.",
-        en: "Sufficient for us is Allah, and [He is] the best Disposer of affairs." 
-    },
-    { 
-        text: "أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ", 
-        ref: "رعد: 28", 
-        refEn: "Ar-Ra'd: 28",
-        fa: "آگاه باشید که تنها با یاد خدا دل‌ها آرام می‌گیرد.",
-        en: "Unquestionably, by the remembrance of Allah hearts are assured." 
-    },
-    { 
-        text: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", 
-        ref: "شرح: 5", 
-        refEn: "Ash-Sharh: 5",
-        fa: "پس یقیناً با هر سختی، آسانی است.",
-        en: "For indeed, with hardship [will be] ease." 
-    },
-    { 
-        text: "إِنَّ مَعَ الْعُسْرِ يُسْرًا", 
-        ref: "شرح: 6", 
-        refEn: "Ash-Sharh: 6",
-        fa: "قطعاً با هر سختی، آسانی است.",
-        en: "Indeed, with hardship [will be] ease." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", 
-        ref: "بقره: 153", 
-        refEn: "Al-Baqarah: 153",
-        fa: "همانا خداوند با شکیبایان است.",
-        en: "Indeed, Allah is with the patient." 
-    },
-    { 
-        text: "لَا خَوْفٌ عَلَيْهِمْ وَلَا هُمْ يَحْزَنُونَ", 
-        ref: "بقره: 62", 
-        refEn: "Al-Baqarah: 62",
-        fa: "نه ترسی بر آنان است و نه اندوهگین می‌شوند.",
-        en: "No fear will there be concerning them, nor will they grieve." 
-    },
-    { 
-        text: "لَا تَقْنَطُوا مِنْ رَحْمَةِ اللَّهِ", 
-        ref: "زمر: 53", 
-        refEn: "Az-Zumar: 53",
-        fa: "از رحمت خداوند ناامید نشوید.",
-        en: "Do not despair of the mercy of Allah." 
-    },
-    { 
-        text: "وَرَحْمَتِي وَسِعَتْ كُلَّ شَيْءٍ", 
-        ref: "اعراف: 156", 
-        refEn: "Al-A'raf: 156",
-        fa: "و رحمت من همه چیز را فرا گرفته است.",
-        en: "But My mercy encompasses all things." 
-    },
-    { 
-        text: "إِنَّ رَبِّي رَحِيمٌ وَدُودٌ", 
-        ref: "هود: 90", 
-        refEn: "Hud: 90",
-        fa: "همانا پروردگار من مهربان و بسیار دوستدار (بندگان) است.",
-        en: "Indeed, my Lord is Merciful and Affectionate." 
-    },
-    { 
-        text: "إِنَّهُ هُوَ التَّوَّابُ الرَّحِيمُ", 
-        ref: "بقره: 37", 
-        refEn: "Al-Baqarah: 37",
-        fa: "همانا اوست بسیار توبه‌پذیر و مهربان.",
-        en: "Indeed, it is He who is the Accepting of repentance, the Merciful." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ غَفُورٌ رَّحِيمٌ", 
-        ref: "ده‌ها آیه", 
-        refEn: "Multiple Verses",
-        fa: "همانا خداوند بسیار آمرزنده و مهربان است.",
-        en: "Indeed, Allah is Forgiving and Merciful." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ هُوَ الرَّزَّاقُ", 
-        ref: "ذاریات: 58", 
-        refEn: "Adh-Dhariyat: 58",
-        fa: "همانا خداوند است که بسیار روزی‌دهنده است.",
-        en: "Indeed, it is Allah who is the [continual] Provider." 
-    },
-    { 
-        text: "وَاللَّهُ خَيْرُ الرَّازِقِينَ", 
-        ref: "حج: 58", 
-        refEn: "Al-Hajj: 58",
-        fa: "و خداوند بهترین روزی‌دهندگان است.",
-        en: "And indeed, Allah is the best of providers." 
-    },
-    { 
-        text: "وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ", 
-        ref: "طلاق: 3", 
-        refEn: "At-Talaq: 3",
-        fa: "و او را از جایی که گمان نمی‌برد روزی می‌دهد.",
-        en: "And He will provide for him from where he does not expect." 
-    },
-    { 
-        text: "وَمَا بِكُم مِّن نِّعْمَةٍ فَمِنَ اللَّهِ", 
-        ref: "نحل: 53", 
-        refEn: "An-Nahl: 53",
-        fa: "و هر نعمتی که دارید، از سوی خداست.",
-        en: "And whatever you have of favor - it is from Allah." 
-    },
-    { 
-        text: "وَاللَّهُ ذُو الْفَضْلِ الْعَظِيمِ", 
-        ref: "بقره: 105", 
-        refEn: "Al-Baqarah: 105",
-        fa: "و خداوند صاحب فضل و بخشش بزرگ است.",
-        en: "And Allah is the possessor of great bounty." 
-    },
-    { 
-        text: "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ", 
-        ref: "طلاق: 3", 
-        refEn: "At-Talaq: 3",
-        fa: "و هر کس بر خدا توکل کند، خدا او را بس است.",
-        en: "And whoever relies upon Allah - then He is sufficient for him." 
-    },
-    { 
-        text: "وَعَلَى اللَّهِ فَلْيَتَوَكَّلِ الْمُؤْمِنُونَ", 
-        ref: "آل‌عمران: 122", 
-        refEn: "Ali 'Imran: 122",
-        fa: "و مؤمنان باید تنها بر خداوند توکل کنند.",
-        en: "And upon Allah let the believers rely." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ يُحِبُّ الْمُتَوَكِّلِينَ", 
-        ref: "آل‌عمران: 159", 
-        refEn: "Ali 'Imran: 159",
-        fa: "همانا خداوند توکل‌کنندگان را دوست می‌دارد.",
-        en: "Indeed, Allah loves those who rely [upon Him]." 
-    },
-    { 
-        text: "إِلَى اللَّهِ تُرْجَعُ الْأُمُورُ", 
-        ref: "آل‌عمران: 109", 
-        refEn: "Ali 'Imran: 109",
-        fa: "و همه کارها به سوی خدا بازگردانده می‌شود.",
-        en: "And to Allah all matters are returned." 
-    },
-    { 
-        text: "إِلَى اللَّهِ الْمَصِيرُ", 
-        ref: "نور: 42 و آیات دیگر", 
-        refEn: "An-Nur: 42 & Other Verses",
-        fa: "و بازگشت [همه] به سوی خداست.",
-        en: "And to Allah is the final destination." 
-    },
-    { 
-        text: "اللَّهُ نُورُ السَّمَاوَاتِ وَالْأَرْضِ", 
-        ref: "نور: 35", 
-        refEn: "An-Nur: 35",
-        fa: "خداوند نور آسمان‌ها و زمین است.",
-        en: "Allah is the Light of the heavens and the earth." 
-    },
-    { 
-        text: "وَاللَّهُ يَهْدِي مَن يَشَاءُ", 
-        ref: "نور: 46", 
-        refEn: "An-Nur: 46",
-        fa: "و خداوند هر کس را بخواهد هدایت می‌کند.",
-        en: "And Allah guides whom He wills." 
-    },
-    { 
-        text: "إِنَّ رَبِّي قَرِيبٌ مُجِيبٌ", 
-        ref: "هود: 61", 
-        refEn: "Hud: 61",
-        fa: "همانا پروردگار من نزدیک و اجابت‌کننده است.",
-        en: "Indeed, my Lord is near and responsive." 
-    },
-    { 
-        text: "رَبِّ زِدْنِي عِلْمًا", 
-        ref: "طه: 114", 
-        refEn: "Taha: 114",
-        fa: "پروردگارا، بر دانشم بیفزای.",
-        en: "My Lord, increase me in knowledge." 
-    },
-    { 
-        text: "وَقُل رَّبِّ ارْحَمْهُمَا", 
-        ref: "اسراء: 24", 
-        refEn: "Al-Isra: 24",
-        fa: "و بگو: پروردگارا، بر آن دو (پدر و مادر) رحمت آور.",
-        en: "And say: 'My Lord, have mercy upon them.'" 
-    },
-    { 
-        text: "وَهُوَ أَرْحَمُ الرَّاحِمِينَ", 
-        ref: "یوسف: 64", 
-        refEn: "Yusuf: 64",
-        fa: "و او مهربان‌ترین مهربانان است.",
-        en: "And He is the most merciful of the merciful." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ", 
-        ref: "بقره: 20", 
-        refEn: "Al-Baqarah: 20",
-        fa: "همانا خداوند بر هر چیزی تواناست.",
-        en: "Indeed, Allah is over all things competent." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ بِكُلِّ شَيْءٍ عَلِيمٌ", 
-        ref: "بقره: 282", 
-        refEn: "Al-Baqarah: 282",
-        fa: "همانا خداوند به هر چیزی داناست.",
-        en: "And Allah is Knowing of all things." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ لَطِيفٌ خَبِيرٌ", 
-        ref: "لقمان: 16", 
-        refEn: "Luqman: 16",
-        fa: "همانا خداوند لطیف و آگاه است.",
-        en: "Indeed, Allah is Subtle and Acquainted." 
-    },
-    { 
-        text: "إِنَّ اللَّهَ عَزِيزٌ حَكِيمٌ", 
-        ref: "ده‌ها آیه", 
-        refEn: "Multiple Verses",
-        fa: "همانا خداوند شکست‌ناپذیر و حکیم است.",
-        en: "Indeed, Allah is Exalted in Might and Wise." 
-    },
-    { 
-        text: "الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", 
-        ref: "فاتحه: 2", 
-        refEn: "Al-Fatihah: 2",
-        fa: "ستایش مخصوص خداوندی است که پروردگار جهانیان است.",
-        en: "[All] praise is [due] to Allah, Lord of the worlds." 
-    },
-    { 
-        text: "إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ", 
-        ref: "فاتحه: 5", 
-        refEn: "Al-Fatihah: 5",
-        fa: "تنها تو را می‌پرستیم و تنها از تو یاری می‌جوییم.",
-        en: "It is You we worship and You we ask for help." 
-    },
-    { 
-        text: "اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ", 
-        ref: "فاتحه: 6", 
-        refEn: "Al-Fatihah: 6",
-        fa: "ما را به راه راست هدایت فرما.",
-        en: "Guide us to the straight path." 
-    },
-    { 
-        text: "إِنَّا لِلَّهِ وَإِنَّا إِلَيْهِ رَاجِعُونَ", 
-        ref: "بقره: 156", 
-        refEn: "Al-Baqarah: 156",
-        fa: "ما از آنِ خداییم و به سوی او بازمی‌گردیم.",
-        en: "Indeed we belong to Allah, and indeed to Him we will return." 
-    },
-    { 
-        text: "فَاذْكُرُونِي أَذْكُرْكُمْ", 
-        ref: "بقره: 152", 
-        refEn: "Al-Baqarah: 152",
-        fa: "پس مرا یاد کنید تا شما را یاد کنم.",
-        en: "So remember Me; I will remember you." 
-    }
-];
-  function getDailyQuoteIndex() {
-    const today = new Date(); const dateStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-    let hash = 0; for (let i = 0; i < dateStr.length; i++) { hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0; }
-    return hash % DAILY_QUOTES.length;
-  }
-
-  const RUMI_QUOTES = [
-    { fa: "بنمای رخ که باغ و گلستانم آرزوست\nبگشای لب که قند فراوانم آرزوست", en: "Show your face, for garden and rose-garden I long;\nOpen your lips, for abundant sugar I long.", ref: "مولانا #1" },
-    { fa: "ای آفتاب حسن! برون آ دمی ز ابر\nکآن چهرهٔ مشعشع تابانم آرزوست", en: "O sun of beauty! Come out for a moment from the cloud,\nFor that radiant, shining face I long.", ref: "مولانا #2" },
-    { fa: "بشنودم از هوای تو آواز طبل باز\nباز آمدم که ساعد سلطانم آرزوست", en: "I heard the drum of the falcon in your air;\nI came back, for the forearm of the Sultan I long.", ref: "مولانا #3" },
-    { fa: "گفتی ز ناز «بیش مرنجان مرا، برو»\nآن گفتنت که «بیش مرنجانم» آرزوست", en: "You said coquettishly, \"Do not torment me more, go away\";\nThat saying of yours, \"Do not torment me more,\" is what I long for.", ref: "مولانا #4" },
-    { fa: "وآن دفع گفتنت که «برو، شه به خانه نیست»\nوآن ناز و باز و تندی دربانم آرزوست", en: "And that repelling word of yours, \"Go, the King is not home\";\nAnd that coyness, return, and sharpness of the doorman I long for.", ref: "مولانا #5" },
-    { fa: "در دست هر که هست ز خوبی قراضه‌هاست\nآن معدن مَلات و آن کانم آرزوست", en: "Whatever scraps of beauty are in everyone's hand,\nThat mine of molten gold, that treasure-mine I long for.", ref: "مولانا #6" },
-    { fa: "این نان و آب چرخ، چو سیل است بی‌وفا\nمن ماهی‌ام، نهنگم، عُمّانم آرزوست", en: "This bread and water of the sphere are faithless like a flood;\nI am a fish, I am a whale, the deep ocean I long for.", ref: "مولانا #7" },
-    { fa: "یعقوب‌وار «وا اَسَفا»ها همی زنم\nدیدار خوب یوسفِ کنعانم آرزوست", en: "Like Jacob, I cry out \"Alas, my grief!\";\nThe sight of beautiful Joseph of Canaan I long for.", ref: "مولانا #8" },
-    { fa: "والله که شهر بیتو مرا حبس می‌شود\nآوارگی و کوه و بیابانم آرزوست", en: "By God, the city without you becomes a prison for me;\nWandering, the mountain, and the desert I long for.", ref: "مولانا #9" },
-    { fa: "زین همرهان سست‌عناصر دلم گرفت\nشیر خدا و رستم دستانم آرزوست", en: "I am weary of these faint-hearted companions;\nThe Lion of God (Ali) and Rustam-e Dastan I long for.", ref: "مولانا #10" },
-    { fa: "هر کسی از ظن خود شد یار من\nاز درون من نجست اسرار من", en: "Everyone became my friend according to their own fancy;\nThey did not seek my secrets from within me.", ref: "مولانا #11" },
-    { fa: "عالم این خاک و هوا گوهر کفر است و فنا\nدر دل کفر آمدهام تا که به ایمان برسم", en: "This world of dust and air is the essence of disbelief and annihilation;\nI have come into the heart of disbelief so that I may reach faith.", ref: "مولانا #12" },
-    { fa: "این جهان زندان و ما زندانیان\nحفره کن زندان و خود را وا رهان", en: "This world is a prison and we are the prisoners;\nDig a hole in the prison and free yourself!", ref: "مولانا #13" },
-    { fa: "خنک آن قمار بازی، که بباخت آنچه بودش\nبنماند هیچش الّا، هوس قمار دیگر", en: "Blessed is that gambler who lost all that he had;\nNothing remained for him except the desire for another gamble.", ref: "مولانا #14" },
-    { fa: "ساعتی میزان اینی، ساعتی میزان آن\nیک نفس میزان خود شو، تاشوی موزون خویش", en: "One moment you are the measure of this, another moment the measure of that;\nFor one breath, become your own measure, so that you may become your harmonious self.", ref: "مولانا #15" },
-    { fa: "هر خون که ز من روید با خاک تو می‌گوید\nبا مهر تو همرنگم با عشق تو هنبازم", en: "Every blood that flows from me speaks with your soil;\nI am the same color as your love, I gamble with your love.", ref: "مولانا #16" },
-    { fa: "بیا تا قدر همدیگر بدانیم\nکه تا ناگه ز یکدیگر نمانیم", en: "Come, let us know each other's worth,\nSo that we do not suddenly remain apart from one another.", ref: "مولانا #17" },
-    { fa: "عید آمد و عید آمد یاری که رمید آمد\nعیدانه فراوان شد تا باد چنین بادا", en: "The feast has come, the feast has come, the Beloved who had fled has come;\nThe feast-gifts are abundant, may it always be so!", ref: "مولانا #18" },
-    { fa: "زهی عشق، زهی عشق که ماراست خدایا\nچه نغز است و چه خوب است و چه زیباست خدایا", en: "Hail to love, hail to love that is ours, O God!\nHow delicate it is, how good it is, and how beautiful it is, O God!", ref: "مولانا #19" },
-    { fa: "من که حیران ز ملاقات توام\nچون خیالی ز خیالات توام", en: "I who am bewildered by my encounter with you,\nI am like a phantom among your phantoms.", ref: "مولانا #20" },
-    { fa: "من هم رباب عشقم و عشقم ربابیست\nوان لطف‌های زخمهٔ رحمانم آرزوست", en: "I too am the lute of love, and my love is lute-playing;\nAnd those gentle touches of the Merciful's plectrum I long for.", ref: "مولانا #21" },
-    { fa: "تا از خود ببریدم من عشق تو بگزیدم\nخود را چو فنا دیدم، آهسته که سرمستم", en: "Since I was cut off from myself, I chose your love;\nWhen I saw myself annihilated, softly—for I am drunk.", ref: "مولانا #22" },
-    { fa: "جفایی کز بر معشوق آید\nنثارش کن به شادی مرحبایی", en: "Whatever cruelty comes from the Beloved,\nScatter it joyfully with a welcome of \"Marhaba!\" (welcome).", ref: "مولانا #23" },
-    { fa: "نیست آگه آن کشش از جرم و داد\nلیک بس جادوست عشق و اعتقاد", en: "That attraction (of love) is unaware of sin and justice;\nBut how magical love and faith are!", ref: "مولانا #24" },
-    { fa: "مرغ باغ ملکوتم نیم از عالم خاک\nچند روزی قفسی ساخته‌ام از بدنم", en: "I am a bird of the heavenly garden, I am not of this world of dust;\nFor a few days, I have made a cage from my body.", ref: "مولانا #25" },
-    { fa: "هر کجا عشق آید و ساکن شود\nهر چه نا ممکن بود ممکن شود", en: "Wherever love comes and settles down,\nWhatever was impossible becomes possible.", ref: "مولانا #26" },
-    { fa: "مـــرده بدم زنده شدم، گـریه بـدم خنــده شدم\nدولت عشـق آمــد و مـــن دولت پـاینــــده شدم", en: "I was dead, I became alive; I was tears, I became laughter;\nThe fortune of love came, and I became lasting fortune.", ref: "مولانا #27" },
-    { fa: "آب دریا را اگـــــــر نتوان کشـید\nهم به قدر تشنگی باید چشید", en: "If one cannot drink the entire sea water,\nOne must taste it to the extent of one's thirst.", ref: "مولانا #28" },
-    { fa: "بی همگان به سر شود بیتو به سر نمی‌شود\nداغ تو دارد این دلم جای دگر نمی‌شود", en: "Life goes by without everyone, but without you it does not go by;\nMy heart carries your brand; it does not go elsewhere.", ref: "مولانا #29" },
-    { fa: "ما چو ناییم و نوا در ما ز توست\nما چو کوهیم و صدا در ما ز توست", en: "We are like the reed, and the melody in us is from You;\nWe are like the mountain, and the echo in us is from You.", ref: "مولانا #30" },
-    { fa: "دلا نزد کسی بنشین که او از دل خبر دارد\nبه زیر آن درختی رو که او گل‌های تر دارد", en: "O heart, sit with someone who has knowledge of the heart;\nGo under that tree that has fresh flowers.", ref: "مولانا #31" },
-    { fa: "من آنِ توام مرا به من باز مده", en: "I am Yours, do not give me back to myself.", ref: "مولانا #32" },
-    { fa: "همه را بیازمودم ز تو خوش‌ترم نیامد", en: "I tried everyone; none came sweeter to me than You.", ref: "مولانا #33" },
-    { fa: "اندر دل بی‌وفا غــم و ماتم باد\nآن را که وفا نیست ز عالم کم باد", en: "In the unfaithful heart, may there be grief and mourning;\nMay one who has no loyalty be diminished from the world.", ref: "مولانا #34" },
-    { fa: "آمد بهار جانها ای شاخ تر به رقص آ", en: "The spring of souls has come, O moist (living) branch, begin to dance!", ref: "مولانا #35" },
-    { fa: "من از عالم تو را تنها گزیدم\nروا داری که من غمگین نشینم؟", en: "I chose only You from all the world;\nDo you deem it right that I remain sorrowful?", ref: "مولانا #36" },
-    { fa: "صد نامه فرستادم و صد راه نشان دادم\nیا راه نمی‌دانی یا نامه نمی‌خوانی!", en: "I sent a hundred letters and showed a hundred paths;\nEither you don't know the way, or you don't read the letters!", ref: "مولانا #37" },
-    { fa: "مرا عهدیست با شادی که شادی آن من باشد\nمرا قولیست با جانان که جانان جان من باشد", en: "I have a covenant with joy that joy is mine;\nI have a promise with the Beloved that the Beloved is the life of my soul.", ref: "مولانا #38" },
-    { fa: "شاهیست که تو هرچه بپوشی داند\nبیکام و زبان گر بخروشی داند", en: "He is a King who knows whatever you conceal;\nIf you roar without mouth or tongue, He knows.", ref: "مولانا #39" },
-    { fa: "گویاترم ز بلبل امّا از رَشکِ عام\nمُهر است بر دهانم و افغانم آرزوست", en: "I am more eloquent than the nightingale, but due to the envy of the common folk,\nA seal is on my mouth, and yet lamenting is what I long for.", ref: "مولانا #40" },
-  ];
-  function getDailyRumiIndex() {
-    const today = new Date(); const dateStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}-rumi`;
-    let hash = 0; for (let i = 0; i < dateStr.length; i++) { hash = (hash * 31 + dateStr.charCodeAt(i)) >>> 0; }
-    return hash % RUMI_QUOTES.length;
-  }
-
   const RING_CONFIG = [
     { labelKey: 'hubCore', max: 5 },
     { label: '5★',   importance: 5,     max: 7  },
@@ -3288,19 +2952,20 @@
   uiEls.todoWhenToday.addEventListener('click', (e) => { e.stopPropagation(); setAddForTomorrow(false); });
   uiEls.todoWhenTomorrow.addEventListener('click', (e) => { e.stopPropagation(); setAddForTomorrow(true); });
 
-  let manualQuoteIndex = null;
   let isQuoteCollapsed = true; // Hidden by default — shows only the closed "🌙" tab until the user opens it
 
   function renderDailyQuote() {
-    const idx = manualQuoteIndex !== null ? manualQuoteIndex : getDailyQuoteIndex();
-    const q = DAILY_QUOTES[idx];
+    const q = AITreeQuoteEngine.religionFeature.current();
+    if (!q) return;
     const isFa = currentLang === 'fa';
+    const religionCat = AITreeQuoteEngine.religions[AITreeQuoteEngine.activeReligionKey];
     if (uiEls.todoQuoteFa) {
       uiEls.todoQuoteFa.textContent = q.text || '';
       uiEls.todoQuoteFa.dir = 'rtl';
+      uiEls.todoQuoteFa.style.display = q.text ? '' : 'none';
     }
-    // Bilingual translation line — Arabic verse above always stays as-is (the original text),
-    // only the translation underneath switches with the app language, same idea as the Rumi drawer.
+    // Bilingual translation line — original-language verse above always stays as-is,
+    // only the translation underneath switches with the app language, same idea as the poetry drawer.
     if (uiEls.todoQuoteTranslation) {
       const translation = isFa ? (q.fa || '') : (q.en || '');
       uiEls.todoQuoteTranslation.textContent = translation;
@@ -3311,9 +2976,9 @@
     }
     if (uiEls.todoQuoteTitle) {
       const ref = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
-      uiEls.todoQuoteTitle.textContent = ref;
+      uiEls.todoQuoteTitle.textContent = ref ? `${religionCat.icon} ${ref}` : religionCat.icon;
       uiEls.todoQuoteTitle.dir = isFa ? 'rtl' : 'ltr';
-      uiEls.todoQuoteTitle.style.display = ref ? '' : 'none';
+      uiEls.todoQuoteTitle.style.display = '';
     }
     if (uiEls.todoQuote) uiEls.todoQuote.classList.toggle('is-collapsed', isQuoteCollapsed);
     if (uiEls.todoQuoteChevron) uiEls.todoQuoteChevron.textContent = isQuoteCollapsed ? '▼' : '▲';
@@ -3340,12 +3005,7 @@
   function cycleToRandomQuote(e) {
     if (e) e.stopPropagation();
     if (isQuoteCollapsed) return; // body is invisible/inert while collapsed — nothing to cycle
-    const currentIdx = manualQuoteIndex !== null ? manualQuoteIndex : getDailyQuoteIndex();
-    let next = currentIdx;
-    if (DAILY_QUOTES.length > 1) {
-      while (next === currentIdx) next = Math.floor(Math.random() * DAILY_QUOTES.length);
-    }
-    manualQuoteIndex = next;
+    AITreeQuoteEngine.religionFeature.cycleRandom();
     uiEls.todoQuote.classList.remove('pulse');
     void uiEls.todoQuote.offsetWidth;
     uiEls.todoQuote.classList.add('pulse');
@@ -3362,8 +3022,7 @@
   }
 
   function buildDailyQuoteCopyText() {
-    const idx = manualQuoteIndex !== null ? manualQuoteIndex : getDailyQuoteIndex();
-    const q = DAILY_QUOTES[idx];
+    const q = AITreeQuoteEngine.religionFeature.current();
     if (!q) return '';
     const isFa = currentLang === 'fa';
     const lines = [];
@@ -3406,12 +3065,12 @@
   // === Rumi couplet toggle for the clock/calendar panel — same sun/moon pattern as the Quran ===
   // Difference: the Quran quote is single-language (Arabic) always; this one is bilingual —
   // only the Persian text shows in fa mode, only the English translation shows in en mode.
-  let manualRumiIndex = null;
   let isRumiCollapsed = true; // Hidden by default, same as the Quran tab
 
   function renderRumiQuote() {
-    const idx = manualRumiIndex !== null ? manualRumiIndex : getDailyRumiIndex();
-    const q = RUMI_QUOTES[idx];
+    const q = AITreeQuoteEngine.poetryFeature.current();
+    if (!q) return;
+    const cat = AITreeQuoteEngine.poetry[AITreeQuoteEngine.activePoetryKey];
     const isFa = currentLang === 'fa';
     if (uiEls.clockQuoteText) {
       uiEls.clockQuoteText.textContent = isFa ? (q.fa || '') : (q.en || '');
@@ -3420,7 +3079,7 @@
       uiEls.clockQuoteText.classList.toggle('is-en', !isFa);
     }
     if (uiEls.clockQuoteTitle) {
-      uiEls.clockQuoteTitle.textContent = isFa ? 'مولانا' : 'Rumi';
+      uiEls.clockQuoteTitle.textContent = `${cat.icon} ${isFa ? cat.labelFa : cat.label}`;
       uiEls.clockQuoteTitle.dir = isFa ? 'rtl' : 'ltr';
     }
     if (uiEls.clockQuote) uiEls.clockQuote.classList.toggle('is-collapsed', isRumiCollapsed);
@@ -3446,12 +3105,7 @@
   function cycleToRandomRumiQuote(e) {
     if (e) e.stopPropagation();
     if (isRumiCollapsed) return;
-    const currentIdx = manualRumiIndex !== null ? manualRumiIndex : getDailyRumiIndex();
-    let next = currentIdx;
-    if (RUMI_QUOTES.length > 1) {
-      while (next === currentIdx) next = Math.floor(Math.random() * RUMI_QUOTES.length);
-    }
-    manualRumiIndex = next;
+    AITreeQuoteEngine.poetryFeature.cycleRandom();
     uiEls.clockQuote.classList.remove('pulse');
     void uiEls.clockQuote.offsetWidth;
     uiEls.clockQuote.classList.add('pulse');
@@ -3467,8 +3121,7 @@
   }
 
   function buildRumiQuoteCopyText() {
-    const idx = manualRumiIndex !== null ? manualRumiIndex : getDailyRumiIndex();
-    const q = RUMI_QUOTES[idx];
+    const q = AITreeQuoteEngine.poetryFeature.current();
     if (!q) return '';
     const isFa = currentLang === 'fa';
     const lines = [];
@@ -3477,8 +3130,9 @@
     // Include the other language when available for a complete shareable block
     const other = isFa ? (q.en || '') : (q.fa || '');
     if (other && other !== body) lines.push(other);
-    const attr = isFa ? 'مولانا' : 'Rumi';
-    if (q.ref) lines.push(q.ref);
+    const cat = AITreeQuoteEngine.poetry[AITreeQuoteEngine.activePoetryKey];
+    const attr = isFa ? cat.labelFa : cat.label;
+    if (q.ref) lines.push(`${q.ref} — ${attr}`);
     else lines.push(attr);
     return lines.join('\n\n');
   }
@@ -3492,9 +3146,10 @@
       copyQuoteText(buildRumiQuoteCopyText(), uiEls.clockQuoteCopy);
     });
   }
-  renderRumiQuote();
+  AITreeQuoteEngine.initReligion().then(renderDailyQuote);
+  AITreeQuoteEngine.initPoetry().then(renderRumiQuote);
 
-  // Both motivational drawers (Quran verse / Rumi couplet) keep their own open/closed
+  // Both motivational drawers (religious verse / poetry couplet) keep their own open/closed
   // state independent of the panels that host them, so if the user leaves one expanded
   // and its panel then closes (via its own toggle, switching to another panel, or the
   // whole widget collapsing), it would silently stay "open" underneath and reappear
@@ -7665,6 +7320,12 @@
           if (changes.holidayCustomCountry) holidayCustomCountry = changes.holidayCustomCountry.newValue || '';
           // اگر همین الان (از popup) تغییر کرده، بلافاصله بازخوانی/پاکسازی کن
           loadRegionalHolidays();
+        }
+        if (changes.quoteReligionSource) {
+          AITreeQuoteEngine.initReligion().then(renderDailyQuote);
+        }
+        if (changes.quotePoetrySource) {
+          AITreeQuoteEngine.initPoetry().then(renderRumiQuote);
         }
         // Two-way live sync with the standalone notepad tab (see notepad.js).
         // Only overwrite when this widget's textarea isn't the one being typed in.

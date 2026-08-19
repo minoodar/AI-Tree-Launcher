@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // === فرهنگ لغت دوزبانه ===
+
     const i18nPopup = {
       en: {
         tabSettings: "Settings", tabBackups: "Backup & Restore",
@@ -15,7 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
         holidayAuto: "Auto — follow app language", holidayIran: "Iran (offline, curated list)", holidayCustom: "Other country (enter code)",
         holidayHintAuto: "Currently resolves to Iran when the app language is Persian, otherwise a country guessed from your system locale.",
         holidayHintIran: "Uses the built-in offline Iran holiday list — no network request needed.",
-        holidayHintCustom: "Enter a 2-letter country code (ISO 3166-1, e.g. US, DE, GB, FR). Fetched from a public international holiday source."
+        holidayHintCustom: "Enter a 2-letter country code (ISO 3166-1, e.g. US, DE, GB, FR). Fetched from a public international holiday source.",
+        quotesTitle: "Daily Wisdom Quotes", religionSource: "Spiritual verse source", poetrySource: "Poetry & literature source",
+        religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaism", religionChristianity: "✝️ Christianity", religionEastern: "☸️ Eastern (Buddhism & Hindu wisdom)",
+        poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature"
       },
       fa: {
         tabSettings: "تنظیمات اصلی", tabBackups: "بکاپ",
@@ -30,7 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
         holidayAuto: "خودکار — بر اساس زبان افزونه", holidayIran: "ایران (آفلاین، فهرست دقیق)", holidayCustom: "کشور دیگر (کد را وارد کنید)",
         holidayHintAuto: "با انتخاب زبان فارسی روی ایران و در غیر این صورت بر اساس حدس از تنظیمات سیستم عمل می‌کند.",
         holidayHintIran: "از فهرست آفلاین داخلیِ تعطیلات ایران استفاده می‌کند — بدون نیاز به اینترنت.",
-        holidayHintCustom: "کد دو حرفی کشور را وارد کنید (مثل US، DE، GB، FR). از یک منبع بین‌المللیِ تعطیلات دریافت می‌شود."
+        holidayHintCustom: "کد دو حرفی کشور را وارد کنید (مثل US، DE، GB، FR). از یک منبع بین‌المللیِ تعطیلات دریافت می‌شود.",
+        quotesTitle: "فرازهای الهام‌بخش روزانه", religionSource: "منبع فراز مذهبی", poetrySource: "منبع شعر و ادبیات",
+        religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
+        poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب"
       }
     };
 
@@ -39,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function applyTranslation() {
       const t = i18nPopup[currentLang];
       document.body.className = currentLang === 'fa' ? 'rtl' : '';
-      
+
       document.getElementById('tab-settings').textContent = t.tabSettings;
       document.getElementById('tab-backups').textContent = t.tabBackups;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
@@ -60,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const contactTitle = document.getElementById('lbl-contact-title');
       if (contactTitle) contactTitle.textContent = t.contactTitle;
-      
+
       const contactEmail = document.getElementById('lbl-contact-email');
       if (contactEmail) contactEmail.textContent = t.contactEmail;
 
@@ -75,6 +80,27 @@ document.addEventListener('DOMContentLoaded', () => {
       const optCustom = document.getElementById('opt-holiday-custom');
       if (optCustom) optCustom.textContent = t.holidayCustom;
       updateHolidayRegionHint();
+
+      const qTitle = document.getElementById('lbl-quotes-title');
+      if (qTitle) qTitle.textContent = t.quotesTitle;
+      const rLbl = document.getElementById('lbl-religion-source');
+      if (rLbl) rLbl.textContent = t.religionSource;
+      const pLbl = document.getElementById('lbl-poetry-source');
+      if (pLbl) pLbl.textContent = t.poetrySource;
+
+      const optIslam = document.getElementById('opt-religion-islam');
+      if (optIslam) optIslam.textContent = t.religionIslam;
+      const optJudaism = document.getElementById('opt-religion-judaism');
+      if (optJudaism) optJudaism.textContent = t.religionJudaism;
+      const optChristianity = document.getElementById('opt-religion-christianity');
+      if (optChristianity) optChristianity.textContent = t.religionChristianity;
+      const optEastern = document.getElementById('opt-religion-eastern');
+      if (optEastern) optEastern.textContent = t.religionEastern;
+
+      const optRumi = document.getElementById('opt-poetry-rumi');
+      if (optRumi) optRumi.textContent = t.poetryRumi;
+      const optWestern = document.getElementById('opt-poetry-western');
+      if (optWestern) optWestern.textContent = t.poetryWestern;
     }
 
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -87,12 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById(btn.dataset.target).classList.add('active');
       });
     });
-  
+
     const userBirthYearInput = document.getElementById('userBirthYear');
     const langSelect = document.getElementById('appLanguage');
     const holidaysEnabledCb = document.getElementById('holidaysEnabledCb');
     const holidayRegionSelect = document.getElementById('holidayRegionSelect');
     const holidayCustomCountry = document.getElementById('holidayCustomCountry');
+    const quoteReligionSelect = document.getElementById('quoteReligionSelect');
+    const quotePoetrySelect = document.getElementById('quotePoetrySelect');
 
     function updateHolidayRegionHint() {
       const hint = document.getElementById('holiday-region-hint');
@@ -113,18 +141,19 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHolidayRegionHint();
       });
     }
-  
+
     chrome.storage.sync.get(['userBirthYear', 'appLanguage'], (data) => {
       if (data.appLanguage) { currentLang = data.appLanguage; langSelect.value = currentLang; }
       if (data.userBirthYear) userBirthYearInput.value = data.userBirthYear;
       applyTranslation();
     });
 
-    chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry'], (data) => {
-      // Default to true if undefined (feature ships enabled by default)
+    chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry', 'quoteReligionSource', 'quotePoetrySource'], (data) => {
       if (holidaysEnabledCb) holidaysEnabledCb.checked = data.showPublicHolidays !== undefined ? !!data.showPublicHolidays : true;
       if (holidayRegionSelect) holidayRegionSelect.value = data.holidayRegionMode || 'auto';
       if (holidayCustomCountry) holidayCustomCountry.value = data.holidayCustomCountry || '';
+      if (quoteReligionSelect) quoteReligionSelect.value = data.quoteReligionSource || 'islam';
+      if (quotePoetrySelect) quotePoetrySelect.value = data.quotePoetrySource || 'rumi';
       syncHolidayCustomVisibility();
       updateHolidayRegionHint();
     });
@@ -133,19 +162,21 @@ document.addEventListener('DOMContentLoaded', () => {
       currentLang = e.target.value;
       applyTranslation();
     });
-  
+
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {
       const newData = {
         appLanguage: langSelect.value,
         userBirthYear: userBirthYearInput.value
       };
       chrome.storage.sync.set(newData, () => {
-        const holidayLocalData = {
+        const localData = {
           showPublicHolidays: holidaysEnabledCb ? !!holidaysEnabledCb.checked : false,
           holidayRegionMode: holidayRegionSelect ? holidayRegionSelect.value : 'auto',
-          holidayCustomCountry: holidayCustomCountry ? holidayCustomCountry.value.trim().toUpperCase().slice(0, 2) : ''
+          holidayCustomCountry: holidayCustomCountry ? holidayCustomCountry.value.trim().toUpperCase().slice(0, 2) : '',
+          quoteReligionSource: quoteReligionSelect ? quoteReligionSelect.value : 'islam',
+          quotePoetrySource: quotePoetrySelect ? quotePoetrySelect.value : 'rumi'
         };
-        chrome.storage.local.set(holidayLocalData, () => {
+        chrome.storage.local.set(localData, () => {
           showToast(i18nPopup[currentLang].toastSaved);
           broadcastRefresh();
         });
@@ -158,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, { action: "hideLauncherAnly" }).catch(() => {});
-            window.close(); 
+            window.close();
           }
         });
       });
@@ -170,17 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, { action: "resetFloatingMenuPositionAnly" }).catch(() => {});
-            window.close(); 
+            window.close();
           }
         });
       });
     }
-  
-    // === بکاپ و بازیابیِ جامع — کل اکوسیستمِ داده در دو ناحیهٔ ذخیره‌سازی ===
-    // بر اساس ممیزیِ واقعیِ content.js: کلیدهای local و sync دقیقاً همان‌هایی هستند که
-    // در storageGet('sync', [...]) و storageGet('local', [...]) خوانده می‌شوند —
-    // به‌عمد lastDeletedLink (بافرِ موقتِ Undo) و coreSlots5Migrated (پرچمِ داخلیِ
-    // migration) از بکاپ کنار گذاشته شدند، چون داده‌ی کاربر نیستند.
+
     const PROMPT_KEYS = {
       custom: 'aiTreeCustomPrompts',
       overrides: 'aiTreePromptOverrides',
@@ -190,19 +216,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const STORAGE_KEYS = {
       local: [
-        'linksData', 'linksData2', 'linksData3', 'linksData4', // بوک‌مارک‌ها (هر ۴ کهکشان)
-        PROMPT_KEYS.custom, PROMPT_KEYS.overrides, PROMPT_KEYS.hidden, PROMPT_KEYS.history, // پرامپت‌های دفترچه
-        'aiTreeTimeEvents', // رویدادهای ساعتی/روزانهٔ داشبورد
-        'aiTreeEmojiMemory', 'aiTreeNotepadHistory', // حافظهٔ ایموجی و تاریخچهٔ Undo دفترچه
-        'showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry', // تنظیمات تعطیلات
-        'noteTextAlign', 'noteFontSize', // ترجیحاتِ ظاهریِ دفترچه
-        'activeNoteAIIndex' // آخرین سرویسِ AI انتخاب‌شده در دفترچه
+        'linksData', 'linksData2', 'linksData3', 'linksData4',
+        PROMPT_KEYS.custom, PROMPT_KEYS.overrides, PROMPT_KEYS.hidden, PROMPT_KEYS.history,
+        'aiTreeTimeEvents',
+        'aiTreeEmojiMemory', 'aiTreeNotepadHistory',
+        'showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry',
+        'quoteReligionSource', 'quotePoetrySource',
+        'noteTextAlign', 'noteFontSize',
+        'activeNoteAIIndex'
       ],
       sync: [
-        'aiTreeTodos', 'aiTreeMarkedDays', // کارها و مناسبت‌های تقویم
-        'appLanguage', 'userBirthYear', 'nodeSpacing', // تنظیمات اصلی کاربر
-        'clockCustomX', 'clockCustomY', 'orbitX', 'orbitY', // موقعیت‌های کشیدنیِ ویجت و ساعت
-        'coreAIConfig' // پیکربندیِ ۵ میانبرِ ثابتِ هسته
+        'aiTreeTodos', 'aiTreeMarkedDays',
+        'appLanguage', 'userBirthYear', 'nodeSpacing',
+        'clockCustomX', 'clockCustomY', 'orbitX', 'orbitY',
+        'coreAIConfig'
       ]
     };
 
@@ -250,14 +277,11 @@ document.addEventListener('DOMContentLoaded', () => {
           let syncUpdates = {};
 
           if (importedData && importedData.version >= 4 && importedData.local && typeof importedData.local === 'object') {
-            // فرمتِ جامعِ نسخهٔ ۴ — همان‌طور که ذخیره شده، به دو ناحیه برمی‌گردد
             localUpdates = importedData.local;
             syncUpdates = (importedData.sync && typeof importedData.sync === 'object') ? importedData.sync : {};
           } else if (Array.isArray(importedData)) {
-            // فرمتِ خیلی قدیمی — فقط یک آرایهٔ بوک‌مارک
             localUpdates = { linksData: importedData };
           } else if (importedData && Array.isArray(importedData.main)) {
-            // فرمتِ نسخهٔ ۳ — بوک‌مارک‌ها + پرامپت‌ها، فقط local
             localUpdates = { linksData: importedData.main };
             if (Array.isArray(importedData.w2)) localUpdates.linksData2 = importedData.w2;
             if (Array.isArray(importedData.w3)) localUpdates.linksData3 = importedData.w3;
@@ -309,14 +333,14 @@ document.addEventListener('DOMContentLoaded', () => {
       };
       reader.readAsText(file);
     });
-  
+
     function showToast(msg) {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 2500);
     }
-  
+
     function broadcastRefresh() {
       chrome.tabs.query({}, (tabs) => {
         tabs.forEach(tab => {
