@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toastSaved: "Settings saved successfully!", toastExported: "JSON file downloaded!", toastImported: "Data imported successfully!", toastRestored: "Data restored successfully!",
         invalidFile: "Invalid file format.", errRead: "Error reading JSON file.",
         btnHide: "Hide", btnShow: "Show (Reset)",
-        backupHint: "🟢 Export saves bookmarks (incl. News) + notepad prompts &nbsp;·&nbsp; 🟠 Import restores both from a file",
+        backupHint: "🟢 Export saves everything — bookmarks, todos, calendar events &amp; marks, settings, notepad &nbsp;·&nbsp; 🟠 Import restores it all from a file",
         contactTitle: "✉︎ Contact Us", contactEmail: "Email:",
         holidaysTitle: "Official Public Holidays", holidaysEnable: "Show official holidays on the calendar",
         holidayAuto: "Auto — follow app language", holidayIran: "Iran (offline, curated list)", holidayCustom: "Other country (enter code)",
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toastSaved: "تنظیمات با موفقیت ذخیره شد!", toastExported: "فایل خروجی دانلود شد!", toastImported: "اطلاعات فایل با موفقیت وارد شد!", toastRestored: "بکاپ با موفقیت بازیابی شد!",
         invalidFile: "فایل نامعتبر است.", errRead: "خطا در خواندن فایل JSON.",
         btnHide: "پنهان کردن", btnShow: "نمایش مجدد (ریست)",
-        backupHint: "🟢 دریافت بکاپ، بوک‌مارک‌ها (شامل اخبار) و پرامپت‌های دفترچه را ذخیره می‌کند &nbsp;·&nbsp; 🟠 بازیابی، هر دو را از فایل برمی‌گرداند",
+        backupHint: "🟢 دریافت بکاپ، همه‌چیز را ذخیره می‌کند — بوک‌مارک‌ها، کارها، رویدادها و مناسبت‌های تقویم، تنظیمات، دفترچه &nbsp;·&nbsp; 🟠 بازیابی، همه را از فایل برمی‌گرداند",
         contactTitle: "✉︎ ارتباط با ما", contactEmail: "ایمیل:",
         holidaysTitle: "تعطیلات رسمی", holidaysEnable: "نمایش تعطیلات رسمی روی تقویم",
         holidayAuto: "خودکار — بر اساس زبان افزونه", holidayIran: "ایران (آفلاین، فهرست دقیق)", holidayCustom: "کشور دیگر (کد را وارد کنید)",
@@ -176,49 +176,68 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   
-    function countOf(arr) { return Array.isArray(arr) ? arr.length : 0; }
-
+    // === بکاپ و بازیابیِ جامع — کل اکوسیستمِ داده در دو ناحیهٔ ذخیره‌سازی ===
+    // بر اساس ممیزیِ واقعیِ content.js: کلیدهای local و sync دقیقاً همان‌هایی هستند که
+    // در storageGet('sync', [...]) و storageGet('local', [...]) خوانده می‌شوند —
+    // به‌عمد lastDeletedLink (بافرِ موقتِ Undo) و coreSlots5Migrated (پرچمِ داخلیِ
+    // migration) از بکاپ کنار گذاشته شدند، چون داده‌ی کاربر نیستند.
     const PROMPT_KEYS = {
       custom: 'aiTreeCustomPrompts',
       overrides: 'aiTreePromptOverrides',
       hidden: 'aiTreePromptHidden',
       history: 'aiTreePromptHistory'
     };
-  
+
+    const STORAGE_KEYS = {
+      local: [
+        'linksData', 'linksData2', 'linksData3', 'linksData4', // بوک‌مارک‌ها (هر ۴ کهکشان)
+        PROMPT_KEYS.custom, PROMPT_KEYS.overrides, PROMPT_KEYS.hidden, PROMPT_KEYS.history, // پرامپت‌های دفترچه
+        'aiTreeTimeEvents', // رویدادهای ساعتی/روزانهٔ داشبورد
+        'aiTreeEmojiMemory', 'aiTreeNotepadHistory', // حافظهٔ ایموجی و تاریخچهٔ Undo دفترچه
+        'showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry', // تنظیمات تعطیلات
+        'noteTextAlign', 'noteFontSize', // ترجیحاتِ ظاهریِ دفترچه
+        'activeNoteAIIndex' // آخرین سرویسِ AI انتخاب‌شده در دفترچه
+      ],
+      sync: [
+        'aiTreeTodos', 'aiTreeMarkedDays', // کارها و مناسبت‌های تقویم
+        'appLanguage', 'userBirthYear', 'nodeSpacing', // تنظیمات اصلی کاربر
+        'clockCustomX', 'clockCustomY', 'orbitX', 'orbitY', // موقعیت‌های کشیدنیِ ویجت و ساعت
+        'coreAIConfig' // پیکربندیِ ۵ میانبرِ ثابتِ هسته
+      ]
+    };
+
+    function pad2(n) { return String(n).padStart(2, '0'); }
+
     document.getElementById('exportJsonBtn').addEventListener('click', () => {
-      chrome.storage.local.get([
-        'linksData', 'linksData2', 'linksData3', 'linksData4',
-        PROMPT_KEYS.custom, PROMPT_KEYS.overrides, PROMPT_KEYS.hidden, PROMPT_KEYS.history
-      ], (data) => {
-        const payload = {
-          version: 3,
-          exportedAt: new Date().toISOString(),
-          main: data.linksData || [],
-          w2: data.linksData2 || [],
-          w3: data.linksData3 || [],
-          w4: data.linksData4 || [],
-          prompts: {
-            custom: Array.isArray(data[PROMPT_KEYS.custom]) ? data[PROMPT_KEYS.custom] : [],
-            overrides: (data[PROMPT_KEYS.overrides] && typeof data[PROMPT_KEYS.overrides] === 'object')
-              ? data[PROMPT_KEYS.overrides] : {},
-            hidden: Array.isArray(data[PROMPT_KEYS.hidden]) ? data[PROMPT_KEYS.hidden] : [],
-            history: Array.isArray(data[PROMPT_KEYS.history]) ? data[PROMPT_KEYS.history] : []
-          }
-        };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `AITree_Backup_${new Date().getTime()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast(i18nPopup[currentLang].toastExported);
+      chrome.storage.local.get(STORAGE_KEYS.local, (localData) => {
+        chrome.storage.sync.get(STORAGE_KEYS.sync, (syncData) => {
+          const payload = {
+            version: 4,
+            exportedAt: new Date().toISOString(),
+            local: localData,
+            sync: syncData
+          };
+
+          const now = new Date();
+          const dateStr = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+          const timeStr = `${pad2(now.getHours())}-${pad2(now.getMinutes())}-${pad2(now.getSeconds())}`;
+          const filename = `AITree_Backup_${dateStr}_${timeStr}.json`;
+
+          const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast(i18nPopup[currentLang].toastExported);
+        });
       });
     });
-  
+
     const fileInput = document.getElementById('fileInput');
     document.getElementById('importJsonBtn').addEventListener('click', () => fileInput.click());
-    
+
     fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -227,21 +246,28 @@ document.addEventListener('DOMContentLoaded', () => {
       reader.onload = (event) => {
         try {
           const importedData = JSON.parse(event.target.result);
-          let updateObj = null;
+          let localUpdates = null;
+          let syncUpdates = {};
 
-          if (Array.isArray(importedData)) {
-            updateObj = { linksData: importedData };
+          if (importedData && importedData.version >= 4 && importedData.local && typeof importedData.local === 'object') {
+            // فرمتِ جامعِ نسخهٔ ۴ — همان‌طور که ذخیره شده، به دو ناحیه برمی‌گردد
+            localUpdates = importedData.local;
+            syncUpdates = (importedData.sync && typeof importedData.sync === 'object') ? importedData.sync : {};
+          } else if (Array.isArray(importedData)) {
+            // فرمتِ خیلی قدیمی — فقط یک آرایهٔ بوک‌مارک
+            localUpdates = { linksData: importedData };
           } else if (importedData && Array.isArray(importedData.main)) {
-            updateObj = { linksData: importedData.main };
-            if (Array.isArray(importedData.w2)) updateObj.linksData2 = importedData.w2;
-            if (Array.isArray(importedData.w3)) updateObj.linksData3 = importedData.w3;
-            if (Array.isArray(importedData.w4)) updateObj.linksData4 = importedData.w4;
-            else if (Array.isArray(importedData.news)) updateObj.linksData4 = importedData.news;
+            // فرمتِ نسخهٔ ۳ — بوک‌مارک‌ها + پرامپت‌ها، فقط local
+            localUpdates = { linksData: importedData.main };
+            if (Array.isArray(importedData.w2)) localUpdates.linksData2 = importedData.w2;
+            if (Array.isArray(importedData.w3)) localUpdates.linksData3 = importedData.w3;
+            if (Array.isArray(importedData.w4)) localUpdates.linksData4 = importedData.w4;
+            else if (Array.isArray(importedData.news)) localUpdates.linksData4 = importedData.news;
 
             const p = importedData.prompts;
             if (p && typeof p === 'object') {
               if (Array.isArray(p.custom)) {
-                updateObj[PROMPT_KEYS.custom] = p.custom
+                localUpdates[PROMPT_KEYS.custom] = p.custom
                   .filter(item => item && typeof item.title === 'string' && typeof item.text === 'string')
                   .slice(0, 12)
                   .map(item => ({
@@ -251,13 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
                   }));
               }
               if (p.overrides && typeof p.overrides === 'object' && !Array.isArray(p.overrides)) {
-                updateObj[PROMPT_KEYS.overrides] = p.overrides;
+                localUpdates[PROMPT_KEYS.overrides] = p.overrides;
               }
               if (Array.isArray(p.hidden)) {
-                updateObj[PROMPT_KEYS.hidden] = p.hidden.filter(id => typeof id === 'string');
+                localUpdates[PROMPT_KEYS.hidden] = p.hidden.filter(id => typeof id === 'string');
               }
               if (Array.isArray(p.history)) {
-                updateObj[PROMPT_KEYS.history] = p.history
+                localUpdates[PROMPT_KEYS.history] = p.history
                   .filter(h => h && typeof h.text === 'string')
                   .slice(0, 10)
                   .map(h => ({ ts: typeof h.ts === 'number' ? h.ts : Date.now(), text: String(h.text) }));
@@ -265,13 +291,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           }
 
-          if (updateObj) {
-            chrome.storage.local.set(updateObj, () => {
+          if (!localUpdates) { alert(t.invalidFile); return; }
+
+          chrome.storage.local.set(localUpdates, () => {
+            const finalize = () => {
               showToast(t.toastImported);
               broadcastRefresh();
-              fileInput.value = ''; 
-            });
-          } else { alert(t.invalidFile); }
+              fileInput.value = '';
+            };
+            if (Object.keys(syncUpdates).length > 0) {
+              chrome.storage.sync.set(syncUpdates, finalize);
+            } else {
+              finalize();
+            }
+          });
         } catch (err) { alert(t.errRead); }
       };
       reader.readAsText(file);
