@@ -59,15 +59,14 @@
       formDeleteBtn: "Delete Bookmark",
       formClearCoreBtn: "Reset to Empty",
       formMoveToGalaxyBtn: "Move into Galaxy (5★)",
+      formMoveToCoreBtn: "Move into Core (starless)",
       toastCoreToStar: "Moved into the galaxy as a 5★ bookmark",
+      toastMovedToCore: "Moved into Core slot {n} — no longer starred",
+      toastNoEmptyCoreSlot: "No empty Core slot in this galaxy!",
       formUrlPlaceholder: "URL: https://example.com",
       formLabelPlaceholder: "Name (Auto)",
       formDescPlaceholder: "Description (optional, shown on hover)",
       formGalaxyLabel: "Galaxy (drag to move)",
-      formReleaseCoreBtn: "Release into Galaxy (★5)",
-      toastReleasedToGalaxy: "Released into this Galaxy's 5★ tier",
-      toastReleasedToComet: "5★ tier was full — released into the comet-tail set",
-      toastReleaseCoreFullyFull: "This Galaxy is full — couldn't release it",
       toastGalaxyMoved: "Moved to Galaxy {n}",
       toastGalaxySwapped: "{tier} tier in Galaxy {n} was full — swapped with the oldest item there",
 
@@ -266,15 +265,14 @@
       formDeleteBtn: "حذف بوک‌مارک",
       formClearCoreBtn: "بازنشانی به خالی",
       formMoveToGalaxyBtn: "انتقال به داخل کهکشان (۵ ستاره)",
+      formMoveToCoreBtn: "انتقال به هسته (بی‌ستاره)",
       toastCoreToStar: "به‌عنوان بوک‌مارک ۵ ستاره وارد کهکشان شد",
+      toastMovedToCore: "به جایگاه {n} هسته منتقل شد — دیگر ستاره ندارد",
+      toastNoEmptyCoreSlot: "هیچ جایگاه خالی‌ای در هستهٔ این کهکشان نیست!",
       formUrlPlaceholder: "لینک: https://example.com",
       formLabelPlaceholder: "نام بوک‌مارک (خودکار)",
       formDescPlaceholder: "توضیحات (اختیاری، هنگام هاور نمایش داده می‌شود)",
       formGalaxyLabel: "کهکشان (برای انتقال بکشید)",
-      formReleaseCoreBtn: "آزادسازی به داخلِ کهکشان (۵★)",
-      toastReleasedToGalaxy: "به ردهٔ ۵ ستارهٔ همین کهکشان منتقل شد",
-      toastReleasedToComet: "ردهٔ ۵ ستاره پر بود — به مجموعهٔ ستاره‌های دنباله‌دار منتقل شد",
-      toastReleaseCoreFullyFull: "این کهکشان پر است — امکان انتقال نبود",
       toastGalaxyMoved: "به کهکشان {n} منتقل شد",
       toastGalaxySwapped: "رده {tier} در کهکشان {n} پر بود — با قدیمی‌ترین موردِ آن‌جا جابجا شد",
 
@@ -867,6 +865,12 @@
     }
     return n;
   }
+  // اولین جایگاه خالیِ هسته (اندیس ۰ تا ۴) در یک کهکشان — یا -1 اگر هر ۵ جایگاه پر باشند.
+  function findEmptyCoreSlot(hubIdx) {
+    const data = hubData(hubIdx);
+    for (let i = 0; i < 5; i++) { if (!data[i] || !data[i].url) return i; }
+    return -1;
+  }
   function findTargetHubForImportance(importance, startHub) {
     const ring = tierRingForImportance(importance);
     const cometRing = RING_CONFIG[RING_CONFIG.length - 1];
@@ -993,10 +997,10 @@
         <div class="ai-galaxy-knob" id="ai-galaxy-knob">🪐</div>
       </div>
     </div>
-    <button type="button" id="ai-form-release-core" class="ai-form-btn-release-core" style="display:none;"></button>
     <div class="ai-form-actions">
       <button id="ai-form-delete" class="ai-form-btn-delete" style="display:none;"></button>
       <button id="ai-form-move-galaxy" class="ai-form-btn-move" style="display:none;"></button>
+      <button id="ai-form-move-core" class="ai-form-btn-move ai-form-btn-move-core" style="display:none;"></button>
       <button id="ai-form-cancel" class="ai-form-btn-cancel"></button>
       <button id="ai-form-save" class="ai-form-btn-save"></button>
     </div>`;
@@ -1257,7 +1261,6 @@
     formDescription: inlineForm.querySelector('#ai-form-description'),
     formGalaxyWrap: inlineForm.querySelector('#ai-form-galaxy'),
     formGalaxyLabel: inlineForm.querySelector('#ai-form-galaxy-label'),
-    formReleaseCoreBtn: inlineForm.querySelector('#ai-form-release-core'),
     formGalaxyTrack: inlineForm.querySelector('#ai-galaxy-track'),
     formGalaxyKnob: inlineForm.querySelector('#ai-galaxy-knob'),
     formImpLabel: inlineForm.querySelector('#ai-form-imp-label'),
@@ -1265,6 +1268,7 @@
     formCancel: inlineForm.querySelector('#ai-form-cancel'),
     formDelete: inlineForm.querySelector('#ai-form-delete'),
     formMoveGalaxy: inlineForm.querySelector('#ai-form-move-galaxy'),
+    formMoveCore: inlineForm.querySelector('#ai-form-move-core'),
     formSave: inlineForm.querySelector('#ai-form-save'),
     noteText: quickNoteForm.querySelector('#ai-note-text'),
     noteNewTabBtn: quickNoteForm.querySelector('#ai-note-newtab-btn'),
@@ -1503,7 +1507,6 @@
     uiEls.formLabel.placeholder = t('formLabelPlaceholder');
     uiEls.formDescription.placeholder = t('formDescPlaceholder');
     uiEls.formGalaxyLabel.textContent = t('formGalaxyLabel');
-    uiEls.formReleaseCoreBtn.textContent = t('formReleaseCoreBtn');
     uiEls.formImpLabel.textContent = t('formImportanceLabel');
     uiEls.formCancel.textContent = t('formCancelBtn');
     uiEls.formDelete.textContent = t('formDeleteBtn');
@@ -8076,6 +8079,8 @@
     uiEls.formDelete.textContent = (globalIdx < 5) ? t('formClearCoreBtn') : t('formDeleteBtn');
     uiEls.formMoveGalaxy.style.display = (!isAddFlow && globalIdx < 5) ? '' : 'none';
     uiEls.formMoveGalaxy.textContent = t('formMoveToGalaxyBtn');
+    uiEls.formMoveCore.style.display = (!isAddFlow && globalIdx >= 5 && findEmptyCoreSlot(currentHubIndex) !== -1) ? '' : 'none';
+    uiEls.formMoveCore.textContent = t('formMoveToCoreBtn');
     inlineForm.classList.add('active');
     if (isAddFlow) uiEls.formUrl.focus(); else uiEls.formLabel.focus();
   }
@@ -8230,6 +8235,7 @@
     uiEls.formImportanceWrap.style.display = '';
     uiEls.formDelete.style.display = 'none';
     uiEls.formMoveGalaxy.style.display = 'none';
+    uiEls.formMoveCore.style.display = 'none';
     uiEls.formGalaxyWrap.style.display = 'none';
     selectedImportance = DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     inlineForm.classList.add('active'); uiEls.formUrl.focus();
@@ -8477,6 +8483,38 @@
     showToastNotification(targetRing.comet
       ? t('toastOverflowedToComet').replace('{tier}', ringDisplayLabel(ring)).replace('{hub}', currentHubIndex)
       : t('toastCoreToStar'));
+    renderSpiral(); saveLinksAll(); closeTree();
+  });
+  // برعکسِ دکمهٔ بالا: یک بوک‌مارکِ معمولیِ همین کهکشان را به هسته (بی‌ستاره) می‌برد —
+  // فقط وقتی حداقل یک جایگاه خالی در هستهٔ همین کهکشان وجود داشته باشد (مثلاً بعد از
+  // اینکه یک هسته با دکمهٔ «انتقال به داخل کهکشان» خالی شده باشد).
+  uiEls.formMoveCore.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (editingNodeIndex === null || editingNodeIndex < 5) return;
+    const activeData = hubData(currentHubIndex);
+    if (!activeData[editingNodeIndex]) return;
+
+    const slot = findEmptyCoreSlot(currentHubIndex);
+    if (slot === -1) { showToastNotification(t('toastNoEmptyCoreSlot'), true); return; }
+
+    const labelInput = uiEls.formLabel; const urlInput = uiEls.formUrl;
+    const label = labelInput.value.trim(); let url = urlInput.value.trim();
+    const description = uiEls.formDescription.value.trim();
+    labelInput.classList.remove('invalid'); urlInput.classList.remove('invalid');
+    if (!label) { labelInput.classList.add('invalid'); labelInput.focus(); return; }
+    if (!url) { urlInput.classList.add('invalid'); urlInput.focus(); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    try { new URL(url); } catch (err) { urlInput.classList.add('invalid'); urlInput.focus(); showToastNotification(t('toastInvalidUrl'), true); return; }
+
+    const dupHub = isDuplicateNodeAll(url, label, editingNodeIndex, currentHubIndex);
+    if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
+
+    activeData[slot] = { label, url, description, importance: DEFAULT_IMPORTANCE };
+    // چون این بوک‌مارک به یکی از ۵ جایگاه ثابتِ ابتدای آرایه منتقل شد، حالا با splice
+    // از جای قبلی‌اش (اندیس ≥ ۵) برداشته می‌شود — بدون اینکه اندیس‌های ۰ تا ۴ دست بخورند.
+    activeData.splice(editingNodeIndex, 1);
+
+    showToastNotification(t('toastMovedToCore').replace('{n}', String(slot + 1)));
     renderSpiral(); saveLinksAll(); closeTree();
   });
   inlineForm.querySelector('#ai-form-close').addEventListener('click', (e) => { e.stopPropagation(); closeTree(); });

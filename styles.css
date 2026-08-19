@@ -1797,6 +1797,8 @@ transition: left 0.22s var(--ease-bounce);
 .ai-form-btn-move { flex-basis: 100%; order: 2; padding: 10px 0; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: 1px solid rgba(96, 165, 250, 0.35); background: rgba(59, 130, 246, 0.14); color: #93c5fd; transition: filter 0.15s var(--ease-premium), transform 0.1s var(--ease-bounce), background 0.15s var(--ease-premium); }
 .ai-form-btn-move:hover { background: rgba(59, 130, 246, 0.26); color: #bfdbfe; }
 .ai-form-btn-move:active { transform: scale(0.96); }
+.ai-form-btn-move-core { border-color: rgba(251, 191, 36, 0.35); background: rgba(251, 191, 36, 0.12); color: var(--c-amber-light); }
+.ai-form-btn-move-core:hover { background: rgba(251, 191, 36, 0.24); color: var(--c-amber); }
 .ai-form-btn-cancel:active, .ai-form-btn-save:active, .ai-form-btn-delete:active { transform: scale(0.96); }
 
 .ai-toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); border: 1px solid var(--c-emerald); color: #fff; padding: 12px 24px; border-radius: 30px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; font-weight: 600; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3); backdrop-filter: var(--glass-blur); z-index: 2147483647; opacity: 0; pointer-events: none; transition: all 0.3s var(--ease-bounce); }
