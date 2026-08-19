@@ -1,7 +1,7 @@
 # 🌌 AI Tree Launcher (V33.0): The Global Wisdom Update
 
 ![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
-![License: MIT](https://img.shields.io/badge/License-MIT-3B82F6?style=for-the-badge)
+![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
 > **[فارسی (Persian Guide) ↓](#--ai-tree-launcher-v330--راهنمای-فارسی)**
