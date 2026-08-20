@@ -293,11 +293,12 @@ document.addEventListener('DOMContentLoaded', () => {
               if (Array.isArray(p.custom)) {
                 localUpdates[PROMPT_KEYS.custom] = p.custom
                   .filter(item => item && typeof item.title === 'string' && typeof item.text === 'string')
-                  .slice(0, 12)
+                  .slice(0, 300)
                   .map(item => ({
                     id: item.id || ('c-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
                     title: String(item.title).slice(0, 40),
-                    text: String(item.text)
+                    text: String(item.text),
+                    category: typeof item.category === 'string' ? item.category : 'general'
                   }));
               }
               if (p.overrides && typeof p.overrides === 'object' && !Array.isArray(p.overrides)) {

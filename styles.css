@@ -2718,6 +2718,17 @@ display: flex; align-items: center; justify-content: center;
 .ai-note-tpl-chip.is-overridden {
   border-color: rgba(167, 139, 250, 0.35);
 }
+.ai-note-tpl-chip.is-category {
+  font-weight: 800;
+  border-color: rgba(52, 211, 153, 0.28);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%),
+    rgba(15, 20, 32, 0.4);
+}
+.ai-note-tpl-chip.is-category.is-back {
+  border-color: rgba(251, 191, 36, 0.3);
+  color: rgba(253, 230, 138, 0.9);
+}
 .ai-note-tpl-action {
   width: 26px;
   height: 26px;

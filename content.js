@@ -9,426 +9,7 @@
   try { isPopupWindow = !!(window.toolbar && window.toolbar.visible === false); } catch (e) {}
   if (!isTopFrame || isPopupWindow || document.getElementById('ai-orbit-root')) return;
 
-  // --- سیستم ترجمه (i18n) ---
-  let currentLang = 'en';
-  const i18n = {
-    en: {
-      todoTitle: "📝 To-Do List",
-      todoPending: "Pending",
-      todoGoalPending: "In Progress",
-      todoWhenToday: "Today",
-      todoWhenTomorrow: "📅 Tomorrow",
-      todoScheduledTomorrow: "📅 Tomorrow",
-      todoInput: "New task...",
-      todoTabDaily: "🗓️ Daily",
-      todoTabGoals: "✨ Goals",
-      todoDailyInput: "New task (auto-clears in 24h)...",
-      todoGoalInput: "New goal or wish...",
-      todoNoDaily: "No daily tasks",
-      todoNoTomorrow: "No tasks planned for tomorrow yet",
-      todoNoGoals: "No goals yet — add a wish ✨",
-      todoExpiresIn: "{h}h left",
-      todoExpiresSoon: "<1h left",
-      todoAddBtn: "Add",
-      todoDelTitle: "Delete task",
-      todoPostponeTitle: "Move to tomorrow",
-      toastTodoPostponed: "Moved to tomorrow 📅",
-      todoCopyTitle: "Copy text",
-      searchTitle: "Search Bookmarks",
-      searchPlaceholder: "Type to search bookmarks...",
-      searchNoResults: "No matching bookmarks",
-      searchMetaHubStars: "G{hub} · {stars}",
-      searchMetaHubOnly: "G{hub}",
-      searchEditBtn: "Edit bookmark",
-      searchDeleteBtn: "Delete bookmark",
-      searchMatchedInDesc: "desc",
-      noteTitle: "Notepad & AI",
-      allTitle: "Show All Bookmarks",
-      collapseTitle: "Collapse Menu",
-      calcTitle: "Calculator",
-      clockTitle: "Clock & Date",
-      undoTitle: "Recover",
-      undoAria: "Recover last item or restore launcher",
-      spacingTitle: "Drag to adjust spacing",
-      addNodeTitle: "Add Bookmark",
-      formAddTitle: "🔖 Add Bookmark",
-      formEditTitle: "✏️ Edit Bookmark",
-      formCancelBtn: "Cancel",
-      formSaveBtn: "Save",
-      formUpdateBtn: "Update",
-      formDeleteBtn: "Delete Bookmark",
-      formClearCoreBtn: "Reset to Empty",
-      formMoveToGalaxyBtn: "Move into Galaxy (5★)",
-      formMoveToCoreBtn: "Move into Core (starless)",
-      toastCoreToStar: "Moved into the galaxy as a 5★ bookmark",
-      toastMovedToCore: "Moved into Core slot {n} — no longer starred",
-      toastNoEmptyCoreSlot: "No empty Core slot in this galaxy!",
-      formUrlPlaceholder: "URL: https://example.com",
-      formLabelPlaceholder: "Name (Auto)",
-      formDescPlaceholder: "Description (optional, shown on hover)",
-      formGalaxyLabel: "Galaxy (drag to move)",
-      toastGalaxyMoved: "Moved to Galaxy {n}",
-      toastGalaxySwapped: "{tier} tier in Galaxy {n} was full — swapped with the oldest item there",
-
-      formImportanceLabel: "Importance",
-      noteInput: "Type prompt or note here...",
-      noteClearBtn: "Clear / Close",
-      noteCopyBtn: "Copy",
-      noteTxtBtn: "TXT",
-      noteAskBtn: "✨ Ask AI",
-      dockSendTo: "Send to {name}",
-      dockAskName: "✨ Ask {name}",
-      dockPostName: "𝕏 Post to {name}",
-      dockNoCore: "No AI configured",
-      dockEmptyPrompt: "Type something first",
-      dockCopiedOpen: "Copied! Paste it into {name} 📋",
-      dockOpenedFilled: "Opened {name} with your text ready ⚡",
-      dockMethodAuto: "Opens pre-filled",
-      dockMethodCopy: "Copy & paste",
-      calcError: "Error",
-      ageLabel: "Age: {age} Years",
-      toastCleared: "Cleared & closed.",
-      toastCopied: "Copied!",
-      toastDownloaded: "TXT Downloaded!",
-      toastStorageErr: "Storage Error!",
-      toastStarUpdated: "Importance Updated ⭐",
-      toastInvalidUrl: "Invalid URL",
-      toastExists: "Already in Galaxy {n}!",
-      toastUpdated: "Bookmark Updated! ✏️",
-      toastPlanted: "Bookmark Planted! 🌱",
-      toastDeleted: "Deleted! Use Undo to restore it.",
-      toastCoreCleared: "Reset to empty",
-      toastRestored: "Restored!",
-      toastRevived: "Launcher recovered ⚡",
-      toastTodoDeleted: "Task deleted! Use Undo to restore it.",
-      toastTodoCopied: "Copied to clipboard",
-      hubAll: "All",
-      bookmarkCount: "{n} Bookmarks",
-      coreCount: "{n} Core",
-      hubCore: "Core",
-      hubComet: "Comet Stars",
-      portalForward: "Extended Network {n}",
-      portalHome: "Home",
-      portalNews: "News",
-      hubDotTitle: "Galaxy {n}",
-      hubDotHome: "Home",
-      hubDotNews: "News",
-      hubNews: "News",
-      toastOverflowed: "{tier} tier is full — saved to Extended Network {hub} instead.",
-      toastOverflowedToComet: "{tier} tier is full everywhere — moved to the Comet Stars mix in Network {hub}.",
-      toastTierFullEverywhere: "{tier} tier is full across all networks!",
-      toastGalaxyFullNoOverflow: "This galaxy (including its Comet Stars mix) is completely full!",
-      toastQuickAdded: "Bookmarked: {label} {stars}",
-      hubHoldHint: "Hold to bookmark this page\nRelease at the star you want",
-      markToggleTitle: "Special Days",
-      dashToggleTitle: "Today's Agenda",
-      dashNoEvents: "No events for this day",
-      dashEventsWord: "events",
-      dashLinkedTodo: "Linked to Task",
-      dashNextLabel: "Next",
-      dashNewEventTitle: "New event today",
-      dashEventTitlePlaceholder: "Event title...",
-      dashSaveEnter: "Save (Enter)",
-      dashToggleDoneTitle: "Toggle done",
-      dashRecurringToggle: "Repeat tomorrow (e.g. medication)",
-      dashRecurringBadge: "Repeats daily",
-      markDayAgenda: "This day's schedule",
-      toastEventOneHour: "1 hour left until: {title}",
-      scrubberNight: "Night", scrubberDawn: "Dawn", scrubberDay: "Day", scrubberDusk: "Dusk", scrubberEvening: "Evening",
-      markAddPlaceholder: "Title (e.g. Child's Birthday)",
-      markAddBtn: "Add",
-      markGoldenTitle: "Golden — keep every year",
-      markEmpty: "No special days marked yet",
-      markDeleteTitle: "Delete",
-      markToastAdded: "Special day added! 🎉",
-      markToastDeleted: "Special day deleted",
-      markInvalid: "Enter a title and pick a date",
-      markTodayLine: "🎉 Today: {label}",
-      markUpcomingLine: "📌 {label} — in {days}d",
-      noteTplBarTitle: "Templates",
-      noteTplRefactor: "Code Review",
-      noteTplSummary: "Summarize",
-      noteTplCritic: "Critique",
-      noteTplTranslate: "Translate",
-      noteTplSong: "Songwriter",
-      noteTplLogo: "Logo Maker",
-      noteTplAdd: "Add prompt",
-      noteTplEdit: "Manage prompts",
-      noteTplDone: "Done",
-      noteTplFormTitleNew: "New Prompt",
-      noteTplFormTitleEdit: "Edit Prompt",
-      noteTplFormName: "Title",
-      noteTplFormBody: "Prompt text",
-      noteTplFormBodyHint: "Any language works — English tends to get the most consistent results across AI services.",
-      noteTplFormUseNote: "Use notepad text",
-      noteTplFormSave: "Save",
-      noteTplFormCancel: "Cancel",
-      noteTplFormDelete: "Delete",
-      noteTplFormReset: "Reset default",
-      noteTplToastSaved: "Prompt saved",
-      noteTplToastReset: "Prompt restored to default",
-      noteTplToastDeleted: "Prompt deleted",
-      noteTplToastNeedFields: "Title and prompt text required",
-      noteTplToastLimit: "Custom prompt limit reached (12)",
-      noteTokenMeter: "{chars} chars · ~{tokens} tokens",
-      noteTokenEmpty: "0 chars · 0 tokens",
-      noteHistoryTitle: "Recent prompts",
-      noteHistoryEmpty: "No recent prompts",
-      emojiTrayTitle: "Favorite emojis",
-      emojiMoreTitle: "More emojis",
-      shareBtn: "Share",
-      shareTitle: "Share note to social",
-      shareEmpty: "Type something first",
-      shareOpened: "Opened {name} ⚡",
-      shareTruncated: "Text was too long, trimmed for sharing",
-      shareX: "X (Twitter)",
-      shareWhatsApp: "WhatsApp",
-      shareLinkedIn: "LinkedIn",
-      shareFacebook: "Facebook",
-      emojiOnlineBtn: "Online vault",
-      emojiOnlineTitle: "Online emoji vault",
-      emojiOnlineSearch: "Search… fire, heart, book",
-      emojiOnlineLoading: "Loading vault…",
-      emojiOnlineEmpty: "No emoji found",
-      emojiOnlineError: "Could not load online emojis",
-      quoteCopyTitle: "Copy full text",
-      quoteCopied: "Copied!",
-      noteExtractBtn: "Extract page",
-      noteExtractTitle: "Convert current page to LLM-ready Markdown",
-      toastExtracted: "Page extracted as Markdown 📄",
-      toastExtractEmpty: "No readable content found on this page",
-      noteNewTabTitle: "Open notepad in new tab",
-      noteTranslateBtn: "Translate",
-      noteTranslateTitle: "Translate note (FA ↔ EN, auto-detect)",
-      toastTranslated: "Translated 🌐",
-      toastTranslateFail: "Translation failed",
-      toastTranslateEmpty: "Type something first",
-      toastTranslateBusy: "Translating…",
-      noteSpellcheckTitle: "Clean & Spell Check (FA/EN)",
-      toastSpellcheckBusy: "Checking English grammar…",
-      toastSpellcheckNone: "No grammar errors found! ✨",
-      toastSpellcheckFixed: "{n} English error(s) fixed! 🧹",
-      toastSpellcheckNoSuggest: "No suggestions found.",
-      toastSpellcheckFail: "Server error",
-      toastSpellcheckLong: "Text is too long for spell-check",
-      toastSpellcheckFaFixed: "Persian formatting fixed! 🧹",
-      toastSpellcheckFaClean: "Text is already tidy! ✨",
-      noteTtsTitle: "Read aloud",
-      noteTtsStopTitle: "Stop reading",
-      toastTtsUnsupported: "Read-aloud is not supported in this browser",
-      toastTtsStopped: "Stopped"
-    },
-    fa: {
-      todoTitle: "📝 کارهای روزانه",
-      todoPending: "انجام نشده",
-      todoGoalPending: "در مسیر",
-      todoWhenToday: "امروز",
-      todoWhenTomorrow: "📅 فردا",
-      todoScheduledTomorrow: "📅 فردا",
-      todoInput: "وظیفه جدید...",
-      todoTabDaily: "🗓️ روزانه",
-      todoTabGoals: "✨ اهداف",
-      todoDailyInput: "کار جدید (تا ۲۴ ساعت دیگر پاک می‌شود)...",
-      todoGoalInput: "هدف یا آرزوی جدید...",
-      todoNoDaily: "کار روزانه‌ای ثبت نشده",
-      todoNoTomorrow: "هنوز کاری برای فردا برنامه‌ریزی نشده",
-      todoNoGoals: "هنوز هدفی ثبت نشده — یک آرزو اضافه کن ✨",
-      todoExpiresIn: "{h} ساعت مانده",
-      todoExpiresSoon: "کمتر از ۱ ساعت مانده",
-      todoAddBtn: "افزودن",
-      todoDelTitle: "حذف وظیفه",
-      todoPostponeTitle: "انتقال به فردا",
-      toastTodoPostponed: "به فردا منتقل شد 📅",
-      todoCopyTitle: "کپی متن",
-      searchTitle: "جستجوی بوک‌مارک‌ها",
-      searchPlaceholder: "برای جستجو تایپ کنید...",
-      searchNoResults: "بوک‌مارکی یافت نشد",
-      searchMetaHubStars: "کهکشان {hub} · {stars}",
-      searchMetaHubOnly: "کهکشان {hub}",
-      searchEditBtn: "ویرایش بوک‌مارک",
-      searchDeleteBtn: "حذف بوک‌مارک",
-      searchMatchedInDesc: "توضیحات",
-      noteTitle: "یادداشت و هوش مصنوعی",
-      allTitle: "نمایش تمام بوک‌مارک‌ها",
-      collapseTitle: "بستن منو",
-      calcTitle: "ماشین حساب",
-      clockTitle: "ساعت و تاریخ",
-      undoTitle: "بازیابی",
-      undoAria: "بازیابی آخرین مورد یا احیای لانچر",
-      spacingTitle: "فاصله‌ی بوک‌مارک‌ها را با کشیدن تنظیم کنید",
-      addNodeTitle: "افزودن بوک‌مارک",
-      formAddTitle: "🔖 افزودن بوک‌مارک",
-      formEditTitle: "✏️ ویرایش بوک‌مارک",
-      formCancelBtn: "لغو",
-      formSaveBtn: "ذخیره",
-      formUpdateBtn: "به‌روزرسانی",
-      formDeleteBtn: "حذف بوک‌مارک",
-      formClearCoreBtn: "بازنشانی به خالی",
-      formMoveToGalaxyBtn: "انتقال به داخل کهکشان (۵ ستاره)",
-      formMoveToCoreBtn: "انتقال به هسته (بی‌ستاره)",
-      toastCoreToStar: "به‌عنوان بوک‌مارک ۵ ستاره وارد کهکشان شد",
-      toastMovedToCore: "به جایگاه {n} هسته منتقل شد — دیگر ستاره ندارد",
-      toastNoEmptyCoreSlot: "هیچ جایگاه خالی‌ای در هستهٔ این کهکشان نیست!",
-      formUrlPlaceholder: "لینک: https://example.com",
-      formLabelPlaceholder: "نام بوک‌مارک (خودکار)",
-      formDescPlaceholder: "توضیحات (اختیاری، هنگام هاور نمایش داده می‌شود)",
-      formGalaxyLabel: "کهکشان (برای انتقال بکشید)",
-      toastGalaxyMoved: "به کهکشان {n} منتقل شد",
-      toastGalaxySwapped: "رده {tier} در کهکشان {n} پر بود — با قدیمی‌ترین موردِ آن‌جا جابجا شد",
-
-      formImportanceLabel: "اهمیت",
-      noteInput: "متن یا درخواست خود را بنویسید...",
-      noteClearBtn: "پاک / بستن",
-      noteCopyBtn: "کپی",
-      noteTxtBtn: "متنی",
-      noteAskBtn: "✨ ارسال به هوش مصنوعی",
-      dockSendTo: "ارسال به {name}",
-      dockAskName: "✨ ارسال به {name}",
-      dockPostName: "𝕏 پست در {name}",
-      dockNoCore: "هوش مصنوعی تنظیم نشده",
-      dockEmptyPrompt: "اول یه متن بنویس",
-      dockCopiedOpen: "کپی شد! توی {name} پیستش کن 📋",
-      dockOpenedFilled: "{name} با متنت باز شد، آماده ارسال ⚡",
-      dockMethodAuto: "با متن آماده باز می‌شود",
-      dockMethodCopy: "کپی و سپس پیست",
-      calcError: "خطا",
-      ageLabel: "سن: {age} سال",
-      toastCleared: "پاک و بسته شد.",
-      toastCopied: "کپی شد!",
-      toastDownloaded: "فایل متنی دانلود شد!",
-      toastStorageErr: "خطای فضای ذخیره‌سازی!",
-      toastStarUpdated: "میزان اهمیت بروز شد ⭐",
-      toastInvalidUrl: "لینک نامعتبر است",
-      toastExists: "از قبل در کهکشان {n} هست!",
-      toastUpdated: "بوک‌مارک به‌روزرسانی شد! ✏️",
-      toastPlanted: "بوک‌مارک افزوده شد! 🌱",
-      toastDeleted: "حذف شد؛ با Undo بازگردانید.",
-      toastCoreCleared: "به حالت خالی بازنشانی شد",
-      toastRestored: "بازیابی شد!",
-      toastRevived: "لانچر بازیابی شد ⚡",
-      toastTodoDeleted: "وظیفه حذف شد؛ با Undo بازگردانید.",
-      toastTodoCopied: "متن کپی شد",
-      hubAll: "همه",
-      bookmarkCount: "{n} بوک‌مارک",
-      coreCount: "{n} هسته",
-      hubCore: "هسته",
-      hubComet: "ستاره‌های دنبال‌دار",
-      portalForward: "منظومه‌ی فرعی {n}",
-      portalHome: "خانه",
-      portalNews: "اخبار",
-      hubDotTitle: "کهکشان {n}",
-      hubDotHome: "خانه",
-      hubDotNews: "اخبار",
-      hubNews: "اخبار",
-      toastOverflowed: "رده‌ی {tier} پر شد؛ در منظومه‌ی فرعی {hub} ذخیره شد.",
-      toastOverflowedToComet: "اسلات {tier} همه‌جا پر شده؛ بوک‌مارک شما به ستاره‌های دنبال‌دار میکسِ کهکشان {hub} منتقل شد.",
-      toastTierFullEverywhere: "رده‌ی {tier} در همه‌ی منظومه‌ها پر است!",
-      toastGalaxyFullNoOverflow: "این کهکشان (حتی با احتساب ستاره‌های دنباله‌دارش) کاملاً پر است!",
-      toastQuickAdded: "بوک‌مارک شد: {label} {stars}",
-      hubHoldHint: "نگه دارید تا بوک‌مارک شود\nدر ستاره‌ی دلخواه رها کنید",
-      markToggleTitle: "مناسبت‌ها",
-      dashToggleTitle: "برنامهٔ امروز",
-      dashNoEvents: "برای این روز رویدادی ثبت نشده",
-      dashEventsWord: "رویداد",
-      dashLinkedTodo: "متصل به کار",
-      dashNextLabel: "بعدی",
-      dashNewEventTitle: "رویداد جدید برای امروز",
-      dashEventTitlePlaceholder: "عنوان رویداد...",
-      dashSaveEnter: "ذخیره (Enter)",
-      dashToggleDoneTitle: "تغییر وضعیتِ انجام‌شده",
-      dashRecurringToggle: "تکرار برای فردا هم (مثلاً دارو)",
-      dashRecurringBadge: "هر روز تکرار می‌شود",
-      markDayAgenda: "برنامهٔ این روز",
-      toastEventOneHour: "یک ساعت تا: {title}",
-      scrubberNight: "شب", scrubberDawn: "سپیده‌دم", scrubberDay: "روز", scrubberDusk: "غروب", scrubberEvening: "شامگاه",
-      markAddPlaceholder: "عنوان (مثلاً تولد فرزند)",
-      markAddBtn: "افزودن",
-      markGoldenTitle: "طلایی — هر سال نگه دار",
-      markEmpty: "هنوز مناسبتی ثبت نشده",
-      markDeleteTitle: "حذف",
-      markToastAdded: "مناسبت ثبت شد! 🎉",
-      markToastDeleted: "مناسبت حذف شد",
-      markInvalid: "یک عنوان و تاریخ معتبر وارد کنید",
-      markTodayLine: "🎉 امروز: {label}",
-      markUpcomingLine: "📌 {label} — {days} روز مانده",
-      noteTplBarTitle: "قالب‌ها",
-      noteTplRefactor: "بازبینی کد",
-      noteTplSummary: "خلاصه‌سازی",
-      noteTplCritic: "نقد",
-      noteTplTranslate: "ترجمه",
-      noteTplSong: "ترانه‌ساز",
-      noteTplLogo: "لوگوساز",
-      noteTplAdd: "افزودن پرامپت",
-      noteTplEdit: "مدیریت پرامپت‌ها",
-      noteTplDone: "تمام",
-      noteTplFormTitleNew: "پرامپت جدید",
-      noteTplFormTitleEdit: "ویرایش پرامپت",
-      noteTplFormName: "عنوان",
-      noteTplFormBody: "متن پرامپت",
-      noteTplFormBodyHint: "هر زبانی مناسب است — انگلیسی معمولاً نتیجهٔ یکدست‌تری در همهٔ سرویس‌های هوش مصنوعی می‌دهد.",
-      noteTplFormUseNote: "متن دفترچه",
-      noteTplFormSave: "ذخیره",
-      noteTplFormCancel: "لغو",
-      noteTplFormDelete: "حذف",
-      noteTplFormReset: "بازگردانی پیش‌فرض",
-      noteTplToastSaved: "پرامپت ذخیره شد",
-      noteTplToastReset: "پرامپت به پیش‌فرض برگشت",
-      noteTplToastDeleted: "پرامپت حذف شد",
-      noteTplToastNeedFields: "عنوان و متن پرامپت لازم است",
-      noteTplToastLimit: "حداکثر ۱۲ پرامپت سفارشی",
-      noteTokenMeter: "{chars} نویسه · ≈{tokens} توکن",
-      noteTokenEmpty: "۰ نویسه · ۰ توکن",
-      noteHistoryTitle: "پرامپت‌های اخیر",
-      noteHistoryEmpty: "پرامپتی ذخیره نشده",
-      emojiTrayTitle: "ایموجی‌های موردعلاقه",
-      emojiMoreTitle: "ایموجی‌های بیشتر",
-      shareBtn: "اشتراک",
-      shareTitle: "اشتراک‌گذاری یادداشت",
-      shareEmpty: "اول یه متن بنویس",
-      shareOpened: "{name} باز شد ⚡",
-      shareTruncated: "متن خیلی بلند بود، برای اشتراک‌گذاری کوتاه شد",
-      shareX: "شبکه X",
-      shareWhatsApp: "واتساپ",
-      shareLinkedIn: "لینکدین",
-      shareFacebook: "فیسبوک",
-      emojiOnlineBtn: "گنجینه آنلاین",
-      emojiOnlineTitle: "گنجینه آنلاین ایموجی",
-      emojiOnlineSearch: "جستجو… آتش، قلب، کتاب",
-      emojiOnlineLoading: "در حال بارگذاری گنجینه…",
-      emojiOnlineEmpty: "ایموجی یافت نشد",
-      emojiOnlineError: "بارگذاری آنلاین ناموفق بود",
-      quoteCopyTitle: "کپی متن کامل",
-      quoteCopied: "کپی شد!",
-      noteExtractBtn: "استخراج صفحه",
-      noteExtractTitle: "تبدیل صفحهٔ فعلی به Markdown مناسب LLM",
-      toastExtracted: "صفحه به‌صورت Markdown استخراج شد 📄",
-      toastExtractEmpty: "محتوای قابل‌خواندن در این صفحه پیدا نشد",
-      noteNewTabTitle: "باز کردن دفترچه در تب جدید",
-      noteTranslateBtn: "ترجمه",
-      noteTranslateTitle: "ترجمه یادداشت (خودکار فارسی ↔ انگلیسی)",
-      toastTranslated: "ترجمه شد 🌐",
-      toastTranslateFail: "ترجمه ناموفق بود",
-      toastTranslateEmpty: "اول یه متن بنویس",
-      toastTranslateBusy: "در حال ترجمه…",
-      noteSpellcheckTitle: "پاک‌سازی و غلط‌یابی (فارسی/انگلیسی)",
-      toastSpellcheckBusy: "در حال بررسی گرامر انگلیسی…",
-      toastSpellcheckNone: "غلط املایی یا گرامری یافت نشد! ✨",
-      toastSpellcheckFixed: "{n} خطای انگلیسی اصلاح شد! 🧹",
-      toastSpellcheckNoSuggest: "پیشنهادی برای اصلاح یافت نشد.",
-      toastSpellcheckFail: "خطا در ارتباط با سرور",
-      toastSpellcheckLong: "متن برای غلط‌یابی خیلی بلند است",
-      toastSpellcheckFaFixed: "نیم‌فاصله‌ها و علائم اصلاح شدند! 🧹",
-      toastSpellcheckFaClean: "متن شما از قبل مرتب است! ✨",
-      noteTtsTitle: "خواندن با صدا",
-      noteTtsStopTitle: "توقف خواندن",
-      toastTtsUnsupported: "خواندن با صدا در این مرورگر پشتیبانی نمی‌شود",
-      toastTtsStopped: "متوقف شد"
-    }
-  };
-
-  function t(key) { return i18n[currentLang] && i18n[currentLang][key] ? i18n[currentLang][key] : i18n['en'][key]; }
-
-  let linksData = []; 
+  let linksData = [];
   let linksData2 = []; 
   let linksData3 = [];
   let linksData4 = []; // کهکشان NEWS — فقط با انتخاب کاربر پر می‌شود
@@ -1370,147 +951,6 @@
   // برای هر کلید) و رویدادهای روزانه/ساعتیِ کاربرِ فعال به‌سرعت از آن رد می‌شوند.
   function saveTimeEvents() { try { if (chrome.runtime?.id) chrome.storage.local.set({ aiTreeTimeEvents: timeEventsData }); } catch (e) {} }
 
-  // === تبدیل تقویم شمسی (جلالی) <-> میلادی — الگوریتم استاندارد، بدون کتابخانه‌ی خارجی ===
-  function jdiv(a, b) { return ~~(a / b); }
-  function jmod(a, b) { return a - ~~(a / b) * b; }
-  function jalCal(jy) {
-    const breaks = [-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178];
-    const bl = breaks.length; const gy = jy + 621;
-    let leapJ = -14, jp = breaks[0], jm, jump = 0, n, i;
-    for (i = 1; i < bl; i += 1) {
-      jm = breaks[i]; jump = jm - jp;
-      if (jy < jm) break;
-      leapJ += jdiv(jump, 33) * 8 + jdiv(jmod(jump, 33), 4);
-      jp = jm;
-    }
-    n = jy - jp;
-    leapJ += jdiv(n, 33) * 8 + jdiv(jmod(n, 33) + 3, 4);
-    if (jmod(jump, 33) === 4 && jump - n === 4) leapJ += 1;
-    const leapG = jdiv(gy, 4) - jdiv((jdiv(gy, 100) + 1) * 3, 4) - 150;
-    const march = 20 + leapJ - leapG;
-    if (jump - n < 6) n = n - jump + jdiv(jump + 4, 33) * 33;
-    let leap = jmod(jmod(n + 1, 33) - 1, 4);
-    if (leap === -1) leap = 4;
-    return { leap, gy, march };
-  }
-  function g2d(gy, gm, gd) {
-    let d = jdiv((gy + jdiv(gm - 8, 6) + 100100) * 1461, 4) + jdiv(153 * jmod(gm + 9, 12) + 2, 5) + gd - 34840408;
-    d = d - jdiv(jdiv(gy + 100100 + jdiv(gm - 8, 6), 100) * 3, 4) + 752;
-    return d;
-  }
-  function d2g(jdn) {
-    let j = 4 * jdn + 139361631;
-    j = j + jdiv(jdiv(4 * jdn + 183187720, 146097) * 3, 4) * 4 - 3908;
-    const i = jdiv(jmod(j, 1461), 4) * 5 + 308;
-    const gd = jdiv(jmod(i, 153), 5) + 1;
-    const gm = jmod(jdiv(i, 153), 12) + 1;
-    const gy = jdiv(j, 1461) - 100100 + jdiv(8 - gm, 6);
-    return { gy, gm, gd };
-  }
-  function jalaaliToGregorian(jy, jm, jd) { const r = jalCal(jy); return d2g(g2d(r.gy, 3, r.march) + (jm - 1) * 31 - jdiv(jm, 7) * (jm - 7) + jd - 1); }
-  function gregorianToJalaali(gy, gm, gd) {
-    const jdn = g2d(gy, gm, gd);
-    let gy2 = d2g(jdn).gy; let jy = gy2 - 621; const r = jalCal(jy);
-    const jdn1f = g2d(gy2, 3, r.march); let k = jdn - jdn1f; let jm, jd;
-    if (k >= 0) {
-      if (k <= 185) { jm = 1 + jdiv(k, 31); jd = jmod(k, 31) + 1; return { jy, jm, jd }; }
-      k -= 186;
-    } else { jy -= 1; k += 179; if (r.leap === 1) k += 1; }
-    jm = 7 + jdiv(k, 30); jd = jmod(k, 30) + 1;
-    return { jy, jm, jd };
-  }
-
-  // تبدیل «رو به جلو»: از یک تاریخ میلادی معلوم، روز/ماه معادلش در تقویم قمری (islamic-umalqura)
-  // را می‌گیرد. این جهت با Intl مرورگر قابل‌اعتماد است؛ جهت برعکس (قمری معلوم → میلادی مجهول)
-  // اعتماد کمتری دارد چون مبنای رؤیت هلال محلی است، برای همین در daysUntilNextHijri با یک
-  // اسکن رو-به-جلوی سبک (نه فرمول ثابت) حل می‌شود.
-  function gregorianToHijriDM(gy, gm, gd) {
-    try {
-      const dt = new Date(gy, gm - 1, gd);
-      const parts = new Intl.DateTimeFormat('en-US-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric' }).formatToParts(dt);
-      const day = parseInt(parts.find(p => p.type === 'day').value, 10);
-      const month = parseInt(parts.find(p => p.type === 'month').value, 10);
-      if (!day || !month) return null;
-      return { hd: day, hm: month };
-    } catch (e) { return null; }
-  }
-
-  // اسکن رو-به-جلو (حداکثر ۳۹۵ روز) برای پیدا کردن نزدیک‌ترین تاریخ میلادیِ معادلِ یک
-  // روز/ماه قمری. ساده‌تر و قابل‌اعتمادتر از فرمول‌های تبدیل ثابت قمری→میلادی است.
-  // یک کش سبک به‌ازای هر (روز، ماه، سالِ امروز) نگه می‌داریم تا رندرهای پیاپی سنگین نشوند.
-  const _hijriNextCache = {};
-  function nextHijriOccurrence(hDay, hMonth) {
-    const now = new Date();
-    const cacheKey = `${hMonth}-${hDay}-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-    if (_hijriNextCache[cacheKey]) return _hijriNextCache[cacheKey];
-    const todayStripped = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    for (let i = 0; i < 395; i++) {
-      const cand = new Date(todayStripped.getFullYear(), todayStripped.getMonth(), todayStripped.getDate() + i);
-      const hm = gregorianToHijriDM(cand.getFullYear(), cand.getMonth() + 1, cand.getDate());
-      if (hm && hm.hd === hDay && hm.hm === hMonth) {
-        _hijriNextCache[cacheKey] = cand;
-        return cand;
-      }
-    }
-    return null; // نباید پیش بیاید، ولی برای ایمنی
-  }
-
-  function daysUntilNext(day, month, cal) {
-    const now = new Date();
-    const todayStripped = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // cal: 'j' = Jalali annual, 'h' = Hijri (lunar) annual, 'g' = Gregorian annual (default for legacy entries)
-    const useJalali = cal === 'j' || cal === 'jalali';
-    const useHijri = cal === 'h' || cal === 'hijri';
-    if (useHijri) {
-      const target = nextHijriOccurrence(day, month);
-      if (!target) return 9999;
-      return Math.round((target - todayStripped) / 86400000);
-    }
-    if (useJalali) {
-      const jToday = gregorianToJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
-      let g = jalaaliToGregorian(jToday.jy, month, day);
-      let target = new Date(g.gy, g.gm - 1, g.gd);
-      if (target < todayStripped) {
-        g = jalaaliToGregorian(jToday.jy + 1, month, day);
-        target = new Date(g.gy, g.gm - 1, g.gd);
-      }
-      return Math.round((target - todayStripped) / 86400000);
-    }
-    let target = new Date(now.getFullYear(), month - 1, day);
-    if (target < todayStripped) target = new Date(now.getFullYear() + 1, month - 1, day);
-    return Math.round((target - todayStripped) / 86400000);
-  }
-
-  // Occurrence date for the current year (does NOT roll to next year).
-  // Used to expire one-shot marks the day after they pass.
-  function markedOccurrenceThisYear(day, month, cal) {
-    const now = new Date();
-    const useJalali = cal === 'j' || cal === 'jalali';
-    const useHijri = cal === 'h' || cal === 'hijri';
-    try {
-      if (useHijri) {
-        // برای پرونینگ صرفاً کافیست وقوعِ همین دور از تاریخ (نزدیک‌ترین رخداد) را بدانیم
-        return nextHijriOccurrence(day, month);
-      }
-      if (useJalali) {
-        const jToday = gregorianToJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
-        const g = jalaaliToGregorian(jToday.jy, month, day);
-        return new Date(g.gy, g.gm - 1, g.gd);
-      }
-      return new Date(now.getFullYear(), month - 1, day);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function isMarkedDayPast(day, month, cal) {
-    const occ = markedOccurrenceThisYear(day, month, cal);
-    if (!occ || isNaN(occ.getTime())) return false;
-    const now = new Date();
-    const todayStripped = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // Keep through the event day; remove starting the next calendar day
-    return occ < todayStripped;
-  }
 
   function pruneExpiredMarkedDays() {
     if (!Array.isArray(markedDays) || markedDays.length === 0) return false;
@@ -3079,7 +2519,8 @@
       uiEls.clockQuoteText.classList.toggle('is-en', !isFa);
     }
     if (uiEls.clockQuoteTitle) {
-      uiEls.clockQuoteTitle.textContent = `${cat.icon} ${isFa ? cat.labelFa : cat.label}`;
+      const itemRef = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
+      uiEls.clockQuoteTitle.textContent = itemRef ? `${cat.icon} ${itemRef}` : `${cat.icon} ${isFa ? cat.labelFa : cat.label}`;
       uiEls.clockQuoteTitle.dir = isFa ? 'rtl' : 'ltr';
     }
     if (uiEls.clockQuote) uiEls.clockQuote.classList.toggle('is-collapsed', isRumiCollapsed);
@@ -3131,9 +2572,8 @@
     const other = isFa ? (q.en || '') : (q.fa || '');
     if (other && other !== body) lines.push(other);
     const cat = AITreeQuoteEngine.poetry[AITreeQuoteEngine.activePoetryKey];
-    const attr = isFa ? cat.labelFa : cat.label;
-    if (q.ref) lines.push(`${q.ref} — ${attr}`);
-    else lines.push(attr);
+    const itemRef = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
+    lines.push(itemRef || (isFa ? cat.labelFa : cat.label));
     return lines.join('\n\n');
   }
 
@@ -5199,55 +4639,82 @@
   // این ۶ پرامپتِ پیش‌فرض به‌عنوان محتوای اپ به انگلیسی نوشته شده‌اند، اما این یک قانون نیست:
   // عنوان و متن پرامپت‌های سفارشیِ کاربر (customPrompts) و بازنویسی‌های او (promptOverrides)
   // می‌توانند به هر زبانی باشند — هیچ‌جای این فایل زبان ورودی کاربر را بررسی/محدود نمی‌کند.
+  const PROMPT_CATEGORIES = [
+    { id: 'image', key: 'promptCatImage' },
+    { id: 'writing', key: 'promptCatWriting' },
+    { id: 'ai', key: 'promptCatAi' },
+    { id: 'dev', key: 'promptCatDev' },
+    { id: 'architecture', key: 'promptCatArchitecture' },
+    { id: 'music', key: 'promptCatMusic' },
+    { id: 'research', key: 'promptCatResearch' },
+    { id: 'management', key: 'promptCatManagement' },
+    { id: 'system', key: 'promptCatSystem' },
+    { id: 'tools', key: 'promptCatTools' },
+    { id: 'lab', key: 'promptCatLab' },
+    { id: 'favorites', key: 'promptCatFavorites' },
+    { id: 'general', key: 'promptCatGeneral' }
+  ];
+  const PROMPT_CATEGORY_IDS = new Set(PROMPT_CATEGORIES.map(c => c.id));
+  function promptCategoryLabel(id) {
+    const cat = PROMPT_CATEGORIES.find(c => c.id === id) || PROMPT_CATEGORIES[PROMPT_CATEGORIES.length - 1];
+    return t(cat.key);
+  }
   const BUILTIN_PROMPTS = [
     {
       id: 'builtin-refactor',
       title: 'Code Review',
       text: 'Act as a Principal Software Architect. Review the following code for efficiency, security, and edge-case resilience:\n\n',
+      category: 'dev',
       builtIn: true
     },
     {
       id: 'builtin-summary',
       title: 'Summarize',
       text: 'Analyze the text below and provide a structured comparative table and bullet-point executive summary:\n\n',
+      category: 'ai',
       builtIn: true
     },
     {
       id: 'builtin-critic',
       title: 'Critique',
       text: 'Critique the following thesis from first principles. Identify logical fallacies and hidden assumptions:\n\n',
+      category: 'ai',
       builtIn: true
     },
     {
       id: 'builtin-translate',
       title: 'Translate',
       text: 'Translate the following text into clear, natural English while preserving technical meaning:\n\n',
+      category: 'writing',
       builtIn: true
     },
     {
       id: 'builtin-song',
       title: 'Songwriter',
       text: 'Turn the following text into a beautiful song.\nThe song must not be a mere rewrite of the text; it should transform its feeling, meaning, and imagery into a musical work.\nUse rhyme and flowing words, and write the lyrics so a listener can easily remember them.\n\nText:\n',
+      category: 'music',
       builtIn: true
     },
     {
       id: 'builtin-logo',
       title: 'Logo Maker',
       text: 'Act as an elite brand designer. Create a logo for [brand name] that captures [core value] and speaks directly to [audience]. Make it sophisticated, timeless, and instantly recognizable.\n\n',
+      category: 'image',
       builtIn: true
     }
   ];
 
-  const CUSTOM_PROMPT_MAX = 12;
+  const CUSTOM_PROMPT_MAX = 300; // سقف واقعی صرفاً یک محافظِ حجمِ storage است — دیگر محدودیت UI نیست چون پرامپت‌ها دسته‌بندی می‌شوند
   const CUSTOM_PROMPT_KEY = 'aiTreeCustomPrompts';
   const PROMPT_OVERRIDE_KEY = 'aiTreePromptOverrides';
   const PROMPT_HIDDEN_KEY = 'aiTreePromptHidden';
-  let customPrompts = []; // [{ id, title, text }]
-  let promptOverrides = {}; // { [builtinId]: { title, text } }
+  let customPrompts = []; // [{ id, title, text, category }]
+  let promptOverrides = {}; // { [builtinId]: { title, text, category } }
   let promptHiddenIds = []; // builtin ids removed by user
   let tplEditMode = false;
   let tplEditingId = null; // id being edited, or null for new
   let tplEditingBuiltIn = false;
+  let expandedPromptCategory = null; // null = showing category folders; otherwise the open category's id
 
   let promptHistory = [];
   let noteDraftSaveTimer = null;
@@ -5299,7 +4766,8 @@
             .map(p => ({
               id: p.id || ('c-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)),
               title: String(p.title).slice(0, 40),
-              text: String(p.text)
+              text: String(p.text),
+              category: normalizePromptCategory(p.category)
             }));
         }
         if (res && res[PROMPT_OVERRIDE_KEY] && typeof res[PROMPT_OVERRIDE_KEY] === 'object') {
@@ -5358,23 +4826,37 @@
     adjustNotepadPosition();
   }
 
+  function normalizePromptCategory(id) {
+    return PROMPT_CATEGORY_IDS.has(id) ? id : 'general';
+  }
+
   function allPrompts() {
     const hidden = new Set(promptHiddenIds || []);
     const builtins = BUILTIN_PROMPTS
       .filter((p) => !hidden.has(p.id))
       .map((p) => {
         const ov = promptOverrides && promptOverrides[p.id];
-        if (ov && (ov.title || ov.text)) {
+        if (ov && (ov.title || ov.text || ov.category)) {
           return {
             ...p,
             title: (ov.title != null ? String(ov.title) : p.title).slice(0, 40),
             text: ov.text != null ? String(ov.text) : p.text,
+            category: normalizePromptCategory(ov.category || p.category),
             overridden: true
           };
         }
-        return { ...p, overridden: false };
+        return { ...p, category: normalizePromptCategory(p.category), overridden: false };
       });
-    return builtins.concat(customPrompts.map(p => ({ ...p, builtIn: false, overridden: false })));
+    return builtins.concat(customPrompts.map(p => ({ ...p, category: normalizePromptCategory(p.category), builtIn: false, overridden: false })));
+  }
+
+  function promptsByCategory() {
+    const groups = {};
+    allPrompts().forEach((p) => {
+      if (!groups[p.category]) groups[p.category] = [];
+      groups[p.category].push(p);
+    });
+    return groups;
   }
 
   function ensureTplEditorDom() {
@@ -5391,6 +4873,7 @@
         <button type="button" class="ai-tpl-ed-close" id="ai-tpl-ed-close" aria-label="Close">✕</button>
       </div>
       <input type="text" id="ai-tpl-ed-name" class="ai-tpl-ed-input" dir="auto" maxlength="40" autocomplete="off" />
+      <select id="ai-tpl-ed-cat" class="ai-tpl-ed-input"></select>
       <textarea id="ai-tpl-ed-body" class="ai-tpl-ed-textarea" dir="auto" rows="5"></textarea>
       <div class="ai-tpl-ed-actions">
         <button type="button" id="ai-tpl-ed-use-note" class="ai-tpl-ed-btn ghost"></button>
@@ -5439,12 +4922,23 @@
     ed.querySelector('#ai-tpl-ed-title').textContent = isNew ? t('noteTplFormTitleNew') : t('noteTplFormTitleEdit');
     const nameEl = ed.querySelector('#ai-tpl-ed-name');
     const bodyEl = ed.querySelector('#ai-tpl-ed-body');
+    const catEl = ed.querySelector('#ai-tpl-ed-cat');
     nameEl.placeholder = t('noteTplFormName');
     bodyEl.placeholder = t('noteTplFormBody');
     // راهنمای نرم (فقط با هاور) نه محدودیت: عنوان و متن پرامپت هر دو می‌توانند به هر زبانی باشند
     bodyEl.title = t('noteTplFormBodyHint');
     nameEl.value = promptOrNull ? (promptOrNull.title || '') : '';
     bodyEl.value = promptOrNull ? (promptOrNull.text || '') : '';
+    catEl.innerHTML = '';
+    PROMPT_CATEGORIES.forEach((cat) => {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.textContent = promptCategoryLabel(cat.id);
+      catEl.appendChild(opt);
+    });
+    catEl.value = promptOrNull
+      ? normalizePromptCategory(promptOrNull.category)
+      : normalizePromptCategory(expandedPromptCategory);
     ed.querySelector('#ai-tpl-ed-use-note').textContent = t('noteTplFormUseNote');
     ed.querySelector('#ai-tpl-ed-cancel').textContent = t('noteTplFormCancel');
     ed.querySelector('#ai-tpl-ed-save').textContent = t('noteTplFormSave');
@@ -5478,19 +4972,20 @@
     if (!ed) return;
     const title = (ed.querySelector('#ai-tpl-ed-name').value || '').trim().slice(0, 40);
     const body = (ed.querySelector('#ai-tpl-ed-body').value || '').trim();
+    const category = normalizePromptCategory(ed.querySelector('#ai-tpl-ed-cat').value);
     if (!title || !body) {
       showToastNotification(t('noteTplToastNeedFields'), true);
       return;
     }
     if (tplEditingId && tplEditingBuiltIn) {
-      promptOverrides[tplEditingId] = { title, text: body };
+      promptOverrides[tplEditingId] = { title, text: body, category };
       savePromptOverrides();
     } else if (tplEditingId) {
       const idx = customPrompts.findIndex(p => p.id === tplEditingId);
       if (idx >= 0) {
-        customPrompts[idx] = { ...customPrompts[idx], title, text: body };
+        customPrompts[idx] = { ...customPrompts[idx], title, text: body, category };
       } else {
-        customPrompts.push({ id: tplEditingId, title, text: body });
+        customPrompts.push({ id: tplEditingId, title, text: body, category });
       }
       saveCustomPrompts();
     } else {
@@ -5501,10 +4996,12 @@
       customPrompts.push({
         id: 'c-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         title,
-        text: body
+        text: body,
+        category
       });
       saveCustomPrompts();
     }
+    expandedPromptCategory = category;
     closeTplEditor();
     renderNoteTemplates();
     showToastNotification(t('noteTplToastSaved'));
@@ -5538,25 +5035,63 @@
     uiEls.tplBar.innerHTML = '';
     uiEls.tplBar.classList.toggle('is-editing', tplEditMode);
 
-    allPrompts().forEach((tpl) => {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'ai-note-tpl-chip' + (tpl.builtIn ? ' is-builtin' : ' is-custom');
-      if (tpl.overridden) chip.classList.add('is-overridden');
-      if (tplEditMode) chip.classList.add('is-editable');
-      chip.dir = 'auto'; // عنوان پرامپت ممکن است با زبان رابط کاربری فرق داشته باشد
-      chip.textContent = tpl.title;
-      chip.title = tplEditMode ? t('noteTplFormTitleEdit') : tpl.title;
-      chip.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (tplEditMode) {
-          openTplEditor(tpl);
-          return;
-        }
-        insertNoteTemplate(tpl.text);
+    const groups = promptsByCategory();
+
+    if (expandedPromptCategory && !groups[expandedPromptCategory]) {
+      expandedPromptCategory = null; // آخرین پرامپت آن دسته حذف شده — برگرد به فهرست پوشه‌ها
+    }
+
+    if (!expandedPromptCategory) {
+      // نمای پوشه‌ها: هر دسته یک چیپ با شمارنده، مرتب‌شده بر اساس ترتیب ثابتِ PROMPT_CATEGORIES
+      PROMPT_CATEGORIES.forEach((cat) => {
+        const items = groups[cat.id];
+        if (!items || !items.length) return;
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'ai-note-tpl-chip is-category';
+        chip.dir = 'auto';
+        chip.textContent = `${promptCategoryLabel(cat.id)} · ${items.length}`;
+        chip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          expandedPromptCategory = cat.id;
+          renderNoteTemplates();
+        });
+        uiEls.tplBar.appendChild(chip);
       });
-      uiEls.tplBar.appendChild(chip);
-    });
+    } else {
+      // نمای داخل یک دسته: چیپ بازگشت + پرامپت‌های همان دسته
+      const backChip = document.createElement('button');
+      backChip.type = 'button';
+      backChip.className = 'ai-note-tpl-chip is-category is-back';
+      backChip.dir = 'auto';
+      backChip.textContent = `${t('noteTplBack')} ${promptCategoryLabel(expandedPromptCategory)}`;
+      backChip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        expandedPromptCategory = null;
+        renderNoteTemplates();
+      });
+      uiEls.tplBar.appendChild(backChip);
+
+      (groups[expandedPromptCategory] || []).forEach((tpl) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'ai-note-tpl-chip' + (tpl.builtIn ? ' is-builtin' : ' is-custom');
+        if (tpl.overridden) chip.classList.add('is-overridden');
+        if (tplEditMode) chip.classList.add('is-editable');
+        chip.dir = 'auto'; // عنوان پرامپت ممکن است با زبان رابط کاربری فرق داشته باشد
+        chip.textContent = tpl.title;
+        chip.title = tplEditMode ? t('noteTplFormTitleEdit') : tpl.title;
+        chip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (tplEditMode) {
+            openTplEditor(tpl);
+            return;
+          }
+          insertNoteTemplate(tpl.text);
+        });
+        uiEls.tplBar.appendChild(chip);
+      });
+    }
 
     // + add
     const addBtn = document.createElement('button');
@@ -8304,8 +7839,27 @@
     try { if (chrome.runtime?.id) { chrome.storage.sync.set({ orbitX: parseInt(root.style.left), orbitY: parseInt(root.style.top) }); } } catch(err) {} 
   });
 
+  // تماشای فیلم/استریم/بازی در حالت تمام‌صفحه — ویجت خودکار پنهان می‌شود تا مزاحم نباشد،
+  // و با خروج از تمام‌صفحه به همان وضعیت قبلی برمی‌گردد. اگر کاربر خودش قبلاً از پاپ‌آپ
+  // «Hide» زده بود، این منطق دخالت نمی‌کند — چون آن حالت را عوض نکرده بودیم.
+  let widgetHiddenByFullscreen = false;
+  function handleFullscreenChange() {
+    const isFullscreen = !!document.fullscreenElement;
+    if (isFullscreen) {
+      if (root.style.display !== 'none') {
+        widgetHiddenByFullscreen = true;
+        root.style.display = 'none';
+      }
+    } else if (widgetHiddenByFullscreen) {
+      widgetHiddenByFullscreen = false;
+      root.style.display = '';
+    }
+  }
+  document.addEventListener('fullscreenchange', handleFullscreenChange);
+
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "resetFloatingMenuPositionAnly") { 
+    if (message.action === "resetFloatingMenuPositionAnly") {
+      widgetHiddenByFullscreen = false;
       root.style.display = ''; root.style.left = WIDGET1_DEFAULT_LEFT; root.style.top = 'auto'; root.style.bottom = WIDGET1_DEFAULT_BOTTOM; 
       clockManuallyPositioned = false; // کادر ساعت هم به حالت لنگرشده روی هاب برمی‌گردد
       try { if (chrome.runtime?.id) chrome.storage.sync.remove(['clockCustomX', 'clockCustomY']); } catch (err) {}
@@ -8324,7 +7878,7 @@
       }
       return true;
     }
-    if (message.action === "hideLauncherAnly") { root.style.display = 'none'; }
+    if (message.action === "hideLauncherAnly") { widgetHiddenByFullscreen = false; root.style.display = 'none'; }
     if (message.action === "getBookmarkBackups") {
       try { chrome.storage.local.get(['aiTreeBookmarkBackups'], (data) => sendResponse({ backups: data.aiTreeBookmarkBackups || [] })); return true; } catch (e) { sendResponse({ backups: [] }); }
     }

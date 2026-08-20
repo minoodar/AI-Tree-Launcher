@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Tree Launcher",
-  "version": "33.0",
+  "version": "33.1",
   "description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, calculator, clock and to-do.",
   "permissions": [
     "storage",
@@ -36,6 +36,8 @@
         "styles.css"
       ],
       "js": [
+        "i18n.js",
+        "calendar-engine.js",
         "quote-engine.js",
         "content.js"
       ],
