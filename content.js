@@ -7615,6 +7615,45 @@
     if (uiEls.formDescription) uiEls.formDescription.focus();
   }
 
+  // نگه‌داشتن ماوس دقیقاً وقتی که کاربر در نمای هستهٔ (بی‌ستاره) یک کهکشان است — همان‌طور که نگه‌داشتن
+  // در نمای یک ردهٔ ستاره‌ای (مثلاً ۵★) بلافاصله به همان رده ثبت می‌کند، این تابع معادلش برای هسته است:
+  // مستقیم در اولین جایگاه خالی از ۵ اسلاتِ ثابتِ هسته می‌نشیند (بدون باز شدن پاپ‌آپ انتخاب ستاره).
+  function quickAddCurrentTabToCore() {
+    let homeUrl, label;
+    try {
+      homeUrl = `${location.protocol}//${location.hostname}`;
+      label = extractDomainName(homeUrl) || location.hostname;
+    } catch (e) { return; }
+
+    if (!homeUrl || !label) return;
+
+    const dupHub = isDuplicateNodeAll(homeUrl, label, null, null);
+    if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
+
+    const startHub = isOpen ? currentHubIndex : 1;
+    const slot = findEmptyCoreSlot(startHub);
+    if (slot === -1) { showToastNotification(t('toastNoEmptyCoreSlot'), true); return; }
+
+    hubData(startHub)[slot] = { label, url: homeUrl, description: '', importance: DEFAULT_IMPORTANCE };
+    saveLinksAll();
+
+    closeAllPanelsExcept('');
+    isOpen = true;
+    root.classList.add('open');
+    currentHubIndex = startHub;
+    currentLayerMode = 0;
+
+    setHubLabel(t('hubCore'));
+    renderSpiral(); renderTierDots();
+
+    showToastNotification(t('toastQuickAddedCore').replace('{label}', label));
+
+    // همان الگوی quickAddCurrentTab: فرم ویرایش بلافاصله باز می‌شود تا کاربر توضیح اضافه کند؛
+    // بوک‌مارک از قبل ذخیره شده، پس لغو این فرم چیزی را از دست نمی‌دهد.
+    openEditForm(slot);
+    if (uiEls.formDescription) uiEls.formDescription.focus();
+  }
+
   uiEls.formSave.addEventListener('click', (e) => { e.stopPropagation(); submitBookmarkForm(); });
   uiEls.formCancel.addEventListener('click', (e) => { e.stopPropagation(); closeTree(); });
   uiEls.formDelete.addEventListener('click', (e) => {
@@ -7798,12 +7837,19 @@
     if (!hub.classList.contains('hub-collapsed')) {
       clearTimeout(holdGraceTimer);
       const contextRing = (isOpen && currentLayerMode > 0 && !showAllOverride) ? RING_CONFIG[currentLayerMode] : null;
+      // نمای هسته (بی‌ستاره) با یک جایگاه خالی — دقیقاً مثل نگه‌داشتن روی یک ردهٔ ستاره‌ای،
+      // بلافاصله همان‌جا ثبت می‌شود؛ فقط وقتی هسته پر باشد به پاپ‌آپ انتخاب ستاره برمی‌گردیم.
+      const coreHasEmptySlot = (isOpen && currentLayerMode === 0 && !showAllOverride && findEmptyCoreSlot(currentHubIndex) !== -1);
       holdGraceTimer = setTimeout(() => {
         if (!isDragging || dragMoved) return;
         if (contextRing) {
           quickAddFired = true;
           const importance = contextRing.importance !== undefined ? contextRing.importance : contextRing.importanceMax;
           quickAddCurrentTab(importance);
+          hub.classList.add('quickadd-flash'); setTimeout(() => hub.classList.remove('quickadd-flash'), 450);
+        } else if (coreHasEmptySlot) {
+          quickAddFired = true;
+          quickAddCurrentTabToCore();
           hub.classList.add('quickadd-flash'); setTimeout(() => hub.classList.remove('quickadd-flash'), 450);
         } else {
           quickAddActive = true;
