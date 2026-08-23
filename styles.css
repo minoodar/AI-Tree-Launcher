@@ -1407,6 +1407,19 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
 }
 .ai-search-result-galaxy { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); }
 .ai-search-result-stars { color: #facc15; background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.25); }
+/* چیپ تگ در نتایج جستجو — همان الگوی بج galaxy/stars، رنگ بنفش برای تمایز بصری از دو بج دیگر */
+.ai-search-result-tag {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 5px;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+  color: #c4b5fd;
+  background: rgba(167, 139, 250, 0.14);
+  border: 1px solid rgba(167, 139, 250, 0.32);
+}
 /* دکمه‌های ویرایش/حذف روی ردیف شناور می‌شوند (فقط با هاور دیده می‌شوند) تا فضای
    دائمی از عنوان نگیرند. inset-inline-end (نه right) عمداً استفاده شده: پنل جستجو
    در فارسی direction:rtl می‌گیرد و ترتیب فرزندهای flex برعکس می‌شود؛ right ثابت
@@ -1748,7 +1761,8 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
   pointer-events: none;
   z-index: 2;
 }
-.ai-form-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ai-form-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; cursor: move; user-select: none; }
+.orbit-inline-form.panning { transition: none; }
 .ai-form-title { font-size: 13px; font-weight: 700; color: var(--c-emerald-light); letter-spacing: 0.2px; }
 .ai-form-close { cursor: pointer; color: rgba(255,255,255,0.4); font-size: 14px; line-height: 1; padding: 4px 6px; border-radius: 5px; transition: all 0.15s var(--ease-premium); }
 .ai-form-close:hover { color: #fff; background: rgba(255,255,255,0.12); }
@@ -1756,6 +1770,47 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .orbit-inline-form input:focus { border-color: var(--c-emerald); background: rgba(0,0,0,0.55); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
 .orbit-inline-form input.invalid { border-color: var(--c-red); box-shadow: 0 0 0 3px rgba(239,68,68,0.15); animation: formShake 0.3s ease; }
 @keyframes formShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+/* پیشنهادِ تگ زیرِ فیلد تگ‌ها — فقط وقتی چیزی برای پیشنهاد هست ظاهر می‌شود (کلاس active) */
+.ai-tags-suggest { display: none; flex-wrap: wrap; gap: 5px; margin-top: -6px; }
+.ai-tags-suggest.active { display: flex; }
+.ai-tags-suggest-chip {
+  font-size: 10.5px; font-weight: 600; color: #c4b5fd; background: rgba(167, 139, 250, 0.14);
+  border: 1px solid rgba(167, 139, 250, 0.32); border-radius: 6px; padding: 3px 7px; cursor: pointer;
+  transition: background 0.15s var(--ease-premium), color 0.15s var(--ease-premium);
+}
+.ai-tags-suggest-chip:hover { background: rgba(167, 139, 250, 0.28); color: #ede9fe; }
+/* === Category accordion (کادر کرکره‌ای دسته‌بندی) — V33.4 =============== */
+.ai-cat-accordion { display: flex; flex-direction: column; gap: 8px; margin-top: -2px; }
+.ai-cat-accordion-toggle {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+  color: rgba(255,255,255,0.75); font-size: 11.5px; font-weight: 600; padding: 8px 10px; cursor: pointer;
+  transition: background 0.15s var(--ease-premium), border-color 0.15s var(--ease-premium);
+}
+.ai-cat-accordion-toggle:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
+.ai-cat-accordion-chevron { font-size: 10px; transition: transform 0.2s var(--ease-premium); color: rgba(255,255,255,0.5); }
+.ai-cat-accordion.open .ai-cat-accordion-chevron { transform: rotate(180deg); }
+.ai-cat-grid {
+  display: none; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px;
+  max-height: 168px; overflow-y: auto; padding: 2px;
+}
+.ai-cat-accordion.open .ai-cat-grid { display: grid; }
+.ai-cat-chip {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+  padding: 7px 3px; cursor: pointer; color: rgba(255,255,255,0.6);
+  transition: background 0.15s var(--ease-premium), border-color 0.15s var(--ease-premium), transform 0.1s var(--ease-bounce);
+}
+.ai-cat-chip:hover { background: rgba(255,255,255,0.09); transform: translateY(-1px); }
+.ai-cat-chip:active { transform: scale(0.95); }
+.ai-cat-chip.active {
+  background: rgba(167, 139, 250, 0.18); border-color: rgba(167, 139, 250, 0.5);
+  color: #ede9fe; box-shadow: 0 0 10px rgba(167, 139, 250, 0.25);
+}
+.ai-cat-chip-icon { font-size: 17px; line-height: 1; }
+.ai-cat-chip-label { font-size: 8.5px; font-weight: 600; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ai-cat-accordion-search { padding: 0 0 2px; }
+.ai-cat-accordion-search .ai-cat-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); max-height: 140px; }
 .ai-form-importance { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; }
 .ai-form-importance-label { font-size: 12px; color: rgba(255,255,255,0.6); font-weight: 600; }
 .ai-star-rating { display: flex; gap: 4px; direction: ltr; }

@@ -222,6 +222,15 @@
     <input type="url" id="ai-form-url" dir="ltr" />
     <input type="text" id="ai-form-label" maxlength="18" dir="auto" />
     <input type="text" id="ai-form-description" maxlength="140" dir="auto" />
+    <input type="text" id="ai-form-tags" maxlength="120" dir="auto" autocomplete="off" />
+    <div class="ai-tags-suggest" id="ai-tags-suggest"></div>
+    <div class="ai-cat-accordion" id="ai-form-cat-accordion">
+      <button type="button" class="ai-cat-accordion-toggle" id="ai-form-cat-toggle">
+        <span id="ai-form-cat-toggle-label"></span>
+        <span class="ai-cat-accordion-chevron">▾</span>
+      </button>
+      <div class="ai-cat-grid" id="ai-form-cat-grid"></div>
+    </div>
     <div class="ai-form-importance">
       <span class="ai-form-importance-label" id="ai-form-imp-label"></span>
       <div class="ai-star-rating" id="ai-form-stars">
@@ -424,6 +433,13 @@
 
   const searchPanel = document.createElement('div'); searchPanel.id = 'ai-search-panel';
   searchPanel.innerHTML = `
+    <div class="ai-cat-accordion ai-cat-accordion-search" id="ai-search-cat-accordion">
+      <button type="button" class="ai-cat-accordion-toggle" id="ai-search-cat-toggle">
+        <span id="ai-search-cat-toggle-label"></span>
+        <span class="ai-cat-accordion-chevron">▾</span>
+      </button>
+      <div class="ai-cat-grid" id="ai-search-cat-grid"></div>
+    </div>
     <input type="text" id="ai-search-input" dir="auto" autocomplete="off" />
     <ul id="ai-search-results"></ul>
   `;
@@ -504,6 +520,12 @@
     formUrl: inlineForm.querySelector('#ai-form-url'),
     formLabel: inlineForm.querySelector('#ai-form-label'),
     formDescription: inlineForm.querySelector('#ai-form-description'),
+    formTags: inlineForm.querySelector('#ai-form-tags'),
+    formTagsSuggest: inlineForm.querySelector('#ai-tags-suggest'),
+    formCatToggle: inlineForm.querySelector('#ai-form-cat-toggle'),
+    formCatToggleLabel: inlineForm.querySelector('#ai-form-cat-toggle-label'),
+    formCatAccordion: inlineForm.querySelector('#ai-form-cat-accordion'),
+    formCatGrid: inlineForm.querySelector('#ai-form-cat-grid'),
     formGalaxyWrap: inlineForm.querySelector('#ai-form-galaxy'),
     formGalaxyLabel: inlineForm.querySelector('#ai-form-galaxy-label'),
     formGalaxyTrack: inlineForm.querySelector('#ai-galaxy-track'),
@@ -567,6 +589,10 @@
     todoQuote: todoPanel.querySelector('#ai-todo-quote'),
     searchInput: searchPanel.querySelector('#ai-search-input'),
     searchResults: searchPanel.querySelector('#ai-search-results'),
+    searchCatToggle: searchPanel.querySelector('#ai-search-cat-toggle'),
+    searchCatToggleLabel: searchPanel.querySelector('#ai-search-cat-toggle-label'),
+    searchCatAccordion: searchPanel.querySelector('#ai-search-cat-accordion'),
+    searchCatGrid: searchPanel.querySelector('#ai-search-cat-grid'),
     todoWhenRow: todoPanel.querySelector('#ai-todo-when-row'),
     todoWhenToday: todoPanel.querySelector('#ai-todo-when-today'),
     todoWhenTomorrow: todoPanel.querySelector('#ai-todo-when-tomorrow'),
@@ -751,6 +777,11 @@
     uiEls.formUrl.placeholder = t('formUrlPlaceholder');
     uiEls.formLabel.placeholder = t('formLabelPlaceholder');
     uiEls.formDescription.placeholder = t('formDescPlaceholder');
+    uiEls.formTags.placeholder = t('formTagsPlaceholder');
+    uiEls.formCatToggleLabel.textContent = t('catAccordionLabel');
+    uiEls.searchCatToggleLabel.textContent = t('catFilterLabel');
+    if (typeof refreshFormCatGrid === 'function') refreshFormCatGrid();
+    if (typeof refreshSearchCatGrid === 'function') refreshSearchCatGrid();
     uiEls.formGalaxyLabel.textContent = t('formGalaxyLabel');
     uiEls.formImpLabel.textContent = t('formImportanceLabel');
     uiEls.formCancel.textContent = t('formCancelBtn');
@@ -2749,6 +2780,114 @@
     return out;
   }
 
+  // === Tag Engine (V33.0) ===================================================
+  // مجموعه‌ی ثابت و انتخابیِ ۱۵ دسته‌ی پرکاربرد با آیکون — این‌ها یک آرایه‌ی جدا از bookmark.tags
+  // نیستند؛ صرفاً یک لایه‌ی نمایشی/میانبر روی همان تگ‌های آزادِ موجودند. کلیک روی هرکدام دقیقاً
+  // معادل نوشتن دستیِ همان کلمه در فیلد تگ‌هاست — یعنی هیچ فیلد جدیدی به مدل داده اضافه نشد،
+  // مهاجرت/schema جدید لازم نیست، و بوک‌مارک می‌تواند هم‌زمان چند دسته‌ی ثابت + هر تگ آزاد دیگری داشته باشد.
+  const AI_TAG_CATEGORIES = [
+    { key: 'music', icon: '🎵', fa: 'موسیقی', en: 'Music' },
+    { key: 'movies', icon: '🎬', fa: 'فیلم و سریال', en: 'Movies & Series' },
+    { key: 'shopping', icon: '🛒', fa: 'خرید', en: 'Shopping' },
+    { key: 'finance', icon: '💰', fa: 'مالی و ارز', en: 'Finance' },
+    { key: 'social', icon: '🌐', fa: 'شبکه اجتماعی', en: 'Social' },
+    { key: 'news', icon: '📰', fa: 'اخبار', en: 'News' },
+    { key: 'tech', icon: '💻', fa: 'فناوری', en: 'Tech' },
+    { key: 'ai', icon: '🧠', fa: 'هوش مصنوعی', en: 'AI' },
+    { key: 'games', icon: '🎮', fa: 'بازی', en: 'Games' },
+    { key: 'design', icon: '🎨', fa: 'طراحی', en: 'Design' },
+    { key: 'education', icon: '📚', fa: 'آموزش', en: 'Education' },
+    { key: 'tools', icon: '🛠️', fa: 'ابزار', en: 'Tools' },
+    { key: 'cloud', icon: '☁️', fa: 'ابر و هاست', en: 'Cloud' },
+    { key: 'health', icon: '🩺', fa: 'سلامت', en: 'Health' },
+    { key: 'travel', icon: '✈️', fa: 'سفر', en: 'Travel' }
+  ];
+  function categoryLabel(cat) { return currentLang === 'fa' ? cat.fa : cat.en; }
+
+  // نرمال‌سازی یک تگ تکی: کوچک‌شونده، فاصله‌های اضافه حذف، فاصله‌های داخلی به یک فاصله.
+  // جلوگیری از تفرقه‌ی "Music" / "music " / "MUSIC" به عنوان سه تگ جدا.
+  function normalizeTag(raw) {
+    return String(raw || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  // رشته‌ی ورودیِ کاربر (جدا‌شده با کاما) را به آرایه‌ی تگِ نرمال‌شده و بدون تکرار تبدیل می‌کند.
+  function parseTagsFromInput(str) {
+    return Array.from(new Set(
+      String(str || '')
+        .split(',')
+        .map(normalizeTag)
+        .filter(Boolean)
+    )).slice(0, 12); // سقف ۱۲ تگ به ازای هر بوک‌مارک، برای جلوگیری از انباشت بی‌رویه
+  }
+
+  // آرایه‌ی تگ‌های ذخیره‌شده را برای نمایش داخل input فرم به رشته برمی‌گرداند.
+  function formatTagsForInput(tags) {
+    return Array.isArray(tags) ? tags.join(', ') : '';
+  }
+
+  // فهرست یکتای همه‌ی تگ‌های استفاده‌شده در کل بوک‌مارک‌های ۴ کهکشان — برای اتوکامپلیت آینده (Phase 3.2).
+  function getAllTags() {
+    const set = new Set();
+    [linksData, linksData2, linksData3, linksData4].forEach(arr => {
+      (arr || []).forEach(link => { (link && Array.isArray(link.tags) ? link.tags : []).forEach(tg => set.add(tg)); });
+    });
+    return Array.from(set).sort();
+  }
+
+  // پیشنهادِ تگ بر اساس پیشوندِ تایپ‌شده (پرکاربردترین‌ها اول از طریق شمارش ساده).
+  function suggestTags(prefix) {
+    const p = normalizeTag(prefix);
+    if (!p) return [];
+    return getAllTags().filter(tg => tg.startsWith(p)).slice(0, 6);
+  }
+
+  // رندرِ مشترکِ گرید ۱۵ آیکونِ دسته — هم در فرم افزودن/ویرایش (چندانتخابی، روی فیلد تگ)
+  // و هم در پنل جستجو (تک‌انتخابی، به‌عنوان فیلتر) استفاده می‌شود؛ فقط نحوه‌ی toggle فرق دارد.
+  function renderCategoryGrid(gridEl, activeKeys, onToggle) {
+    gridEl.innerHTML = '';
+    AI_TAG_CATEGORIES.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'ai-cat-chip'; btn.title = categoryLabel(cat);
+      btn.setAttribute('aria-label', categoryLabel(cat));
+      btn.classList.toggle('active', activeKeys.includes(cat.key));
+      btn.innerHTML = `<span class="ai-cat-chip-icon">${cat.icon}</span><span class="ai-cat-chip-label">${categoryLabel(cat)}</span>`;
+      btn.addEventListener('click', (e) => { e.stopPropagation(); onToggle(cat.key); });
+      gridEl.appendChild(btn);
+    });
+  }
+
+  // --- نسخه‌ی فرم: چندانتخابی، مستقیماً روی فیلد آزادِ تگ‌ها عمل می‌کند ---
+  function refreshFormCatGrid() {
+    const active = parseTagsFromInput(uiEls.formTags.value);
+    renderCategoryGrid(uiEls.formCatGrid, active, (key) => {
+      const current = parseTagsFromInput(uiEls.formTags.value);
+      const idx = current.indexOf(key);
+      if (idx === -1) current.push(key); else current.splice(idx, 1);
+      uiEls.formTags.value = formatTagsForInput(current);
+      refreshFormCatGrid();
+    });
+  }
+
+  uiEls.formCatToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    uiEls.formCatAccordion.classList.toggle('open');
+  });
+
+  // --- نسخه‌ی جستجو: تک‌انتخابی (فیلتر)، کلیک دوباره روی همان آیکون فیلتر را پاک می‌کند ---
+  let activeSearchCategory = null;
+  function refreshSearchCatGrid() {
+    renderCategoryGrid(uiEls.searchCatGrid, activeSearchCategory ? [activeSearchCategory] : [], (key) => {
+      activeSearchCategory = (activeSearchCategory === key) ? null : key;
+      refreshSearchCatGrid();
+      renderSearchResults(uiEls.searchInput.value);
+    });
+  }
+
+  uiEls.searchCatToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    uiEls.searchCatAccordion.classList.toggle('open');
+  });
+
   // امتیازدهی فازیِ سبک: مچ مستقیم بالاترین امتیاز را می‌گیرد؛ در غیر این صورت
   // اگر حروف کوئری به همان ترتیب (نه لزوماً پشت‌سرهم) در متن پیدا شوند امتیاز نسبی می‌گیرد.
   function fuzzyScore(text, query) {
@@ -2768,27 +2907,38 @@
   function renderSearchResults(rawQuery) {
     const list = uiEls.searchResults; list.innerHTML = '';
     const query = (rawQuery || '').trim().toLowerCase();
-    if (!query) { adjustSearchPosition(); return; }
+    if (!query && !activeSearchCategory) { adjustSearchPosition(); return; }
 
-    const matches = allBookmarksFlat()
+    const pool = activeSearchCategory
+      ? allBookmarksFlat().filter(({ link }) => Array.isArray(link.tags) && link.tags.includes(activeSearchCategory))
+      : allBookmarksFlat();
+
+    const matches = pool
       .map(({ link, hub, idx }) => {
+        // بدون کوئریِ متنی (فقط فیلترِ دسته فعال است)، امتیازِ عنوان صفر می‌ماند و همه هم‌رده
+        // دیده می‌شوند؛ ترتیب نهایی بر اساسِ ستاره مرتب می‌شود، نه فازی‌مچ که بی‌معنا می‌شد.
         const titleScore = fuzzyScore(link.label, query);
+        const tagsStr = Array.isArray(link.tags) ? link.tags.join(' ') : '';
+        const tagScore = fuzzyScore(tagsStr, query);
         const descScore = fuzzyScore(link.description, query);
-        // مچ در عنوان همیشه بالاتر از مچ در توضیحات رتبه‌بندی می‌شود
+        // ترتیبِ اولویتِ رتبه‌بندی: مچ در عنوان > مچ در تگ‌ها > مچ در توضیحات
         let score = -1;
         if (titleScore > -1) score = titleScore;
+        else if (tagScore > -1) score = tagScore - 1000;
         else if (descScore > -1) score = descScore - 2000;
-        return { link, hub, idx, score, matchedDesc: titleScore === -1 && descScore > -1 };
+        const matchedTag = titleScore === -1 && tagScore > -1;
+        const matchedDesc = titleScore === -1 && tagScore === -1 && descScore > -1;
+        return { link, hub, idx, score, matchedTag, matchedDesc };
       })
-      .filter(x => x.score > -1 || x.matchedDesc)
-      .sort((a, b) => b.score - a.score)
+      .filter(x => query ? (x.score > -1 || x.matchedTag || x.matchedDesc) : true)
+      .sort((a, b) => query ? (b.score - a.score) : ((b.link.importance || 0) - (a.link.importance || 0)))
       .slice(0, 30);
 
     if (matches.length === 0) {
       const empty = document.createElement('li'); empty.className = 'ai-search-empty'; empty.textContent = t('searchNoResults');
       list.appendChild(empty);
     } else {
-      matches.forEach(({ link, hub, idx, matchedDesc }) => {
+      matches.forEach(({ link, hub, idx, matchedDesc, matchedTag }) => {
         const li = document.createElement('li'); li.className = 'ai-search-result';
 
         // رنگ همان تیرِ بوک‌مارک در چرخ - همیشه محاسبه می‌شود، هرگز خالی نمی‌ماند
@@ -2821,6 +2971,20 @@
           const starBadge = document.createElement('span'); starBadge.className = 'ai-search-result-stars';
           starBadge.textContent = '★'.repeat(Math.max(1, Math.min(5, link.importance)));
           badges.appendChild(starBadge);
+        }
+        // چیپ‌های تگ: حداکثر ۲ تگ برای جلوگیری از شلوغی هر ردیف؛ اگر مچِ فعلی از طریقِ
+        // تگ بوده، همان تگِ مچ‌شده اول نشان داده می‌شود تا کاربر بفهمد چرا این نتیجه آمد.
+        if (Array.isArray(link.tags) && link.tags.length > 0) {
+          let shownTags = link.tags;
+          if (matchedTag) {
+            const hit = link.tags.find(tg => fuzzyScore(tg, query) > -1);
+            if (hit) shownTags = [hit, ...link.tags.filter(tg => tg !== hit)];
+          }
+          shownTags.slice(0, 2).forEach(tg => {
+            const tagBadge = document.createElement('span'); tagBadge.className = 'ai-search-result-tag';
+            tagBadge.textContent = '#' + tg;
+            badges.appendChild(tagBadge);
+          });
         }
 
         li.appendChild(colorDot); li.appendChild(fav); li.appendChild(labelWrap); li.appendChild(badges);
@@ -2866,7 +3030,7 @@
     if (pos === -1) return;
     if (pos < 5) {
       // اسلوت ثابت — مثل فرم ویرایش، به‌جای حذف از آرایه، خالی می‌شود
-      arr[pos] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+      arr[pos] = { label: '', url: '', description: '', tags: [], importance: DEFAULT_IMPORTANCE };
       saveLinksAll();
       if (currentHubIndex === hubIdx) renderSpiral();
       if (typeof renderTierDots === 'function') renderTierDots();
@@ -2907,7 +3071,10 @@
       if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); const isActive = searchPanel.classList.contains('active'); closeAllPanelsExcept('');
       if (!isActive) {
         searchPanel.classList.add('active'); root.classList.add('show-search');
-        uiEls.searchInput.value = ''; renderSearchResults(''); adjustSearchPosition();
+        uiEls.searchInput.value = ''; activeSearchCategory = null;
+        uiEls.searchCatAccordion.classList.remove('open');
+        refreshSearchCatGrid();
+        renderSearchResults(''); adjustSearchPosition();
         setTimeout(() => uiEls.searchInput.focus(), 50);
       }
       resetToggleTimeout();
@@ -4182,10 +4349,20 @@
     } else if (newlineCount === 0 && scrollH <= minTaH + 4) {
       // چند کلمه در یک خط → رشد نکن
       targetFormH = NOTE_DEFAULT_H;
+    } else {
+      // ==== رشد مرحله‌ای (Stepped Growth) ====
+      // به‌جای دنبال‌کردن پیکسل‌به‌پیکسلِ scrollHeight (که باعث لرزش/جهش هنگام تایپ
+      // می‌شد)، ارتفاع به نزدیک‌ترین یکی از ۳ پلهٔ ثابت اسنپ می‌شود.
+      const phase1 = NOTE_DEFAULT_H;
+      const phase2 = Math.max(phase1, Math.round(noteMaxH() * 0.65));
+      const phase3 = Math.max(phase2, noteMaxH());
+      if (targetFormH <= phase1) targetFormH = phase1;
+      else if (targetFormH <= phase2) targetFormH = phase2;
+      else targetFormH = phase3;
     }
 
     const prevTrans = quickNoteForm.style.transition;
-    quickNoteForm.style.transition = 'none';
+    quickNoteForm.style.transition = 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     quickNoteForm.style.width = targetFormW + 'px';
     quickNoteForm.style.height = targetFormH + 'px';
     noteTextarea.style.minHeight = minTaH + 'px';
@@ -5415,24 +5592,246 @@
     return currentLang === 'fa' ? 'en' : 'fa';
   }
 
-  function applyTranslatedNote(translated) {
-    if (!noteTextarea || translated == null) return;
+  function applyTranslatedNote(response, context) {
+    if (!noteTextarea || !response || !response.text) return;
+    context = context || { hasSelection: false, startPos: 0, endPos: 0 };
     if (typeof notepadUndo !== 'undefined' && notepadUndo) {
       try { notepadUndo.forceBoundary(); } catch (err) {}
     } else if (typeof beginNoteEditSessionIfNeeded === 'function') {
       try { beginNoteEditSessionIfNeeded(); } catch (err) {}
     }
-    noteTextarea.value = translated;
-    try {
-      const end = noteTextarea.value.length;
-      noteTextarea.setSelectionRange(end, end);
-      noteTextarea.focus();
-    } catch (err) {}
+
+    // جایگزینی هوشمند: اگر کاربر بخشی از متن را انتخاب کرده بود، فقط همان بخش
+    // با ترجمه عوض می‌شود (نه کل یادداشت) — هم از پاک‌شدن کل متن جلوگیری
+    // می‌کند، هم اجازه می‌دهد فقط یک کلمه انتخاب و ترجمه شود تا مترادف‌ها
+    // (که گوگل فقط برای کلمات/عبارات کوتاه برمی‌گرداند) واقعاً نمایش داده شوند.
+    let newCursorPos;
+    if (context.hasSelection) {
+      const val = noteTextarea.value;
+      noteTextarea.value = val.slice(0, context.startPos) + response.text + val.slice(context.endPos);
+      newCursorPos = context.startPos + response.text.length;
+      noteTextarea.setSelectionRange(context.startPos, newCursorPos);
+    } else {
+      noteTextarea.value = response.text;
+      newCursorPos = response.text.length;
+      noteTextarea.setSelectionRange(newCursorPos, newCursorPos);
+    }
+    try { noteTextarea.focus(); } catch (err) {}
+
     if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
     if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+    // ترجمه محتوا را عوض می‌کند، پس قفل «کاربر دستی سایز داده» دیگر معتبر
+    // نیست — وگرنه اگر کاربر قبلاً حتی یک‌بار گوشهٔ دفترچه را کشیده باشد،
+    // autoGrowNotepad برای همیشه no-op می‌ماند و کادر بعد از ترجمه رشد نمی‌کند.
+    if (typeof noteUserResized !== 'undefined') noteUserResized = false;
     if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
     if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+
+    if (response.synonyms && response.synonyms.length > 0) {
+      const replaceRange = context.hasSelection
+        ? { start: context.startPos, end: newCursorPos }
+        : { start: 0, end: newCursorPos };
+      showTranslationSynonymsPopover(response.synonyms, replaceRange);
+    } else {
+      showToastNotification(t('toastTranslated'));
+    }
+  }
+
+  function ensureTranslationPopoverCSS() {
+    if (document.getElementById('ai-trans-popover-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'ai-trans-popover-styles';
+    style.textContent = `
+      .ai-translate-synonyms-popover {
+        position: absolute; top: 0; bottom: 0;
+        width: 240px; max-width: 46%;
+        overflow-y: auto;
+        background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+        padding: 14px 12px; box-shadow: var(--glass-shadow), 0 0 24px rgba(var(--accent-note), 0.14);
+        font-family: var(--font-ui), "Vazirmatn", sans-serif;
+        z-index: 50; opacity: 0;
+        transition: opacity 0.24s var(--ease-premium), transform 0.28s var(--ease-bounce);
+        pointer-events: none;
+      }
+      /* چسبیده به لبهٔ راست فرم، هم‌ارتفاع با خودِ نوت‌پد (بدون افتادن پایین آن) */
+      .ai-translate-synonyms-popover.dock-right {
+        right: 0; border-left: 1px solid rgba(var(--accent-note), 0.4);
+        border-radius: 0 var(--glass-radius) var(--glass-radius) 0;
+        transform: scaleX(0.92); transform-origin: right center;
+      }
+      .ai-translate-synonyms-popover.dock-left {
+        left: 0; border-right: 1px solid rgba(var(--accent-note), 0.4);
+        border-radius: var(--glass-radius) 0 0 var(--glass-radius);
+        transform: scaleX(0.92); transform-origin: left center;
+      }
+      .ai-translate-synonyms-popover.visible {
+        opacity: 1; transform: scaleX(1); pointer-events: auto;
+      }
+      .ai-translate-synonyms-popover::-webkit-scrollbar { width: 6px; }
+      .ai-translate-synonyms-popover::-webkit-scrollbar-thumb {
+        background: rgba(var(--accent-note), 0.35); border-radius: 3px;
+      }
+      .ai-syn-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 10px; font-size: 12.5px; font-weight: 700;
+        color: rgba(167, 243, 208, 0.85); letter-spacing: 0.2px;
+        border-bottom: 1px solid rgba(var(--accent-note), 0.18); padding-bottom: 8px;
+      }
+      .ai-syn-close {
+        background: none; border: none; color: var(--c-neutral); cursor: pointer;
+        font-size: 15px; line-height: 1; padding: 2px 4px; border-radius: 6px;
+        transition: color 0.15s, background 0.15s;
+      }
+      .ai-syn-close:hover { color: #fff; background: rgba(var(--c-red-rgb, 239, 68, 68), 0.18); }
+      .ai-syn-group { margin-bottom: 12px; }
+      .ai-syn-type {
+        display: inline-flex; align-items: center; gap: 5px;
+        font-size: 10.5px; color: var(--c-emerald-light);
+        margin-bottom: 7px; font-weight: 700; letter-spacing: 0.3px;
+      }
+      .ai-syn-type::before {
+        content: ''; width: 5px; height: 5px; border-radius: 50%;
+        background: var(--c-emerald); box-shadow: 0 0 6px var(--c-emerald);
+      }
+      .ai-syn-words { display: flex; flex-wrap: wrap; gap: 6px; }
+      .ai-syn-chip {
+        background: var(--matte-bg); border: 1px solid var(--matte-border);
+        color: #E5E7EB; padding: 5px 10px; border-radius: 999px; font-size: 12px;
+        font-family: inherit; cursor: pointer;
+        transition: all 0.2s var(--ease-premium);
+      }
+      .ai-syn-chip.is-active {
+        background: rgba(var(--accent-note), 0.3); border-color: var(--c-emerald); color: #fff;
+      }
+      .ai-syn-chip:hover {
+        background: rgba(var(--accent-note), 0.22); border-color: var(--c-emerald);
+        color: #fff; transform: translateY(-1px);
+      }
+      .ai-syn-footer {
+        margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1);
+        font-size: 10px; color: rgba(167, 243, 208, 0.55); text-align: center;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // نقش‌های دستوری‌ای که دیکشنری گوگل برمی‌گرداند، به فارسی نمایش داده می‌شوند
+  // تا برچسب‌ها به‌جای واژه‌های خام انگلیسی (noun/verb/...) قابل‌فهم باشند.
+  const TRANSLATE_POS_FA = {
+    noun: 'اسم', verb: 'فعل', adjective: 'صفت', adverb: 'قید',
+    pronoun: 'ضمیر', preposition: 'حرف اضافه', conjunction: 'حرف ربط',
+    interjection: 'صوت', determiner: 'حرف تعریف', article: 'حرف تعریف',
+    abbreviation: 'مخفف', exclamation: 'صوت', number: 'عدد', numeral: 'عدد'
+  };
+  function localizePos(type) {
+    const key = String(type || '').toLowerCase().trim();
+    if (currentLang === 'fa') return TRANSLATE_POS_FA[key] || type;
+    return type;
+  }
+
+  // synonyms: [{type, words[]}]  |  replaceRange: {start, end} — بازه‌ای از
+  // noteTextarea.value که با کلیک روی هر چیپ باید عوض شود (نه کل متن)
+  function showTranslationSynonymsPopover(synonyms, replaceRange) {
+    ensureTranslationPopoverCSS();
+    const oldPopover = document.getElementById('ai-translate-synonyms-popover');
+    if (oldPopover) oldPopover.remove();
+
+    const popover = document.createElement('div');
+    popover.id = 'ai-translate-synonyms-popover';
+    popover.className = 'ai-translate-synonyms-popover';
+    popover.style.direction = currentLang === 'fa' ? 'rtl' : 'ltr';
+
+    let html = `<div class="ai-syn-header">
+      <span>💡 ${currentLang === 'fa' ? 'مترادف‌های پیشنهادی' : 'Suggested Synonyms'}</span>
+      <button class="ai-syn-close" aria-label="Close">✕</button>
+    </div>`;
+
+    // نکته: break داخل .forEach() غیرمجاز است (خطای سینتکسی)؛ اینجا از
+    // for...of استفاده می‌شود تا بشود در متن‌های خیلی طولانی زودتر خارج شد.
+    for (const syn of synonyms) {
+      html += `<div class="ai-syn-group">
+        <span class="ai-syn-type">${escapeHtml(localizePos(syn.type))}</span>
+        <div class="ai-syn-words">`;
+      syn.words.forEach((word) => {
+        html += `<button class="ai-syn-chip" style="direction: auto;" data-word="${escapeHtml(word)}" title="${currentLang === 'fa' ? 'برای پیش‌نمایش موس را روی کلمه ببرید، برای ثبت کلیک کنید' : 'Hover to preview, click to commit'}">${escapeHtml(word)}</button>`;
+      });
+      html += `</div></div>`;
+      if (html.length > 15000) break; // جلوگیری از bloated DOM در متن‌های خیلی طولانی
+    }
+    html += `<div class="ai-syn-footer">${currentLang === 'fa' ? 'موس را روی کلمات ببرید تا پیش‌نمایش ببینید؛ برای ثبت نهایی کلیک کنید' : 'Hover over words to preview them; click to commit'}</div>`;
+
+    popover.innerHTML = html;
+
+    // چسبیده به لبهٔ نوت‌پد، داخل خودِ quickNoteForm — هم‌ارتفاع کامل با آن
+    // (top:0/bottom:0)، بدون نیاز به محاسبهٔ مختصاتِ شکنندهٔ «بالای کلمه».
+    quickNoteForm.appendChild(popover);
+    const formRect = quickNoteForm.getBoundingClientRect();
+    const roomRight = window.innerWidth - formRect.right;
+    const roomLeft = formRect.left;
+    // اگر سمتِ راستِ نوت‌پد جا نداشت ولی چپش داشت، به چپ می‌چسبد؛ در غیر این
+    // صورت جهتِ متن (fa=راست‌به‌چپ → سمت چپ طبیعی‌تر) تعیین‌کننده است.
+    const dockLeft = roomRight < 40 && roomLeft >= 40 ? true
+      : (roomLeft < 40 && roomRight >= 40 ? false : currentLang === 'fa');
+    popover.classList.add(dockLeft ? 'dock-left' : 'dock-right');
+
+    let outsideClickHandler = null;
+    function closePopover() {
+      if (outsideClickHandler) {
+        document.removeEventListener('mousedown', outsideClickHandler, true);
+        outsideClickHandler = null;
+      }
+      popover.classList.remove('visible');
+      setTimeout(() => popover.remove(), 250);
+    }
+
+    requestAnimationFrame(() => popover.classList.add('visible'));
+
+    // متنِ «تایید‌شده»ٔ فعلی — پیش‌نمایش هاور موقتاً آن را عوض می‌کند و با خروج
+    // موس به همین مقدار برمی‌گردد؛ فقط کلیک این مقدار را برای همیشه به‌روز می‌کند.
+    let baseText = noteTextarea.value;
+
+    popover.querySelectorAll('.ai-syn-chip').forEach((chip) => {
+      const word = chip.dataset.word;
+
+      chip.addEventListener('mouseenter', () => {
+        noteTextarea.value = baseText.slice(0, replaceRange.start) + word + baseText.slice(replaceRange.end);
+      });
+
+      chip.addEventListener('mouseleave', () => {
+        noteTextarea.value = baseText;
+      });
+
+      chip.addEventListener('click', () => {
+        baseText = baseText.slice(0, replaceRange.start) + word + baseText.slice(replaceRange.end);
+        noteTextarea.value = baseText;
+        const newPos = replaceRange.start + word.length;
+        noteTextarea.setSelectionRange(replaceRange.start, newPos);
+        replaceRange.end = newPos; // کلیک بعدی، همین کلمهٔ تازه را جایگزین می‌کند نه بازهٔ اصلی را
+
+        popover.querySelectorAll('.ai-syn-chip.is-active').forEach((c) => c.classList.remove('is-active'));
+        chip.classList.add('is-active');
+
+        if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+        if (typeof saveNoteDraftDebounced === 'function') saveNoteDraftDebounced();
+        if (typeof autoGrowNotepad === 'function') autoGrowNotepad();
+        noteTextarea.focus();
+      });
+    });
+
+    const closeBtn = popover.querySelector('.ai-syn-close');
+    if (closeBtn) closeBtn.addEventListener('click', closePopover);
+
+    outsideClickHandler = (e) => {
+      if (!popover.contains(e.target) && e.target !== uiEls.translateBtn) closePopover();
+    };
+    setTimeout(() => document.addEventListener('mousedown', outsideClickHandler, true), 100);
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
   function requestNoteTranslation(text, targetLang) {
@@ -5450,7 +5849,7 @@
               return;
             }
             if (response && response.success && typeof response.text === 'string') {
-              resolve(response.text);
+              resolve(response); // کل آبجکت { text, synonyms } — نه فقط response.text
             } else {
               reject(new Error((response && response.error) || 'translate_failed'));
             }
@@ -5465,7 +5864,17 @@
   async function runNoteTranslate() {
     if (noteTranslateBusy) return;
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
-    const textVal = noteTextarea ? noteTextarea.value.trim() : '';
+
+    // اگر کاربر بخشی از متن را انتخاب کرده باشد، فقط همان بخش ترجمه می‌شود —
+    // این هم از پاک‌شدن کل یادداشت جلوگیری می‌کند و هم راه اصلیِ دیدن
+    // مترادف‌هاست، چون دیکشنری گوگل فقط برای عبارات کوتاه/تک‌کلمه‌ای مترادف می‌دهد.
+    const startPos = noteTextarea ? noteTextarea.selectionStart : 0;
+    const endPos = noteTextarea ? noteTextarea.selectionEnd : 0;
+    const hasSelection = startPos !== endPos;
+    const textVal = hasSelection
+      ? noteTextarea.value.slice(startPos, endPos).trim()
+      : (noteTextarea ? noteTextarea.value.trim() : '');
+
     if (!textVal) {
       showToastNotification(t('toastTranslateEmpty') || t('dockEmptyPrompt'), true);
       return;
@@ -5484,9 +5893,8 @@
     }
     showToastNotification(t('toastTranslateBusy'));
     try {
-      const translated = await requestNoteTranslation(textVal, targetLang);
-      applyTranslatedNote(translated);
-      showToastNotification(t('toastTranslated'));
+      const response = await requestNoteTranslation(textVal, targetLang);
+      applyTranslatedNote(response, { hasSelection, startPos, endPos }); // toast/پاپ‌اور مناسب داخل خودِ این تابع نشان داده می‌شود
     } catch (err) {
       console.warn('[AI Tree] translate failed:', err);
       showToastNotification(t('toastTranslateFail'), true);
@@ -7248,6 +7656,18 @@
     }
   }
 
+  // فرم تنظیمات بوک‌مارک را دقیقاً وسط ویوپورت می‌گذارد — بر اساس اندازه‌ی واقعیِ رندرشده‌ی
+  // خودِ فرم (offsetWidth/offsetHeight)، نه یک عدد ثابتِ حدسی؛ چون قابلیت‌های جدید (تگ، پیشنهاد
+  // تگ، کادر کرکره‌ای دسته‌بندی) ارتفاعِ فرم را متغیر کرده‌اند. فرم همیشه position:fixed است،
+  // پس این محاسبه نسبت‌به مانیتور/ویوپورت درست است، نه نسبت‌به اسکرول صفحه.
+  function centerInlineForm() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const w = inlineForm.offsetWidth || 260;
+    const h = inlineForm.offsetHeight || 300;
+    inlineForm.style.left = `${Math.round((vw - w) / 2)}px`;
+    inlineForm.style.top = `${Math.round((vh - h) / 2)}px`;
+  }
+
   function openEditForm(globalIdx, anchorEl) {
     editingNodeIndex = globalIdx;
     const activeData = hubData(currentHubIndex);
@@ -7256,11 +7676,12 @@
     isLabelManuallyEdited = !isAddFlow;
 
     document.querySelectorAll('.ai-node').forEach(node => node.classList.add('faded')); addNodeBtn.classList.remove('blinking');
-    const vw = window.innerWidth; const vh = window.innerHeight; const FORM_WIDTH = 260; const FORM_HEIGHT = 375; 
-    inlineForm.style.left = `${(vw - FORM_WIDTH) / 2}px`; inlineForm.style.top = `${(vh - FORM_HEIGHT) / 2}px`;
+    inlineForm.style.left = ''; inlineForm.style.top = '';
     
     uiEls.formUrl.value = link.url || ''; uiEls.formLabel.value = link.label || '';
     uiEls.formDescription.value = link.description || '';
+    uiEls.formTags.value = formatTagsForInput(link.tags);
+    refreshFormCatGrid();
     uiEls.formLabel.classList.remove('invalid'); uiEls.formUrl.classList.remove('invalid');
     selectedImportance = link.importance || DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     uiEls.formImportanceWrap.style.display = (globalIdx < 5) ? 'none' : '';
@@ -7277,6 +7698,7 @@
     uiEls.formMoveGalaxy.textContent = t('formMoveToGalaxyBtn');
     uiEls.formMoveCore.style.display = (!isAddFlow && globalIdx >= 5 && findEmptyCoreSlot(currentHubIndex) !== -1) ? '' : 'none';
     uiEls.formMoveCore.textContent = t('formMoveToCoreBtn');
+    centerInlineForm();
     inlineForm.classList.add('active');
     if (isAddFlow) uiEls.formUrl.focus(); else uiEls.formLabel.focus();
   }
@@ -7424,9 +7846,9 @@
     e.stopPropagation(); addNodeBtn.classList.add('blinking'); document.querySelectorAll('.ai-node').forEach(node => node.classList.add('faded'));
     editingNodeIndex = null; isLabelManuallyEdited = false; 
     uiEls.formMainTitle.textContent = t('formAddTitle'); uiEls.formSave.textContent = t('formSaveBtn');
-    const vw = window.innerWidth; const vh = window.innerHeight; const FORM_WIDTH = 260; const FORM_HEIGHT = 310; 
-    inlineForm.style.left = `${(vw - FORM_WIDTH) / 2}px`; inlineForm.style.top = `${(vh - FORM_HEIGHT) / 2}px`;
-    uiEls.formUrl.value = ''; uiEls.formLabel.value = ''; uiEls.formDescription.value = '';
+    inlineForm.style.left = ''; inlineForm.style.top = '';
+    uiEls.formUrl.value = ''; uiEls.formLabel.value = ''; uiEls.formDescription.value = ''; uiEls.formTags.value = '';
+    refreshFormCatGrid();
     uiEls.formLabel.classList.remove('invalid'); uiEls.formUrl.classList.remove('invalid');
     uiEls.formImportanceWrap.style.display = '';
     uiEls.formDelete.style.display = 'none';
@@ -7434,24 +7856,28 @@
     uiEls.formMoveCore.style.display = 'none';
     uiEls.formGalaxyWrap.style.display = 'none';
     selectedImportance = DEFAULT_IMPORTANCE; paintStars(selectedImportance);
+    centerInlineForm();
     inlineForm.classList.add('active'); uiEls.formUrl.focus();
   });
 
   function closeInlineForm() {
     inlineForm.classList.remove('active'); addNodeBtn.classList.remove('blinking');
     document.querySelectorAll('.ai-node').forEach(node => node.classList.remove('faded'));
+    if (uiEls.formTagsSuggest) uiEls.formTagsSuggest.classList.remove('active');
+    if (uiEls.formCatAccordion) uiEls.formCatAccordion.classList.remove('open');
   }
 
   function submitBookmarkForm() {
     const labelInput = uiEls.formLabel; const urlInput = uiEls.formUrl;
     const label = labelInput.value.trim(); let url = urlInput.value.trim();
     const description = uiEls.formDescription.value.trim();
+    const tags = parseTagsFromInput(uiEls.formTags.value);
     labelInput.classList.remove('invalid'); urlInput.classList.remove('invalid');
 
     const activeDataForCheck = hubData(currentHubIndex);
     const isEditingCore = editingNodeIndex !== null && editingNodeIndex < 5 && !!activeDataForCheck[editingNodeIndex];
     if (isEditingCore && !label && !url) {
-      activeDataForCheck[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+      activeDataForCheck[editingNodeIndex] = { label: '', url: '', description: '', tags: [], importance: DEFAULT_IMPORTANCE };
       editingNodeIndex = null; saveLinksAll(); renderSpiral(); closeTree();
       showToastNotification(t('toastDeleted'), true); return;
     }
@@ -7490,10 +7916,10 @@
             }
           }
 
-          const movedItem = { label, url, description, importance: 5 };
+          const movedItem = { label, url, description, tags, importance: 5 };
           destData.push(movedItem);
           // جایگاهِ هستهٔ مبدأ ثابت می‌ماند (اندیس‌های ۰ تا ۴ همیشه باید وجود داشته باشند) — فقط خالی می‌شود
-          activeData[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+          activeData[editingNodeIndex] = { label: '', url: '', description: '', tags: [], importance: DEFAULT_IMPORTANCE };
           if (swappedBackItem) activeData.push(swappedBackItem);
 
           editingNodeIndex = null; selectedGalaxy = 1;
@@ -7522,7 +7948,7 @@
           }
 
           const movedItem = activeData.splice(editingNodeIndex, 1)[0];
-          movedItem.label = label; movedItem.url = url; movedItem.importance = selectedImportance; movedItem.description = description;
+          movedItem.label = label; movedItem.url = url; movedItem.importance = selectedImportance; movedItem.description = description; movedItem.tags = tags;
           destData.push(movedItem);
           if (swappedBackItem) activeData.push(swappedBackItem);
 
@@ -7534,7 +7960,7 @@
             : t('toastGalaxyMoved').replace('{n}', destGalaxy));
           return;
         }
-        activeData[editingNodeIndex].label = label; activeData[editingNodeIndex].url = url; activeData[editingNodeIndex].importance = selectedImportance; activeData[editingNodeIndex].description = description;
+        activeData[editingNodeIndex].label = label; activeData[editingNodeIndex].url = url; activeData[editingNodeIndex].importance = selectedImportance; activeData[editingNodeIndex].description = description; activeData[editingNodeIndex].tags = tags;
         editingNodeIndex = null; showToastNotification(t('toastUpdated')); saveLinksAll(); renderSpiral(); closeTree(); return;
     }
 
@@ -7545,7 +7971,7 @@
         return;
     }
 
-    const newBookmark = { label, url, description, isCore: false, importance: selectedImportance };
+    const newBookmark = { label, url, description, tags, isCore: false, importance: selectedImportance };
     if (ring.comet) newBookmark.overflow = true;
     hubData(targetHub).push(newBookmark);
 
@@ -7583,7 +8009,7 @@
     const { ring, targetHub, overflowFromRing } = findTargetHubForImportance(importance, startHub);
     if (targetHub > HUB_COUNT) { showToastNotification(t('toastTierFullEverywhere').replace('{tier}', ring.label), true); return; }
 
-    const newItem = { label, url: homeUrl, description: '', isCore: false, importance };
+    const newItem = { label, url: homeUrl, description: '', tags: [], isCore: false, importance };
     if (ring.comet) newItem.overflow = true;
     hubData(targetHub).push(newItem);
     const newNodeIndex = hubData(targetHub).length - 1;
@@ -7634,7 +8060,7 @@
     const slot = findEmptyCoreSlot(startHub);
     if (slot === -1) { showToastNotification(t('toastNoEmptyCoreSlot'), true); return; }
 
-    hubData(startHub)[slot] = { label, url: homeUrl, description: '', importance: DEFAULT_IMPORTANCE };
+    hubData(startHub)[slot] = { label, url: homeUrl, description: '', tags: [], importance: DEFAULT_IMPORTANCE };
     saveLinksAll();
 
     closeAllPanelsExcept('');
@@ -7662,7 +8088,7 @@
     const activeData = hubData(currentHubIndex);
     if (!activeData[editingNodeIndex]) return;
     if (editingNodeIndex < 5) {
-      activeData[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+      activeData[editingNodeIndex] = { label: '', url: '', description: '', tags: [], importance: DEFAULT_IMPORTANCE };
       saveLinksAll(); renderSpiral(); showToastNotification(t('toastCoreCleared'));
       closeTree();
       return;
@@ -7710,10 +8136,10 @@
       targetRing = cometRing;
     }
 
-    const movedItem = { label, url, description, importance: 5 };
+    const movedItem = { label, url, description, tags: parseTagsFromInput(uiEls.formTags.value), importance: 5 };
     if (targetRing.comet) movedItem.overflow = true;
     activeData.push(movedItem);
-    activeData[editingNodeIndex] = { label: '', url: '', description: '', importance: DEFAULT_IMPORTANCE };
+    activeData[editingNodeIndex] = { label: '', url: '', description: '', tags: [], importance: DEFAULT_IMPORTANCE };
 
     showToastNotification(targetRing.comet
       ? t('toastOverflowedToComet').replace('{tier}', ringDisplayLabel(ring)).replace('{hub}', currentHubIndex)
@@ -7744,7 +8170,7 @@
     const dupHub = isDuplicateNodeAll(url, label, editingNodeIndex, currentHubIndex);
     if (dupHub) { showToastNotification(t('toastExists').replace('{n}', String(dupHub)), true); return; }
 
-    activeData[slot] = { label, url, description, importance: DEFAULT_IMPORTANCE };
+    activeData[slot] = { label, url, description, tags: parseTagsFromInput(uiEls.formTags.value), importance: DEFAULT_IMPORTANCE };
     // چون این بوک‌مارک به یکی از ۵ جایگاه ثابتِ ابتدای آرایه منتقل شد، حالا با splice
     // از جای قبلی‌اش (اندیس ≥ ۵) برداشته می‌شود — بدون اینکه اندیس‌های ۰ تا ۴ دست بخورند.
     activeData.splice(editingNodeIndex, 1);
@@ -7754,10 +8180,98 @@
   });
   inlineForm.querySelector('#ai-form-close').addEventListener('click', (e) => { e.stopPropagation(); closeTree(); });
 
+  // === Pan/drag برای فرم تنظیمات بوک‌مارک — دسته‌گیره: خودِ نوار عنوان (ai-form-header) ===
+  // همان الگوی RAF-throttled جابه‌جاییِ خودِ هاب (پایین‌تر در فایل) اینجا هم تکرار شده تا
+  // هم رفتار یکدست باشد هم مثل آن، هنگام درگ فریم افت نکند. کلیک روی دکمه‌ی ✕ عمداً از
+  // شروع درگ مستثنی است تا کاربر بتواند فرم را ببندد بدون این‌که تصادفاً جابه‌جایش کند.
+  (function setupInlineFormPan() {
+    const header = inlineForm.querySelector('.ai-form-header');
+    let panning = false, startX = 0, startY = 0, startLeft = 0, startTop = 0, panRafId = null;
+
+    function onDown(e) {
+      if (e.target.closest('#ai-form-close')) return;
+      e.stopPropagation();
+      panning = true; inlineForm.classList.add('panning');
+      const point = e.touches ? e.touches[0] : e;
+      const rect = inlineForm.getBoundingClientRect();
+      startX = point.clientX; startY = point.clientY; startLeft = rect.left; startTop = rect.top;
+    }
+    function onMove(e) {
+      if (!panning) return;
+      const point = e.touches ? e.touches[0] : e;
+      const dx = point.clientX - startX; const dy = point.clientY - startY;
+      if (!panRafId) {
+        panRafId = requestAnimationFrame(() => {
+          // محدودسازی به داخل ویوپورت: حداقل ۴۰ پیکسل از فرم همیشه در دیدرس بماند تا هیچ‌وقت
+          // کاملاً از صفحه بیرون نرود و کاربر گیر نکند.
+          const vw = window.innerWidth, vh = window.innerHeight;
+          const w = inlineForm.offsetWidth, h = inlineForm.offsetHeight;
+          let nextLeft = startLeft + dx; let nextTop = startTop + dy;
+          nextLeft = Math.max(-w + 40, Math.min(vw - 40, nextLeft));
+          nextTop = Math.max(0, Math.min(vh - 40, nextTop));
+          inlineForm.style.left = `${nextLeft}px`; inlineForm.style.top = `${nextTop}px`;
+          panRafId = null;
+        });
+      }
+    }
+    function onUp() { panning = false; inlineForm.classList.remove('panning'); }
+
+    header.addEventListener('mousedown', onDown);
+    header.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('touchmove', onMove, { passive: true });
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchend', onUp);
+  })();
+
+
   uiEls.formUrl.addEventListener('input', function() {
     if (!isLabelManuallyEdited) { const autoName = extractDomainName(this.value); if (autoName) uiEls.formLabel.value = autoName; else if (this.value.trim() === '') uiEls.formLabel.value = ''; }
   });
   uiEls.formLabel.addEventListener('input', function() { isLabelManuallyEdited = true; });
+
+  // === Tag autocomplete (V33.2) ==============================================
+  // پیشنهاد بر اساس بخشِ در-حالِ-تایپِ ورودی (متن بعد از آخرین کاما)، نه کل رشته —
+  // تا وقتی کاربر تگ دوم را می‌نویسد، پیشنهادها بر اساس تگ اول قاطی نشوند.
+  function currentTagFragment() {
+    const raw = uiEls.formTags.value;
+    const lastComma = raw.lastIndexOf(',');
+    return lastComma === -1 ? raw : raw.slice(lastComma + 1);
+  }
+
+  function renderTagSuggestions() {
+    const box = uiEls.formTagsSuggest;
+    const fragment = currentTagFragment().trim();
+    box.innerHTML = '';
+    if (!fragment) { box.classList.remove('active'); return; }
+    const already = parseTagsFromInput(uiEls.formTags.value.replace(/[^,]*$/, ''));
+    const suggestions = suggestTags(fragment).filter(tg => !already.includes(tg));
+    if (suggestions.length === 0) { box.classList.remove('active'); return; }
+    suggestions.forEach(tg => {
+      const chip = document.createElement('span'); chip.className = 'ai-tags-suggest-chip'; chip.textContent = '#' + tg;
+      chip.addEventListener('mousedown', (e) => {
+        // mousedown نه click: تا blur خودکار اینپوت قبل از کلیک، پیشنهاد را نبندد
+        e.preventDefault();
+        const raw = uiEls.formTags.value;
+        const lastComma = raw.lastIndexOf(',');
+        const prefix = lastComma === -1 ? '' : raw.slice(0, lastComma + 1) + ' ';
+        uiEls.formTags.value = prefix + tg + ', ';
+        uiEls.formTags.focus();
+        renderTagSuggestions();
+      });
+      box.appendChild(chip);
+    });
+    box.classList.add('active');
+  }
+
+  uiEls.formTags.addEventListener('input', renderTagSuggestions);
+  uiEls.formTags.addEventListener('focus', renderTagSuggestions);
+  uiEls.formTags.addEventListener('blur', () => { uiEls.formTagsSuggest.classList.remove('active'); });
+  uiEls.formTags.addEventListener('keydown', (e) => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); submitBookmarkForm(); }
+    else if (e.key === 'Escape') { e.preventDefault(); uiEls.formTagsSuggest.classList.remove('active'); closeTree(); }
+  });
 
   [uiEls.formLabel, uiEls.formUrl].forEach(el => {
     el.addEventListener('input', () => el.classList.remove('invalid'));

@@ -109,7 +109,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.action === 'translateText') {
     const targetLang = String(message.targetLang || 'en').slice(0, 8);
-    const text = String(message.text || '');
+    const text = String(message.text || '').trim();
     if (!text) {
       sendResponse({ success: false, error: 'empty' });
       return;
@@ -119,10 +119,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return;
     }
 
+    // dt=t: ترجمه اصلی — dt=bd: دیکشنری/مترادف‌ها (فقط برای کلمات/عبارات کوتاه پر می‌شود)
     const url =
       'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
       encodeURIComponent(targetLang) +
-      '&dt=t&q=' +
+      '&dt=t&dt=bd&q=' +
       encodeURIComponent(text);
 
     fetch(url)
@@ -138,7 +139,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           });
         }
         if (!translatedText) throw new Error('empty_translation');
-        sendResponse({ success: true, text: translatedText });
+
+        // استخراج مترادف‌ها و نقش‌های دستوری از دیکشنری گوگل (data[1])
+        const synonyms = [];
+        if (Array.isArray(data[1])) {
+          data[1].forEach((partOfSpeech) => {
+            if (partOfSpeech && partOfSpeech[0] && Array.isArray(partOfSpeech[1]) && partOfSpeech[1].length > 0) {
+              // دفاعی: بسته به فرمت واقعیِ پاسخ گوگل، هر عنصر ممکن است خودش
+              // رشته باشد یا یک آرایه که عنصر اولش رشته است. اگر همیشه w[0]
+              // فرض شود ولی w در واقع رشته باشد، فقط حرف اول کلمه گرفته
+              // می‌شود (باگ) — این نسخه هر دو حالت را پوشش می‌دهد.
+              const words = partOfSpeech[1]
+                .slice(0, 6)
+                .map((w) => (typeof w === 'string' ? w : (w && w[0])))
+                .filter(Boolean);
+              if (words.length > 0) synonyms.push({ type: partOfSpeech[0], words: words });
+            }
+          });
+        }
+
+        sendResponse({ success: true, text: translatedText, synonyms: synonyms });
       })
       .catch((error) => {
         sendResponse({ success: false, error: String((error && error.message) || error) });
