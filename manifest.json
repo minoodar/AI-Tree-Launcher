@@ -1,11 +1,12 @@
 {
   "manifest_version": 3,
   "name": "AI Tree Launcher",
-  "version": "33.1",
-  "description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, calculator, clock and to-do.",
+  "version": "34.0",
+  "description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, offline voice dictation, calculator, clock and to-do.",
   "permissions": [
     "storage",
-    "tabs"
+    "tabs",
+    "offscreen"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -33,19 +34,23 @@
         "<all_urls>"
       ],
       "css": [
-        "styles.css"
+        "styles.css",
+        "toolbar-zen.css"
       ],
       "js": [
         "i18n.js",
         "calendar-engine.js",
         "quote-engine.js",
+        "voice-engine.js",
+        "toolbar-icons.js",
+        "toolbar-dock.js",
         "content.js"
       ],
       "run_at": "document_idle",
       "all_frames": false
     }
   ],
-  "minimum_chrome_version": "102",
+  "minimum_chrome_version": "116",
   "web_accessible_resources": [
     {
       "resources": [
@@ -58,5 +63,8 @@
         "<all_urls>"
       ]
     }
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  }
 }

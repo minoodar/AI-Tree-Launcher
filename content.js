@@ -279,14 +279,15 @@
         <button type="button" id="ai-font-inc-btn" class="ai-format-btn ai-font-btn" aria-label="Increase font size">A+</button>
       </div>
       <div class="ai-note-emoji-wrap" id="ai-note-emoji-wrap">
-        <button type="button" id="ai-emoji-toggle-btn" class="ai-emoji-toggle-btn" title="Emojis">😀</button>
-        <button type="button" id="ai-emoji-online-btn" class="ai-emoji-online-btn" title="Online">🌐</button>
+        <button type="button" id="ai-emoji-toggle-btn" class="ai-emoji-toggle-btn zt-btn" title="Emojis"><span data-zen-icon="emoji"></span></button>
+        <button type="button" id="ai-emoji-online-btn" class="ai-emoji-online-btn zt-btn" title="Online"><span data-zen-icon="emojiOnline"></span></button>
         <div id="ai-emoji-popover" class="ai-emoji-popover" role="dialog"></div>
       </div>
-      <button type="button" id="ai-note-translate-btn" class="ai-format-btn ai-translate-btn" title="Translate (Auto-detect)" aria-label="Translate text">🔤</button>
-      <button type="button" id="ai-note-spellcheck-btn" class="ai-format-btn ai-spellcheck-btn" title="Clean & Spell Check (FA/EN)" aria-label="Fix Spelling">✍️</button>
-      <button type="button" id="ai-note-tts-btn" class="ai-format-btn ai-tts-btn" title="Read aloud" aria-label="Read aloud">🔊</button>
-      <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown">📄</button>
+      <button type="button" id="ai-note-mic-btn" class="ai-format-btn zt-btn zt-mic-btn" title="Voice Input" aria-label="Voice Input"><span data-zen-icon="mic"></span></button>
+      <button type="button" id="ai-note-translate-btn" class="ai-format-btn ai-translate-btn zt-btn" title="Translate (Auto-detect)" aria-label="Translate text"><span data-zen-icon="translate"></span></button>
+      <button type="button" id="ai-note-spellcheck-btn" class="ai-format-btn ai-spellcheck-btn zt-btn" title="Clean & Spell Check (FA/EN)" aria-label="Fix Spelling"><span data-zen-icon="spellcheck"></span></button>
+      <button type="button" id="ai-note-tts-btn" class="ai-format-btn ai-tts-btn zt-btn" title="Read aloud" aria-label="Read aloud"><span data-zen-icon="tts"></span></button>
+      <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn zt-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown"><span data-zen-icon="extractDoc"></span></button>
     </div>
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
     <div class="ai-note-text-wrap" id="ai-note-text-wrap">
@@ -552,6 +553,8 @@
     emojiToggleBtn: quickNoteForm.querySelector('#ai-emoji-toggle-btn'),
     emojiOnlineBtn: quickNoteForm.querySelector('#ai-emoji-online-btn'),
     emojiPopover: quickNoteForm.querySelector('#ai-emoji-popover'),
+    micBtn: quickNoteForm.querySelector('#ai-note-mic-btn'),
+    formatBar: quickNoteForm.querySelector('#ai-note-format-bar'),
     translateBtn: quickNoteForm.querySelector('#ai-note-translate-btn'),
     spellcheckBtn: quickNoteForm.querySelector('#ai-note-spellcheck-btn'),
     ttsBtn: quickNoteForm.querySelector('#ai-note-tts-btn'),
@@ -638,6 +641,49 @@
     clockQuoteCopy: clockPanel.querySelector('#ai-rumi-copy-btn'),
   };
 
+  // --- Zen Toolbar: SVG icons + dock magnification + microphone wiring ---
+  // (تعریف‌شده در toolbar-icons.js / toolbar-dock.js / voice-engine.js —
+  // هر سه به‌عنوان content_scripts قبل از content.js لود می‌شوند)
+  if (typeof mountZenIcons === 'function') mountZenIcons(quickNoteForm);
+  if (typeof AITreeZenDock !== 'undefined' && uiEls.formatBar) {
+    AITreeZenDock.initDock(uiEls.formatBar);
+  }
+
+  // --- میکروفون در ویجت شناور ---------------------------------------------
+  // عمداً دیگر AITreeZenDock.wireMicButton اینجا صدا زده نمی‌شود، یعنی خودِ
+  // فرایند ضبط/رونویسی دیگر داخل دفترچهٔ ویجت اجرا نمی‌شود. دلیل: این فرم
+  // می‌تواند در میانهٔ ضبط بسته یا بازسازی شود (بستن ویجت، DOM Watchdog که پس
+  // از تغییر مسیر SPA دوباره ویجت را تزریق می‌کند، حالت هول‌ریلانچ و غیره) —
+  // در حالی که AITreeVoiceEngine و Offscreen Document مستقل از چرخهٔ حیات این
+  // فرم به کارشان ادامه می‌دهند. نتیجه: ضبط یتیم می‌ماند و HUD/tooltipِ «در حال
+  // شنیدن» هرگز پاک نمی‌شود چون چیزی دیگر آن را نمی‌بیند تا ببندد.
+  // به‌جایش این دکمه فقط دفترچهٔ مستقل تمام‌صفحه را باز می‌کند (notepad.html —
+  // یک‌بار لود می‌شود، چرخهٔ حیاتش پایدار است، هرگز توسط Watchdog بازسازی
+  // نمی‌شود) و با ?autoVoice=1 همان‌جا خودکار ضبط را شروع می‌کند، تا کاربر
+  // عملاً همان تجربهٔ یک‌کلیکی قبلی را حس کند.
+  if (uiEls.micBtn) {
+    if (typeof AITreeVoiceEngine === 'undefined' || !AITreeVoiceEngine.isSupported()) {
+      uiEls.micBtn.style.display = 'none';
+    } else {
+      const micTitle = 'تایپ صوتی (باز شدن در دفترچهٔ کامل) / Voice input (opens in full notepad)';
+      uiEls.micBtn.title = micTitle;
+      uiEls.micBtn.setAttribute('aria-label', micTitle);
+      uiEls.micBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        try {
+          if (!chrome.runtime?.id) return;
+          const flush = { savedPromptDraft: noteTextarea ? noteTextarea.value : '' };
+          chrome.storage.local.set(flush, () => {
+            chrome.runtime.sendMessage({ action: 'openNotepadTab', autoVoice: true }, () => {
+              // No response handler needed; swallow "no receiver" errors when SW is asleep/waking.
+              void chrome.runtime.lastError;
+            });
+          });
+        } catch (err) {}
+      });
+    }
+  }
 
   // --- Galactic Constellation tooltips (replaces native title on hub toggles) ---
   const GALAXY_ICONS = {
@@ -7595,6 +7641,8 @@
 
           }
           
+          if (Array.isArray(link.tags) && link.tags.length > 0) a.classList.add('ai-node-tagged');
+
           content.appendChild(fav); content.appendChild(span); a.appendChild(content); a.href = link.url;
           if (link.description) {
             const descTip = document.createElement('div'); descTip.className = 'ai-node-desc-tooltip'; descTip.textContent = link.description;

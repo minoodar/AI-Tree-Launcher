@@ -71,15 +71,41 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const fromTabId = sender.tab && typeof sender.tab.id === 'number' ? sender.tab.id : null;
     const fromWindowId = sender.tab && typeof sender.tab.windowId === 'number' ? sender.tab.windowId : null;
     let url = chrome.runtime.getURL('notepad.html');
+    const qp = new URLSearchParams();
     if (fromTabId != null) {
-      const qp = new URLSearchParams();
       qp.set('fromTab', String(fromTabId));
       if (fromWindowId != null) qp.set('fromWindow', String(fromWindowId));
-      url += '?' + qp.toString();
     }
+    if (message.grantMic) qp.set('grantMic', '1');
+    if (message.autoVoice) qp.set('autoVoice', '1');
+    const qs = qp.toString();
+    if (qs) url += '?' + qs;
     chrome.tabs.create({ url })
       .then((tab) => sendResponse({ ok: true, tabId: tab && tab.id }))
       .catch((err) => sendResponse({ ok: false, error: String(err && err.message || err) }));
+    return true;
+  }
+
+  if (message.action === 'ensureOffscreenDocument') {
+    // موتور تبدیل صدا به متن — فقط مسئول ساختن Offscreen Document است، اگر از
+    // قبل وجود نداشته باشد. تمام پیام‌های واقعی صدا (voiceStart/voiceStop/
+    // voiceCancel و نتیجهٔ رونویسی) مستقیماً بین content.js و offscreen.js رد
+    // و بدل می‌شوند، بدون واسطه‌گری این Service Worker.
+    (async () => {
+      try {
+        const already = await chrome.offscreen.hasDocument();
+        if (!already) {
+          await chrome.offscreen.createDocument({
+            url: chrome.runtime.getURL('offscreen.html'),
+            reasons: ['USER_MEDIA'],
+            justification: 'ضبط میکروفون و اجرای مدل آفلاین Whisper برای تایپ صوتی در دفترچه یادداشت'
+          });
+        }
+        sendResponse({ ok: true });
+      } catch (err) {
+        sendResponse({ ok: false, error: String((err && err.message) || err) });
+      }
+    })();
     return true;
   }
 

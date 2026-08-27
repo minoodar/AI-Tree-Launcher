@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>AI Tree — Notepad</title>
+<link rel="stylesheet" href="toolbar-zen.css">
 <style>
   :root {
     --bg: #0F0F1B;
@@ -119,6 +120,9 @@
   .font-label { min-width: 18px; text-align: center; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
   .toolbar-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 2px; }
   .toolbar-spacer { flex: 1 1 auto; }
+  #prompts-toggle-btn { gap: 5px; }
+  .zt-mic-btn { min-width: 30px; color: var(--text-muted); }
+  .zt-mic-btn:hover { color: var(--text); }
 
   /* ---- Prompts bar ---- */
   .prompts-btn, .emoji-btn, .ai-select-wrap {
@@ -497,8 +501,8 @@
         <h1 id="title">NOTEPAD</h1>
         <div class="sub" id="subtitle">Synced live with the AI Tree Launcher widget on your pages</div>
       </div>
-      <button type="button" class="back-btn" id="back-btn" style="display:none;">
-        <span class="back-arrow">←</span><span id="back-label">Back to widget</span>
+      <button type="button" class="back-btn" id="back-btn">
+        <span class="back-arrow">←</span><span id="back-label">Back</span>
       </button>
     </div>
 
@@ -515,20 +519,21 @@
         <button type="button" class="fmt-btn" id="font-inc" aria-label="Increase font size">A+</button>
       </div>
       <div class="toolbar-sep"></div>
-      <button type="button" class="fmt-btn" id="prompts-toggle-btn">📑 <span id="prompts-toggle-label">Prompts</span></button>
+      <button type="button" class="fmt-btn zt-btn" id="prompts-toggle-btn" title="Prompts"><span data-zen-icon="prompts"></span> <span id="prompts-toggle-label">Prompts</span></button>
       <div class="emoji-btn">
-        <button type="button" class="fmt-btn" id="emoji-toggle-btn" title="Emojis">😀</button>
+        <button type="button" class="fmt-btn zt-btn" id="emoji-toggle-btn" title="Emojis"><span data-zen-icon="emoji"></span></button>
         <div class="emoji-popover" id="emoji-popover"></div>
       </div>
-      <button type="button" class="fmt-btn emoji-online-btn" id="emoji-online-btn" title="Online emoji vault">🌐</button>
-      <button type="button" class="fmt-btn translate-btn" id="translate-btn" title="Translate (FA ↔ EN)">🔤</button>
-      <button type="button" class="fmt-btn spellcheck-btn" id="spellcheck-btn" title="Clean & Spell Check (FA/EN)">✍️</button>
-      <button type="button" class="fmt-btn speak-btn" id="speak-btn" title="Read aloud">🔊</button>
+      <button type="button" class="fmt-btn zt-btn emoji-online-btn" id="emoji-online-btn" title="Online emoji vault"><span data-zen-icon="emojiOnline"></span></button>
+      <button type="button" class="fmt-btn zt-btn zt-mic-btn" id="mic-btn" title="Voice Input"><span data-zen-icon="mic"></span></button>
+      <button type="button" class="fmt-btn zt-btn translate-btn" id="translate-btn" title="Translate (FA ↔ EN)"><span data-zen-icon="translate"></span></button>
+      <button type="button" class="fmt-btn zt-btn spellcheck-btn" id="spellcheck-btn" title="Clean & Spell Check (FA/EN)"><span data-zen-icon="spellcheck"></span></button>
+      <button type="button" class="fmt-btn zt-btn speak-btn" id="speak-btn" title="Read aloud"><span data-zen-icon="tts"></span></button>
       <div class="toolbar-spacer"></div>
       <div class="ai-select-wrap">
         <select class="ai-select" id="ai-select"></select>
       </div>
-      <button type="button" class="send-btn" id="send-btn">▶ <span id="send-label">Send</span></button>
+      <button type="button" class="send-btn zt-btn" id="send-btn"><span data-zen-icon="send"></span> <span id="send-label">Send</span></button>
     </div>
 
     <div class="prompts-bar" id="prompts-bar"></div>
@@ -539,6 +544,10 @@
 
     <div class="status-row">
       <span id="token-meter">0 chars · 0 tokens</span>
+      <span id="voice-status" class="voice-status-inline" data-state="" aria-live="polite"></span>
+    </div>
+    <div class="voice-progress-track" id="voice-progress-track" hidden>
+      <div class="voice-progress-fill" id="voice-progress-fill"></div>
     </div>
 
     <div class="bottom-toolbar">
@@ -574,6 +583,10 @@
 
   <div class="toast" id="toast">Copied!</div>
 
+  <script src="voice-engine.js"></script>
+  <script src="toolbar-icons.js"></script>
+  <script src="toolbar-dock.js"></script>
   <script src="notepad.js"></script>
+  <script src="notepad-voice-init.js"></script>
 </body>
 </html>

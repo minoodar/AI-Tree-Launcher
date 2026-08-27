@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI Tree Launcher — Voice Engine (background)</title>
+  <!--
+    این صفحه هرگز به کاربر نشان داده نمی‌شود. صرفاً یک Offscreen Document است
+    که Chrome برای اجازه‌دادن به دو کاری که Service Worker (background.js)
+    نمی‌تواند انجام دهد نگه می‌دارد:
+      ۱) getUserMedia() برای ضبط میکروفون
+      ۲) اجرای مدل سنگین Whisper (که نیاز به WebAssembly دارد) بدون فریز شدن تب کاربر
+    چون این صفحه در origin خودِ افزونه (chrome-extension://...) بارگذاری می‌شود،
+    نه در origin سایتی که content.js داخلش تزریق شده، مجوز میکروفون فقط یک‌بار
+    برای کل افزونه پرسیده می‌شود — نه به‌ازای هر سایت.
+  -->
+</head>
+<body>
+  <!--
+    vendor/transformers.min.js باید خودتان از پکیج npm زیر کپی کنید (توضیحات کامل
+    در SETUP-VOICE.md):
+      npm install @xenova/transformers
+    سپس فایل dist/transformers.min.js را داخل پوشه vendor/ افزونه بگذارید.
+    بارگذاری از CDN در Manifest V3 مجاز نیست (چون remote code اجرا می‌شود)،
+    برای همین باید لوکال باشد.
+  -->
+  <script type="module" src="offscreen.js"></script>
+</body>
+</html>

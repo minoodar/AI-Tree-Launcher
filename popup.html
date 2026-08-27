@@ -80,6 +80,14 @@
 
     .quote-select-row { font-size: 16px; }
     .quote-select-row option { font-size: 13px; }
+
+    .btn-save-sticky {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+    }
   </style>
 </head>
 <body>
@@ -89,11 +97,14 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" data-target="settings" id="tab-settings">Settings</button>
-    <button class="tab-btn" data-target="backups" id="tab-backups">Backup & Restore</button>
+    <button class="tab-btn active" data-target="core" id="tab-core">⚙️ Core</button>
+    <button class="tab-btn" data-target="backup" id="tab-backup">🛡️ Backup</button>
+    <button class="tab-btn" data-target="vault" id="tab-vault">✨ Vault</button>
   </div>
 
-  <div id="settings" class="tab-content active">
+  <div id="core" class="tab-content active">
+
+    <button id="saveSettingsBtn" class="btn btn-primary btn-save-sticky">Save Settings</button>
 
     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
       <button id="showOnPageBtn" class="btn btn-secondary" style="flex: 1; border-color: rgba(52, 211, 153, 0.4); color: #A7F3D0;">Show (Reset)</button>
@@ -128,7 +139,28 @@
       <div id="holiday-region-hint" style="font-size:11px; color: var(--text-muted); margin-top:6px; line-height:1.6;"></div>
     </div>
 
-    <div class="form-group" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border);">
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
+      <details class="contact-details">
+        <summary id="lbl-contact-title">Contact Us</summary>
+        <div class="contact-content">
+          <span id="lbl-contact-email">Email:</span>
+          <a href="mailto:minoodar@gmail.com" dir="ltr">minoodar@gmail.com</a>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div id="backup" class="tab-content">
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-direction: column;">
+      <button id="exportJsonBtn" class="btn btn-export" style="flex: 1;">📤 Export Backup (JSON)</button>
+      <button id="importJsonBtn" class="btn btn-import" style="flex: 1;">📥 Import Backup (Restore)</button>
+      <input type="file" id="fileInput" accept=".json" hidden>
+    </div>
+    <div class="backup-hint" id="backup-hint">🟢 Export saves all bookmarks to a file &nbsp;·&nbsp; 🟠 Import restores from a file</div>
+  </div>
+
+  <div id="vault" class="tab-content">
+    <div class="form-group">
       <label id="lbl-quotes-title">Daily Wisdom Quotes</label>
 
       <label style="display:block; margin: 6px 0 4px; font-size:12px; color: var(--text-muted);" id="lbl-religion-source">Spiritual verse source</label>
@@ -145,27 +177,6 @@
         <option value="western" id="opt-poetry-western">🖋️ Western Literature</option>
       </select>
     </div>
-
-    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
-      <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
-
-      <details class="contact-details">
-        <summary id="lbl-contact-title">Contact Us</summary>
-        <div class="contact-content">
-          <span id="lbl-contact-email">Email:</span>
-          <a href="mailto:minoodar@gmail.com" dir="ltr">minoodar@gmail.com</a>
-        </div>
-      </details>
-    </div>
-  </div>
-
-  <div id="backups" class="tab-content">
-    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-direction: column;">
-      <button id="exportJsonBtn" class="btn btn-export" style="flex: 1;">📤 Export Backup (JSON)</button>
-      <button id="importJsonBtn" class="btn btn-import" style="flex: 1;">📥 Import Backup (Restore)</button>
-      <input type="file" id="fileInput" accept=".json" hidden>
-    </div>
-    <div class="backup-hint" id="backup-hint">🟢 Export saves all bookmarks to a file &nbsp;·&nbsp; 🟠 Import restores from a file</div>
   </div>
 
   <div id="toast" class="toast">Saved!</div>

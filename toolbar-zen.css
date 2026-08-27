@@ -1,0 +1,291 @@
+/* ============================================================================
+   AI Tree Launcher — Zen Toolbar Dock (shared visual layer)
+   ----------------------------------------------------------------------------
+   این فایل روی سیستم رنگی/تعاملی فعلی هر دکمه (پس‌زمینه‌های رنگیِ translate/
+   spellcheck/speak که حالت‌های busy/active/disabled معتبر دارند) اضافه می‌شود،
+   نه جایگزینش. کاری که این فایل اضافه می‌کند: آیکون SVG یکدست به‌جای ایموجی،
+   بزرگ‌نمایی هاور نوع Dock، tooltip تأخیری، و مورف ۴-حالتهٔ میکروفون.
+============================================================================ */
+
+[data-zen-toolbar] { position: relative; }
+
+[data-zen-toolbar] .zt-btn {
+  transform-origin: center bottom;
+  will-change: transform;
+}
+
+[data-zen-toolbar] .zt-svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  pointer-events: none;
+  display: block;
+}
+
+/* دکمه‌های ساده (بدون رنگ اختصاصی از قبل) رنگ آیکون را از متن معمولی می‌گیرند */
+[data-zen-toolbar] .zt-btn:not([class*="-btn"]) .zt-svg,
+[data-zen-toolbar] .fmt-btn .zt-svg,
+[data-zen-toolbar] .ai-format-btn .zt-svg {
+  color: inherit;
+}
+
+/* ---- Tooltip زن (تأخیر ۲۸۰ms، محو خودکار بعد از ۸۰۰ms) ---- */
+[data-zen-toolbar] .zt-tooltip {
+  position: absolute;
+  top: -26px;
+  transform: translate3d(-50%, 4px, 0);
+  padding: 3px 8px;
+  background: rgba(15, 17, 23, 0.94);
+  color: #F8FAFC;
+  font-size: 10.5px;
+  font-family: -apple-system, BlinkMacSystemFont, "Vazirmatn", "Segoe UI", sans-serif;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 60;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+[data-zen-toolbar] .zt-tooltip.is-visible {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0);
+}
+
+/* ---- Action-Toast — تنها راه کشف روی صفحات لمسی (بدون hover) ---- */
+[data-zen-toolbar] .zt-action-toast {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translate3d(-50%, 6px, 0);
+  padding: 5px 12px;
+  background: rgba(15, 17, 23, 0.94);
+  color: #F8FAFC;
+  font-size: 11px;
+  border-radius: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 60;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+}
+[data-zen-toolbar] .zt-action-toast.is-visible {
+  opacity: 1;
+  transform: translate3d(-50%, 0, 0);
+}
+
+@media (hover: none), (pointer: coarse) {
+  [data-zen-toolbar] .zt-btn { min-width: 38px; min-height: 38px; }
+  [data-zen-toolbar] .zt-btn.zt-tap { transform: scale(0.92); transition: transform 0.1s ease; }
+}
+
+/* ============================================================================
+   میکروفون — یک SVG واحد، چهار حالت مورف‌شونده صرفاً با data-state
+============================================================================ */
+.zt-mic-btn { position: relative; }
+.zt-mic-orbit { display: none; }
+.zt-mic-bars { opacity: 0; transition: opacity 0.2s ease; }
+.zt-mic-btn[data-state="idle"] .zt-svg { opacity: 0.8; }
+
+/* در حال شنیدن */
+.zt-mic-btn[data-state="listening"] { color: #38BDF8; }
+.zt-mic-btn[data-state="listening"] .zt-mic-body { opacity: 0.2; }
+.zt-mic-btn[data-state="listening"] .zt-mic-bars { opacity: 1; }
+.zt-mic-btn[data-state="listening"] .zt-bar {
+  animation: zt-mic-pulse 0.7s infinite alternate ease-in-out;
+  transform-origin: center;
+}
+.zt-mic-btn[data-state="listening"] .zt-b1 { animation-delay: 0.1s; }
+.zt-mic-btn[data-state="listening"] .zt-b2 { animation-delay: 0s; }
+.zt-mic-btn[data-state="listening"] .zt-b3 { animation-delay: 0.2s; }
+@keyframes zt-mic-pulse { 0% { transform: scaleY(0.4); } 100% { transform: scaleY(1.3); } }
+
+/* آماده‌سازی مدل — فقط بار اول، promise-driven (نه تایمر ثابت) */
+.zt-mic-btn[data-state="loading-model"] { color: #FBBF24; }
+.zt-mic-btn[data-state="loading-model"] .zt-mic-orbit {
+  display: block;
+  stroke-dasharray: 24;
+  animation: zt-spin 1s linear infinite;
+  transform-origin: 12px 12px;
+}
+.zt-mic-btn[data-state="loading-model"] .zt-mic-body,
+.zt-mic-btn[data-state="loading-model"] .zt-mic-cradle,
+.zt-mic-btn[data-state="loading-model"] .zt-mic-base { opacity: 0.25; }
+@keyframes zt-spin { 100% { transform: rotate(360deg); } }
+
+/* در حال تبدیل به متن */
+.zt-mic-btn[data-state="processing"] { color: #38BDF8; }
+.zt-mic-btn[data-state="processing"] .zt-mic-cradle {
+  animation: zt-cradle-breathe 1.2s infinite ease-in-out;
+}
+@keyframes zt-cradle-breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+/* ============================================================================
+   HUD شناور «در حال شنیدن…» — نزدیک به رفتار استانداردِ خودِ کروم (تایپ صوتی
+   نزدیک محلِ تایپ ظاهر می‌شود، نه فقط روی خودِ دکمهٔ میکروفون)، اما در همان
+   زبانِ بصریِ زن/مینیمالِ این افزونه: بی‌صدا ظاهر می‌شود، بی‌صدا محو می‌شود،
+   هیچ متن فنی/خطا در آن دیده نمی‌شود.
+============================================================================ */
+.zt-voice-hud {
+  position: fixed;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  background: rgba(15, 17, 23, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  color: #F8FAFC;
+  font-family: -apple-system, BlinkMacSystemFont, "Vazirmatn", "Segoe UI", sans-serif;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.zt-voice-hud.is-visible { opacity: 1; transform: translateY(0) scale(1); }
+
+.zt-voice-hud-bars { display: inline-flex; align-items: center; gap: 2.5px; height: 14px; }
+.zt-vb {
+  width: 3px;
+  height: 5px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: opacity 0.2s ease;
+}
+
+.zt-voice-hud[data-state="listening"] { color: #38BDF8; }
+.zt-voice-hud[data-state="listening"] .zt-vb {
+  animation: zt-hud-wave 0.9s infinite ease-in-out;
+}
+.zt-voice-hud[data-state="listening"] .zt-vb:nth-child(1) { animation-delay: 0s; }
+.zt-voice-hud[data-state="listening"] .zt-vb:nth-child(2) { animation-delay: 0.15s; }
+.zt-voice-hud[data-state="listening"] .zt-vb:nth-child(3) { animation-delay: 0.3s; }
+.zt-voice-hud[data-state="listening"] .zt-vb:nth-child(4) { animation-delay: 0.45s; }
+@keyframes zt-hud-wave { 0%, 100% { height: 5px; } 50% { height: 15px; } }
+
+.zt-voice-hud[data-state="processing"] { color: #A78BFA; }
+.zt-voice-hud[data-state="loading-model"] { color: #FBBF24; }
+.zt-voice-hud[data-state="processing"] .zt-vb,
+.zt-voice-hud[data-state="loading-model"] .zt-vb {
+  height: 6px;
+  animation: zt-hud-breathe 1s infinite ease-in-out;
+}
+.zt-voice-hud[data-state="processing"] .zt-vb:nth-child(2),
+.zt-voice-hud[data-state="loading-model"] .zt-vb:nth-child(2) { animation-delay: 0.15s; }
+.zt-voice-hud[data-state="processing"] .zt-vb:nth-child(3),
+.zt-voice-hud[data-state="loading-model"] .zt-vb:nth-child(3) { animation-delay: 0.3s; }
+.zt-voice-hud[data-state="processing"] .zt-vb:nth-child(4),
+.zt-voice-hud[data-state="loading-model"] .zt-vb:nth-child(4) { animation-delay: 0.45s; }
+@keyframes zt-hud-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .zt-voice-hud .zt-vb { animation: none !important; height: 8px !important; opacity: 0.7 !important; }
+}
+
+/* ============================================================================
+   نوار وضعیتِ درون‌صفحه‌ای صدا (مخصوص notepad.html — جایگزین HUD شناور در
+   صفحاتی که فضای کافی و چرخهٔ حیات پایدار دارند). ساکت و کوچک در حالت idle
+   (بدون متن، بدون فضای اضافه)، فقط وقتی state فعال است دیده می‌شود.
+============================================================================ */
+.voice-status-inline {
+  font-family: -apple-system, BlinkMacSystemFont, "Vazirmatn", "Segoe UI", sans-serif;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  margin-inline-start: 10px;
+}
+.voice-status-inline[data-state="listening"] { opacity: 1; color: #38BDF8; }
+.voice-status-inline[data-state="processing"] { opacity: 1; color: #A78BFA; }
+.voice-status-inline[data-state="loading-model"] { opacity: 1; color: #FBBF24; }
+.voice-status-inline[data-state="done"] { opacity: 1; color: #34D399; }
+
+.voice-progress-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.voice-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #FBBF24, #F59E0B);
+  transition: width 0.25s ease;
+}
+
+/* ============================================================================
+   ویژوالایزرِ دایره‌ایِ میکروفون — دورِ خودِ دکمه، بدون متن. طبق طراحی درخواستی:
+   شنیدن = حلقهٔ نفس‌کِش (زنده به‌نظر می‌رسد)؛ پردازش = کمانِ چرخان (در حال فکر
+   کردن)؛ idle/بعد از نتیجه = کاملاً محو و ناپدید.
+============================================================================ */
+.zt-mic-visualizer {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 2147482999;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+.zt-mic-visualizer.is-visible { opacity: 1; }
+
+.zt-mic-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+}
+
+.zt-mic-ring-outer { width: 40px; height: 40px; border: 1.5px solid currentColor; opacity: 0.35; }
+.zt-mic-ring-inner { width: 30px; height: 30px; border: 1.5px solid currentColor; opacity: 0.6; }
+
+.zt-mic-visualizer[data-state="listening"] { color: #38BDF8; }
+.zt-mic-visualizer[data-state="listening"] .zt-mic-ring-outer {
+  animation: zt-ring-breathe 1.6s infinite ease-in-out;
+}
+.zt-mic-visualizer[data-state="listening"] .zt-mic-ring-inner {
+  animation: zt-ring-breathe 1.6s infinite ease-in-out 0.25s;
+}
+@keyframes zt-ring-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(0.85); opacity: 0.15; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.55; }
+}
+
+.zt-mic-visualizer[data-state="processing"],
+.zt-mic-visualizer[data-state="loading-model"] {
+  color: #A78BFA;
+}
+.zt-mic-visualizer[data-state="loading-model"] { color: #FBBF24; }
+.zt-mic-visualizer[data-state="processing"] .zt-mic-ring-outer,
+.zt-mic-visualizer[data-state="loading-model"] .zt-mic-ring-outer {
+  border-color: currentColor transparent currentColor transparent;
+  opacity: 0.8;
+  animation: zt-ring-spin 1s linear infinite;
+}
+.zt-mic-visualizer[data-state="processing"] .zt-mic-ring-inner,
+.zt-mic-visualizer[data-state="loading-model"] .zt-mic-ring-inner {
+  border-color: transparent currentColor transparent currentColor;
+  opacity: 0.5;
+  animation: zt-ring-spin 1.4s linear infinite reverse;
+}
+@keyframes zt-ring-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zt-mic-ring { animation: none !important; opacity: 0.35 !important; transform: translate(-50%, -50%) !important; }
+}

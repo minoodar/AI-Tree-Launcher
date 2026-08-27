@@ -1118,23 +1118,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   els.textarea.focus();
 
-  // --- Back to the tab/widget this notepad was opened from ---
+  // --- Back button: return to the widget's tab if known, otherwise just close this tab ---
   const params = new URLSearchParams(window.location.search);
   const fromTab = params.get('fromTab');
   const fromWindow = params.get('fromWindow');
-  if (fromTab) {
-    els.backBtn.style.display = 'flex';
-    els.backBtn.addEventListener('click', () => {
-      try {
-        clearTimeout(draftSaveTimer);
-        chrome.storage.local.set({ savedPromptDraft: els.textarea.value }, () => {
+  els.backBtn.addEventListener('click', () => {
+    try {
+      clearTimeout(draftSaveTimer);
+      chrome.storage.local.set({ savedPromptDraft: els.textarea.value }, () => {
+        if (fromTab) {
           chrome.runtime.sendMessage({
             action: 'returnToParentTab',
             tabId: fromTab,
             windowId: fromWindow || undefined
           }, () => { void chrome.runtime.lastError; });
-        });
-      } catch (e) {}
-    });
-  }
+        } else {
+          // این تب مستقیم (بدون ارجاع به تب مبدأ) باز شده — فقط خودش را می‌بندد
+          window.close();
+        }
+      });
+    } catch (e) {}
+  });
 });

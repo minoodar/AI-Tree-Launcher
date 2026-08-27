@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const i18nPopup = {
       en: {
-        tabSettings: "Settings", tabBackups: "Backup & Restore",
+        tabCore: "⚙️ Core", tabBackup: "🛡️ Backup", tabVault: "✨ Vault",
         lblLanguage: "App Language:", lblBirth: "Birth Year (for Clock Age):",
         btnSave: "Save Settings", btnExport: "📤 Export Backup (JSON)", btnImport: "📥 Import Backup (Restore)",
         toastSaved: "Settings saved successfully!", toastExported: "JSON file downloaded!", toastImported: "Data imported successfully!", toastRestored: "Data restored successfully!",
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature"
       },
       fa: {
-        tabSettings: "تنظیمات اصلی", tabBackups: "بکاپ",
+        tabCore: "⚙️ هسته", tabBackup: "🛡️ پشتیبان", tabVault: "✨ گنجینه",
         lblLanguage: "زبان افزونه:", lblBirth: "سال تولد (محاسبه سن):",
         btnSave: "ذخیره تنظیمات", btnExport: "📤 دریافت بکاپ (JSON)", btnImport: "📥 بازیابی از بکاپ",
         toastSaved: "تنظیمات با موفقیت ذخیره شد!", toastExported: "فایل خروجی دانلود شد!", toastImported: "اطلاعات فایل با موفقیت وارد شد!", toastRestored: "بکاپ با موفقیت بازیابی شد!",
@@ -45,8 +45,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const t = i18nPopup[currentLang];
       document.body.className = currentLang === 'fa' ? 'rtl' : '';
 
-      document.getElementById('tab-settings').textContent = t.tabSettings;
-      document.getElementById('tab-backups').textContent = t.tabBackups;
+      document.getElementById('tab-core').textContent = t.tabCore;
+      document.getElementById('tab-backup').textContent = t.tabBackup;
+      document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
       document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : "e.g., 1990 or 1375";
@@ -148,12 +149,19 @@ document.addEventListener('DOMContentLoaded', () => {
       applyTranslation();
     });
 
-    chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry', 'quoteReligionSource', 'quotePoetrySource'], (data) => {
+    chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry', 'quoteReligionSource', 'quotePoetrySource', 'voiceRecognitionLang'], (data) => {
       if (holidaysEnabledCb) holidaysEnabledCb.checked = data.showPublicHolidays !== undefined ? !!data.showPublicHolidays : true;
       if (holidayRegionSelect) holidayRegionSelect.value = data.holidayRegionMode || 'auto';
       if (holidayCustomCountry) holidayCustomCountry.value = data.holidayCustomCountry || '';
       if (quoteReligionSelect) quoteReligionSelect.value = data.quoteReligionSource || 'islam';
       if (quotePoetrySelect) quotePoetrySelect.value = data.quotePoetrySource || 'rumi';
+      // منوی زبان میکروفون حذف شد چون تشخیص خودکار Whisper همیشه به‌صورت
+      // پیش‌فرض فعال است و نیازی به تنظیم دستی ندارد. اگر قبلاً مقداری دستی
+      // (مثلاً از تست‌های قبلی) ذخیره شده بود، همین یک‌بار پاکش می‌کنیم تا
+      // رفتار واقعاً به‌طور کامل به auto-detect برگردد.
+      if (data.voiceRecognitionLang) {
+        chrome.storage.local.remove('voiceRecognitionLang');
+      }
       syncHolidayCustomVisibility();
       updateHolidayRegionHint();
     });
