@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         toastSaved: "Settings saved successfully!", toastExported: "JSON file downloaded!", toastImported: "Data imported successfully!", toastRestored: "Data restored successfully!",
         invalidFile: "Invalid file format.", errRead: "Error reading JSON file.",
         btnHide: "Hide", btnShow: "Show (Reset)",
-        backupHint: "🟢 Export saves everything — bookmarks, todos, calendar events &amp; marks, settings, notepad &nbsp;·&nbsp; 🟠 Import restores it all from a file",
+        backupHint: "🟢 Export saves everything — bookmarks, todos, calendar events & marks, settings, notepad &nbsp;·&nbsp; 🟠 Import restores it all from a file",
         contactTitle: "✉︎ Contact Us", contactEmail: "Email:",
         holidaysTitle: "Official Public Holidays", holidaysEnable: "Show official holidays on the calendar",
         holidayAuto: "Auto — follow app language", holidayIran: "Iran (offline, curated list)", holidayCustom: "Other country (enter code)",
@@ -155,10 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (holidayCustomCountry) holidayCustomCountry.value = data.holidayCustomCountry || '';
       if (quoteReligionSelect) quoteReligionSelect.value = data.quoteReligionSource || 'islam';
       if (quotePoetrySelect) quotePoetrySelect.value = data.quotePoetrySource || 'rumi';
-      // منوی زبان میکروفون حذف شد چون تشخیص خودکار Whisper همیشه به‌صورت
-      // پیش‌فرض فعال است و نیازی به تنظیم دستی ندارد. اگر قبلاً مقداری دستی
-      // (مثلاً از تست‌های قبلی) ذخیره شده بود، همین یک‌بار پاکش می‌کنیم تا
-      // رفتار واقعاً به‌طور کامل به auto-detect برگردد.
       if (data.voiceRecognitionLang) {
         chrome.storage.local.remove('voiceRecognitionLang');
       }

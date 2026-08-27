@@ -98,8 +98,8 @@
 
   <div class="tabs">
     <button class="tab-btn active" data-target="core" id="tab-core">⚙️ Core</button>
-    <button class="tab-btn" data-target="backup" id="tab-backup">🛡️ Backup</button>
     <button class="tab-btn" data-target="vault" id="tab-vault">✨ Vault</button>
+    <button class="tab-btn" data-target="backup" id="tab-backup">🛡️ Backup</button>
   </div>
 
   <div id="core" class="tab-content active">
@@ -139,24 +139,6 @@
       <div id="holiday-region-hint" style="font-size:11px; color: var(--text-muted); margin-top:6px; line-height:1.6;"></div>
     </div>
 
-    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
-      <details class="contact-details">
-        <summary id="lbl-contact-title">Contact Us</summary>
-        <div class="contact-content">
-          <span id="lbl-contact-email">Email:</span>
-          <a href="mailto:minoodar@gmail.com" dir="ltr">minoodar@gmail.com</a>
-        </div>
-      </details>
-    </div>
-  </div>
-
-  <div id="backup" class="tab-content">
-    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-direction: column;">
-      <button id="exportJsonBtn" class="btn btn-export" style="flex: 1;">📤 Export Backup (JSON)</button>
-      <button id="importJsonBtn" class="btn btn-import" style="flex: 1;">📥 Import Backup (Restore)</button>
-      <input type="file" id="fileInput" accept=".json" hidden>
-    </div>
-    <div class="backup-hint" id="backup-hint">🟢 Export saves all bookmarks to a file &nbsp;·&nbsp; 🟠 Import restores from a file</div>
   </div>
 
   <div id="vault" class="tab-content">
@@ -176,6 +158,26 @@
         <option value="rumi" id="opt-poetry-rumi">🌙 Rumi</option>
         <option value="western" id="opt-poetry-western">🖋️ Western Literature</option>
       </select>
+    </div>
+  </div>
+
+  <div id="backup" class="tab-content">
+    <div style="display: flex; gap: 8px; margin-bottom: 8px; flex-direction: column;">
+      <button id="exportJsonBtn" class="btn btn-export" style="flex: 1;">📤 Export Backup (JSON)</button>
+      <button id="importJsonBtn" class="btn btn-import" style="flex: 1;">📥 Import Backup (Restore)</button>
+      <input type="file" id="fileInput" accept=".json" hidden>
+    </div>
+    <div class="backup-hint" id="backup-hint">🟢 Export saves everything — bookmarks, todos, calendar events &amp; marks, settings, notepad &nbsp;·&nbsp; 🟠 Import restores it all from a file</div>
+
+    <!-- بخش Contact Us (انتقال یافته به Backup) -->
+    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
+      <details class="contact-details">
+        <summary id="lbl-contact-title">✉︎ Contact Us</summary>
+        <div class="contact-content">
+          <span id="lbl-contact-email">Email:</span>
+          <a href="mailto:minoodar@gmail.com" dir="ltr">minoodar@gmail.com</a>
+        </div>
+      </details>
     </div>
   </div>
 
