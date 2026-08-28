@@ -173,6 +173,27 @@
     return EXTRA_COLORS[nodeLayer % EXTRA_COLORS.length];
   }
 
+  // پالت رنگِ اختصاصیِ هر «دسته/تگ» — مستقل از رنگ‌بندیِ اهمیت/ستاره‌ی بالا. هدف:
+  // هر تگ همیشه یک رنگ ثابت و قابل‌تشخیص داشته باشد (نه تصادفی در هر رندر)، تا
+  // نقشِ دسته‌بندی در نگاه اول معلوم باشد. هش قطعی از خودِ نامِ تگ → یکی از این
+  // ۸ رنگ؛ همان تگ همیشه همان رنگ را می‌گیرد، در همه‌ی رندرها و همه‌ی جلسات.
+  const AI_TAG_GLOW_PALETTE = [
+    'rgba(56, 189, 248, 0.75)',  // آبی
+    'rgba(52, 211, 153, 0.75)',  // سبز
+    'rgba(251, 191, 36, 0.75)',  // زرد
+    'rgba(244, 114, 182, 0.75)', // صورتی
+    'rgba(167, 139, 250, 0.75)', // بنفش (پیش‌فرض قبلی)
+    'rgba(248, 113, 113, 0.75)', // قرمز
+    'rgba(45, 212, 191, 0.75)',  // فیروزه‌ای
+    'rgba(251, 146, 60, 0.75)'   // نارنجی
+  ];
+  function glowColorForTag(tag) {
+    const str = String(tag || '');
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) >>> 0;
+    return AI_TAG_GLOW_PALETTE[hash % AI_TAG_GLOW_PALETTE.length];
+  }
+
   const root = document.createElement('div'); root.id = 'ai-orbit-root';
   const hub = document.createElement('div'); hub.id = 'ai-orbit-hub'; hub.innerHTML = mainAIIcon();
   const quantumBloom = document.createElement('div'); quantumBloom.className = 'ai-quantum-bloom'; quantumBloom.setAttribute('aria-hidden', 'true');
@@ -443,6 +464,18 @@
     </div>
     <input type="text" id="ai-search-input" dir="auto" autocomplete="off" />
     <ul id="ai-search-results"></ul>
+    <button type="button" class="ai-web-search-toggle" id="ai-web-search-toggle" aria-expanded="false">
+      <span class="ai-web-search-toggle-icon">🌐</span>
+      <span id="ai-web-search-toggle-label"></span>
+      <span class="ai-web-search-toggle-chevron">▾</span>
+    </button>
+    <div class="ai-web-search-drawer" id="ai-web-search-drawer" hidden>
+      <div class="ai-web-search-engines" id="ai-web-search-engines"></div>
+      <div class="ai-web-search-row">
+        <input type="text" id="ai-web-search-input" dir="auto" autocomplete="off" />
+        <button type="button" id="ai-web-search-go" class="ai-web-search-go" aria-label="Search">→</button>
+      </div>
+    </div>
   `;
 
   const tierDotsNav = document.createElement('div'); tierDotsNav.id = 'ai-tier-dots';
@@ -596,6 +629,12 @@
     searchCatToggleLabel: searchPanel.querySelector('#ai-search-cat-toggle-label'),
     searchCatAccordion: searchPanel.querySelector('#ai-search-cat-accordion'),
     searchCatGrid: searchPanel.querySelector('#ai-search-cat-grid'),
+    webSearchToggle: searchPanel.querySelector('#ai-web-search-toggle'),
+    webSearchToggleLabel: searchPanel.querySelector('#ai-web-search-toggle-label'),
+    webSearchDrawer: searchPanel.querySelector('#ai-web-search-drawer'),
+    webSearchEngines: searchPanel.querySelector('#ai-web-search-engines'),
+    webSearchInput: searchPanel.querySelector('#ai-web-search-input'),
+    webSearchGo: searchPanel.querySelector('#ai-web-search-go'),
     todoWhenRow: todoPanel.querySelector('#ai-todo-when-row'),
     todoWhenToday: todoPanel.querySelector('#ai-todo-when-today'),
     todoWhenTomorrow: todoPanel.querySelector('#ai-todo-when-tomorrow'),
@@ -3029,6 +3068,7 @@
           shownTags.slice(0, 2).forEach(tg => {
             const tagBadge = document.createElement('span'); tagBadge.className = 'ai-search-result-tag';
             tagBadge.textContent = '#' + tg;
+            tagBadge.style.setProperty('--tag-glow-color', glowColorForTag(tg));
             badges.appendChild(tagBadge);
           });
         }
@@ -3113,12 +3153,87 @@
     }
   });
 
+  // ---------------------------------------------------------------------------
+  // شکاف جستجوی وب — کاملاً جدا از جستجوی بوکمارک‌ها (که بالای همین باکس است و
+  // دست‌نخورده می‌ماند)، پیش‌فرض بسته/مخفی، فقط با یک تاگلِ ظریف باز می‌شود.
+  // ---------------------------------------------------------------------------
+  const AI_WEB_SEARCH_ENGINES = [
+    { id: 'google', label: 'Google', url: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
+    { id: 'bing', label: 'Bing', url: (q) => `https://www.bing.com/search?q=${encodeURIComponent(q)}` },
+    { id: 'duckduckgo', label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
+    { id: 'brave', label: 'Brave', url: (q) => `https://search.brave.com/search?q=${encodeURIComponent(q)}` }
+  ];
+  let activeWebSearchEngine = 'google';
+
+  function renderWebSearchEngineButtons() {
+    if (!uiEls.webSearchEngines) return;
+    uiEls.webSearchEngines.innerHTML = '';
+    AI_WEB_SEARCH_ENGINES.forEach((eng) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ai-web-engine-btn';
+      btn.textContent = eng.label;
+      btn.setAttribute('aria-pressed', String(eng.id === activeWebSearchEngine));
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        activeWebSearchEngine = eng.id;
+        try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchEngine: eng.id }); } catch (err) {}
+        uiEls.webSearchEngines.querySelectorAll('.ai-web-engine-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      });
+      uiEls.webSearchEngines.appendChild(btn);
+    });
+  }
+
+  if (uiEls.webSearchEngines) {
+    try {
+      chrome.storage.local.get(['webSearchEngine'], (data) => {
+        if (data && data.webSearchEngine && AI_WEB_SEARCH_ENGINES.some((e) => e.id === data.webSearchEngine)) {
+          activeWebSearchEngine = data.webSearchEngine;
+        }
+        renderWebSearchEngineButtons();
+      });
+    } catch (e) { renderWebSearchEngineButtons(); }
+  }
+
+  if (uiEls.webSearchToggleLabel) uiEls.webSearchToggleLabel.textContent = 'جستجوی وب / Search the web';
+
+  function runWebSearch() {
+    const q = (uiEls.webSearchInput && uiEls.webSearchInput.value || '').trim();
+    if (!q) return;
+    const engine = AI_WEB_SEARCH_ENGINES.find((e) => e.id === activeWebSearchEngine) || AI_WEB_SEARCH_ENGINES[0];
+    window.open(engine.url(q), '_blank', 'noopener');
+  }
+
+  if (uiEls.webSearchToggle && uiEls.webSearchDrawer) {
+    uiEls.webSearchToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const opening = uiEls.webSearchDrawer.hasAttribute('hidden');
+      if (opening) {
+        uiEls.webSearchDrawer.removeAttribute('hidden');
+        requestAnimationFrame(() => uiEls.webSearchDrawer.classList.add('is-open'));
+        uiEls.webSearchToggle.setAttribute('aria-expanded', 'true');
+        setTimeout(() => uiEls.webSearchInput && uiEls.webSearchInput.focus(), 60);
+      } else {
+        uiEls.webSearchDrawer.classList.remove('is-open');
+        uiEls.webSearchToggle.setAttribute('aria-expanded', 'false');
+        setTimeout(() => { if (!uiEls.webSearchDrawer.classList.contains('is-open')) uiEls.webSearchDrawer.setAttribute('hidden', ''); }, 220);
+      }
+    });
+  }
+  if (uiEls.webSearchGo) uiEls.webSearchGo.addEventListener('click', (e) => { e.stopPropagation(); runWebSearch(); });
+  if (uiEls.webSearchInput) {
+    uiEls.webSearchInput.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter') { e.preventDefault(); runWebSearch(); }
+    });
+  }
+
   searchToggleDot.addEventListener('click', (e) => {
       if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); const isActive = searchPanel.classList.contains('active'); closeAllPanelsExcept('');
       if (!isActive) {
         searchPanel.classList.add('active'); root.classList.add('show-search');
         uiEls.searchInput.value = ''; activeSearchCategory = null;
-        uiEls.searchCatAccordion.classList.remove('open');
+        uiEls.searchCatAccordion.classList.add('open');
         refreshSearchCatGrid();
         renderSearchResults(''); adjustSearchPosition();
         setTimeout(() => uiEls.searchInput.focus(), 50);
@@ -4075,6 +4190,18 @@
   window.addEventListener('resize', () => {
     if (noteSplitSide && quickNoteForm.classList.contains('active')) {
       enterNoteSplit(noteSplitSide);
+      return;
+    }
+    // خود-ترمیمی: اگر پنجرهٔ مرورگر (نه خودِ دفترچه) کوچک شود، دفترچهٔ آزادِ
+    // موقعیت‌یافته ممکن است دیگر کامل داخل صفحه نباشد. همان کلمپِ استفاده‌شده در
+    // ریسایز را یک‌بار دیگر اجرا می‌کنیم تا کلیدهای تولبار همیشه در دسترس بمانند.
+    if (quickNoteForm.classList.contains('active') && noteManuallyPositioned) {
+      const r = quickNoteForm.getBoundingClientRect();
+      const edgeMargin = 8;
+      const clampedLeft = Math.min(Math.max(r.left, edgeMargin), window.innerWidth - r.width - edgeMargin);
+      const clampedTop = Math.min(Math.max(r.top, edgeMargin), window.innerHeight - r.height - edgeMargin);
+      if (clampedLeft !== r.left) quickNoteForm.style.left = `${clampedLeft}px`;
+      if (clampedTop !== r.top) quickNoteForm.style.top = `${clampedTop}px`;
     }
   });
 
@@ -4480,6 +4607,15 @@
         newLeft = NOTE_SPLIT_EDGE_GAP;
         newTop = getNoteDockTopPos(noteSplitSide, window.innerHeight, newH);
         noteDockHeight = newH;
+      } else {
+        // آزاد (نه داکِ‌شده): هیچ تضمینی نیست که کشیدنِ سریعِ مؤشر بین دو فریمِ
+        // mousemove باعث نشود لبه‌ای از جعبه از ویوپورت بیرون بزند — دقیقاً همان
+        // چیزی که کلیدهای پایینِ دفترچه را غیرقابل‌دسترس می‌کرد (نیاز به پن‌کردن).
+        // این کلمپِ نهایی، صرف‌نظر از اینکه کدام گوشه کشیده شده، تضمین می‌کند کل
+        // جعبه همیشه کاملاً داخل صفحه بماند.
+        const edgeMargin = 8;
+        newLeft = Math.min(Math.max(newLeft, edgeMargin), window.innerWidth - newW - edgeMargin);
+        newTop = Math.min(Math.max(newTop, edgeMargin), window.innerHeight - newH - edgeMargin);
       }
 
       noteManuallyPositioned = true;
@@ -7641,7 +7777,12 @@
 
           }
           
-          if (Array.isArray(link.tags) && link.tags.length > 0) a.classList.add('ai-node-tagged');
+          if (Array.isArray(link.tags) && link.tags.length > 0) {
+            a.classList.add('ai-node-tagged');
+            // رنگ حلقه از روی اولین تگ (دستهٔ اصلی) تعیین می‌شود؛ اگر بوکمارک چند
+            // تگ داشته باشد، همان اولی تعیین‌کنندهٔ رنگ است — ساده و پیش‌بینی‌پذیر
+            a.style.setProperty('--tag-glow-color', glowColorForTag(link.tags[0]));
+          }
 
           content.appendChild(fav); content.appendChild(span); a.appendChild(content); a.href = link.url;
           if (link.description) {

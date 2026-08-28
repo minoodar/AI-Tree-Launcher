@@ -419,15 +419,17 @@ transition: opacity 0.2s var(--ease-premium); border: 1px solid rgba(255,255,255
 .ai-node.core-text-circle .ai-node-content { position: relative; width: 100%; height: 100%; display: block; }
 .ai-node.core-text-circle .ai-node-favicon { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); margin-top: 0; }
 .ai-node.core-text-circle span { position: absolute; top: 33px; left: 50%; transform: translate(-50%, -50%); line-height: 1.1; font-weight: 700; }
-/* بوکمارک‌های دسته‌بندی‌شده (دارای حداقل یک تگ) — یک حلقه‌ی بنفشِ ضربان‌دار و مستقل از
-   glowِ رنگیِ خودِ نود (که معرفِ ستاره/اهمیت است)، تا این دو معنا با هم قاطی نشوند. */
+/* بوکمارک‌های دسته‌بندی‌شده (دارای حداقل یک تگ) — یک حلقه‌ی ضربان‌دار به رنگِ
+   اختصاصیِ همان دسته (--tag-glow-color، از content.js تعیین می‌شود)، مستقل از
+   glowِ رنگیِ خودِ نود (که معرفِ ستاره/اهمیت است)، تا این دو معنا با هم قاطی نشوند.
+   اگر به هر دلیلی رنگی تعیین نشده باشد، همان بنفشِ قبلی به‌عنوان fallback می‌ماند. */
 .ai-node-tagged::after {
   content: '';
   position: absolute;
   inset: -3px;
   border-radius: inherit;
-  border: 1.5px solid rgba(167, 139, 250, 0.65);
-  box-shadow: 0 0 10px 1px rgba(167, 139, 250, 0.5);
+  border: 1.5px solid var(--tag-glow-color, rgba(167, 139, 250, 0.65));
+  box-shadow: 0 0 10px 1px var(--tag-glow-color, rgba(167, 139, 250, 0.5));
   pointer-events: none;
   animation: aiTaggedPulse 2.6s ease-in-out infinite;
 }
@@ -1400,6 +1402,102 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
 #ai-search-results:empty { display: none; }
 #ai-search-results::-webkit-scrollbar { width: 4px; }
 #ai-search-results::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+/* ============================================================================
+   شکاف جستجوی وب — عمداً زیرِ جستجوی بوکمارک و کاملاً فرعی: یک تاگلِ خیلی ساکت،
+   وقتی بسته است صفر وزنِ بصری اضافه می‌کند؛ باز که شد یک تجربهٔ کامل (۴ موتور
+   جستجو) می‌دهد. طراحیِ خودِ جستجوی بوکمارک بالای این بخش کاملاً دست‌نخورده است.
+============================================================================ */
+.ai-web-search-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 0;
+  /* عمداً روشن/سفید و متضاد با تمِ تیرهٔ کل پنل — طبق درخواست صریح، حتی وقتی
+     بسته است باید همان‌جا در نگاه اول دیده و از بقیهٔ پنل متمایز شود */
+  background: #E5E7EB;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  color: #111827;
+  font-size: 11.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.ai-web-search-toggle:hover { background: #F3F4F6; }
+.ai-web-search-toggle:active { transform: scale(0.98); }
+.ai-web-search-toggle-icon { font-size: 12px; }
+.ai-web-search-toggle-chevron { font-size: 9px; color: #4B5563; transition: transform 0.2s ease; }
+.ai-web-search-toggle[aria-expanded="true"] .ai-web-search-toggle-chevron { transform: rotate(180deg); }
+.ai-web-search-toggle[aria-expanded="true"] { background: #fff; }
+
+.ai-web-search-drawer {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.22s ease, opacity 0.18s ease;
+}
+.ai-web-search-drawer.is-open {
+  max-height: 130px;
+  opacity: 1;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+}
+
+.ai-web-search-engines { display: flex; gap: 6px; margin-bottom: 6px; }
+.ai-web-engine-btn {
+  flex: 1;
+  font-size: 10.5px;
+  font-family: inherit;
+  padding: 6px 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+.ai-web-engine-btn[aria-pressed="true"] {
+  color: #fff;
+  border-color: rgba(var(--accent-search), 0.7);
+  background: rgba(var(--accent-search), 0.16);
+}
+
+.ai-web-search-row { display: flex; gap: 6px; }
+#ai-web-search-input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+}
+#ai-web-search-input:focus { border-color: rgba(var(--accent-search), 0.75); }
+.ai-web-search-go {
+  flex-shrink: 0;
+  width: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-search), 0.5);
+  background: rgba(var(--accent-search), 0.16);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.15s ease;
+}
+.ai-web-search-go:hover { background: rgba(var(--accent-search), 0.3); }
+
 .ai-search-result { position: relative; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.06); padding: 9px 10px; border-radius: 10px; cursor: pointer; transition: background 0.2s var(--ease-premium); border: 1px solid transparent; }
 .ai-search-result:hover { background: rgba(0, 180, 255, 0.14); border-color: rgba(0, 180, 255, 0.3); }
 .ai-search-result-color { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -1420,7 +1518,9 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
 }
 .ai-search-result-galaxy { color: #7dd3fc; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); }
 .ai-search-result-stars { color: #facc15; background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.25); }
-/* چیپ تگ در نتایج جستجو — همان الگوی بج galaxy/stars، رنگ بنفش برای تمایز بصری از دو بج دیگر */
+/* چیپ تگ در نتایج جستجو — همان الگوی بج galaxy/stars، ولی رنگش حالا به‌ازای هر
+   تگ متفاوت است (--tag-glow-color از content.js)، هم‌خوان با رنگِ حلقهٔ همان
+   دسته روی خودِ نودِ اسپیرال؛ اگر رنگی تعیین نشده باشد همان بنفشِ قبلی می‌ماند. */
 .ai-search-result-tag {
   flex-shrink: 0;
   font-size: 9.5px;
@@ -1429,9 +1529,9 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
   padding: 2px 5px;
   white-space: nowrap;
   letter-spacing: 0.1px;
-  color: #c4b5fd;
-  background: rgba(167, 139, 250, 0.14);
-  border: 1px solid rgba(167, 139, 250, 0.32);
+  color: var(--tag-glow-color, #c4b5fd);
+  background: color-mix(in srgb, var(--tag-glow-color, #a78bfa) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tag-glow-color, #a78bfa) 32%, transparent);
 }
 /* دکمه‌های ویرایش/حذف روی ردیف شناور می‌شوند (فقط با هاور دیده می‌شوند) تا فضای
    دائمی از عنوان نگیرند. inset-inline-end (نه right) عمداً استفاده شده: پنل جستجو
@@ -1793,19 +1893,24 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 }
 .ai-tags-suggest-chip:hover { background: rgba(167, 139, 250, 0.28); color: #ede9fe; }
 /* === Category accordion (کادر کرکره‌ای دسته‌بندی) — V33.4 =============== */
+/* عمداً یک هویتِ رنگیِ جداگانه (بنفش) نسبت به خودِ باکس جستجو (که رنگ سیانِ
+   --accent-search را دارد) — تا کاربر در یک نگاه بفهمد این دو ناحیهٔ متفاوتند:
+   بالا = جستجوی متنی، پایین = فیلترِ دسته/تگ. همان بنفشی که در حلقهٔ نودهای
+   تگ‌دار هم استفاده می‌شود، اینجا هم هویتِ بصریِ «تگ» را حمل می‌کند. */
 .ai-cat-accordion { display: flex; flex-direction: column; gap: 8px; margin-top: -2px; }
 .ai-cat-accordion-toggle {
   display: flex; align-items: center; justify-content: space-between; width: 100%;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
-  color: rgba(255,255,255,0.75); font-size: 11.5px; font-weight: 600; padding: 8px 10px; cursor: pointer;
+  background: rgba(167, 139, 250, 0.10); border: 1px solid rgba(167, 139, 250, 0.35); border-radius: 8px;
+  color: #ede9fe; font-size: 11.5px; font-weight: 600; padding: 8px 10px; cursor: pointer;
   transition: background 0.15s var(--ease-premium), border-color 0.15s var(--ease-premium);
 }
-.ai-cat-accordion-toggle:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); }
-.ai-cat-accordion-chevron { font-size: 10px; transition: transform 0.2s var(--ease-premium); color: rgba(255,255,255,0.5); }
+.ai-cat-accordion-toggle:hover { background: rgba(167, 139, 250, 0.16); border-color: rgba(167, 139, 250, 0.5); }
+.ai-cat-accordion-chevron { font-size: 10px; transition: transform 0.2s var(--ease-premium); color: rgba(167, 139, 250, 0.75); }
 .ai-cat-accordion.open .ai-cat-accordion-chevron { transform: rotate(180deg); }
 .ai-cat-grid {
   display: none; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px;
-  max-height: 168px; overflow-y: auto; padding: 2px;
+  max-height: 168px; overflow-y: auto; padding: 8px 6px;
+  background: rgba(167, 139, 250, 0.05); border: 1px solid rgba(167, 139, 250, 0.18); border-radius: 8px;
 }
 .ai-cat-accordion.open .ai-cat-grid { display: grid; }
 .ai-cat-chip {
