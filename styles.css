@@ -2479,8 +2479,67 @@ transition: font-size 0.2s var(--ease-premium);
 #ai-collapse-toggle:hover .ai-toggle-glyph { font-size: 9px; }
 
 /* === مناسبت‌ها و نشانه‌گذاری روزهای خاص در کادر ساعت === */
-.ai-mark-dots-row { display: none; gap: 7px; margin-top: 6px; align-items: center; justify-content: center; }
+/* ردیفِ واحدِ تاگل+دات‌ها — دیگر دو المان جدا (تاگلِ لبه‌چسب + ردیفِ دات) نیستند؛
+   تاگل خودش اولین عضوِ همین ردیف است، پس هم‌ترازی با دات‌ها خودبه‌خود تضمین می‌شود
+   و نیازی به محاسبهٔ JS برای align نیست. ردیف همیشه نمایان است (حتی وقتی دیتایی
+   نیست) چون خودِ تاگل باید همیشه در دسترس بماند. */
+.ai-clock-inline-row { display: flex; gap: 7px; margin-top: 6px; align-items: center; justify-content: center; }
+.ai-inline-dots { display: flex; gap: 7px; align-items: center; justify-content: center; }
 .ai-mark-dot-wrap { position: relative; }
+
+/* دکمهٔ تاگلِ داخلِ ردیف — یک جواهرِ کوچکِ دایره‌ای هم‌قطرِ دات‌ها، با آیکونِ خودش
+   (تقویم برای مناسبت‌ها، ساعت برای داشبورد) به‌جای شکل انتزاعیِ بی‌آیکونِ قبلی */
+.ai-inline-toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  padding: 0; margin: 0;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 180ms cubic-bezier(0.34, 1.3, 0.64, 1), border-color 180ms ease, box-shadow 180ms ease, background 180ms ease, opacity 180ms ease, filter 180ms ease;
+}
+.ai-inline-toggle-svg {
+  width: 12px; height: 12px;
+  stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; fill: none;
+  pointer-events: none; opacity: 0.92;
+}
+.ai-inline-toggle-marks {
+  color: #bae6fd;
+  border: 1.5px solid rgba(125, 211, 252, 0.72);
+  background: radial-gradient(circle at 35% 30%, rgba(186, 230, 253, 0.55) 0%, rgba(56, 189, 248, 0.28) 38%, rgba(8, 24, 48, 0.72) 100%);
+  box-shadow: 0 0 0 1.5px rgba(2, 8, 20, 0.45), inset 0 1px 2px rgba(224, 242, 254, 0.35), inset 0 -2px 4px rgba(2, 12, 28, 0.35), 0 0 10px rgba(56, 189, 248, 0.28);
+}
+.ai-inline-toggle-dash {
+  color: #fbcbb0;
+  border: 1.5px solid rgba(244, 154, 111, 0.72);
+  background: radial-gradient(circle at 35% 30%, rgba(251, 207, 178, 0.55) 0%, rgba(238, 118, 88, 0.30) 38%, rgba(40, 18, 12, 0.72) 100%);
+  box-shadow: 0 0 0 1.5px rgba(2, 8, 20, 0.45), inset 0 1px 2px rgba(224, 242, 254, 0.35), inset 0 -2px 4px rgba(2, 12, 28, 0.35), 0 0 10px rgba(238, 118, 88, 0.28);
+}
+.ai-inline-toggle:hover { transform: scale(1.14); }
+.ai-inline-toggle.is-open { transform: scale(0.9); }
+/* وقتی داده‌ای برای این ردیف هست (has-items)، خودِ حلقهٔ تاگل کمی درخشان‌تر می‌شود
+   تا حس «چیزی این‌جاست» بدون نیاز به نوشتن عدد روی خودِ تاگل منتقل شود */
+.ai-inline-toggle-marks.has-items { box-shadow: 0 0 0 1.5px rgba(2, 8, 20, 0.45), inset 0 1px 2px rgba(224, 242, 254, 0.4), 0 0 13px rgba(56, 189, 248, 0.42); }
+.ai-inline-toggle-dash.has-items { box-shadow: 0 0 0 1.5px rgba(2, 8, 20, 0.45), inset 0 1px 2px rgba(224, 242, 254, 0.4), 0 0 13px rgba(238, 118, 88, 0.42); }
+/* حالت باز — گرمای کهربایی برای مناسبت‌ها، درخشش رزگلد قوی‌تر برای داشبورد */
+.ai-inline-toggle-marks.is-open {
+  color: #fde68a;
+  border-color: rgba(251, 191, 36, 0.88);
+  background: radial-gradient(circle at 35% 30%, rgba(254, 243, 199, 0.55) 0%, rgba(251, 191, 36, 0.32) 42%, rgba(40, 28, 8, 0.7) 100%);
+  box-shadow: 0 0 0 1.5px rgba(20, 12, 2, 0.4), inset 0 1px 2px rgba(254, 243, 199, 0.4), 0 0 12px rgba(251, 191, 36, 0.4);
+}
+.ai-inline-toggle-dash.is-open {
+  color: #ffe4d1;
+  border-color: rgba(244, 154, 111, 0.9);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 228, 209, 0.6) 0%, rgba(244, 114, 94, 0.36) 42%, rgba(40, 16, 10, 0.72) 100%);
+  box-shadow: 0 0 0 1.5px rgba(20, 8, 2, 0.4), inset 0 1px 2px rgba(255, 228, 209, 0.4), 0 0 12px rgba(244, 154, 111, 0.42);
+}
+.ai-inline-toggle.is-dimmed { opacity: 0.4; filter: grayscale(0.7) brightness(0.78); box-shadow: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .ai-inline-toggle, .ai-inline-toggle:hover, .ai-inline-toggle.is-open { transition: none; transform: none !important; }
+}
+
 .ai-mark-dot {
 width: 19px; height: 19px; border-radius: 50%; border: 1px solid rgba(251, 191, 36, 0.45);
 background: rgba(251, 191, 36, 0.14); color: #fde68a; font-size: 9.5px; font-weight: 800;
@@ -2491,6 +2550,27 @@ transition: 0.2s;
 .ai-mark-dot.is-today {
 color: #fff7ed; background: rgba(251, 146, 60, 0.4); border-color: rgba(251, 146, 60, 0.75);
 animation: pulseOrange 1.6s infinite alternate ease-in-out;
+}
+
+/* دات‌های رویدادِ ساعتی — رزگلدِ متمایل به نارنجی، برای تمایز روشن از دات‌های
+   طلاییِ مناسبت‌های روزانه؛ همان اندازه/فرم، رنگ متفاوت */
+.ai-dash-dot {
+  width: 19px; height: 19px; border-radius: 50%; border: 1px solid rgba(244, 154, 111, 0.55);
+  background: rgba(238, 118, 88, 0.16); color: #fbcbb0; font-size: 9.5px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;
+  transition: 0.2s;
+}
+.ai-dash-dot:hover { background: rgba(238, 118, 88, 0.32); transform: scale(1.12); }
+.ai-dash-dot.is-now {
+  color: #fff7ed; background: rgba(244, 114, 94, 0.45); border-color: rgba(244, 114, 94, 0.8);
+  animation: pulseOrange 1.6s infinite alternate ease-in-out;
+}
+.ai-dash-dot.is-done { opacity: 0.42; }
+.ai-dash-dot.is-active {
+  background: rgba(244, 154, 111, 0.5);
+  border-color: #F2A679;
+  box-shadow: 0 0 10px rgba(244, 154, 111, 0.55);
+  color: #fff;
 }
 .ai-mark-dot-popup {
 position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, 4px);
@@ -4886,171 +4966,9 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   color: #fff;
 }
 
-/* Neon Calendar Toggle — single source of truth (glass gem + dual-line bridge).
-   No icon/text. Idle = cool cyan. Open = warm amber. Spring hover lift. */
-#ai-clock-marks-toggle {
-  position: absolute;
-  top: 50%;
-  right: -9px;
-  left: auto;
-  width: 18px;
-  height: 18px;
-  transform: translateY(-50%);
-  border-radius: 50%;
-  color: transparent;
-  font-size: 0;
-  line-height: 0;
-  padding: 0;
-  margin: 0;
-  z-index: 40;
-  cursor: pointer;
-  border: 1.5px solid rgba(125, 211, 252, 0.72);
-  background:
-    radial-gradient(circle at 35% 30%,
-      rgba(186, 230, 253, 0.55) 0%,
-      rgba(56, 189, 248, 0.28) 38%,
-      rgba(8, 24, 48, 0.72) 100%);
-  box-shadow:
-    0 0 0 1.5px rgba(2, 8, 20, 0.45),
-    inset 0 1px 2px rgba(224, 242, 254, 0.35),
-    inset 0 -2px 4px rgba(2, 12, 28, 0.35),
-    0 0 10px rgba(56, 189, 248, 0.28),
-    0 0 18px rgba(34, 211, 238, 0.12);
-  transition:
-    transform 180ms cubic-bezier(0.34, 1.3, 0.64, 1),
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle {
-  left: -9px;
-  right: auto;
-}
-#ai-clock-marks-toggle > *,
-#ai-clock-marks-toggle svg {
-  display: none;
-  pointer-events: none;
-}
 
-/* Dual-line connector bridge toward the panel edge */
-#ai-clock-marks-toggle::before {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 50%;
-  right: 50%;
-  left: auto;
-  width: 11px;
-  height: 1.5px;
-  transform: translateY(-50%);
-  border-radius: 2px;
-  background: linear-gradient(
-    90deg,
-    rgba(125, 211, 252, 0.08) 0%,
-    rgba(125, 211, 252, 0.55) 55%,
-    rgba(186, 230, 253, 0.75) 100%
-  );
-  box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
-  pointer-events: none;
-  z-index: 0;
-}
-#ai-clock-marks-toggle::after {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 50%;
-  right: 50%;
-  left: auto;
-  width: 11px;
-  height: 4.5px;
-  transform: translateY(-50%);
-  border-radius: 3px;
-  box-sizing: border-box;
-  background: linear-gradient(
-    90deg,
-    rgba(8, 24, 48, 0) 0%,
-    rgba(14, 40, 72, 0.55) 40%,
-    rgba(56, 189, 248, 0.22) 100%
-  );
-  border-top: 1px solid rgba(125, 211, 252, 0.28);
-  border-bottom: 1px solid rgba(125, 211, 252, 0.28);
-  pointer-events: none;
-  z-index: -1;
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle::before {
-  right: auto;
-  left: 50%;
-  background: linear-gradient(
-    270deg,
-    rgba(125, 211, 252, 0.08) 0%,
-    rgba(125, 211, 252, 0.55) 55%,
-    rgba(186, 230, 253, 0.75) 100%
-  );
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle::after {
-  right: auto;
-  left: 50%;
-  background: linear-gradient(
-    270deg,
-    rgba(8, 24, 48, 0) 0%,
-    rgba(14, 40, 72, 0.55) 40%,
-    rgba(56, 189, 248, 0.22) 100%
-  );
-}
-
-/* دکمهٔ تاگلِ داشبورد زمان — دقیقاً همان زبانِ بصریِ تاگلِ مناسبت‌ها، اما کمی
-   پایین‌تر (فاصلهٔ عمودی) تا با آن هم‌پوشانی نداشته باشد، و با رنگِ بنفش/طلایی
-   متمایز می‌شود تا دو تاگل با هم اشتباه گرفته نشوند. */
-#ai-dash-toggle {
-  position: absolute;
-  top: calc(50% + 30px);
-  right: -9px;
-  left: auto;
-  width: 18px;
-  height: 18px;
-  transform: translateY(-50%);
-  border-radius: 50%;
-  color: transparent;
-  font-size: 0;
-  line-height: 0;
-  padding: 0;
-  margin: 0;
-  z-index: 40;
-  cursor: pointer;
-  border: 1.5px solid rgba(196, 181, 253, 0.72);
-  background:
-    radial-gradient(circle at 35% 30%,
-      rgba(221, 214, 254, 0.55) 0%,
-      rgba(129, 140, 248, 0.28) 38%,
-      rgba(24, 16, 48, 0.72) 100%);
-  box-shadow:
-    0 0 0 1.5px rgba(2, 8, 20, 0.45),
-    inset 0 1px 2px rgba(224, 242, 254, 0.35),
-    inset 0 -2px 4px rgba(2, 12, 28, 0.35),
-    0 0 10px rgba(129, 140, 248, 0.28),
-    0 0 18px rgba(167, 139, 250, 0.12);
-  transition:
-    transform 180ms cubic-bezier(0.34, 1.3, 0.64, 1),
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background 180ms ease;
-}
-#ai-clock-panel.dash-open-left #ai-dash-toggle {
-  left: -9px;
-  right: auto;
-}
-#ai-dash-toggle > *, #ai-dash-toggle svg { display: none; pointer-events: none; }
-#ai-dash-toggle > .ai-dash-notify-dot { display: block; }
-
-/* --- کم‌رنگ‌شدنِ متقابلِ دو تاگل — وقتی یکی باز است، آن یکی محو می‌شود --- */
-#ai-clock-marks-toggle.is-dimmed,
-#ai-dash-toggle.is-dimmed {
-  opacity: 0.35 !important;
-  filter: grayscale(0.8) brightness(0.7);
-  transform: translateY(-50%) scale(0.88) !important;
-  box-shadow: none !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-}
+/* --- کم‌رنگ‌شدنِ متقابلِ دو تاگل — حالا با .ai-inline-toggle.is-dimmed در بلوک
+   جدید ردیفِ واحد مدیریت می‌شود (بدون translateY، چون دیگر absolute نیست) --- */
 
 /* --- نقطه‌ی هشدارِ هوشمند — هرچه رویدادِ بعدی نزدیک‌تر، چشمک تندتر --- */
 .ai-dash-notify-dot {
@@ -5077,29 +4995,6 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   50% { transform: scale(1.4); opacity: 1; filter: brightness(1.2); }
   100% { transform: scale(0.9); opacity: 0.65; }
 }
-#ai-dash-toggle::before {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 50%;
-  right: 50%;
-  left: auto;
-  width: 11px;
-  height: 1.5px;
-  transform: translateY(-50%);
-  border-radius: 2px;
-  background: linear-gradient(90deg, rgba(196, 181, 253, 0.08) 0%, rgba(196, 181, 253, 0.55) 55%, rgba(221, 214, 254, 0.75) 100%);
-  box-shadow: 0 0 6px rgba(129, 140, 248, 0.25);
-  pointer-events: none;
-  z-index: 0;
-}
-#ai-clock-panel.dash-open-left #ai-dash-toggle::before {
-  right: auto;
-  left: 50%;
-  background: linear-gradient(270deg, rgba(196, 181, 253, 0.08) 0%, rgba(196, 181, 253, 0.55) 55%, rgba(221, 214, 254, 0.75) 100%);
-}
-#ai-dash-toggle:hover, #ai-clock-marks-toggle:hover { transform: translateY(-50%) scale(1.12); }
-#ai-dash-toggle.is-open, #ai-clock-marks-toggle.is-open { transform: translateY(-50%) scale(0.92); }
 
 /* --- پنل داشبورد زمان (نوار هفتگی + تایم‌لاین) — همان الگوی هوشمندِ پنل مناسبت‌ها --- */
 .ai-time-dashboard {
@@ -5222,6 +5117,14 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 .ai-event-card.status-missed .ai-event-time-label { color: rgba(251, 191, 36, 0.4); text-decoration: line-through; }
 .ai-event-card.status-done .ai-event-time-label { color: rgba(251, 191, 36, 0.35); }
 .ai-event-card.status-near .ai-event-time-label { text-shadow: 0 0 9px rgba(251, 191, 36, 0.65); }
+/* چشمکِ کوتاهِ رزگلد وقتی از روی یک دات ساعتی به کارتِ همان رویداد رسیدیم */
+.ai-event-card.ai-event-flash {
+  animation: aiEventFlash 1.4s ease-out;
+}
+@keyframes aiEventFlash {
+  0% { background: rgba(244, 154, 111, 0.38); box-shadow: 0 0 0 1px rgba(244, 154, 111, 0.6), 0 0 14px rgba(244, 154, 111, 0.35); }
+  100% { background: rgba(255, 255, 255, 0.04); box-shadow: none; }
+}
 .ai-event-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--c-blue);
@@ -5444,104 +5347,6 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 .ai-scrubber-mark.mark-dawn { left: 25%; }
 .ai-scrubber-mark.mark-noon { left: 50%; }
 .ai-scrubber-mark.mark-dusk { left: 75%; }
-
-/* Hover / focus — spring lift */
-#ai-clock-marks-toggle:hover,
-#ai-clock-marks-toggle:focus-visible {
-  transform: translateY(-50%) scale(1.12);
-  border-color: rgba(186, 230, 253, 0.95);
-  background:
-    radial-gradient(circle at 35% 30%,
-      rgba(224, 242, 254, 0.65) 0%,
-      rgba(56, 189, 248, 0.38) 42%,
-      rgba(12, 32, 58, 0.78) 100%);
-  box-shadow:
-    0 0 0 1.5px rgba(2, 8, 20, 0.4),
-    inset 0 1px 2px rgba(255, 255, 255, 0.4),
-    inset 0 -2px 4px rgba(2, 12, 28, 0.3),
-    0 0 12px rgba(56, 189, 248, 0.38),
-    0 0 22px rgba(34, 211, 238, 0.16);
-  outline: none;
-}
-#ai-clock-marks-toggle:hover::before,
-#ai-clock-marks-toggle:focus-visible::before {
-  background: linear-gradient(
-    90deg,
-    rgba(125, 211, 252, 0.15) 0%,
-    rgba(186, 230, 253, 0.7) 60%,
-    rgba(224, 242, 254, 0.9) 100%
-  );
-  box-shadow: 0 0 8px rgba(125, 211, 252, 0.4);
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle:hover::before,
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle:focus-visible::before {
-  background: linear-gradient(
-    270deg,
-    rgba(125, 211, 252, 0.15) 0%,
-    rgba(186, 230, 253, 0.7) 60%,
-    rgba(224, 242, 254, 0.9) 100%
-  );
-}
-
-/* Open — warm amber gem + bridge */
-#ai-clock-marks-toggle.is-open {
-  border-color: rgba(251, 191, 36, 0.88);
-  background:
-    radial-gradient(circle at 35% 30%,
-      rgba(254, 243, 199, 0.55) 0%,
-      rgba(251, 191, 36, 0.32) 42%,
-      rgba(40, 28, 8, 0.7) 100%);
-  box-shadow:
-    0 0 0 1.5px rgba(20, 12, 2, 0.4),
-    inset 0 1px 2px rgba(254, 243, 199, 0.4),
-    inset 0 -2px 4px rgba(20, 12, 2, 0.3),
-    0 0 12px rgba(251, 191, 36, 0.35),
-    0 0 20px rgba(245, 158, 11, 0.14);
-  transform: translateY(-50%) scale(1.05);
-}
-#ai-clock-marks-toggle.is-open::before {
-  background: linear-gradient(
-    90deg,
-    rgba(251, 191, 36, 0.12) 0%,
-    rgba(251, 191, 36, 0.55) 55%,
-    rgba(253, 230, 138, 0.8) 100%
-  );
-  box-shadow: 0 0 6px rgba(251, 191, 36, 0.3);
-}
-#ai-clock-marks-toggle.is-open::after {
-  border-top-color: rgba(251, 191, 36, 0.3);
-  border-bottom-color: rgba(251, 191, 36, 0.3);
-  background: linear-gradient(
-    90deg,
-    rgba(40, 28, 8, 0) 0%,
-    rgba(60, 40, 10, 0.5) 40%,
-    rgba(251, 191, 36, 0.2) 100%
-  );
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle.is-open::before {
-  background: linear-gradient(
-    270deg,
-    rgba(251, 191, 36, 0.12) 0%,
-    rgba(251, 191, 36, 0.55) 55%,
-    rgba(253, 230, 138, 0.8) 100%
-  );
-}
-#ai-clock-panel.marks-open-left #ai-clock-marks-toggle.is-open::after {
-  background: linear-gradient(
-    270deg,
-    rgba(40, 28, 8, 0) 0%,
-    rgba(60, 40, 10, 0.5) 40%,
-    rgba(251, 191, 36, 0.2) 100%
-  );
-}
-
-@media (prefers-reduced-motion: reduce) {
-  #ai-clock-marks-toggle,
-  #ai-clock-marks-toggle:hover,
-  #ai-clock-marks-toggle.is-open {
-    transition: none;
-  }
-}
 
 /* Page-2 panel: keep original dark glass graphics; only widen the gap from the opener */
 .ai-clock-marks-panel {

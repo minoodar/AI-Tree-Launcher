@@ -385,9 +385,19 @@
     <div class="ai-clock-time" id="ai-time">--:--</div>
     <div class="ai-clock-date-fa" id="ai-date-fa">...</div>
     <div class="ai-clock-date-en" id="ai-date-en">...</div>
-    <div class="ai-mark-dots-row" id="ai-mark-dots-row" style="display:none;"></div>
-    <button type="button" class="ai-clock-marks-toggle-btn" id="ai-clock-marks-toggle" aria-label="Special days" aria-expanded="false"></button>
-    <button type="button" class="ai-clock-marks-toggle-btn ai-dash-toggle-btn" id="ai-dash-toggle" aria-label="Today's agenda" aria-expanded="false"><span id="ai-dash-notify-dot" class="ai-dash-notify-dot"></span></button>
+    <div class="ai-clock-inline-row" id="ai-mark-dots-row">
+      <button type="button" class="ai-clock-marks-toggle-btn ai-inline-toggle ai-inline-toggle-marks" id="ai-clock-marks-toggle" aria-label="Special days" aria-expanded="false">
+        <svg viewBox="0 0 24 24" class="ai-inline-toggle-svg" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 3v3.2M16 3v3.2M4 9.5h16"/><path d="M9 14l2 2 4-4.4"/></svg>
+      </button>
+      <div class="ai-inline-dots" id="ai-mark-dots-inner"></div>
+    </div>
+    <div class="ai-clock-inline-row" id="ai-dash-dots-row">
+      <button type="button" class="ai-clock-marks-toggle-btn ai-dash-toggle-btn ai-inline-toggle ai-inline-toggle-dash" id="ai-dash-toggle" aria-label="Today's agenda" aria-expanded="false">
+        <svg viewBox="0 0 24 24" class="ai-inline-toggle-svg" aria-hidden="true"><circle cx="12" cy="12" r="8.3"/><path d="M12 7.6V12l2.9 1.9"/></svg>
+        <span id="ai-dash-notify-dot" class="ai-dash-notify-dot"></span>
+      </button>
+      <div class="ai-inline-dots" id="ai-dash-dots-inner"></div>
+    </div>
     <div class="ai-time-dashboard" id="ai-time-dashboard">
       <div class="ai-dash-next-event" id="ai-next-event-widget" style="display:none;"></div>
       <div class="ai-timeline-container" id="ai-timeline-container">
@@ -678,6 +688,9 @@
     todoWhenToday: todoPanel.querySelector('#ai-todo-when-today'),
     todoWhenTomorrow: todoPanel.querySelector('#ai-todo-when-tomorrow'),
     markDotsRow: clockPanel.querySelector('#ai-mark-dots-row'),
+    markDotsInner: clockPanel.querySelector('#ai-mark-dots-inner'),
+    dashDotsRow: clockPanel.querySelector('#ai-dash-dots-row'),
+    dashDotsInner: clockPanel.querySelector('#ai-dash-dots-inner'),
     markToggle: clockPanel.querySelector('#ai-clock-marks-toggle'),
     dashToggle: clockPanel.querySelector('#ai-dash-toggle'),
     dashPanel: clockPanel.querySelector('#ai-time-dashboard'),
@@ -1289,13 +1302,14 @@
 
   function renderMarkedDays() {
     pruneExpiredMarkedDays();
-    if (!uiEls.markDotsRow) return;
+    if (!uiEls.markDotsInner) return;
     // تا ۵ مناسبت نزدیک — کلیک → کشوی کاغذی بالای تقویم
-    uiEls.markDotsRow.innerHTML = '';
+    uiEls.markDotsInner.innerHTML = '';
     if (markedDays.length === 0) {
-      uiEls.markDotsRow.style.display = 'none';
+      if (uiEls.markToggle) uiEls.markToggle.classList.remove('has-items');
       closeMarkEventSheet();
     } else {
+      if (uiEls.markToggle) uiEls.markToggle.classList.add('has-items');
       const nearestMarks = markedDays
         .map(m => ({ ...m, days: daysUntilNext(m.day, m.month, m.cal) }))
         .sort((a, b) => a.days - b.days)
@@ -1320,9 +1334,8 @@
           }
         });
         wrap.appendChild(dot);
-        uiEls.markDotsRow.appendChild(wrap);
+        uiEls.markDotsInner.appendChild(wrap);
       });
-      uiEls.markDotsRow.style.display = 'flex';
     }
 
     // لیست مدیریت مناسبت‌ها داخل پنل
@@ -1360,6 +1373,9 @@
     if (uiEls.markPanel) uiEls.markPanel.classList.toggle('is-grown', markedDays.length > 3);
     // Width/height may have just changed (grew or shrank) — re-clamp so it never sticks off-screen
     if (uiEls.markPanel && uiEls.markPanel.classList.contains('active')) positionMarksPanelSide();
+
+    // ردیف دات‌های رزگلد/ساعتی همیشه همراه با ردیف دات‌های طلایی رفرش می‌شود
+    renderDashDotsRow();
   }
 
   // موقعیت آماده‌به‌کار دکمهٔ تاگلِ مناسبت‌ها: حتی وقتی پنل هنوز باز نشده، بر اساس اینکه
@@ -1478,7 +1494,7 @@
     }
     saveTimeEvents(); refreshDashUI();
   }
-  function refreshDashUI() { pruneExpiredDashEvents(); renderTimeline(); checkUpcomingEventsReminder(); }
+  function refreshDashUI() { pruneExpiredDashEvents(); renderTimeline(); checkUpcomingEventsReminder(); renderDashDotsRow(); }
 
   // رویدادهای ساعتی/روزانه پس از گذشتِ یک روز از تاریخِ ثبت‌شده‌شان به‌صورت خودکار حذف
   // می‌شوند — مگر آن‌هایی که با ستارهٔ طلایی «تکرارشونده» علامت خورده‌اند (مثلاً یادآور
@@ -1551,6 +1567,7 @@
     const status = evaluateEventStatus(evt);
     const card = document.createElement('div');
     card.className = `ai-event-card status-${status}`;
+    card.dataset.eventId = evt.id;
     const timeWrap = document.createElement('span'); timeWrap.className = 'ai-event-time-wrap';
     const timeIcon = document.createElement('span'); timeIcon.className = 'ai-event-time-icon'; timeIcon.textContent = dayNightIcon(evt.startTime);
     const timeLabel = document.createElement('span'); timeLabel.className = 'ai-event-time-label'; timeLabel.textContent = evt.startTime;
@@ -1595,6 +1612,64 @@
     }
     updateNextEventWidget();
     updateNowLine();
+  }
+
+  // === ردیف دات‌های رزگلد/نارنجی — رویدادهای ساعتیِ «امروز»، کنار همان تاگلِ داشبورد ===
+  function renderDashDotsRow() {
+    if (!uiEls.dashDotsInner) return;
+    pruneExpiredDashEvents();
+    uiEls.dashDotsInner.innerHTML = '';
+    const iso = todayDashIso();
+    const todaysEvents = timeEventsData
+      .filter(e => e.date === iso)
+      .slice()
+      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+      .slice(0, 5);
+
+    if (!todaysEvents.length) {
+      if (uiEls.dashToggle) uiEls.dashToggle.classList.remove('has-items');
+    } else {
+      if (uiEls.dashToggle) uiEls.dashToggle.classList.add('has-items');
+      todaysEvents.forEach((evt, idx) => {
+        const status = evaluateEventStatus(evt);
+        const wrap = document.createElement('div'); wrap.className = 'ai-mark-dot-wrap';
+        const dot = document.createElement('button'); dot.type = 'button';
+        dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (evt.status === 'done' ? ' is-done' : '');
+        dot.textContent = String(idx + 1);
+        dot.title = `${evt.startTime} — ${evt.title}`;
+        dot.addEventListener('mousedown', (e) => e.stopPropagation());
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const already = dot.classList.contains('is-active');
+          uiEls.dashDotsRow.querySelectorAll('.ai-dash-dot.is-active').forEach(d => d.classList.remove('is-active'));
+          if (!already) {
+            dot.classList.add('is-active');
+            openDashEventFromDot(evt);
+          }
+        });
+        wrap.appendChild(dot);
+        uiEls.dashDotsInner.appendChild(wrap);
+      });
+    }
+  }
+
+  // کلیک روی یک دات ساعتی: پنل داشبورد زمان را باز (اگر بسته است) یا رفرش می‌کند و
+  // کارتِ همان رویداد را در تایم‌لاین با یک چشمک کوتاه پررنگ می‌کند
+  function openDashEventFromDot(evt) {
+    if (!uiEls.dashPanel) return;
+    if (!uiEls.dashPanel.classList.contains('active')) {
+      uiEls.dashToggle.click();
+    } else {
+      refreshDashUI();
+    }
+    requestAnimationFrame(() => {
+      const card = uiEls.timelineContent && uiEls.timelineContent.querySelector(`[data-event-id="${evt.id}"]`);
+      if (card) {
+        card.scrollIntoView({ block: 'nearest' });
+        card.classList.add('ai-event-flash');
+        setTimeout(() => card.classList.remove('ai-event-flash'), 1400);
+      }
+    });
   }
 
   function updateNowLine() {
