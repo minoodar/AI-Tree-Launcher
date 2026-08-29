@@ -4578,6 +4578,11 @@ body.rtl .ai-note-history-menu,
   gap: 6px;
   animation: aiWebEngineFormIn 0.16s ease;
 }
+/* --- رفع باگ باز ماندن فرم جستجو در سایت‌هایی مثل X و فیسبوک --- */
+.ai-web-engine-form[hidden],
+.ai-web-engine-form-actions button[hidden] {
+  display: none !important;
+}
 @keyframes aiWebEngineFormIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 .ai-web-engine-form input {
   box-sizing: border-box;
