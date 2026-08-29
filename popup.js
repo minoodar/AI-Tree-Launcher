@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         holidayHintCustom: "Enter a 2-letter country code (ISO 3166-1, e.g. US, DE, GB, FR). Fetched from a public international holiday source.",
         quotesTitle: "Daily Wisdom Quotes", religionSource: "Spiritual verse source", poetrySource: "Poetry & literature source",
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaism", religionChristianity: "✝️ Christianity", religionEastern: "☸️ Eastern (Buddhism & Hindu wisdom)",
-        poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature"
+        poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature",
+        vaultLiveSaved: "✓ Saved instantly — no need to press Save"
       },
       fa: {
         tabCore: "⚙️ هسته", tabBackup: "🛡️ پشتیبان", tabVault: "✨ گنجینه",
@@ -35,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         holidayHintCustom: "کد دو حرفی کشور را وارد کنید (مثل US، DE، GB، FR). از یک منبع بین‌المللیِ تعطیلات دریافت می‌شود.",
         quotesTitle: "فرازهای الهام‌بخش روزانه", religionSource: "منبع فراز مذهبی", poetrySource: "منبع شعر و ادبیات",
         religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
-        poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب"
+        poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب",
+        vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست"
       }
     };
 
@@ -165,6 +167,51 @@ document.addEventListener('DOMContentLoaded', () => {
     langSelect.addEventListener('change', (e) => {
       currentLang = e.target.value;
       applyTranslation();
+    });
+
+    // منوهای «گنجینه» (Vault) روی تب جدایی از دکمهٔ «ذخیره تنظیمات» (که فقط
+    // در تب Core است) نشسته‌اند — قبلاً کاربر باید بعد از تعویض این‌دو، به تب
+    // Core برمی‌گشت و آن دکمهٔ دوردست را می‌زد، وگرنه فکر می‌کرد چیزی ذخیره
+    // نشده. حالا این دو مستقیماً و آنی روی تغییر ذخیره می‌شوند (content.js از
+    // قبل chrome.storage.onChanged را برای همین دو کلید گوش می‌دهد، پس اثرش
+    // فوری روی صفحهٔ باز هم دیده می‌شود)، به‌اضافهٔ یک تأییدِ کوچکِ همان‌جا.
+    let vaultHintTimer = null;
+    function flashVaultLiveHint() {
+      const hint = document.getElementById('vault-live-hint');
+      if (!hint) return;
+      hint.textContent = i18nPopup[currentLang].vaultLiveSaved;
+      hint.classList.add('show');
+      if (vaultHintTimer) clearTimeout(vaultHintTimer);
+      vaultHintTimer = setTimeout(() => hint.classList.remove('show'), 1800);
+    }
+    if (quoteReligionSelect) {
+      quoteReligionSelect.addEventListener('change', () => {
+        chrome.storage.local.set({ quoteReligionSource: quoteReligionSelect.value }, () => {
+          flashVaultLiveHint();
+          broadcastRefresh();
+        });
+      });
+    }
+    if (quotePoetrySelect) {
+      quotePoetrySelect.addEventListener('change', () => {
+        chrome.storage.local.set({ quotePoetrySource: quotePoetrySelect.value }, () => {
+          flashVaultLiveHint();
+          broadcastRefresh();
+        });
+      });
+    }
+
+    // اگر همزمان با باز بودن این پاپ‌آپ، کاربر از همان تب‌های کوچکِ سوییچِ منبع
+    // که حالا روی خودِ ویجت (آیهٔ روز / شعر روز) اضافه شده استفاده کند، این دو
+    // منو هم باید بدون نیاز به بستن‌وبازکردنِ پاپ‌آپ خودشان را به‌روز کنند.
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local') return;
+      if (changes.quoteReligionSource && quoteReligionSelect && document.activeElement !== quoteReligionSelect) {
+        quoteReligionSelect.value = changes.quoteReligionSource.newValue || 'islam';
+      }
+      if (changes.quotePoetrySource && quotePoetrySelect && document.activeElement !== quotePoetrySelect) {
+        quotePoetrySelect.value = changes.quotePoetrySource.newValue || 'rumi';
+      }
     });
 
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {

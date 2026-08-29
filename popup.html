@@ -80,6 +80,12 @@
 
     .quote-select-row { font-size: 16px; }
     .quote-select-row option { font-size: 13px; }
+    .vault-live-hint {
+      margin-top: 10px; font-size: 11px; text-align: center; min-height: 14px;
+      color: var(--primary-hover); font-weight: bold; opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .vault-live-hint.show { opacity: 1; }
 
     .btn-save-sticky {
       position: sticky;
@@ -158,6 +164,8 @@
         <option value="rumi" id="opt-poetry-rumi">🌙 Rumi</option>
         <option value="western" id="opt-poetry-western">🖋️ Western Literature</option>
       </select>
+
+      <div class="vault-live-hint" id="vault-live-hint"></div>
     </div>
   </div>
 

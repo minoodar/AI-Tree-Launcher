@@ -415,6 +415,7 @@
             <span id="ai-dual-month-label"></span>
             <button type="button" id="ai-dual-next" aria-label="Next">›</button>
           </div>
+          <div class="ai-dual-month-sublabel" id="ai-dual-month-sublabel"></div>
           <div class="ai-dual-weekdays" id="ai-dual-weekdays"></div>
           <div class="ai-dual-grid" id="ai-dual-grid"></div>
         </div>
@@ -444,6 +445,10 @@
             </button>
             <div class="ai-clock-quote-text" id="ai-clock-quote-text"></div>
             <div class="ai-clock-quote-title" id="ai-clock-quote-title"></div>
+            <div class="ai-quote-source-tabs" id="ai-clock-quote-source-tabs">
+              <button type="button" class="ai-quote-source-tab" data-key="rumi">🌙</button>
+              <button type="button" class="ai-quote-source-tab" data-key="western">🖋️</button>
+            </div>
             <svg class="ai-torn-edge" viewBox="0 0 500 18" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M0,0 L0,6 L14,12 L31,5 L52,14 L73,4 L91,15 L118,6 L139,13 L162,3 L185,11 L209,4 L231,14 L258,7 L284,15 L312,5 L337,12 L361,4 L389,14 L413,6 L438,13 L464,5 L485,11 L500,4 L500,0 Z"/>
             </svg>
@@ -462,6 +467,7 @@
       </button>
       <div class="ai-cat-grid" id="ai-search-cat-grid"></div>
     </div>
+    <div class="ai-search-section-label" id="ai-bookmark-search-label"></div>
     <input type="text" id="ai-search-input" dir="auto" autocomplete="off" />
     <ul id="ai-search-results"></ul>
     <button type="button" class="ai-web-search-toggle" id="ai-web-search-toggle" aria-expanded="false">
@@ -470,7 +476,23 @@
       <span class="ai-web-search-toggle-chevron">▾</span>
     </button>
     <div class="ai-web-search-drawer" id="ai-web-search-drawer" hidden>
-      <div class="ai-web-search-engines" id="ai-web-search-engines"></div>
+      <div class="ai-web-search-meta">
+        <div class="ai-web-search-heading">
+          <span class="ai-web-search-section-label" id="ai-web-search-section-label"></span>
+          <button type="button" class="ai-web-engine-add" id="ai-web-engine-add-btn">+</button>
+        </div>
+        <div class="ai-web-search-engines" id="ai-web-search-engines"></div>
+        <div class="ai-web-engine-form" id="ai-web-engine-form" hidden>
+          <input type="text" id="ai-web-engine-form-name" dir="auto" autocomplete="off" />
+          <input type="text" id="ai-web-engine-form-url" dir="ltr" autocomplete="off" />
+          <div class="ai-web-engine-form-actions">
+            <button type="button" class="ai-web-engine-save" id="ai-web-engine-form-save"></button>
+            <button type="button" class="ai-web-engine-cancel" id="ai-web-engine-form-cancel"></button>
+            <button type="button" class="ai-web-engine-reset" id="ai-web-engine-form-reset" hidden></button>
+            <button type="button" class="ai-web-engine-delete" id="ai-web-engine-form-delete" hidden></button>
+          </div>
+        </div>
+      </div>
       <div class="ai-web-search-row">
         <input type="text" id="ai-web-search-input" dir="auto" autocomplete="off" />
         <button type="button" id="ai-web-search-go" class="ai-web-search-go" aria-label="Search">→</button>
@@ -495,6 +517,12 @@
         <div class="ai-todo-quote-fa" id="ai-todo-quote-fa"></div>
         <div class="ai-todo-quote-translation" id="ai-todo-quote-translation"></div>
         <div class="ai-todo-quote-title" id="ai-todo-quote-title"></div>
+        <div class="ai-quote-source-tabs" id="ai-todo-quote-source-tabs">
+          <button type="button" class="ai-quote-source-tab" data-key="islam">☪️</button>
+          <button type="button" class="ai-quote-source-tab" data-key="judaism">✡️</button>
+          <button type="button" class="ai-quote-source-tab" data-key="christianity">✝️</button>
+          <button type="button" class="ai-quote-source-tab" data-key="eastern">☸️</button>
+        </div>
       </div>
     </div>
     <div class="ai-todo-header">
@@ -623,16 +651,27 @@
     todoQuoteChevron: todoPanel.querySelector('#ai-quote-tab-chevron'),
     todoQuoteLabel: todoPanel.querySelector('#ai-quote-tab-label'),
     todoQuote: todoPanel.querySelector('#ai-todo-quote'),
+    todoQuoteSourceTabs: todoPanel.querySelector('#ai-todo-quote-source-tabs'),
     searchInput: searchPanel.querySelector('#ai-search-input'),
     searchResults: searchPanel.querySelector('#ai-search-results'),
     searchCatToggle: searchPanel.querySelector('#ai-search-cat-toggle'),
     searchCatToggleLabel: searchPanel.querySelector('#ai-search-cat-toggle-label'),
     searchCatAccordion: searchPanel.querySelector('#ai-search-cat-accordion'),
     searchCatGrid: searchPanel.querySelector('#ai-search-cat-grid'),
+    bookmarkSearchLabel: searchPanel.querySelector('#ai-bookmark-search-label'),
     webSearchToggle: searchPanel.querySelector('#ai-web-search-toggle'),
     webSearchToggleLabel: searchPanel.querySelector('#ai-web-search-toggle-label'),
     webSearchDrawer: searchPanel.querySelector('#ai-web-search-drawer'),
+    webSearchSectionLabel: searchPanel.querySelector('#ai-web-search-section-label'),
+    webSearchAddBtn: searchPanel.querySelector('#ai-web-engine-add-btn'),
     webSearchEngines: searchPanel.querySelector('#ai-web-search-engines'),
+    webSearchEngineForm: searchPanel.querySelector('#ai-web-engine-form'),
+    webSearchEngineFormName: searchPanel.querySelector('#ai-web-engine-form-name'),
+    webSearchEngineFormUrl: searchPanel.querySelector('#ai-web-engine-form-url'),
+    webSearchEngineFormSave: searchPanel.querySelector('#ai-web-engine-form-save'),
+    webSearchEngineFormCancel: searchPanel.querySelector('#ai-web-engine-form-cancel'),
+    webSearchEngineFormReset: searchPanel.querySelector('#ai-web-engine-form-reset'),
+    webSearchEngineFormDelete: searchPanel.querySelector('#ai-web-engine-form-delete'),
     webSearchInput: searchPanel.querySelector('#ai-web-search-input'),
     webSearchGo: searchPanel.querySelector('#ai-web-search-go'),
     todoWhenRow: todoPanel.querySelector('#ai-todo-when-row'),
@@ -658,6 +697,7 @@
     dualPrev: clockPanel.querySelector('#ai-dual-prev'),
     dualNext: clockPanel.querySelector('#ai-dual-next'),
     dualMonthLabel: clockPanel.querySelector('#ai-dual-month-label'),
+    dualMonthSublabel: clockPanel.querySelector('#ai-dual-month-sublabel'),
     dualWeekdays: clockPanel.querySelector('#ai-dual-weekdays'),
     dualGrid: clockPanel.querySelector('#ai-dual-grid'),
     markAddBtn: clockPanel.querySelector('#ai-mark-add-btn'),
@@ -678,6 +718,7 @@
     clockQuoteText: clockPanel.querySelector('#ai-clock-quote-text'),
     clockQuoteTitle: clockPanel.querySelector('#ai-clock-quote-title'),
     clockQuoteCopy: clockPanel.querySelector('#ai-rumi-copy-btn'),
+    clockQuoteSourceTabs: clockPanel.querySelector('#ai-clock-quote-source-tabs'),
   };
 
   // --- Zen Toolbar: SVG icons + dock magnification + microphone wiring ---
@@ -916,6 +957,14 @@
     uiEls.todoTabGoal.textContent = t('todoTabGoals');
 
     uiEls.searchInput.placeholder = t('searchPlaceholder');
+    if (uiEls.bookmarkSearchLabel) uiEls.bookmarkSearchLabel.textContent = currentLang === 'fa' ? 'جستجوی بوک‌مارک‌ها' : 'Bookmark search';
+    if (uiEls.webSearchSectionLabel) uiEls.webSearchSectionLabel.textContent = currentLang === 'fa' ? 'جستجوی وب' : 'Web search';
+    if (uiEls.webSearchInput) uiEls.webSearchInput.placeholder = currentLang === 'fa' ? 'جستجو در وب…' : 'Search the web…';
+    if (uiEls.webSearchAddBtn) uiEls.webSearchAddBtn.title = currentLang === 'fa' ? 'افزودن موتور جستجوی جدید' : 'Add a new search engine';
+    if (uiEls.webSearchEngineFormSave) uiEls.webSearchEngineFormSave.textContent = currentLang === 'fa' ? 'ذخیره' : 'Save';
+    if (uiEls.webSearchEngineFormCancel) uiEls.webSearchEngineFormCancel.textContent = currentLang === 'fa' ? 'انصراف' : 'Cancel';
+    if (uiEls.webSearchEngineFormReset) uiEls.webSearchEngineFormReset.textContent = currentLang === 'fa' ? 'پیش‌فرض' : 'Reset';
+    if (uiEls.webSearchEngineFormDelete) uiEls.webSearchEngineFormDelete.textContent = currentLang === 'fa' ? 'حذف' : 'Delete';
     uiEls.todoWhenToday.textContent = t('todoWhenToday');
     uiEls.todoWhenTomorrow.textContent = t('todoWhenTomorrow');
 
@@ -2017,20 +2066,16 @@
   // اسلاگ لاتین همان ترتیب بالا — فقط برای مقدار attribute رنگ‌بندیِ ماهانه (data-cal-month)
   const JALALI_MONTH_KEYS = ['farvardin','ordibehesht','khordad','tir','mordad','shahrivar','mehr','aban','azar','dey','bahman','esfand'];
   function calMonthKeyFromJalali(jm) { return JALALI_MONTH_KEYS[jm - 1] || ''; }
-  // نام‌های نمایشیِ ماه‌های میلادی — منطقه‌محور: اگر کشورِ تنظیم‌شده ایران است
-  // (پیش‌فرض/آفلاین)، همان ۱۲ نام اوستایی/پارسی نشان داده می‌شود؛ اگر کاربر از
-  // تنظیمات کشور دیگری انتخاب کرده باشد، نام استاندارد میلادی (بر پایهٔ زبان
-  // رابط کاربری) نمایش داده می‌شود. فقط لایهٔ نمایش است — ایندکس‌گذاری (m-1) و
-  // محاسبهٔ تاریخ دست‌نخورده می‌ماند.
+  // نام‌های نمایشیِ ماه‌های میلادی — همیشه نام استاندارد واقعیِ میلادی (بر پایهٔ
+  // زبان رابط کاربری)، دیگر منطقه‌محور نیست و نام‌های قدیمیِ اوستایی/پارسی
+  // حذف شده‌اند؛ چون این ماه میلادی همیشه در کنار معادل شمسی و قمری هم نمایش
+  // داده می‌شود (تولتیپ روز و عنوان تقویم)، خودِ سه‌تقویمی‌بودن آن نمایشِ
+  // «ملموس» و آشنایی است که قرار بود آن نام‌های تزئینی جایگزینش کنند.
+  // فقط لایهٔ نمایش است — ایندکس‌گذاری (m-1) و محاسبهٔ تاریخ دست‌نخورده می‌ماند.
   const GREG_MONTHS_STD_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const GREG_MONTHS_STD_FA = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
-  const GREG_MONTHS_AVESTAN = ['فَرَوَهَر','اَرتا','هُورداد','تیشتَر','اَمُرداد','خَشَثرَه','مِهر','اَناهیتا','آتَر','دَئوش','وُهومَن','سپَنتا'];
   function getDisplayGregorianMonth(mIndex) {
-    const countryCode = resolveHolidayCountryCode();
-    if (countryCode !== 'IR') {
-      return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : GREG_MONTHS_STD_EN[mIndex];
-    }
-    return GREG_MONTHS_AVESTAN[mIndex];
+    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : GREG_MONTHS_STD_EN[mIndex];
   }
   const HIJRI_MONTHS_FA = ['محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی','رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه'];
   const HIJRI_MONTHS_EN = ['Muharram','Safar',"Rabi' al-awwal","Rabi' al-thani",'Jumada al-awwal','Jumada al-thani','Rajab',"Sha'ban",'Ramadan','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
@@ -2086,6 +2131,35 @@
       ? `${monthLabelStr} ${toPersianDigits(y)}`
       : `${monthLabelStr} ${y}`;
 
+    // زیرعنوانِ سه‌تقویمی: چون این گرید همیشه یک ماه میلادیِ کامل است، معادلش در
+    // تقویم شمسی و قمری می‌تواند بین دو ماه مشترک باشد — پس به‌جای انتخاب یکی،
+    // بازهٔ واقعی («ماه اول–ماه دوم») هر دو تقویم را زیر عنوان اصلی نشان می‌دهیم؛
+    // همان درخواستِ دیدنِ هر سه تقویم در عنوان، نه فقط در تولتیپ روز.
+    try {
+      const jFirst = gregorianToJalaali(y, m, 1);
+      const jLast = gregorianToJalaali(y, m, totalDays);
+      const hFirst = gregorianToHijriDM(y, m, 1);
+      const hLast = gregorianToHijriDM(y, m, totalDays);
+      const spanLabel = (namesArr, mStart, mEnd) => {
+        if (mStart == null || mEnd == null) return '';
+        if (mStart === mEnd) return namesArr[mStart - 1] || '';
+        return `${namesArr[mStart - 1] || ''}–${namesArr[mEnd - 1] || ''}`;
+      };
+      const jalaliSpan = spanLabel(JALALI_MONTHS_FA, jFirst.jm, jLast.jm);
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : HIJRI_MONTHS_EN;
+      const hijriSpan = (hFirst && hLast) ? spanLabel(hijriNames, hFirst.hm, hLast.hm) : '';
+      if (uiEls.dualMonthSublabel) {
+        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : 'Jalali';
+        const hijriLabel = currentLang === 'fa' ? 'قمری' : 'Hijri';
+        const parts = [];
+        if (jalaliSpan) parts.push(`${jalaliSpan} ${shamsiLabel}`);
+        if (hijriSpan) parts.push(`${hijriSpan} ${hijriLabel}`);
+        uiEls.dualMonthSublabel.textContent = parts.join(' · ');
+      }
+    } catch (eSpanLabel) {
+      if (uiEls.dualMonthSublabel) uiEls.dualMonthSublabel.textContent = '';
+    }
+
     const wd = preferJalali ? WEEKDAYS_FA : WEEKDAYS_EN;
     uiEls.dualWeekdays.innerHTML = wd.map(d => `<span class="ai-dual-wd">${d}</span>`).join('');
 
@@ -2119,8 +2193,6 @@
 
     let html = '';
     for (let i = 0; i < offset; i++) html += '<div class="day-cell empty"></div>';
-    // همان ۱۲ نامِ اوستایی/پارسیِ یکسان با بقیهٔ رابط کاربری — نسخهٔ کوتاه/جداگانهٔ
-    // میلادی دیگر لازم نیست چون این نام‌ها خودشان به‌اندازهٔ کافی جمع‌وجورند.
     // هفت‌پیکر نظامی: هر روز هفته به یکی از هفت گنبد/رنگ آن نسبت داده می‌شود —
     // فقط برای بج رنگی روز در تولتیپ (گرافیک متمایز)، مستقل از رنگ خودِ سلول روز.
     const HAFT_PEYKAR_KEY = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']; // index = Date.getDay()
@@ -2508,6 +2580,43 @@
   uiEls.todoWhenToday.addEventListener('click', (e) => { e.stopPropagation(); setAddForTomorrow(false); });
   uiEls.todoWhenTomorrow.addEventListener('click', (e) => { e.stopPropagation(); setAddForTomorrow(true); });
 
+  // تب‌های سوییچِ منبعِ گنجینه (دینی/ادبی) — هر دو ویجت (آیهٔ روز در Todo، شعر
+  // روز در ساعت) قبلاً فقط از طریقِ تنظیمات (Vault در پاپ‌آپ) قابل تغییرِ منبع
+  // بودند؛ حالا یک ردیف تبِ کوچک همان‌جا روی خودِ ویجت این کار را می‌کند، به‌اضافهٔ
+  // یک swipe افقی روی بدنهٔ ویجت برای لمسی/موبایل — هر دو فقط «منبع» را عوض
+  // می‌کنند، نه خودِ متنِ نمایش‌داده‌شده (چرخاندن به آیه/شعر تصادفیِ جدید همچنان با
+  // تپ/کلیک ساده روی بدنه است، دست‌نخورده). سوییچ صرفاً کلید را در storage
+  // می‌نویسد؛ بارگذاریِ فایل و رندر مجدد را همان listener موجودِ
+  // chrome.storage.onChanged (پایین همین فایل) به‌طور خودکار انجام می‌دهد.
+  function attachQuoteSwipe(el, getOrder, getActiveKey, switchFn, onSwiped) {
+    if (!el) return;
+    let startX = 0, startY = 0, tracking = false, swiped = false;
+    el.addEventListener('touchstart', (e) => {
+      if (!e.touches || e.touches.length !== 1) return;
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+      tracking = true; swiped = false;
+    }, { passive: true });
+    el.addEventListener('touchmove', (e) => {
+      if (!tracking || !e.touches || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if (Math.abs(dx) > 24 && Math.abs(dx) > Math.abs(dy) * 1.4) swiped = true;
+    }, { passive: true });
+    el.addEventListener('touchend', (e) => {
+      if (!tracking) return;
+      tracking = false;
+      if (!swiped) return;
+      const endX = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : startX;
+      const dx = endX - startX;
+      const order = getOrder();
+      if (!order.length) return;
+      const curIdx = Math.max(0, order.indexOf(getActiveKey()));
+      const nextIdx = dx < 0 ? (curIdx + 1) % order.length : (curIdx - 1 + order.length) % order.length;
+      switchFn(order[nextIdx]);
+      if (onSwiped) onSwiped(Date.now()); // برای سرکوبِ کلیکِ همزمانِ «چرخش به مورد تصادفی» بلافاصله بعد از swipe
+    }, { passive: true });
+  }
+
   let isQuoteCollapsed = true; // Hidden by default — shows only the closed "🌙" tab until the user opens it
 
   function renderDailyQuote() {
@@ -2549,6 +2658,16 @@
         ? (currentLang === 'fa' ? 'نمایش آیه' : 'Show verse')
         : (currentLang === 'fa' ? 'جمع کردن آیه' : 'Hide verse');
     }
+    // تب‌های کوچکِ سوییچِ منبع — همان‌جا، بدون نیاز به رفتن به تنظیمات؛ فعال‌سازیِ
+    // تبِ درست + tooltip کامل (چون خودِ دکمه فقط ایموجی است، جای کافی برای متن ندارد)
+    if (uiEls.todoQuoteSourceTabs) {
+      uiEls.todoQuoteSourceTabs.querySelectorAll('.ai-quote-source-tab').forEach((btn) => {
+        const key = btn.dataset.key;
+        const cat = AITreeQuoteEngine.religions[key];
+        btn.classList.toggle('active', key === AITreeQuoteEngine.activeReligionKey);
+        if (cat) btn.title = currentLang === 'fa' ? cat.labelFa : cat.label;
+      });
+    }
   }
 
   function toggleQuoteCollapse(e) {
@@ -2561,6 +2680,7 @@
   function cycleToRandomQuote(e) {
     if (e) e.stopPropagation();
     if (isQuoteCollapsed) return; // body is invisible/inert while collapsed — nothing to cycle
+    if (Date.now() - todoQuoteSwipedAt < 400) return; // just swiped to switch source — don't also cycle the quote
     AITreeQuoteEngine.religionFeature.cycleRandom();
     uiEls.todoQuote.classList.remove('pulse');
     void uiEls.todoQuote.offsetWidth;
@@ -2576,6 +2696,24 @@
   if (uiEls.todoQuoteBody) {
     uiEls.todoQuoteBody.addEventListener('click', cycleToRandomQuote);
   }
+
+  let todoQuoteSwipedAt = 0;
+  function switchQuoteReligion(key) {
+    if (!AITreeQuoteEngine.religions[key] || key === AITreeQuoteEngine.activeReligionKey) return;
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ quoteReligionSource: key }); } catch (err) {}
+  }
+  if (uiEls.todoQuoteSourceTabs) {
+    uiEls.todoQuoteSourceTabs.querySelectorAll('.ai-quote-source-tab').forEach((btn) => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); switchQuoteReligion(btn.dataset.key); });
+    });
+  }
+  attachQuoteSwipe(
+    uiEls.todoQuoteBody,
+    () => Object.keys(AITreeQuoteEngine.religions),
+    () => AITreeQuoteEngine.activeReligionKey,
+    switchQuoteReligion,
+    (ts) => { todoQuoteSwipedAt = ts; }
+  );
 
   function buildDailyQuoteCopyText() {
     const q = AITreeQuoteEngine.religionFeature.current();
@@ -2650,6 +2788,14 @@
         ? (isFa ? 'نمایش شعر' : 'Show poem')
         : (isFa ? 'جمع کردن شعر' : 'Hide poem');
     }
+    if (uiEls.clockQuoteSourceTabs) {
+      uiEls.clockQuoteSourceTabs.querySelectorAll('.ai-quote-source-tab').forEach((btn) => {
+        const key = btn.dataset.key;
+        const pCat = AITreeQuoteEngine.poetry[key];
+        btn.classList.toggle('active', key === AITreeQuoteEngine.activePoetryKey);
+        if (pCat) btn.title = isFa ? pCat.labelFa : pCat.label;
+      });
+    }
   }
 
   function toggleRumiQuoteCollapse(e) {
@@ -2662,6 +2808,7 @@
   function cycleToRandomRumiQuote(e) {
     if (e) e.stopPropagation();
     if (isRumiCollapsed) return;
+    if (Date.now() - clockQuoteSwipedAt < 400) return; // just swiped to switch source — don't also cycle the quote
     AITreeQuoteEngine.poetryFeature.cycleRandom();
     uiEls.clockQuote.classList.remove('pulse');
     void uiEls.clockQuote.offsetWidth;
@@ -2676,6 +2823,24 @@
   if (uiEls.clockQuoteBody) {
     uiEls.clockQuoteBody.addEventListener('click', cycleToRandomRumiQuote);
   }
+
+  let clockQuoteSwipedAt = 0;
+  function switchQuotePoetry(key) {
+    if (!AITreeQuoteEngine.poetry[key] || key === AITreeQuoteEngine.activePoetryKey) return;
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ quotePoetrySource: key }); } catch (err) {}
+  }
+  if (uiEls.clockQuoteSourceTabs) {
+    uiEls.clockQuoteSourceTabs.querySelectorAll('.ai-quote-source-tab').forEach((btn) => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); switchQuotePoetry(btn.dataset.key); });
+    });
+  }
+  attachQuoteSwipe(
+    uiEls.clockQuoteBody,
+    () => Object.keys(AITreeQuoteEngine.poetry),
+    () => AITreeQuoteEngine.activePoetryKey,
+    switchQuotePoetry,
+    (ts) => { clockQuoteSwipedAt = ts; }
+  );
 
   function buildRumiQuoteCopyText() {
     const q = AITreeQuoteEngine.poetryFeature.current();
@@ -3156,38 +3321,182 @@
   // ---------------------------------------------------------------------------
   // شکاف جستجوی وب — کاملاً جدا از جستجوی بوکمارک‌ها (که بالای همین باکس است و
   // دست‌نخورده می‌ماند)، پیش‌فرض بسته/مخفی، فقط با یک تاگلِ ظریف باز می‌شود.
+  // موتورهای پیش‌فرض کاملاً قابل ویرایش (نام+آدرس) هستند و کاربر می‌تواند
+  // موتورهای دلخواه هم اضافه/حذف کند — همه از طریق یک فرمِ داخلیِ هم‌سبک با
+  // بقیهٔ افزونه (نه window.prompt که قبلاً استفاده می‌شد و ناقص/ناهمگون بود).
   // ---------------------------------------------------------------------------
   const AI_WEB_SEARCH_ENGINES = [
-    { id: 'google', label: 'Google', url: (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}` },
-    { id: 'bing', label: 'Bing', url: (q) => `https://www.bing.com/search?q=${encodeURIComponent(q)}` },
-    { id: 'duckduckgo', label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
-    { id: 'brave', label: 'Brave', url: (q) => `https://search.brave.com/search?q=${encodeURIComponent(q)}` }
+    { id: 'google', label: 'Google', template: 'https://www.google.com/search?q={q}', builtIn: true },
+    { id: 'bing', label: 'Bing', template: 'https://www.bing.com/search?q={q}', builtIn: true },
+    { id: 'duckduckgo', label: 'DuckDuckGo', template: 'https://duckduckgo.com/?q={q}', builtIn: true },
+    { id: 'brave', label: 'Brave', template: 'https://search.brave.com/search?q={q}', builtIn: true }
   ];
+  const AI_WEB_SEARCH_ENGINE_DEFAULTS = AI_WEB_SEARCH_ENGINES.map((e) => ({ ...e }));
+  let customWebSearchEngines = [];
   let activeWebSearchEngine = 'google';
+
+  function allWebSearchEngines() { return AI_WEB_SEARCH_ENGINES.concat(customWebSearchEngines); }
+  function persistCustomWebEngines() {
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchCustomEngines: customWebSearchEngines }); } catch (err) {}
+  }
+  function persistEngineOverride(id, label, template) {
+    try {
+      chrome.storage.local.get(['webSearchEngineOverrides'], (data) => {
+        const overrides = (data && data.webSearchEngineOverrides && typeof data.webSearchEngineOverrides === 'object') ? data.webSearchEngineOverrides : {};
+        overrides[id] = { label, template };
+        chrome.storage.local.set({ webSearchEngineOverrides: overrides });
+      });
+    } catch (err) {}
+  }
+  function clearEngineOverride(id) {
+    try {
+      chrome.storage.local.get(['webSearchEngineOverrides'], (data) => {
+        const overrides = (data && data.webSearchEngineOverrides && typeof data.webSearchEngineOverrides === 'object') ? data.webSearchEngineOverrides : {};
+        delete overrides[id];
+        chrome.storage.local.set({ webSearchEngineOverrides: overrides });
+      });
+    } catch (err) {}
+  }
 
   function renderWebSearchEngineButtons() {
     if (!uiEls.webSearchEngines) return;
     uiEls.webSearchEngines.innerHTML = '';
-    AI_WEB_SEARCH_ENGINES.forEach((eng) => {
+    allWebSearchEngines().forEach((eng) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ai-web-engine-btn';
-      btn.textContent = eng.label;
       btn.setAttribute('aria-pressed', String(eng.id === activeWebSearchEngine));
+      btn.title = eng.template;
+
+      const labelSpan = document.createElement('span');
+      labelSpan.className = 'ai-web-engine-label';
+      labelSpan.textContent = eng.label;
+      btn.appendChild(labelSpan);
+
+      const editIcon = document.createElement('span');
+      editIcon.className = 'ai-web-engine-edit';
+      editIcon.textContent = '✎';
+      editIcon.title = currentLang === 'fa' ? 'ویرایش این موتور جستجو' : 'Edit this search engine';
+      editIcon.addEventListener('click', (e) => { e.stopPropagation(); openWebEngineForm(eng.id); });
+      btn.appendChild(editIcon);
+
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         activeWebSearchEngine = eng.id;
         try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchEngine: eng.id }); } catch (err) {}
-        uiEls.webSearchEngines.querySelectorAll('.ai-web-engine-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        closeWebEngineForm();
+        renderWebSearchEngineButtons();
       });
       uiEls.webSearchEngines.appendChild(btn);
     });
   }
 
+  function closeWebEngineForm() {
+    if (uiEls.webSearchEngineForm) uiEls.webSearchEngineForm.setAttribute('hidden', '');
+  }
+
+  function openWebEngineForm(engineId) {
+    if (!uiEls.webSearchEngineForm) return;
+    const isNew = engineId === '__new__';
+    const eng = isNew ? null : allWebSearchEngines().find((e) => e.id === engineId);
+    if (!isNew && !eng) return;
+
+    uiEls.webSearchEngineForm.dataset.editingId = engineId;
+    uiEls.webSearchEngineFormName.value = isNew ? '' : eng.label;
+    uiEls.webSearchEngineFormUrl.value = isNew ? '' : eng.template;
+    uiEls.webSearchEngineFormName.placeholder = currentLang === 'fa' ? 'نام موتور جستجو' : 'Search engine name';
+    uiEls.webSearchEngineFormUrl.placeholder = currentLang === 'fa' ? 'آدرس (شامل {q})' : 'URL (include {q})';
+
+    const isCustom = !isNew && !eng.builtIn;
+    if (uiEls.webSearchEngineFormDelete) uiEls.webSearchEngineFormDelete.toggleAttribute('hidden', !isCustom);
+    if (uiEls.webSearchEngineFormReset) uiEls.webSearchEngineFormReset.toggleAttribute('hidden', isNew || isCustom);
+
+    uiEls.webSearchEngineForm.removeAttribute('hidden');
+    setTimeout(() => uiEls.webSearchEngineFormName && uiEls.webSearchEngineFormName.focus(), 30);
+  }
+
+  if (uiEls.webSearchAddBtn) {
+    uiEls.webSearchAddBtn.title = currentLang === 'fa' ? 'افزودن موتور جستجوی جدید' : 'Add a new search engine';
+    uiEls.webSearchAddBtn.addEventListener('click', (e) => { e.stopPropagation(); openWebEngineForm('__new__'); });
+  }
+  if (uiEls.webSearchEngineFormCancel) {
+    uiEls.webSearchEngineFormCancel.addEventListener('click', (e) => { e.stopPropagation(); closeWebEngineForm(); });
+  }
+  if (uiEls.webSearchEngineFormSave) {
+    uiEls.webSearchEngineFormSave.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = uiEls.webSearchEngineForm.dataset.editingId;
+      const isNew = id === '__new__';
+      const label = (uiEls.webSearchEngineFormName.value || '').trim().slice(0, 24);
+      const template = (uiEls.webSearchEngineFormUrl.value || '').trim();
+      if (!label) { showToastNotification(currentLang === 'fa' ? 'نام را وارد کنید' : 'Enter a name', true); return; }
+      if (!/^https?:\/\//i.test(template) || !template.includes('{q}')) {
+        showToastNotification(currentLang === 'fa' ? 'آدرس باید با http(s):// شروع شود و شامل {q} باشد' : 'URL must start with http(s):// and include {q}', true);
+        return;
+      }
+      if (isNew) {
+        const newId = 'custom_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+        customWebSearchEngines.push({ id: newId, label, template, builtIn: false });
+        persistCustomWebEngines();
+        activeWebSearchEngine = newId;
+        try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchEngine: newId }); } catch (err) {}
+      } else {
+        const eng = allWebSearchEngines().find((e) => e.id === id);
+        if (!eng) { closeWebEngineForm(); return; }
+        eng.label = label;
+        eng.template = template;
+        if (eng.builtIn) persistEngineOverride(id, label, template);
+        else persistCustomWebEngines();
+      }
+      closeWebEngineForm();
+      renderWebSearchEngineButtons();
+    });
+  }
+  if (uiEls.webSearchEngineFormDelete) {
+    uiEls.webSearchEngineFormDelete.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = uiEls.webSearchEngineForm.dataset.editingId;
+      customWebSearchEngines = customWebSearchEngines.filter((e2) => e2.id !== id);
+      persistCustomWebEngines();
+      if (activeWebSearchEngine === id) {
+        activeWebSearchEngine = 'google';
+        try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchEngine: 'google' }); } catch (err) {}
+      }
+      closeWebEngineForm();
+      renderWebSearchEngineButtons();
+    });
+  }
+  if (uiEls.webSearchEngineFormReset) {
+    uiEls.webSearchEngineFormReset.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = uiEls.webSearchEngineForm.dataset.editingId;
+      const def = AI_WEB_SEARCH_ENGINE_DEFAULTS.find((e2) => e2.id === id);
+      const eng = AI_WEB_SEARCH_ENGINES.find((e2) => e2.id === id);
+      if (def && eng) { eng.label = def.label; eng.template = def.template; }
+      clearEngineOverride(id);
+      closeWebEngineForm();
+      renderWebSearchEngineButtons();
+    });
+  }
+
   if (uiEls.webSearchEngines) {
     try {
-      chrome.storage.local.get(['webSearchEngine'], (data) => {
-        if (data && data.webSearchEngine && AI_WEB_SEARCH_ENGINES.some((e) => e.id === data.webSearchEngine)) {
+      chrome.storage.local.get(['webSearchEngine', 'webSearchEngineOverrides', 'webSearchCustomEngines'], (data) => {
+        const overrides = data && data.webSearchEngineOverrides;
+        if (overrides && typeof overrides === 'object') {
+          AI_WEB_SEARCH_ENGINES.forEach((engine) => {
+            const override = overrides[engine.id];
+            if (!override || typeof override !== 'object') return;
+            if (typeof override.label === 'string' && override.label.trim()) engine.label = override.label.trim().slice(0, 24);
+            if (typeof override.template === 'string' && /^https?:\/\//i.test(override.template) && override.template.includes('{q}')) engine.template = override.template;
+          });
+        }
+        if (Array.isArray(data && data.webSearchCustomEngines)) {
+          customWebSearchEngines = data.webSearchCustomEngines
+            .filter((e) => e && typeof e.id === 'string' && typeof e.label === 'string' && typeof e.template === 'string' && /^https?:\/\//i.test(e.template) && e.template.includes('{q}'))
+            .map((e) => ({ id: e.id, label: e.label.slice(0, 24), template: e.template, builtIn: false }));
+        }
+        if (data && data.webSearchEngine && allWebSearchEngines().some((e) => e.id === data.webSearchEngine)) {
           activeWebSearchEngine = data.webSearchEngine;
         }
         renderWebSearchEngineButtons();
@@ -3200,8 +3509,8 @@
   function runWebSearch() {
     const q = (uiEls.webSearchInput && uiEls.webSearchInput.value || '').trim();
     if (!q) return;
-    const engine = AI_WEB_SEARCH_ENGINES.find((e) => e.id === activeWebSearchEngine) || AI_WEB_SEARCH_ENGINES[0];
-    window.open(engine.url(q), '_blank', 'noopener');
+    const engine = allWebSearchEngines().find((e) => e.id === activeWebSearchEngine) || AI_WEB_SEARCH_ENGINES[0];
+    window.open(engine.template.replace('{q}', encodeURIComponent(q)), '_blank', 'noopener');
   }
 
   if (uiEls.webSearchToggle && uiEls.webSearchDrawer) {
@@ -3216,6 +3525,7 @@
       } else {
         uiEls.webSearchDrawer.classList.remove('is-open');
         uiEls.webSearchToggle.setAttribute('aria-expanded', 'false');
+        closeWebEngineForm();
         setTimeout(() => { if (!uiEls.webSearchDrawer.classList.contains('is-open')) uiEls.webSearchDrawer.setAttribute('hidden', ''); }, 220);
       }
     });
@@ -3897,6 +4207,41 @@
       if (exceptStr !== 'search') { searchPanel.classList.remove('active'); root.classList.remove('show-search'); }
   }
 
+  // --------------------------------------------------------------------------
+  // وقتی هر ابزاری (دفترچه، جستجو، ماشین‌حساب، ساعت، کارها) باز است، خودِ هاب
+  // باید از سرِ راه کنار برود، نه اینکه پنل رویش قرار بگیرد. به‌جای دست‌کاریِ
+  // مستقیمِ transform هاب (که با سیستم درگ/کولاپس/هاورِ موجود تداخل پیدا
+  // می‌کند)، از همان مکانیزمِ آزموده‌شدهٔ hub-collapsed استفاده می‌شود — دقیقاً
+  // همان چیزی که در جاهای دیگرِ همین فایل (مثل collapseToggleDot) قبلاً هم
+  // استفاده شده. یک ناظرِ واحد روی کلاس‌های show-* که خودِ کدِ بالا از قبل روی
+  // root تنظیم می‌کند، مستقل از اینکه کدام مسیر کد باعثِ باز شدنِ پنل شده.
+  // --------------------------------------------------------------------------
+  const PANEL_SHOW_CLASSES = ['show-notepad', 'show-search', 'show-calc', 'show-clock', 'show-todo'];
+  let hubAutoCollapsedByPanel = false;
+  const panelVisibilityObserver = new MutationObserver(() => {
+    const anyPanelOpen = PANEL_SHOW_CLASSES.some((c) => root.classList.contains(c));
+    if (anyPanelOpen) {
+      if (!hub.classList.contains('hub-collapsed')) {
+        hub.classList.add('hub-collapsed');
+        hubAutoCollapsedByPanel = true;
+      }
+    } else if (hubAutoCollapsedByPanel) {
+      // فقط اگر خودِ همین منطق باعثِ کولاپس شده بود بازش کن — یک کولاپسِ از قبل
+      // موجود (مثلاً از تایمر بی‌کاری) را دست‌نخورده بگذار
+      hub.classList.remove('hub-collapsed');
+      hubAutoCollapsedByPanel = false;
+    }
+  });
+  panelVisibilityObserver.observe(root, { attributes: true, attributeFilter: ['class'] });
+// رفع مشکل قفل شدن افزونه: بستن پنل‌ها با کلیک روی هابِ جمع‌شده
+  hub.addEventListener('click', (e) => {
+    if (hub.classList.contains('hub-collapsed') && hubAutoCollapsedByPanel) {
+      e.stopPropagation();
+      if (typeof closeAllPanelsExcept === 'function') {
+        closeAllPanelsExcept('', true);
+      }
+    }
+  });
   let autoCollapseTimeout = null; const AUTO_COLLAPSE_DELAY = 5200; let isInitialReveal = true;
   let isHoveringWidget = false;
   function triggerAutoCollapse() {
@@ -4211,6 +4556,9 @@
   let noteCollapseSeconds = 5;
   let notepadIdleTimer = null;
   const IDLE_GRACE_PERIOD = 5000;
+  // Editable work must never disappear merely because the pointer left its bounds.
+  // Explicit close and an explicit unpin continue to use their existing actions.
+  const NOTE_IDLE_AUTO_CLOSE_ENABLED = false;
   const pinBtn = quickNoteForm.querySelector('#ai-note-pin-btn');
   const splitBtn = quickNoteForm.querySelector('#ai-note-split-btn');
   const newTabBtn = quickNoteForm.querySelector('#ai-note-newtab-btn');
@@ -4290,6 +4638,7 @@
 
   function startNotepadIdleTimer() {
     clearTimeout(notepadIdleTimer);
+    if (!NOTE_IDLE_AUTO_CLOSE_ENABLED) return;
     if (isNotePinned || !quickNoteForm.classList.contains('active')) return;
     // Already showing visual countdown — don't restart grace period
     if (noteCollapseInterval) return;
@@ -4411,6 +4760,19 @@
   function noteMaxW() { return Math.round(window.innerWidth * 0.9); }
   function noteMaxH() { return Math.round(window.innerHeight * 0.9); }
 
+  // Use the rendered box, not a requested CSS size, so padding, borders and the
+  // final frame of a size transition cannot leave any part of the note off-screen.
+  function centerExpandedNotepad() {
+    if (!quickNoteForm.classList.contains('active') || noteSplitSide) return;
+    const edgeMargin = 8;
+    const formW = quickNoteForm.offsetWidth;
+    const formH = quickNoteForm.offsetHeight;
+    const maxLeft = Math.max(edgeMargin, window.innerWidth - formW - edgeMargin);
+    const maxTop = Math.max(edgeMargin, window.innerHeight - formH - edgeMargin);
+    quickNoteForm.style.left = Math.max(edgeMargin, Math.min((window.innerWidth - formW) / 2, maxLeft)) + 'px';
+    quickNoteForm.style.top = Math.max(edgeMargin, Math.min((window.innerHeight - formH) / 2, maxTop)) + 'px';
+  }
+
   function resetNoteSizeToDefault() {
     noteUserResized = false;
     quickNoteForm.style.width = '';
@@ -4524,24 +4886,74 @@
       targetFormH = NOTE_DEFAULT_H;
     } else {
       // ==== رشد مرحله‌ای (Stepped Growth) ====
-      // به‌جای دنبال‌کردن پیکسل‌به‌پیکسلِ scrollHeight (که باعث لرزش/جهش هنگام تایپ
-      // می‌شد)، ارتفاع به نزدیک‌ترین یکی از ۳ پلهٔ ثابت اسنپ می‌شود.
+      // مشکلِ نسخهٔ قبل: پلهٔ دوم مستقیم ۶۵٪ ارتفاعِ صفحه بود، پس همین‌که محتوا
+      // فقط کمی از پلهٔ اول بیشتر می‌شد (مثلاً چند خط اضافه)، کادر یک‌مرتبه به
+      // نزدیک دو-سومِ کل صفحه می‌پرید — دقیقاً همان جهشِ آزاردهنده‌ای که گزارش شد.
+      // حالا هر پله فقط وقتی فعال می‌شود که محتوا واقعاً در پلهٔ قبلی جا نشود،
+      // نه صرفاً به‌خاطر اینکه ارتفاعِ خامِ محاسبه‌شده زیر سقفِ آن پله بوده.
       const phase1 = NOTE_DEFAULT_H;
-      const phase2 = Math.max(phase1, Math.round(noteMaxH() * 0.65));
-      const phase3 = Math.max(phase2, noteMaxH());
-      if (targetFormH <= phase1) targetFormH = phase1;
-      else if (targetFormH <= phase2) targetFormH = phase2;
-      else targetFormH = phase3;
+      const phase2 = Math.max(phase1, Math.round(noteMaxH() * 0.42));
+      const phase3 = Math.max(phase2, Math.round(noteMaxH() * 0.7));
+      const phase4 = Math.max(phase3, noteMaxH());
+      const fitsAtStage = (stageFormH) => (stageFormH - chrome) >= contentTaH - 2;
+      if (fitsAtStage(phase1)) targetFormH = phase1;
+      else if (fitsAtStage(phase2)) targetFormH = phase2;
+      else if (fitsAtStage(phase3)) targetFormH = phase3;
+      else targetFormH = phase4;
     }
 
+    // Re-center only when automatic content growth changes a size stage. This keeps
+    // normal typing stable, but makes every expansion start from a safe, visible
+    // position even if the note was previously dragged near an edge.
+    const previousFormW = quickNoteForm.offsetWidth;
+    const previousFormH = quickNoteForm.offsetHeight;
+    const computedNoteStyle = window.getComputedStyle(quickNoteForm);
+    const previousRequestedW = parseFloat(quickNoteForm.style.width) || parseFloat(computedNoteStyle.width) || previousFormW;
+    const previousRequestedH = parseFloat(quickNoteForm.style.height) || parseFloat(computedNoteStyle.height) || previousFormH;
     const prevTrans = quickNoteForm.style.transition;
     quickNoteForm.style.transition = 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     quickNoteForm.style.width = targetFormW + 'px';
     quickNoteForm.style.height = targetFormH + 'px';
     noteTextarea.style.minHeight = minTaH + 'px';
+
+    // رشدِ خودکارِ ناشی از تایپ هم باید همان تضمینِ «همیشه داخل صفحه» را داشته باشد
+    // که روی کشیدنِ دستیِ گوشه اعمال شده — وگرنه اگر کادر قبلاً نزدیکِ لبه جابه‌جا
+    // شده بود (noteManuallyPositioned=true، پس adjustNotepadPosition زیر اجرا
+    // نمی‌شود)، رشدِ حاصل از تایپِ زیاد می‌توانست از صفحه بیرون بزند.
+    let didAutoResize = false;
+    if (!noteSplitSide) {
+      const edgeMargin = 8;
+      // Compare requested sizes rather than the immediately animated layout size:
+      // during a CSS transition offsetWidth can still report the previous frame.
+      didAutoResize = targetFormW > previousRequestedW + 1 || targetFormH > previousRequestedH + 1;
+      const actualFormW = didAutoResize
+        ? targetFormW + Math.max(0, previousFormW - previousRequestedW)
+        : quickNoteForm.offsetWidth;
+      const actualFormH = didAutoResize
+        ? targetFormH + Math.max(0, previousFormH - previousRequestedH)
+        : quickNoteForm.offsetHeight;
+      const curLeft = didAutoResize
+        ? (window.innerWidth - actualFormW) / 2
+        : (parseFloat(quickNoteForm.style.left) || quickNoteForm.getBoundingClientRect().left);
+      const curTop = didAutoResize
+        ? (window.innerHeight - actualFormH) / 2
+        : (parseFloat(quickNoteForm.style.top) || quickNoteForm.getBoundingClientRect().top);
+      const clampedLeft = Math.max(edgeMargin, Math.min(curLeft, window.innerWidth - actualFormW - edgeMargin));
+      const clampedTop = Math.max(edgeMargin, Math.min(curTop, window.innerHeight - actualFormH - edgeMargin));
+      if (clampedLeft !== curLeft || didAutoResize) quickNoteForm.style.left = clampedLeft + 'px';
+      if (clampedTop !== curTop || didAutoResize) quickNoteForm.style.top = clampedTop + 'px';
+    }
+
     requestAnimationFrame(() => {
       quickNoteForm.style.transition = prevTrans;
-      if (!noteManuallyPositioned) adjustNotepadPosition();
+      if (didAutoResize) {
+        // One pass after layout and one after the 300 ms size animation cover both
+        // freshly opened saved text and later transitions between growth stages.
+        centerExpandedNotepad();
+        window.setTimeout(centerExpandedNotepad, 320);
+      } else if (!noteManuallyPositioned) {
+        adjustNotepadPosition();
+      }
     });
   }
 
@@ -7764,7 +8176,18 @@
             const nodeLayer = Math.max(0, (link.importance || 3) - 1); const extraIdx = nodeLayer % EXTRA_COLORS.length;
             const importance = link.importance || 3; a.dataset.importance = importance; a.classList.add(`priority-${importance}`);
             colorSet = EXTRA_COLORS[extraIdx]; span.textContent = link.label;
-            a.style.boxShadow = `0 4px ${10 + importance * 3}px ${colorSet.glow}`;
+
+            const hasTags = Array.isArray(link.tags) && link.tags.length > 0;
+            if (hasTags) {
+              // دسته‌بندی‌شده: حالهٔ برجسته و «زنده» — به رنگِ خودِ دسته/تگ (نه رنگِ
+              // اهمیت)، تا با حلقهٔ دورش هم‌رنگ و هماهنگ باشد و افکتش قوی‌تر از قبل حس شود
+              const tagGlow = glowColorForTag(link.tags[0]);
+              a.style.boxShadow = `0 3px ${10 + importance * 2}px ${tagGlow}`;
+            } else {
+              // بدون تگ: عمداً بدون هیچ هاله‌ای — ساکت و بی‌جان، تا چشم مستقیم به‌سمتِ
+              // بوکمارک‌های دسته‌بندی‌شده کشیده شود و نقشِ تگ واقعاً معلوم باشد
+              a.style.boxShadow = `0 2px ${8 + importance * 2}px ${colorSet.glow}`;
+            }
 
             const impBadge = document.createElement('div'); impBadge.className = 'importance-badge'; impBadge.textContent = '★'.repeat(importance); 
             a.appendChild(impBadge);

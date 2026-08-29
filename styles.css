@@ -426,10 +426,10 @@ transition: opacity 0.2s var(--ease-premium); border: 1px solid rgba(255,255,255
 .ai-node-tagged::after {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: -4px;
   border-radius: inherit;
-  border: 1.5px solid var(--tag-glow-color, rgba(167, 139, 250, 0.65));
-  box-shadow: 0 0 10px 1px var(--tag-glow-color, rgba(167, 139, 250, 0.5));
+  border: 2px solid var(--tag-glow-color, rgba(167, 139, 250, 0.65));
+  box-shadow: 0 0 16px 2px var(--tag-glow-color, rgba(167, 139, 250, 0.5)), 0 0 6px 1px var(--tag-glow-color, rgba(167, 139, 250, 0.5));
   pointer-events: none;
   animation: aiTaggedPulse 2.6s ease-in-out infinite;
 }
@@ -1238,6 +1238,50 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   display: block;
   pointer-events: none;
 }
+
+/* Small in-place tab row to switch which religious/poetry source is shown —
+   right on the widget itself (both the Quran-style verse in Todo and the
+   Rumi-style couplet in the Clock), so the user never has to hunt for the
+   separate toggle in Settings → Vault just to change what's displayed.
+   Only meaningful once the paper is open, so it shares the warm sepia
+   palette both widgets already switch to in their expanded state. A quiet
+   swipe left/right on the paper body does the same thing, for touch. */
+.ai-quote-source-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin: 6px 0 2px;
+}
+.ai-quote-source-tab {
+  width: 21px;
+  height: 21px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 7px;
+  border: 1px solid rgba(202, 164, 92, 0.32);
+  background: rgba(255, 255, 255, 0.4);
+  font-size: 11.5px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.5;
+  filter: grayscale(0.45);
+  transition: opacity 0.15s ease, filter 0.15s ease, background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.ai-quote-source-tab:hover {
+  opacity: 0.85;
+  filter: grayscale(0.1);
+  background: rgba(255, 255, 255, 0.68);
+}
+.ai-quote-source-tab:active { transform: scale(0.9); }
+.ai-quote-source-tab.active {
+  opacity: 1;
+  filter: none;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(202, 164, 92, 0.7);
+  box-shadow: 0 0 0 2px rgba(202, 164, 92, 0.16);
+}
 /* Collapsed: hide so it never peeks out of the zero-height drawer */
 .ai-todo-quote.is-collapsed .ai-quote-copy-btn,
 .ai-clock-quote.is-collapsed .ai-quote-copy-btn {
@@ -1416,24 +1460,30 @@ transition: all 0.25s var(--ease-premium); position: relative; overflow: hidden;
   gap: 6px;
   margin-top: 10px;
   padding: 7px 0;
-  /* عمداً روشن/سفید و متضاد با تمِ تیرهٔ کل پنل — طبق درخواست صریح، حتی وقتی
-     بسته است باید همان‌جا در نگاه اول دیده و از بقیهٔ پنل متمایز شود */
-  background: #E5E7EB;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  /* عمداً روشن/«آسمانی» و متضاد با تمِ تیرهٔ کل پنل (همان تمِ کشوی باز)، تا حتی
+     وقتی بسته است در نگاه اول از جستجوی بوکمارک (دستِ بالا، تیره/بنفش-فیروزه‌ای)
+     به‌وضوح متمایز باشد — نه یک خاکستریِ خنثی که با هیچ‌کدام هم‌خانواده نیست. */
+  background: rgba(224, 242, 254, 0.16);
+  border: 1px solid rgba(56, 189, 248, 0.32);
   border-radius: 10px;
-  color: #111827;
+  color: #bae6fd;
   font-size: 11.5px;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
-.ai-web-search-toggle:hover { background: #F3F4F6; }
+.ai-web-search-toggle:hover { background: rgba(224, 242, 254, 0.26); border-color: rgba(56, 189, 248, 0.5); }
 .ai-web-search-toggle:active { transform: scale(0.98); }
-.ai-web-search-toggle-icon { font-size: 12px; }
-.ai-web-search-toggle-chevron { font-size: 9px; color: #4B5563; transition: transform 0.2s ease; }
+.ai-web-search-toggle-icon { font-size: 12px; filter: saturate(1.3); }
+.ai-web-search-toggle-chevron { font-size: 9px; color: rgba(186, 230, 253, 0.8); transition: transform 0.2s ease; }
 .ai-web-search-toggle[aria-expanded="true"] .ai-web-search-toggle-chevron { transform: rotate(180deg); }
-.ai-web-search-toggle[aria-expanded="true"] { background: #fff; }
+.ai-web-search-toggle[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(14, 165, 233, 0.55);
+  color: #075985;
+}
+.ai-web-search-toggle[aria-expanded="true"] .ai-web-search-toggle-chevron { color: #0284c7; }
 
 .ai-web-search-drawer {
   overflow: hidden;
@@ -2621,6 +2671,12 @@ font-size: 12.5px; padding: 7px 9px; width: 100%; box-sizing: border-box; font-f
   padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,0.06);
   transition: background 0.25s var(--ease-premium, ease), color 0.25s var(--ease-premium, ease);
 }
+.ai-dual-month-sublabel {
+  text-align: center; font-size: 9.5px; font-weight: 650; letter-spacing: 0.15px;
+  color: rgba(186, 230, 253, 0.62); margin: -3px 0 6px; min-height: 12px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ai-dual-month-sublabel:empty { display: none; }
 .ai-dual-weekdays {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px;
 }
@@ -4422,6 +4478,158 @@ body.rtl .ai-note-history-menu,
 
 /* The special-days drawer is a sibling layer of the clock content, so it must not be clipped. */
 #ai-clock-panel { overflow: visible !important; }
+
+/* Search: two clearly separated, low-noise destinations. */
+.ai-cat-accordion-search .ai-cat-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-height: none;
+  overflow: visible;
+  padding: 6px;
+}
+.ai-cat-accordion-search .ai-cat-chip { padding: 5px 2px; }
+.ai-cat-accordion-search .ai-cat-chip-icon { font-size: 15px; }
+.ai-cat-accordion-search .ai-cat-chip-label { font-size: 8px; }
+.ai-search-section-label,
+.ai-web-search-section-label {
+  display: block;
+  margin: 4px 2px -4px;
+  color: rgba(186, 230, 253, 0.72);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.25px;
+}
+.ai-web-search-drawer.is-open {
+  max-height: 420px;
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.91);
+  border-color: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.20), inset 0 1px 0 rgba(255,255,255,0.82);
+  backdrop-filter: blur(14px) saturate(145%);
+  -webkit-backdrop-filter: blur(14px) saturate(145%);
+}
+.ai-web-search-meta { display: flex; flex-direction: column; align-items: stretch; gap: 7px; margin-bottom: 8px; }
+.ai-web-search-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ai-web-search-section-label { margin: 0; color: #334155; }
+
+/* Toggle to add a new engine — a quiet dashed "+" chip, same sky family as the
+   engine chips themselves, so it reads as "one of these" rather than a stray
+   leftover control. */
+.ai-web-engine-add {
+  flex: 0 0 auto;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px dashed rgba(51, 65, 85, 0.35);
+  border-radius: 7px;
+  background: transparent;
+  color: #0284c7;
+  font: 800 14px/1 inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.ai-web-engine-add:hover { background: rgba(14, 165, 233, 0.12); border-color: rgba(14, 165, 233, 0.55); }
+.ai-web-engine-add:active { transform: scale(0.92); }
+
+.ai-web-search-engines { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.ai-web-engine-btn {
+  position: relative;
+  flex: 1 1 72px;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  padding-inline-end: 15px;
+  color: #475569;
+  background: rgba(255,255,255,0.70);
+  border-color: rgba(51, 65, 85, 0.18);
+}
+.ai-web-engine-btn:hover { color: #0f172a; background: rgba(255,255,255,0.95); }
+.ai-web-engine-btn[aria-pressed="true"] {
+  color: #075985;
+  background: rgba(224, 242, 254, 0.92);
+  border-color: rgba(14, 165, 233, 0.62);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.10);
+}
+.ai-web-engine-label { pointer-events: none; }
+/* Per-engine pencil — small and quiet at rest, brightens on hover so switching
+   (tap the chip body) and editing (tap the pencil) stay two clearly separate,
+   discoverable actions instead of one overloaded button. */
+.ai-web-engine-edit {
+  position: absolute;
+  top: 1px; inset-inline-end: 2px;
+  font-size: 8.5px;
+  line-height: 1;
+  opacity: 0.5;
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.ai-web-engine-edit:hover { opacity: 1; background: rgba(2, 6, 23, 0.10); }
+
+/* Inline edit/add form — replaces the old window.prompt() flow with a real,
+   themed form: name + URL, Save/Cancel always, Reset only for built-ins with
+   an override, Delete only for user-added engines. */
+.ai-web-engine-form {
+  margin-top: 8px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(51, 65, 85, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: aiWebEngineFormIn 0.16s ease;
+}
+@keyframes aiWebEngineFormIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.ai-web-engine-form input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 7px 9px;
+  border-radius: 8px;
+  border: 1px solid rgba(51, 65, 85, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  font-size: 11.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-web-engine-form input::placeholder { color: #64748b; }
+.ai-web-engine-form input:focus { border-color: rgba(14, 165, 233, 0.75); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14); }
+.ai-web-engine-form-actions { display: flex; gap: 6px; }
+.ai-web-engine-form-actions button {
+  flex: 1;
+  font: 700 10.5px inherit;
+  padding: 6px 0;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, filter 0.15s ease;
+}
+.ai-web-engine-save { background: #0284c7; color: #fff; }
+.ai-web-engine-save:hover { background: #0369a1; }
+.ai-web-engine-cancel { background: rgba(51, 65, 85, 0.10); color: #334155; }
+.ai-web-engine-cancel:hover { background: rgba(51, 65, 85, 0.18); }
+.ai-web-engine-reset { background: rgba(245, 158, 11, 0.14); color: #92400e; }
+.ai-web-engine-reset:hover { background: rgba(245, 158, 11, 0.24); }
+.ai-web-engine-delete { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
+.ai-web-engine-delete:hover { background: rgba(239, 68, 68, 0.22); }
+#ai-web-search-input {
+  background: rgba(255,255,255,0.76);
+  border-color: rgba(51, 65, 85, 0.22);
+  color: #0f172a;
+}
+#ai-web-search-input::placeholder { color: #64748b; }
+#ai-web-search-input:focus { border-color: rgba(14, 165, 233, 0.75); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14); }
+.ai-web-search-go { background: #0284c7; border-color: #0284c7; color: #fff; }
+.ai-web-search-go:hover { background: #0369a1; }
+
+/* Tags should guide the eye, not dominate it; untagged nodes retain a soft importance glow. */
+.ai-node-tagged::after {
+  inset: -2px;
+  border-width: 1px;
+  box-shadow: 0 0 8px 1px var(--tag-glow-color, rgba(167, 139, 250, 0.42));
+  animation: none;
+  opacity: 0.68;
+}
 
 /* V30 Northern Seasons — readable calendar first, seasonal art second. */
 #ai-clock-panel[data-season] {
