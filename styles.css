@@ -159,7 +159,7 @@ animation: quantumSeed 4.8s ease-in-out infinite;
 .orbit-hub.hub-collapsed::before { content: ""; position: absolute; inset: -4px; border: 1px solid rgba(103, 232, 249, 0.28); border-left-color: transparent; border-bottom-color: transparent; border-radius: 50%; animation: quantumOrbit 7s linear infinite; }
 .orbit-hub.hub-collapsed::after { content: ""; position: absolute; width: 3px; height: 3px; top: -2px; right: 1px; border-radius: 50%; background: #e0f2fe; box-shadow: 0 0 6px rgba(224, 242, 254, 0.9); }
 .orbit-hub.hub-collapsed:hover { transform: translate(-50%, -50%) scale(1.12); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.11), 0 0 16px rgba(56, 189, 248, 0.42), inset -2px -2px 4px rgba(8, 47, 73, 0.6), inset 1px 1px 3px rgba(255,255,255,0.45) !important; }
-.orbit-hub.hub-collapsed > * { display: none !important; }
+.orbit-hub.hub-collapsed > *:not(.active-undo) { display: none !important; }
 @keyframes quantumSeed { 0%, 100% { opacity: .84; } 50% { opacity: 1; box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.10), 0 0 15px rgba(56, 189, 248, 0.36), inset -2px -2px 4px rgba(8, 47, 73, 0.6), inset 1px 1px 3px rgba(255,255,255,0.45); } }
 @keyframes quantumOrbit { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .orbit-hub.hub-collapsed, .orbit-hub.hub-collapsed::before { animation: none; } }
@@ -4619,8 +4619,39 @@ body.rtl .ai-note-history-menu,
 }
 #ai-web-search-input::placeholder { color: #64748b; }
 #ai-web-search-input:focus { border-color: rgba(14, 165, 233, 0.75); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14); }
-.ai-web-search-go { background: #0284c7; border-color: #0284c7; color: #fff; }
-.ai-web-search-go:hover { background: #0369a1; }
+/* --- دکمه سه‌بعدی و جذاب جستجوی وب --- */
+.ai-web-search-go {
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%) !important;
+  border: 1px solid rgba(14, 165, 233, 0.8) !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  width: 38px !important;
+  box-shadow: 
+    0 4px 10px rgba(2, 132, 199, 0.35), 
+    inset 0 1px 2px rgba(255, 255, 255, 0.5),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-web-search-go:hover {
+  background: linear-gradient(135deg, #7dd3fc 0%, #0369a1 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 14px rgba(2, 132, 199, 0.5), 
+    inset 0 2px 3px rgba(255, 255, 255, 0.6),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.ai-web-search-go:active {
+  transform: translateY(1px) scale(0.92);
+  box-shadow: 
+    0 2px 4px rgba(2, 132, 199, 0.3), 
+    inset 0 2px 5px rgba(0, 0, 0, 0.3) !important;
+}
 
 /* Tags should guide the eye, not dominate it; untagged nodes retain a soft importance glow. */
 .ai-node-tagged::after {

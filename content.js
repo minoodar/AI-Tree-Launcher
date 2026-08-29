@@ -4216,30 +4216,25 @@
   // استفاده شده. یک ناظرِ واحد روی کلاس‌های show-* که خودِ کدِ بالا از قبل روی
   // root تنظیم می‌کند، مستقل از اینکه کدام مسیر کد باعثِ باز شدنِ پنل شده.
   // --------------------------------------------------------------------------
-  const PANEL_SHOW_CLASSES = ['show-notepad', 'show-search', 'show-calc', 'show-clock', 'show-todo'];
-  let hubAutoCollapsedByPanel = false;
+let hubAutoCollapsedByPanel = false;
   const panelVisibilityObserver = new MutationObserver(() => {
-    const anyPanelOpen = PANEL_SHOW_CLASSES.some((c) => root.classList.contains(c));
-    if (anyPanelOpen) {
+    const isDocked = quickNoteForm.classList.contains('split-docked');
+    if (isDocked) {
       if (!hub.classList.contains('hub-collapsed')) {
         hub.classList.add('hub-collapsed');
         hubAutoCollapsedByPanel = true;
       }
     } else if (hubAutoCollapsedByPanel) {
-      // فقط اگر خودِ همین منطق باعثِ کولاپس شده بود بازش کن — یک کولاپسِ از قبل
-      // موجود (مثلاً از تایمر بی‌کاری) را دست‌نخورده بگذار
       hub.classList.remove('hub-collapsed');
       hubAutoCollapsedByPanel = false;
     }
   });
-  panelVisibilityObserver.observe(root, { attributes: true, attributeFilter: ['class'] });
-// رفع مشکل قفل شدن افزونه: بستن پنل‌ها با کلیک روی هابِ جمع‌شده
+  panelVisibilityObserver.observe(quickNoteForm, { attributes: true, attributeFilter: ['class'] });
+
   hub.addEventListener('click', (e) => {
     if (hub.classList.contains('hub-collapsed') && hubAutoCollapsedByPanel) {
       e.stopPropagation();
-      if (typeof closeAllPanelsExcept === 'function') {
-        closeAllPanelsExcept('', true);
-      }
+      if (typeof exitNoteSplit === 'function') exitNoteSplit(false);
     }
   });
   let autoCollapseTimeout = null; const AUTO_COLLAPSE_DELAY = 5200; let isInitialReveal = true;

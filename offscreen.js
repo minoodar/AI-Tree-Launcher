@@ -30,7 +30,11 @@ const MODEL_LOADING_ANNOUNCE_DELAY_MS = 300; // اگر مدل زیر این زم
 const _origConsoleWarn = console.warn.bind(console);
 console.warn = (...args) => {
   const first = args[0];
-  if (typeof first === 'string' && first.indexOf('Unable to determine content-length') !== -1) return;
+  if (typeof first === 'string') {
+    if (first.indexOf('Unable to determine content-length') !== -1) return;
+    // فیلتر کردن هشدارهای بی‌خطر مربوط به بهینه‌سازی مدل onnxruntime
+    if (first.indexOf('Removing initializer') !== -1 || first.indexOf('onnxruntime') !== -1) return;
+  }
   _origConsoleWarn(...args);
 };
 
@@ -323,9 +327,8 @@ async function runTranscription(pcmFloat32) {
   console.log(`[AI Tree Voice][offscreen] audio ready: ${durationSec.toFixed(2)}s (${pcmFloat32.length} samples), lang=${langCode || 'auto'}`);
 
   if (durationSec < 0.35) {
-    // خیلی کوتاه‌تر از آن که ویسپر بتواند چیزی تشخیص دهد — به‌جای برگرداندن رشتهٔ
-    // خالیِ گنگ (که کاربر آن را یک باگ می‌دید)، خطای مشخص می‌دهیم تا در UI پیام روشنی نشان داده شود
-    throw new Error('audio_too_short');
+    console.log('[AI Tree Voice] Audio too short, skipping transcription.');
+    return ''; // برگرداندن رشته خالی به جای پرتاب خطا در کنسول
   }
 
   const options = {
