@@ -1,4 +1,4 @@
-# 🌌 AI Tree Launcher (V34.0): The Aura & Voice Update
+# 🌌 AI Tree Launcher (V34.0): Aura & Voice Update
 
 <div align="center">
   
@@ -8,127 +8,97 @@
 
 **Floating Orbital Workspace · 4-Ring Galactic Vault · Omnilingual Smart Studio**
 
-[🇺🇸 English Documentation](#-english-documentation) • [🇪🇸 Documentación en Español](#-documentación-en-español) • [🇮🇷 راهنمای فارسی (Persian)](#-راهنمای-فارسی-persian-guide)
+[🇺🇸 English](#-english) • [🇪🇸 Español](#-español) • [🇩🇪 Deutsch](#-deutsch) • [🇮🇷 فارسی (Persian)](#-فارسی-persian)
 
 ---
 
 ### 🎥 Watch the Demonstration
 [![AI Tree Launcher Demonstration](https://img.youtube.com/vi/36odHP22ToI/maxresdefault.jpg)](https://youtu.be/36odHP22ToI?si=cd9tGLsgAImPojPY)
-*(Click the image above to watch the video on YouTube)*
+*(Click the image to watch the video on YouTube)*
 
 </div>
 
 ---
 
-## 🇺🇸 English Documentation
-
+## 🇺🇸 English
 ### 🚀 AI Tree Launcher v34.0 — Aura & Voice Evolution
-We are thrilled to announce AI Tree Launcher v34.0. This major release fundamentally enhances the orbital workspace with zero-dependency native integrations and a completely revamped visual organization system — while maintaining our pure Vanilla JS architecture and 60fps Eco-Mode performance.
+This major release fundamentally enhances the orbital workspace with zero-dependency native integrations and a completely revamped visual organization system — all while maintaining our pure **Vanilla JS architecture** and **60fps Eco-Mode performance**.
 
-#### 🌟 Key Technical Highlights
+#### 🌟 Key Features
+* **🎙️ Native Omnilingual Voice Engine:** Hands-free, low-latency voice dictation in the Linguistic Studio utilizing Chrome's native Web Speech API. No heavy external libraries required.
+* **✨ 15-Tier Visual "Aura" System:** Bookmarks can now be assigned to 15 specialized categories (AI, Finance, Dev Tools, Media, etc.). Categorized links generate a dynamic visual "Aura" for a distinctive visual identity.
+* **🔍 Tag-Based Deep Search & Web Engine:** Instantly isolate relevant bookmarks by typing category tags into the search hub, alongside a comprehensive web search manager.
+* **🖥️ Ergonomic Smart Studio:** The notepad monitor placement has been highly optimized to dock without obstructing your primary workflow.
 
-* **🎙️ Native Omnilingual Voice Engine**
-  Introduced hands-free, low-latency voice dictation in the Linguistic Studio using Chrome's native Web Speech API. No heavy external libraries or dependencies are required.
+#### ⚡ Performance Highlights
+**Pure Vanilla JS** • Zero heavy dependencies • **Native browser API integration** • 60fps Eco-Mode • **Multilingual support**
 
-* **✨ 15-Tier Visual "Aura" System**
-  Bookmark management has been completely re-engineered. Links can now be assigned to 15 specialized categories such as AI, Finance, Dev Tools, Media, and more. Categorized bookmarks now generate a dynamic visual "Aura" within the orbital workspace, giving each category a distinctive visual identity.
-
-* **🔍 Tag-Based Deep Search**
-  Added rapid tag-based filtering to the bookmark galaxy. Simply type a category tag into the search hub to instantly isolate and discover relevant bookmarks. Seamlessly manage and execute queries across multiple web search engines directly from the launcher.
-
-* **🖥️ Ergonomic Smart Studio**
-  The Linguistic Smart Studio (notepad) now features improved, highly optimized placement on your monitor, ensuring it docks perfectly without obstructing your main workflow.
-
-#### ⚡ Performance & Architecture
-* Pure Vanilla JS architecture
-* Zero heavy external dependencies
-* Native browser API integration
-* 60fps Eco-Mode performance
-* Improved orbital bookmark organization
-* Enhanced multilingual experience
-
-#### 💻 How to Install in Chrome (Developer Mode)
-1. Clone the repository or download the ZIP archive and extract it.
-2. Open your Chromium browser and navigate to `chrome://extensions/`.
-3. Enable **Developer mode** (toggle in the top-right corner).
-4. Click **Load unpacked** and select the project root folder.
-5. Done! Your floating 4-ring workspace is now live across your web pages.
+#### 💻 Installation (Developer Mode)
+1. Clone `minoodar/AI-Tree-Launcher` or download the ZIP.
+2. Go to `chrome://extensions/` and enable **Developer mode**.
+3. Click **Load unpacked** and select the project folder.
 
 ---
 
-## 🇪🇸 Documentación en Español
-
+## 🇪🇸 Español
 ### 🚀 AI Tree Launcher v34.0 — Evolución de Aura y Voz
-Nos complace anunciar AI Tree Launcher v34.0. Esta importante versión mejora fundamentalmente el espacio de trabajo orbital mediante integraciones nativas sin dependencias externas y un sistema de organización visual completamente renovado, manteniendo nuestra arquitectura pura de Vanilla JS y el rendimiento de 60fps en Eco-Mode.
+Esta importante versión mejora fundamentalmente el espacio de trabajo orbital mediante integraciones nativas sin dependencias externas y un sistema de organización visual completamente renovado, manteniendo nuestra arquitectura pura de **Vanilla JS** y el rendimiento de **60fps en Eco-Mode**.
 
-#### 🌟 Principales novedades técnicas
+#### 🌟 Características Principales
+* **🎙️ Motor de Voz Nativo Multilingüe:** Dictado por voz manos libres y de baja latencia mediante la Web Speech API nativa de Chrome. Sin bibliotecas pesadas.
+* **✨ Sistema Visual "Aura" de 15 Niveles:** Asigna enlaces a 15 categorías especializadas (IA, Finanzas, Herramientas de Desarrollo, etc.). Los marcadores generan un "Aura" visual dinámica para una rápida identificación.
+* **🔍 Búsqueda Profunda y Web:** Filtrado rápido basado en etiquetas para aislar marcadores instantáneamente y gestión integrada de motores de búsqueda web.
+* **🖥️ Estudio Inteligente Ergonómico:** Posicionamiento en pantalla optimizado para el bloque de notas, evitando interrupciones en el flujo de trabajo.
 
-* **🎙️ Motor de Voz Nativo Multilingüe**
-  Hemos incorporado dictado por voz manos libres y de baja latencia en el Estudio Lingüístico mediante la Web Speech API nativa de Chrome. No se requieren bibliotecas externas pesadas.
+#### ⚡ Rendimiento
+**Vanilla JS puro** • Cero dependencias externas • **Integración de APIs nativas** • 60fps Eco-Mode • **Experiencia multilingüe**
 
-* **✨ Sistema Visual de "Aura" de 15 Niveles**
-  El sistema de marcadores ha sido completamente rediseñado. Ahora los enlaces pueden asignarse a 15 categorías especializadas, como IA, Finanzas, Herramientas de Desarrollo, Multimedia y más. Los marcadores categorizados generan ahora una "Aura" visual dinámica dentro del espacio orbital, proporcionando una identidad visual distintiva a cada categoría.
+#### 💻 Instalación (Modo Desarrollador)
+1. Clona `minoodar/AI-Tree-Launcher` o descarga el ZIP.
+2. Ve a `chrome://extensions/` y activa el **Modo de desarrollador**.
+3. Haz clic en **Cargar extensión sin empaquetar** y selecciona la carpeta.
 
-* **🔍 Búsqueda Profunda por Etiquetas**
-  Se ha añadido un filtrado rápido basado en etiquetas. Simplemente escribe una etiqueta de categoría en el buscador para aislar y encontrar instantáneamente los marcadores relevantes. Además, gestiona motores de búsqueda web desde el propio lanzador.
+---
 
-* **🖥️ Estudio Inteligente Ergonómico**
-  El posicionamiento del bloque de notas (Estudio Lingüístico) ha sido optimizado en la pantalla para acoplarse sin interrumpir el flujo de trabajo principal.
+## 🇩🇪 Deutsch
+### 🚀 AI Tree Launcher v34.0 — Aura & Sprachentwicklung
+Diese Version erweitert den orbitalen Arbeitsbereich grundlegend durch native Integrationen ohne externe Abhängigkeiten und ein vollständig überarbeitetes visuelles Organisationssystem — während unsere reine **Vanilla-JS-Architektur** und die **60fps Eco-Mode-Leistung** erhalten bleiben.
 
-#### ⚡ Rendimiento y Arquitectura
-* Arquitectura pura en Vanilla JS
-* Sin dependencias externas pesadas
-* Integración con APIs nativas del navegador
-* Rendimiento de 60fps en Eco-Mode
-* Organización orbital mejorada de marcadores
-* Experiencia multilingüe mejorada
+#### 🌟 Hauptmerkmale
+* **🎙️ Native mehrsprachige Sprach-Engine:** Freihändiges Sprachdiktieren mit geringer Latenz im Linguistic Studio, basierend direkt auf der nativen Web Speech API von Chrome.
+* **✨ Visuelles "Aura"-System (15 Stufen):** Links können 15 Kategorien (KI, Finanzen, Entwickler-Tools, Medien usw.) zugeordnet werden und erzeugen eine dynamische visuelle "Aura" zur schnellen Identifikation.
+* **🔍 Tiefensuche über Tags & Web:** Schnelle tagbasierte Filterung zur sofortigen Isolierung von Lesezeichen und ein integrierter Web-Suchmanager.
+* **🖥️ Ergonomisches Smart Studio:** Die Platzierung des Notizblocks auf dem Bildschirm wurde optimiert, um den primären Arbeitsfluss nicht zu stören.
 
-#### 💻 Cómo instalar en Chrome (Modo Desarrollador)
-1. Clona el repositorio o descarga el archivo ZIP y extráelo.
-2. Abre tu navegador Chromium y ve a `chrome://extensions/`.
-3. Activa el **Modo de desarrollador** (esquina superior derecha).
-4. Haz clic en **Cargar extensión sin empaquetar** y selecciona la carpeta raíz del proyecto.
-5. ¡Listo! Tu espacio de trabajo flotante ya está activo.
+#### ⚡ Leistung
+**Reines Vanilla JS** • Keine schweren Abhängigkeiten • **Integration nativer APIs** • 60fps Eco-Mode • **Mehrsprachiges Erlebnis**
+
+#### 💻 Installation (Entwicklermodus)
+1. Klone `minoodar/AI-Tree-Launcher` oder lade die ZIP-Datei herunter.
+2. Öffne `chrome://extensions/` und aktiviere den **Entwicklermodus**.
+3. Klicke auf **Entpackte Erweiterung laden** und wähle den Projektordner.
 
 ---
 
 <div dir="rtl">
 
-## 🇮🇷 راهنمای فارسی (Persian Guide)
-
+## 🇮🇷 فارسی (Persian)
 ### 🚀 AI Tree Launcher v34.0 — تکامل هاله و صدا
-با افتخار نسخه ۳۴.۰ AI Tree Launcher را معرفی می‌کنیم. این نسخه با افزودن یکپارچه‌سازی‌های بومی و بدون وابستگی سنگین خارجی و همچنین بازطراحی کامل سیستم سازماندهی بصری، فضای کاری مداری را به شکل اساسی ارتقا می‌دهد؛ در حالی که معماری خالص Vanilla JS و عملکرد 60fps در Eco-Mode همچنان حفظ شده است.
+این نسخه با افزودن یکپارچه‌سازی‌های بومی و بدون وابستگی خارجی و همچنین بازطراحی کامل سیستم سازماندهی بصری، فضای کاری مداری را به شکل اساسی ارتقا می‌دهد؛ در حالی که معماری خالص **Vanilla JS** و عملکرد **60fps در Eco-Mode** همچنان حفظ شده است.
 
-#### 🌟 ویژگی‌های فنی کلیدی
+#### 🌟 ویژگی‌های کلیدی
+* **🎙️ موتور صوتی بومی و همه‌زبانه:** تایپ صوتی بدون نیاز به دست و با تأخیر بسیار کم در استودیوی زبانی با استفاده از Web Speech API بومی Chrome، بدون نیاز به کتابخانه‌های خارجی.
+* **✨ سیستم بصری «هاله» ۱۵ گانه:** دسته‌بندی لینک‌ها در ۱۵ بخش تخصصی (هوش مصنوعی، مالی، توسعه، رسانه و...). بوک‌مارک‌ها اکنون یک «هاله» بصری پویا برای تشخیص سریع‌تر تولید می‌کنند.
+* **🔍 جستجوی عمیق تگ و وب:** فیلتر فوری بوک‌مارک‌ها با تایپ نام تگ در بخش جستجو، به همراه یک جستجوگر وب یکپارچه برای مدیریت موتورهای جستجوی مختلف.
+* **🖥️ ارگونومی بهبود یافته استودیو:** جایگیری و موقعیت دفترچه یادداشت در صفحه نمایش بهینه‌سازی شده تا بدون ایجاد مزاحمت، در بهترین زاویه مانیتور قرار گیرد.
 
-* **🎙️ موتور صوتی بومی و همه‌زبانه**
-  قابلیت تایپ صوتی بدون نیاز به دست و با تأخیر بسیار کم به استودیوی زبانی اضافه شده است. این قابلیت مستقیماً از Web Speech API بومی Chrome استفاده می‌کند و به هیچ کتابخانه سنگین خارجی نیاز ندارد.
+#### ⚡ عملکرد
+**معماری خالص Vanilla JS** • بدون وابستگی سنگین • **استفاده از APIهای بومی** • عملکرد 60fps • **تجربه چندزبانه یکپارچه**
 
-* **✨ سیستم بصری «هاله» ۱۵ گانه**
-  سیستم مدیریت بوک‌مارک‌ها به‌طور کامل بازطراحی شده است. اکنون لینک‌ها را می‌توان در ۱۵ دسته تخصصی مانند هوش مصنوعی، مالی، ابزارهای توسعه، رسانه و موارد دیگر قرار داد. بوک‌مارک‌های دسته‌بندی‌شده اکنون در فضای کاری مداری دارای یک «هاله» بصری پویا هستند که به هر دسته هویت بصری متمایزی می‌دهد.
-
-* **🔍 جستجوی عمیق بر اساس تگ و وب**
-  قابلیت فیلتر سریع بر اساس تگ اضافه شده است. کافی است نام تگ یک دسته را در بخش جستجو وارد کنید تا بوک‌مارک‌های مرتبط به‌صورت فوری نمایش داده شوند. همچنین یک جستجوگر وب یکپارچه برای مدیریت موتورهای جستجوی مختلف اضافه شده است.
-
-* **🖥️ ارگونومی بهبود یافته استودیو**
-  جایگیری و موقعیت دفترچه یادداشت در صفحه نمایش بهینه‌سازی شده است تا بدون ایجاد مزاحمت برای کار اصلی شما، در بهترین زاویه مانیتور قرار گیرد.
-
-#### ⚡ عملکرد و معماری
-* معماری خالص Vanilla JS
-* بدون وابستگی سنگین خارجی
-* استفاده از APIهای بومی مرورگر
-* عملکرد 60fps در Eco-Mode
-* سازماندهی بهتر بوک‌مارک‌ها در فضای مداری
-* تجربه چندزبانه بهبودیافته
-
-#### 💻 آموزش نصب در کروم (Developer Mode)
-۱. مخزن پروژه را کلون کرده یا فایل ZIP آن را دانلود و استخراج کنید.
-۲. مرورگر کرومیوم خود را باز کرده و به آدرس `chrome://extensions/` بروید.
-۳. از بالا سمت راست، حالت برنامه‌نویس (**Developer mode**) را روشن کنید.
-۴. روی دکمه **Load unpacked** کلیک کرده و پوشه اصلی پروژه را انتخاب کنید.
-۵. نصب کامل شد! فضای کاری مداری شما اکنون در دسترس است.
+#### 💻 آموزش نصب (Developer Mode)
+۱. مخزن `minoodar/AI-Tree-Launcher` را کلون کرده یا ZIP آن را دانلود کنید.
+۲. به آدرس `chrome://extensions/` رفته و حالت **Developer mode** را روشن کنید.
+۳. روی دکمه **Load unpacked** کلیک کرده و پوشه پروژه را انتخاب کنید.
 
 </div>
 ```eof
-
-The repository documentation is now updated to fully support English, Spanish, and Persian with all the latest features highlighted. Is there anything else you would like to add or adjust?
