@@ -9,6 +9,14 @@
   try { isPopupWindow = !!(window.toolbar && window.toolbar.visible === false); } catch (e) {}
   if (!isTopFrame || isPopupWindow || document.getElementById('ai-orbit-root')) return;
 
+  // کمکیِ کوچک برای رشته‌های سخت‌کدشدهٔ چندزبانه‌ای که (برخلاف i18n.js) مستقیم
+  // توی کد نوشته شده‌اند — با اضافه‌شدن هر زبانِ جدید فقط یک آرگومان اضافه
+  // می‌شود، به‌جای زنجیرهٔ تکراریِ ?: در همه‌جای فایل. زبانی که مقدارش داده
+  // نشده (یا undefined بماند) به انگلیسی برمی‌گردد.
+  function langPick(map) {
+    return (map && map[currentLang] !== undefined) ? map[currentLang] : map.en;
+  }
+
   let linksData = [];
   let linksData2 = []; 
   let linksData3 = [];
@@ -970,14 +978,14 @@
     uiEls.todoTabGoal.textContent = t('todoTabGoals');
 
     uiEls.searchInput.placeholder = t('searchPlaceholder');
-    if (uiEls.bookmarkSearchLabel) uiEls.bookmarkSearchLabel.textContent = currentLang === 'fa' ? 'جستجوی بوک‌مارک‌ها' : currentLang === 'es' ? 'Buscar marcadores' : 'Bookmark search';
-    if (uiEls.webSearchSectionLabel) uiEls.webSearchSectionLabel.textContent = currentLang === 'fa' ? 'جستجوی وب' : currentLang === 'es' ? 'Búsqueda web' : 'Web search';
-    if (uiEls.webSearchInput) uiEls.webSearchInput.placeholder = currentLang === 'fa' ? 'جستجو در وب…' : currentLang === 'es' ? 'Buscar en la web…' : 'Search the web…';
-    if (uiEls.webSearchAddBtn) uiEls.webSearchAddBtn.title = currentLang === 'fa' ? 'افزودن موتور جستجوی جدید' : currentLang === 'es' ? 'Agregar nuevo motor de búsqueda' : 'Add a new search engine';
-    if (uiEls.webSearchEngineFormSave) uiEls.webSearchEngineFormSave.textContent = currentLang === 'fa' ? 'ذخیره' : currentLang === 'es' ? 'Guardar' : 'Save';
-    if (uiEls.webSearchEngineFormCancel) uiEls.webSearchEngineFormCancel.textContent = currentLang === 'fa' ? 'انصراف' : currentLang === 'es' ? 'Cancelar' : 'Cancel';
-    if (uiEls.webSearchEngineFormReset) uiEls.webSearchEngineFormReset.textContent = currentLang === 'fa' ? 'پیش‌فرض' : currentLang === 'es' ? 'Predeterminado' : 'Reset';
-    if (uiEls.webSearchEngineFormDelete) uiEls.webSearchEngineFormDelete.textContent = currentLang === 'fa' ? 'حذف' : currentLang === 'es' ? 'Eliminar' : 'Delete';
+    if (uiEls.bookmarkSearchLabel) uiEls.bookmarkSearchLabel.textContent = currentLang === 'fa' ? 'جستجوی بوک‌مارک‌ها' : currentLang === 'es' ? 'Buscar marcadores' : currentLang === 'de' ? 'Lesezeichen durchsuchen' : 'Bookmark search';
+    if (uiEls.webSearchSectionLabel) uiEls.webSearchSectionLabel.textContent = currentLang === 'fa' ? 'جستجوی وب' : currentLang === 'es' ? 'Búsqueda web' : currentLang === 'de' ? 'Websuche' : 'Web search';
+    if (uiEls.webSearchInput) uiEls.webSearchInput.placeholder = currentLang === 'fa' ? 'جستجو در وب…' : currentLang === 'es' ? 'Buscar en la web…' : currentLang === 'de' ? 'Das Web durchsuchen…' : 'Search the web…';
+    if (uiEls.webSearchAddBtn) uiEls.webSearchAddBtn.title = currentLang === 'fa' ? 'افزودن موتور جستجوی جدید' : currentLang === 'es' ? 'Agregar nuevo motor de búsqueda' : currentLang === 'de' ? 'Neue Suchmaschine hinzufügen' : 'Add a new search engine';
+    if (uiEls.webSearchEngineFormSave) uiEls.webSearchEngineFormSave.textContent = currentLang === 'fa' ? 'ذخیره' : currentLang === 'es' ? 'Guardar' : currentLang === 'de' ? 'Speichern' : 'Save';
+    if (uiEls.webSearchEngineFormCancel) uiEls.webSearchEngineFormCancel.textContent = currentLang === 'fa' ? 'انصراف' : currentLang === 'es' ? 'Cancelar' : currentLang === 'de' ? 'Abbrechen' : 'Cancel';
+    if (uiEls.webSearchEngineFormReset) uiEls.webSearchEngineFormReset.textContent = currentLang === 'fa' ? 'پیش‌فرض' : currentLang === 'es' ? 'Predeterminado' : currentLang === 'de' ? 'Zurücksetzen' : 'Reset';
+    if (uiEls.webSearchEngineFormDelete) uiEls.webSearchEngineFormDelete.textContent = currentLang === 'fa' ? 'حذف' : currentLang === 'es' ? 'Eliminar' : currentLang === 'de' ? 'Löschen' : 'Delete';
     uiEls.todoWhenToday.textContent = t('todoWhenToday');
     uiEls.todoWhenTomorrow.textContent = t('todoWhenTomorrow');
 
@@ -996,7 +1004,9 @@
         ? 'امروز · فردا · ۱۴۰۳/۰۵/۱۶ · 2026-07-27'
         : currentLang === 'es'
           ? 'hoy · mañana · 2026-07-27'
-          : 'today · tomorrow · 2026-07-27 · 1403/05/16';
+          : currentLang === 'de'
+            ? 'heute · morgen · 2026-07-27'
+            : 'today · tomorrow · 2026-07-27 · 1403/05/16';
     }
 
     root.style.direction = currentLang === 'fa' ? 'rtl' : 'ltr';
@@ -1147,19 +1157,20 @@
     const isH = m.cal === 'h' || m.cal === 'hijri';
     const fa = currentLang === 'fa';
     const es = currentLang === 'es';
+    const de = currentLang === 'de';
     let dateStr, calHint;
     if (isJ) {
       const monthName = JALALI_MONTHS_FA[m.month - 1] || '';
       dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'شمسی' : es ? 'jalalí' : 'Jalali';
+      calHint = fa ? 'شمسی' : es ? 'jalalí' : de ? 'Dschalali' : 'Jalali';
     } else if (isH) {
-      const monthName = (fa ? HIJRI_MONTHS_FA : es ? HIJRI_MONTHS_ES : HIJRI_MONTHS_EN)[m.month - 1] || '';
+      const monthName = (fa ? HIJRI_MONTHS_FA : es ? HIJRI_MONTHS_ES : de ? HIJRI_MONTHS_DE : HIJRI_MONTHS_EN)[m.month - 1] || '';
       dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'قمری' : es ? 'hijrí' : 'Hijri';
+      calHint = fa ? 'قمری' : es ? 'hijrí' : de ? 'Hidschri' : 'Hijri';
     } else {
       const monthName = getDisplayGregorianMonth(m.month - 1) || '';
       dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'میلادی' : es ? 'gregoriano' : 'Gregorian';
+      calHint = fa ? 'میلادی' : es ? 'gregoriano' : de ? 'gregorianisch' : 'Gregorian';
     }
     if (uiEls.markEventBadge) {
       uiEls.markEventBadge.textContent = m.days === 0 ? '🎉' : (m.isPublic ? '🔴' : (m.golden ? '★' : '📌'));
@@ -1167,12 +1178,14 @@
     if (uiEls.markEventText) uiEls.markEventText.textContent = m.label;
     if (uiEls.markEventMeta) {
       uiEls.markEventMeta.textContent = m.days === 0
-        ? (fa ? `امروز · ${dateStr} · ${calHint}` : es ? `Hoy · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
+        ? (fa ? `امروز · ${dateStr} · ${calHint}` : es ? `Hoy · ${dateStr} · ${calHint}` : de ? `Heute · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
         : (fa
             ? `${m.days} روز مانده · ${dateStr} · ${calHint}`
             : es
               ? `en ${m.days}d · ${dateStr} · ${calHint}`
-              : `in ${m.days}d · ${dateStr} · ${calHint}`);
+              : de
+                ? `in ${m.days}T · ${dateStr} · ${calHint}`
+                : `in ${m.days}d · ${dateStr} · ${calHint}`);
     }
     uiEls.markEventSheet.classList.remove('is-collapsed');
   }
@@ -1228,8 +1241,8 @@
   function openTodayGreetingSheet(iso) {
     if (!uiEls.markEventSheet) return;
     if (uiEls.markEventBadge) uiEls.markEventBadge.textContent = '✨';
-    if (uiEls.markEventText) uiEls.markEventText.textContent = currentLang === 'fa' ? 'این روز توست' : currentLang === 'es' ? 'Este día es tuyo' : 'This day is yours';
-    if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = currentLang === 'fa' ? 'امروز' : currentLang === 'es' ? 'Hoy' : 'Today';
+    if (uiEls.markEventText) uiEls.markEventText.textContent = currentLang === 'fa' ? 'این روز توست' : currentLang === 'es' ? 'Este día es tuyo' : currentLang === 'de' ? 'Dieser Tag gehört dir' : 'This day is yours';
+    if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = currentLang === 'fa' ? 'امروز' : currentLang === 'es' ? 'Hoy' : currentLang === 'de' ? 'Heute' : 'Today';
     uiEls.markEventSheet.classList.remove('is-collapsed');
     dayEventSheetOpenIso = iso;
     renderMarkEventDailyList(iso);
@@ -2037,8 +2050,8 @@
 
     const lower = toAsciiDigits(trimmed).toLowerCase().replace(/\s+/g, ' ');
 
-    const todayWords = ['today', 'امروز', 'hoy'];
-    const tomorrowWords = ['tomorrow', 'فردا', 'mañana', 'manana'];
+    const todayWords = ['today', 'امروز', 'hoy', 'heute'];
+    const tomorrowWords = ['tomorrow', 'فردا', 'mañana', 'manana', 'morgen'];
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -2155,12 +2168,14 @@
   const GREG_MONTHS_STD_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const GREG_MONTHS_STD_FA = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
   const GREG_MONTHS_STD_ES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const GREG_MONTHS_STD_DE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
   function getDisplayGregorianMonth(mIndex) {
-    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : GREG_MONTHS_STD_EN[mIndex];
+    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : currentLang === 'de' ? GREG_MONTHS_STD_DE[mIndex] : GREG_MONTHS_STD_EN[mIndex];
   }
   const HIJRI_MONTHS_FA = ['محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی','رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه'];
   const HIJRI_MONTHS_EN = ['Muharram','Safar',"Rabi' al-awwal","Rabi' al-thani",'Jumada al-awwal','Jumada al-thani','Rajab',"Sha'ban",'Ramadan','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
   const HIJRI_MONTHS_ES = ['muharram','safar',"rabi al-awwal","rabi al-zani",'yumada al-ula','yumada al-zania','rayab',"shaaban",'ramadán','shawwal',"du al-qada",'du al-hiyya'];
+  const HIJRI_MONTHS_DE = ['Muharram','Safar',"Rabi al-awwal","Rabi al-thani",'Dschumada al-ula','Dschumada al-thania','Radschab',"Schaban",'Ramadan','Schawwal',"Dhu l-Qada",'Dhu l-Hiddscha'];
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
   const WEEKDAYS_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
@@ -2228,11 +2243,11 @@
         return `${namesArr[mStart - 1] || ''}–${namesArr[mEnd - 1] || ''}`;
       };
       const jalaliSpan = spanLabel(JALALI_MONTHS_FA, jFirst.jm, jLast.jm);
-      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'es' ? HIJRI_MONTHS_ES : HIJRI_MONTHS_EN;
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : HIJRI_MONTHS_EN;
       const hijriSpan = (hFirst && hLast) ? spanLabel(hijriNames, hFirst.hm, hLast.hm) : '';
       if (uiEls.dualMonthSublabel) {
-        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'es' ? 'jalalí' : 'Jalali';
-        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'es' ? 'hijrí' : 'Hijri';
+        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'es' ? 'jalalí' : currentLang === 'de' ? 'Dschalali' : 'Jalali';
+        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'es' ? 'hijrí' : currentLang === 'de' ? 'Hidschri' : 'Hijri';
         const parts = [];
         if (jalaliSpan) parts.push(`${jalaliSpan} ${shamsiLabel}`);
         if (hijriSpan) parts.push(`${hijriSpan} ${hijriLabel}`);
@@ -2281,10 +2296,11 @@
     const WEEKDAY_FULL_FA = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'];
     const WEEKDAY_FULL_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const WEEKDAY_FULL_ES = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const WEEKDAY_FULL_DE = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
     function dayHoverTip(gy, gm, gd) {
       const wdIdx = new Date(gy, gm - 1, gd).getDay();
       const weekdayKey = HAFT_PEYKAR_KEY[wdIdx];
-      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
+      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : currentLang === 'de' ? WEEKDAY_FULL_DE[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
       // Line 1 — Gregorian day/month, region-aware month name
       const monthName = getDisplayGregorianMonth(gm - 1);
       const dayStr = currentLang === 'fa' ? toPersianDigits(gd) : String(gd);
@@ -3459,7 +3475,7 @@
       const editIcon = document.createElement('span');
       editIcon.className = 'ai-web-engine-edit';
       editIcon.textContent = '✎';
-      editIcon.title = currentLang === 'fa' ? 'ویرایش این موتور جستجو' : currentLang === 'es' ? 'Editar este motor de búsqueda' : 'Edit this search engine';
+      editIcon.title = currentLang === 'fa' ? 'ویرایش این موتور جستجو' : currentLang === 'es' ? 'Editar este motor de búsqueda' : currentLang === 'de' ? 'Diese Suchmaschine bearbeiten' : 'Edit this search engine';
       editIcon.addEventListener('click', (e) => { e.stopPropagation(); openWebEngineForm(eng.id); });
       btn.appendChild(editIcon);
 
@@ -3487,8 +3503,8 @@
     uiEls.webSearchEngineForm.dataset.editingId = engineId;
     uiEls.webSearchEngineFormName.value = isNew ? '' : eng.label;
     uiEls.webSearchEngineFormUrl.value = isNew ? '' : eng.template;
-    uiEls.webSearchEngineFormName.placeholder = currentLang === 'fa' ? 'نام موتور جستجو' : currentLang === 'es' ? 'Nombre del motor de búsqueda' : 'Search engine name';
-    uiEls.webSearchEngineFormUrl.placeholder = currentLang === 'fa' ? 'آدرس (شامل {q})' : currentLang === 'es' ? 'URL (incluye {q})' : 'URL (include {q})';
+    uiEls.webSearchEngineFormName.placeholder = currentLang === 'fa' ? 'نام موتور جستجو' : currentLang === 'es' ? 'Nombre del motor de búsqueda' : currentLang === 'de' ? 'Name der Suchmaschine' : 'Search engine name';
+    uiEls.webSearchEngineFormUrl.placeholder = currentLang === 'fa' ? 'آدرس (شامل {q})' : currentLang === 'es' ? 'URL (incluye {q})' : currentLang === 'de' ? 'URL (mit {q})' : 'URL (include {q})';
 
     const isCustom = !isNew && !eng.builtIn;
     if (uiEls.webSearchEngineFormDelete) uiEls.webSearchEngineFormDelete.toggleAttribute('hidden', !isCustom);
@@ -3499,7 +3515,7 @@
   }
 
   if (uiEls.webSearchAddBtn) {
-    uiEls.webSearchAddBtn.title = currentLang === 'fa' ? 'افزودن موتور جستجوی جدید' : currentLang === 'es' ? 'Agregar nuevo motor de búsqueda' : 'Add a new search engine';
+    uiEls.webSearchAddBtn.title = currentLang === 'fa' ? 'افزودن موتور جستجوی جدید' : currentLang === 'es' ? 'Agregar nuevo motor de búsqueda' : currentLang === 'de' ? 'Neue Suchmaschine hinzufügen' : 'Add a new search engine';
     uiEls.webSearchAddBtn.addEventListener('click', (e) => { e.stopPropagation(); openWebEngineForm('__new__'); });
   }
   if (uiEls.webSearchEngineFormCancel) {
@@ -3512,9 +3528,9 @@
       const isNew = id === '__new__';
       const label = (uiEls.webSearchEngineFormName.value || '').trim().slice(0, 24);
       const template = (uiEls.webSearchEngineFormUrl.value || '').trim();
-      if (!label) { showToastNotification(currentLang === 'fa' ? 'نام را وارد کنید' : currentLang === 'es' ? 'Ingresa un nombre' : 'Enter a name', true); return; }
+      if (!label) { showToastNotification(currentLang === 'fa' ? 'نام را وارد کنید' : currentLang === 'es' ? 'Ingresa un nombre' : currentLang === 'de' ? 'Namen eingeben' : 'Enter a name', true); return; }
       if (!/^https?:\/\//i.test(template) || !template.includes('{q}')) {
-        showToastNotification(currentLang === 'fa' ? 'آدرس باید با http(s):// شروع شود و شامل {q} باشد' : currentLang === 'es' ? 'La URL debe comenzar con http(s):// e incluir {q}' : 'URL must start with http(s):// and include {q}', true);
+        showToastNotification(currentLang === 'fa' ? 'آدرس باید با http(s):// شروع شود و شامل {q} باشد' : currentLang === 'es' ? 'La URL debe comenzar con http(s):// e incluir {q}' : currentLang === 'de' ? 'Die URL muss mit http(s):// beginnen und {q} enthalten' : 'URL must start with http(s):// and include {q}', true);
         return;
       }
       if (isNew) {

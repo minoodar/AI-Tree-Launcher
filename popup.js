@@ -57,6 +57,25 @@ document.addEventListener('DOMContentLoaded', () => {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabiduría budista e hindú)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura occidental",
         vaultLiveSaved: "✓ Guardado al instante — no hace falta pulsar «Guardar»"
+      },
+      de: {
+        tabCore: "⚙️ Allgemein", tabBackup: "🛡️ Sicherung", tabVault: "✨ Schatzkammer",
+        lblLanguage: "App-Sprache:", lblBirth: "Geburtsjahr (für das Alter der Uhr):",
+        btnSave: "Einstellungen speichern", btnExport: "📤 Sicherung exportieren (JSON)", btnImport: "📥 Sicherung importieren (Wiederherstellen)",
+        toastSaved: "Einstellungen erfolgreich gespeichert!", toastExported: "JSON-Datei heruntergeladen!", toastImported: "Daten erfolgreich importiert!", toastRestored: "Daten erfolgreich wiederhergestellt!",
+        invalidFile: "Ungültiges Dateiformat.", errRead: "Fehler beim Lesen der JSON-Datei.",
+        btnHide: "Ausblenden", btnShow: "Anzeigen (Zurücksetzen)",
+        backupHint: "🟢 Export sichert alles — Lesezeichen, Aufgaben, Kalendertermine & -markierungen, Einstellungen, Notizen &nbsp;·&nbsp; 🟠 Import stellt alles aus einer Datei wieder her",
+        contactTitle: "✉︎ Kontakt", contactEmail: "E-Mail:",
+        holidaysTitle: "Offizielle Feiertage", holidaysEnable: "Offizielle Feiertage im Kalender anzeigen",
+        holidayAuto: "Automatisch — nach App-Sprache", holidayIran: "Iran (offline, kuratierte Liste)", holidayCustom: "Anderes Land (Code eingeben)",
+        holidayHintAuto: "Verwendet derzeit den Iran, wenn die App-Sprache Persisch ist, sonst ein anhand der Systemregion geschätztes Land.",
+        holidayHintIran: "Verwendet die integrierte Offline-Liste der iranischen Feiertage — keine Internetverbindung nötig.",
+        holidayHintCustom: "Gib einen zweibuchstabigen Ländercode ein (ISO 3166-1, z. B. US, DE, GB, FR). Wird aus einer öffentlichen internationalen Feiertagsquelle abgerufen.",
+        quotesTitle: "Tägliche Weisheitszitate", religionSource: "Quelle des spirituellen Verses", poetrySource: "Quelle für Poesie & Literatur",
+        religionIslam: "☪️ Islam", religionJudaism: "✡️ Judentum", religionChristianity: "✝️ Christentum", religionEastern: "☸️ Östlich (buddhistische & hinduistische Weisheit)",
+        poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Westliche Literatur",
+        vaultLiveSaved: "✓ Sofort gespeichert — kein Klick auf „Speichern” nötig"
       }
     };
 
@@ -73,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'es' ? "p. ej., 1990 o 1375" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
