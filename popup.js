@@ -38,13 +38,34 @@ document.addEventListener('DOMContentLoaded', () => {
         religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
         poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب",
         vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست"
+      },
+      es: {
+        tabCore: "⚙️ Principal", tabBackup: "🛡️ Respaldo", tabVault: "✨ Bóveda",
+        lblLanguage: "Idioma de la app:", lblBirth: "Año de nacimiento (para la edad del reloj):",
+        btnSave: "Guardar ajustes", btnExport: "📤 Exportar respaldo (JSON)", btnImport: "📥 Importar respaldo (Restaurar)",
+        toastSaved: "¡Ajustes guardados correctamente!", toastExported: "¡Archivo JSON descargado!", toastImported: "¡Datos importados correctamente!", toastRestored: "¡Datos restaurados correctamente!",
+        invalidFile: "Formato de archivo no válido.", errRead: "Error al leer el archivo JSON.",
+        btnHide: "Ocultar", btnShow: "Mostrar (Restablecer)",
+        backupHint: "🟢 Exportar guarda todo — marcadores, tareas, eventos y días marcados del calendario, ajustes, notas &nbsp;·&nbsp; 🟠 Importar restaura todo desde un archivo",
+        contactTitle: "✉︎ Contáctanos", contactEmail: "Correo:",
+        holidaysTitle: "Días festivos oficiales", holidaysEnable: "Mostrar días festivos oficiales en el calendario",
+        holidayAuto: "Automático — según el idioma de la app", holidayIran: "Irán (sin conexión, lista curada)", holidayCustom: "Otro país (ingresa el código)",
+        holidayHintAuto: "Actualmente usa Irán cuando el idioma de la app es persa; en caso contrario, un país estimado según la configuración regional del sistema.",
+        holidayHintIran: "Usa la lista interna sin conexión de días festivos de Irán — no requiere red.",
+        holidayHintCustom: "Ingresa un código de país de 2 letras (ISO 3166-1, p. ej. US, DE, GB, FR). Se obtiene de una fuente pública internacional de días festivos.",
+        quotesTitle: "Citas de sabiduría diaria", religionSource: "Fuente del versículo espiritual", poetrySource: "Fuente de poesía y literatura",
+        religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabiduría budista e hindú)",
+        poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura occidental",
+        vaultLiveSaved: "✓ Guardado al instante — no hace falta pulsar «Guardar»"
       }
     };
 
     let currentLang = 'en';
 
     function applyTranslation() {
-      const t = i18nPopup[currentLang];
+      // اگر زبانی به هر دلیل هنوز دیکشنری کامل ندارد، به انگلیسی برمی‌گردیم — تا
+      // پاپ‌آپ هرگز به‌خاطر یک زبان ناقص کرش نکند (شبیه fallback خودِ t() در content.js)
+      const t = i18nPopup[currentLang] || i18nPopup.en;
       document.body.className = currentLang === 'fa' ? 'rtl' : '';
 
       document.getElementById('tab-core').textContent = t.tabCore;
@@ -52,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'es' ? "p. ej., 1990 o 1375" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
@@ -128,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateHolidayRegionHint() {
       const hint = document.getElementById('holiday-region-hint');
       if (!hint) return;
-      const t = i18nPopup[currentLang];
+      const t = i18nPopup[currentLang] || i18nPopup.en;
       const mode = holidayRegionSelect ? holidayRegionSelect.value : 'auto';
       hint.textContent = mode === 'IR' ? t.holidayHintIran : (mode === 'custom' ? t.holidayHintCustom : t.holidayHintAuto);
     }
@@ -179,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function flashVaultLiveHint() {
       const hint = document.getElementById('vault-live-hint');
       if (!hint) return;
-      hint.textContent = i18nPopup[currentLang].vaultLiveSaved;
+      hint.textContent = (i18nPopup[currentLang] || i18nPopup.en).vaultLiveSaved;
       hint.classList.add('show');
       if (vaultHintTimer) clearTimeout(vaultHintTimer);
       vaultHintTimer = setTimeout(() => hint.classList.remove('show'), 1800);
@@ -228,7 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
           quotePoetrySource: quotePoetrySelect ? quotePoetrySelect.value : 'rumi'
         };
         chrome.storage.local.set(localData, () => {
-          showToast(i18nPopup[currentLang].toastSaved);
+          showToast((i18nPopup[currentLang] || i18nPopup.en).toastSaved);
           broadcastRefresh();
         });
       });
@@ -308,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
           a.download = filename;
           a.click();
           URL.revokeObjectURL(url);
-          showToast(i18nPopup[currentLang].toastExported);
+          showToast((i18nPopup[currentLang] || i18nPopup.en).toastExported);
         });
       });
     });
@@ -320,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      const t = i18nPopup[currentLang];
+      const t = i18nPopup[currentLang] || i18nPopup.en;
       reader.onload = (event) => {
         try {
           const importedData = JSON.parse(event.target.result);
