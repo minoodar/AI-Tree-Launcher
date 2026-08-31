@@ -39,6 +39,11 @@ This release continues the evolution of the orbital workspace with native voice 
 2. Go to `chrome://extensions/` and enable **Developer mode**.
 3. Click **Load unpacked** and select the project folder.
 
+#### 💖 Support & Contribute
+As an independent AI developer based in war-torn Iran, maintaining and expanding this open-source project under challenging conditions relies heavily on community support. If you find this tool valuable, your contribution helps keep the code open and the project alive.
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **Iranian Rial (IRR):** [Donate via Donito](https://donito.me/u-b8wjr)
+
 ---
 
 ## 🇪🇸 Español
@@ -59,6 +64,11 @@ Esta versión continúa la evolución del espacio de trabajo orbital con interac
 1. Clona `minoodar/AI-Tree-Launcher` o descarga el ZIP.
 2. Ve a `chrome://extensions/` y activa el **Modo de desarrollador**.
 3. Haz clic en **Cargar extensión sin empaquetar** y selecciona la carpeta.
+
+#### 💖 Apoyo y Contribuciones
+Como desarrollador independiente de IA radicado en un Irán afectado por la guerra, mantener y expandir este proyecto de código abierto bajo condiciones difíciles depende en gran medida del apoyo de la comunidad. Si encuentras útil esta herramienta, tu contribución es fundamental para seguir adelante.
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **Rial Iraní (IRR):** [Donar vía Donito](https://donito.me/u-b8wjr)
 
 ---
 
@@ -81,6 +91,11 @@ Diese Version entwickelt den orbitalen Workspace mit nativer Sprachinteraktion, 
 2. Öffne `chrome://extensions/` und aktiviere den **Entwicklermodus**.
 3. Klicke auf **Entpackte Erweiterung laden** und wähle den Projektordner.
 
+#### 💖 Unterstützung & Beitrag
+Als unabhängiger KI-Entwickler im vom Krieg gezeichneten Iran bin ich bei der Pflege und Erweiterung dieses Open-Source-Projekts unter schwierigen Bedingungen stark auf die Unterstützung der Community angewiesen. Wenn Sie dieses Tool nützlich finden, hilft Ihr Beitrag dabei, den Code offen und das Projekt am Leben zu erhalten.
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **Iranischer Rial (IRR):** [Spenden via Donito](https://donito.me/u-b8wjr)
+
 ---
 
 ## 🇫🇷 Français
@@ -102,6 +117,11 @@ Cette version poursuit l’évolution de l’espace de travail orbital avec une 
 2. Allez sur `chrome://extensions/` et activez le **Mode développeur**.
 3. Cliquez sur **Charger l'extension non empaquetée** et sélectionnez le dossier.
 
+#### 💖 Soutien et Contribution
+En tant que développeur IA indépendant basé en Iran, un pays touché par la guerre, le maintien et le développement de ce projet open-source dans des conditions difficiles dépendent grandement du soutien de la communauté. Si vous trouvez cet outil utile, votre contribution est essentielle pour continuer à avancer.
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **Rial Iranien (IRR):** [Faire un don via Donito](https://donito.me/u-b8wjr)
+
 ---
 
 ## 🇯🇵 日本語 (Japanese)
@@ -122,6 +142,11 @@ Cette version poursuit l’évolution de l’espace de travail orbital avec une 
 1. `minoodar/AI-Tree-Launcher` をクローンするか、ZIP をダウンロードします。
 2. `chrome://extensions/` を開き、**デベロッパーモード** を有効にします。
 3. **パッケージ化されていない拡張機能を読み込む** をクリックし、フォルダを選択します。
+
+#### 💖 サポートと寄付
+戦争の影響を受けるイランを拠点とする独立したAI開発者として、厳しい条件下でこのオープンソースプロジェクトを維持・拡張することは、コミュニティのサポートに大きく依存しています。このツールが役立つと感じていただけた場合は、プロジェクトを継続するためのご支援をお願いいたします。
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **イラン・リアル (IRR):** [Donitoで寄付する](https://donito.me/u-b8wjr)
 
 ---
 
@@ -145,6 +170,11 @@ Cette version poursuit l’évolution de l’espace de travail orbital avec une 
 ۱. مخزن `minoodar/AI-Tree-Launcher` را کلون کرده یا ZIP آن را دانلود کنید.
 ۲. به آدرس `chrome://extensions/` رفته و حالت **Developer mode** را روشن کنید.
 ۳. روی دکمه **Load unpacked** کلیک کرده و پوشه پروژه را انتخاب کنید.
+
+#### 💖 حمایت و پشتیبانی
+به عنوان یک توسعه‌دهنده و فعال مستقل هوش مصنوعی در ایرانِ جنگ‌زده، نگهداری و توسعه مستمر این پروژه متن‌باز در شرایط دشوار کنونی، عمیقاً به حمایت جامعه کاربری وابسته است. در صورتی که این ابزار برای شما مفید واقع شده است، با حمایت خود به زنده ماندن این مسیر و باز ماندن سورس کدها کمک کنید.
+* **بیت‌کوین (شبکه BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **حمایت ریالی:** [پرداخت از طریق دونی‌تو](https://donito.me/u-b8wjr)
 
 </div>
 ```eof
