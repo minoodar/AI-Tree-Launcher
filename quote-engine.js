@@ -61,12 +61,18 @@ function aiCreateQuoteFeature(seed) {
 
 async function aiResolveActiveReligionKey() {
   const cfg = await chrome.storage.local.get(['quoteReligionSource']);
-  return AI_QUOTE_RELIGIONS[cfg.quoteReligionSource] ? cfg.quoteReligionSource : 'islam';
+  if (AI_QUOTE_RELIGIONS[cfg.quoteReligionSource]) return cfg.quoteReligionSource;
+  // پیش‌فرض (وقتی کاربر هنوز خودش انتخاب نکرده): برای فارسی همان اسلام/قرآن
+  // مثل قبل؛ برای بقیهٔ زبان‌ها فعلاً یک منبعِ اصالتاً انگلیسی (مسیحیت/انجیل
+  // لوقا) تا راه‌حلِ چندزبانهٔ نهاییِ گنجینه طراحی شود
+  return currentLang === 'fa' ? 'islam' : 'christianity';
 }
 
 async function aiResolveActivePoetryKey() {
   const cfg = await chrome.storage.local.get(['quotePoetrySource']);
-  return AI_QUOTE_POETRY[cfg.quotePoetrySource] ? cfg.quotePoetrySource : 'rumi';
+  if (AI_QUOTE_POETRY[cfg.quotePoetrySource]) return cfg.quotePoetrySource;
+  // همان منطق: فارسی → مولانا (مثل قبل)، بقیهٔ زبان‌ها → ادبیات غرب (انگلیسی)
+  return currentLang === 'fa' ? 'rumi' : 'western';
 }
 
 const AITreeQuoteEngine = {

@@ -95,6 +95,25 @@ document.addEventListener('DOMContentLoaded', () => {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaïsme", religionChristianity: "✝️ Christianisme", religionEastern: "☸️ Orientale (sagesse bouddhiste et hindoue)",
         poetryRumi: "🌙 Rûmî", poetryWestern: "🖋️ Littérature occidentale",
         vaultLiveSaved: "✓ Enregistré instantanément — pas besoin de cliquer sur « Enregistrer »"
+      },
+      ja: {
+        tabCore: "⚙️ 全般", tabBackup: "🛡️ バックアップ", tabVault: "✨ ヴォールト",
+        lblLanguage: "アプリの言語:", lblBirth: "生年（時計の年齢表示用）:",
+        btnSave: "設定を保存", btnExport: "📤 バックアップを書き出す（JSON）", btnImport: "📥 バックアップを読み込む（復元）",
+        toastSaved: "設定を保存しました！", toastExported: "JSONファイルをダウンロードしました！", toastImported: "データを読み込みました！", toastRestored: "データを復元しました！",
+        invalidFile: "無効なファイル形式です。", errRead: "JSONファイルの読み込みに失敗しました。",
+        btnHide: "非表示", btnShow: "表示する（リセット）",
+        backupHint: "🟢 書き出しはすべて保存します — ブックマーク、タスク、カレンダーの予定と記念日、設定、メモ &nbsp;·&nbsp; 🟠 読み込みはファイルからすべて復元します",
+        contactTitle: "✉︎ お問い合わせ", contactEmail: "メール:",
+        holidaysTitle: "公式の祝日", holidaysEnable: "カレンダーに公式の祝日を表示",
+        holidayAuto: "自動 — アプリの言語に従う", holidayIran: "イラン（オフライン、精選リスト）", holidayCustom: "他の国（コードを入力）",
+        holidayHintAuto: "アプリの言語がペルシャ語の場合は現在イランを使用し、それ以外はシステムの地域設定から推定した国を使用します。",
+        holidayHintIran: "内蔵のオフライン・イラン祝日リストを使用します — ネット接続は不要です。",
+        holidayHintCustom: "2文字の国コードを入力してください（ISO 3166-1、例：US、DE、GB、FR）。公開の国際祝日ソースから取得します。",
+        quotesTitle: "毎日の名言・格言", religionSource: "宗教的な一節のソース", poetrySource: "詩・文学のソース",
+        religionIslam: "☪️ イスラム教", religionJudaism: "✡️ ユダヤ教", religionChristianity: "✝️ キリスト教", religionEastern: "☸️ 東洋（仏教・ヒンドゥーの知恵）",
+        poetryRumi: "🌙 ルーミー", poetryWestern: "🖋️ 西洋文学",
+        vaultLiveSaved: "✓ 即座に保存されました — 「保存」を押す必要はありません"
       }
     };
 
@@ -111,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
