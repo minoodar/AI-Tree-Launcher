@@ -1107,10 +1107,9 @@
       
       const ageEl = document.getElementById('ai-age'); const journeyEl = document.getElementById('ai-life-journey'); const journeyCaption = document.getElementById('ai-life-caption');
       const journeyStart = document.getElementById('ai-life-start'); const journeyNow = document.getElementById('ai-life-now-label'); const clockKicker = document.getElementById('ai-clock-kicker-text');
-      const isPersian = currentLang === 'fa';
-      if (clockKicker) clockKicker.textContent = isPersian ? 'اکنون' : 'THE PRESENT';
-      if (journeyStart) journeyStart.textContent = isPersian ? 'آغاز' : 'ORIGIN';
-      if (journeyNow) journeyNow.textContent = isPersian ? 'اکنون' : 'NOW';
+      if (clockKicker) clockKicker.textContent = t('presentLabel');
+      if (journeyStart) journeyStart.textContent = t('originLabel');
+      if (journeyNow) journeyNow.textContent = t('nowLabel');
       if (userBirthYear && !isNaN(userBirthYear)) {
           let currentYear = now.getFullYear(); 
           if (userBirthYear < 1500) { const jYearStr = new Intl.DateTimeFormat('en-US-u-ca-persian', {year: 'numeric'}).format(now); currentYear = parseInt(jYearStr.replace(/\D/g, ''), 10); }
@@ -1119,7 +1118,7 @@
          if (journeyEl && journeyCaption) {
              const progress = Math.max(7, Math.min(93, (age / 100) * 100));
              journeyEl.style.setProperty('--life-progress', `${progress}%`);
-             journeyCaption.textContent = isPersian ? `${age} سال در مسیرِ اکنون` : `${age} years into your journey`;
+             journeyCaption.textContent = t('journeyCaption').replace('{age}', age);
              journeyEl.style.display = 'block';
          }
       } else {

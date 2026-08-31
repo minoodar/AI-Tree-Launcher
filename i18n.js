@@ -78,6 +78,10 @@ const i18n = {
     dockMethodCopy: "Copy & paste",
     calcError: "Error",
     ageLabel: "Age: {age} Years",
+    presentLabel: "THE PRESENT",
+    originLabel: "ORIGIN",
+    nowLabel: "NOW",
+    journeyCaption: "{age} years into your journey",
     toastCleared: "Cleared & closed.",
     toastCopied: "Copied!",
     toastDownloaded: "TXT Downloaded!",
@@ -304,6 +308,10 @@ const i18n = {
     dockMethodCopy: "کپی و سپس پیست",
     calcError: "خطا",
     ageLabel: "سن: {age} سال",
+    presentLabel: "اکنون",
+    originLabel: "آغاز",
+    nowLabel: "اکنون",
+    journeyCaption: "{age} سال در مسیرِ اکنون",
     toastCleared: "پاک و بسته شد.",
     toastCopied: "کپی شد!",
     toastDownloaded: "فایل متنی دانلود شد!",
@@ -453,10 +461,16 @@ const i18n = {
     toastTtsStopped: "متوقف شد"
   },
   es: {
-    // === Paso 1: solo tooltips, calendario, búsqueda y tareas (todo) ===
-    // Todo lo demás (notas, formulario de marcadores, categorías, bóveda de
-    // citas, etc.) aún no está traducido — t() recurre automáticamente al
-    // inglés para esas claves hasta que se traduzcan en un paso posterior.
+    // === Paso 2: tooltips, calendario, búsqueda, tareas (todo) y los
+    // botones clave del bloc de notas (Preguntar IA / Borrar-Cerrar / Copiar /
+    // Compartir). El resto del bloc de notas (formulario de marcadores,
+    // categorías, bóveda de citas, etc.) aún no está traducido — t() recurre
+    // automáticamente al inglés para esas claves hasta un paso posterior.
+    noteClearBtn: "Borrar / Cerrar",
+    noteCopyBtn: "Copiar",
+    noteAskBtn: "✨ Preguntar a la IA",
+    shareBtn: "Compartir",
+
     todoTitle: "📝 Lista de tareas",
     todoPending: "Pendiente",
     todoGoalPending: "En progreso",
@@ -517,6 +531,10 @@ const i18n = {
     markTodayLine: "🎉 Hoy: {label}",
     markUpcomingLine: "📌 {label} — en {days}d",
     ageLabel: "Edad: {age} años",
+    presentLabel: "EL PRESENTE",
+    originLabel: "ORIGEN",
+    nowLabel: "AHORA",
+    journeyCaption: "{age} años en tu camino",
 
     undoTitle: "Recuperar",
     undoAria: "Recuperar el último elemento o restaurar el lanzador",
@@ -528,10 +546,16 @@ const i18n = {
     noteTitle: "Bloc de notas e IA"
   },
   de: {
-    // === Schritt 2: nur Tooltips, Kalender, Suche und Aufgaben (todo) ===
-    // Alles andere (Notizen, Lesezeichen-Formular, Kategorien, Zitat-Schatzkammer
-    // usw.) ist noch nicht übersetzt — t() fällt für diese Schlüssel automatisch
-    // auf Englisch zurück, bis sie in einem späteren Schritt übersetzt werden.
+    // === Schritt 5: Tooltips, Kalender, Suche, Aufgaben (todo) und die
+    // wichtigsten Notizblock-Schaltflächen (KI fragen / Löschen-Schließen /
+    // Kopieren / Teilen). Der Rest des Notizblocks (Lesezeichen-Formular,
+    // Kategorien, Zitat-Schatzkammer usw.) ist noch nicht übersetzt — t()
+    // fällt für diese Schlüssel automatisch auf Englisch zurück.
+    noteClearBtn: "Löschen / Schließen",
+    noteCopyBtn: "Kopieren",
+    noteAskBtn: "✨ KI fragen",
+    shareBtn: "Teilen",
+
     todoTitle: "📝 Aufgabenliste",
     todoPending: "Ausstehend",
     todoGoalPending: "In Bearbeitung",
@@ -592,6 +616,10 @@ const i18n = {
     markTodayLine: "🎉 Heute: {label}",
     markUpcomingLine: "📌 {label} — in {days} Tagen",
     ageLabel: "Alter: {age} Jahre",
+    presentLabel: "DIE GEGENWART",
+    originLabel: "URSPRUNG",
+    nowLabel: "JETZT",
+    journeyCaption: "{age} Jahre auf deiner Reise",
 
     undoTitle: "Wiederherstellen",
     undoAria: "Letztes Element wiederherstellen oder Launcher wiederherstellen",
@@ -603,10 +631,16 @@ const i18n = {
     noteTitle: "Notizblock & KI"
   },
   fr: {
-    // === Étape 3 : uniquement infobulles, calendrier, recherche et tâches (todo) ===
-    // Tout le reste (notes, formulaire de favoris, catégories, coffre de citations,
-    // etc.) n'est pas encore traduit — t() revient automatiquement à l'anglais
-    // pour ces clés jusqu'à ce qu'elles soient traduites lors d'une étape future.
+    // === Étape 5 : infobulles, calendrier, recherche, tâches (todo) et les
+    // boutons clés du bloc-notes (Demander à l'IA / Effacer-Fermer / Copier /
+    // Partager). Le reste du bloc-notes (formulaire de favoris, catégories,
+    // coffre de citations, etc.) n'est pas encore traduit — t() revient
+    // automatiquement à l'anglais pour ces clés.
+    noteClearBtn: "Effacer / Fermer",
+    noteCopyBtn: "Copier",
+    noteAskBtn: "✨ Demander à l'IA",
+    shareBtn: "Partager",
+
     todoTitle: "📝 Liste de tâches",
     todoPending: "En attente",
     todoGoalPending: "En cours",
@@ -667,6 +701,10 @@ const i18n = {
     markTodayLine: "🎉 Aujourd'hui : {label}",
     markUpcomingLine: "📌 {label} — dans {days}j",
     ageLabel: "Âge : {age} ans",
+    presentLabel: "LE PRÉSENT",
+    originLabel: "ORIGINE",
+    nowLabel: "MAINTENANT",
+    journeyCaption: "{age} ans dans ton parcours",
 
     undoTitle: "Restaurer",
     undoAria: "Restaurer le dernier élément ou réinitialiser le lanceur",
@@ -678,10 +716,16 @@ const i18n = {
     noteTitle: "Bloc-notes et IA"
   },
   ja: {
-    // === ステップ4: ツールチップ、カレンダー、検索、タスク(todo)のみ ===
-    // それ以外（メモ、ブックマークフォーム、カテゴリー、名言コレクションなど）は
-    // まだ翻訳されていません — t() はこれらのキーについて、後のステップで
-    // 翻訳されるまで自動的に英語にフォールバックします。
+    // === ステップ6: ツールチップ、カレンダー、検索、タスク(todo)に加えて、
+    // メモ帳の主要ボタン（AIに聞く／消去・閉じる／コピー／共有）まで翻訳。
+    // メモ帳のそれ以外の部分（ブックマークフォーム、カテゴリー、名言コレクション
+    // など）はまだ未翻訳です — t() はこれらのキーについて自動的に英語に
+    // フォールバックします。
+    noteClearBtn: "消去 / 閉じる",
+    noteCopyBtn: "コピー",
+    noteAskBtn: "✨ AIに聞く",
+    shareBtn: "共有",
+
     todoTitle: "📝 To-Doリスト",
     todoPending: "未完了",
     todoGoalPending: "進行中",
@@ -742,6 +786,10 @@ const i18n = {
     markTodayLine: "🎉 今日：{label}",
     markUpcomingLine: "📌 {label} — あと{days}日",
     ageLabel: "年齢：{age}歳",
+    presentLabel: "現在",
+    originLabel: "起点",
+    nowLabel: "今",
+    journeyCaption: "旅路の中で{age}年",
 
     undoTitle: "元に戻す",
     undoAria: "最後の項目を復元、またはランチャーを復元",
