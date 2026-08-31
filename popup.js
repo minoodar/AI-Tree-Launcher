@@ -76,6 +76,25 @@ document.addEventListener('DOMContentLoaded', () => {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judentum", religionChristianity: "✝️ Christentum", religionEastern: "☸️ Östlich (buddhistische & hinduistische Weisheit)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Westliche Literatur",
         vaultLiveSaved: "✓ Sofort gespeichert — kein Klick auf „Speichern” nötig"
+      },
+      fr: {
+        tabCore: "⚙️ Général", tabBackup: "🛡️ Sauvegarde", tabVault: "✨ Coffre",
+        lblLanguage: "Langue de l'application :", lblBirth: "Année de naissance (pour l'âge de l'horloge) :",
+        btnSave: "Enregistrer les paramètres", btnExport: "📤 Exporter la sauvegarde (JSON)", btnImport: "📥 Importer une sauvegarde (Restaurer)",
+        toastSaved: "Paramètres enregistrés avec succès !", toastExported: "Fichier JSON téléchargé !", toastImported: "Données importées avec succès !", toastRestored: "Données restaurées avec succès !",
+        invalidFile: "Format de fichier invalide.", errRead: "Erreur lors de la lecture du fichier JSON.",
+        btnHide: "Masquer", btnShow: "Afficher (Réinitialiser)",
+        backupHint: "🟢 L'export sauvegarde tout — favoris, tâches, événements et jours marqués du calendrier, paramètres, notes &nbsp;·&nbsp; 🟠 L'import restaure tout depuis un fichier",
+        contactTitle: "✉︎ Nous contacter", contactEmail: "E-mail :",
+        holidaysTitle: "Jours fériés officiels", holidaysEnable: "Afficher les jours fériés officiels sur le calendrier",
+        holidayAuto: "Automatique — selon la langue de l'application", holidayIran: "Iran (hors ligne, liste sélectionnée)", holidayCustom: "Autre pays (saisir le code)",
+        holidayHintAuto: "Utilise actuellement l'Iran lorsque la langue de l'application est le persan, sinon un pays estimé d'après les paramètres régionaux du système.",
+        holidayHintIran: "Utilise la liste hors ligne intégrée des jours fériés iraniens — aucune connexion requise.",
+        holidayHintCustom: "Saisissez un code pays à 2 lettres (ISO 3166-1, p. ex. US, DE, GB, FR). Récupéré depuis une source internationale publique de jours fériés.",
+        quotesTitle: "Citations de sagesse quotidiennes", religionSource: "Source du verset spirituel", poetrySource: "Source de poésie et littérature",
+        religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaïsme", religionChristianity: "✝️ Christianisme", religionEastern: "☸️ Orientale (sagesse bouddhiste et hindoue)",
+        poetryRumi: "🌙 Rûmî", poetryWestern: "🖋️ Littérature occidentale",
+        vaultLiveSaved: "✓ Enregistré instantanément — pas besoin de cliquer sur « Enregistrer »"
       }
     };
 
@@ -92,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
