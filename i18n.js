@@ -260,7 +260,18 @@ const i18n = {
     pinClosingTitle: "Closing…",
     synonymsPopoverTitle: "Suggested Synonyms",
     synonymChipTitle: "Hover to preview, click to commit",
-    synonymFooter: "Hover over words to preview them; click to commit"
+    synonymFooter: "Hover over words to preview them; click to commit",
+    // === Standalone notepad tab (notepad.html/notepad.js) — layer 1 items
+    // unique to that page; everything else it needs already exists above
+    // and is reused directly (noteCopyBtn, noteTranslateTitle, etc.) ===
+    notepadPageTitle: "NOTEPAD",
+    notepadPageSubtitle: "Synced live with the AI Tree Launcher widget on your pages",
+    notepadClearBtn: "Clear",
+    notepadSaveBtn: "Save as .txt",
+    notepadBackBtn: "Back to widget",
+    notepadPromptsBtn: "Prompts",
+    notepadSendBtn: "Send",
+    notepadToastCleared: "Cleared"
   },
   fa: {
     todoTitle: "📝 کارهای روزانه",
@@ -516,7 +527,15 @@ const i18n = {
     pinClosingTitle: "در حال بستن…",
     synonymsPopoverTitle: "مترادف‌های پیشنهادی",
     synonymChipTitle: "برای پیش‌نمایش موس را روی کلمه ببرید، برای ثبت کلیک کنید",
-    synonymFooter: "موس را روی کلمات ببرید تا پیش‌نمایش ببینید؛ برای ثبت نهایی کلیک کنید"
+    synonymFooter: "موس را روی کلمات ببرید تا پیش‌نمایش ببینید؛ برای ثبت نهایی کلیک کنید",
+    notepadPageTitle: "دفترچه یادداشت",
+    notepadPageSubtitle: "به‌صورت زنده با ویجت AI Tree Launcher روی صفحات هماهنگ است",
+    notepadClearBtn: "پاک کردن",
+    notepadSaveBtn: "ذخیره به‌صورت txt.",
+    notepadBackBtn: "بازگشت به ویجت",
+    notepadPromptsBtn: "پرامپت‌ها",
+    notepadSendBtn: "ارسال",
+    notepadToastCleared: "پاک شد"
   },
   ar: {
     todoTitle: "📝 قائمة المهام",
@@ -772,7 +791,15 @@ const i18n = {
     pinClosingTitle: "جارٍ الإغلاق…",
     synonymsPopoverTitle: "مرادفات مقترحة",
     synonymChipTitle: "مرّر المؤشر للمعاينة، وانقر للاعتماد",
-    synonymFooter: "مرّر المؤشر فوق الكلمات لمعاينتها؛ انقر للاعتماد النهائي"
+    synonymFooter: "مرّر المؤشر فوق الكلمات لمعاينتها؛ انقر للاعتماد النهائي",
+    notepadPageTitle: "المفكرة",
+    notepadPageSubtitle: "متزامنة مباشرةً مع أداة AI Tree Launcher على صفحاتك",
+    notepadClearBtn: "مسح",
+    notepadSaveBtn: "حفظ كملف txt.",
+    notepadBackBtn: "العودة إلى الأداة",
+    notepadPromptsBtn: "الموجّهات",
+    notepadSendBtn: "إرسال",
+    notepadToastCleared: "تم المسح"
   },
   es: {
     // === Paso 2: tooltips, calendario, búsqueda, tareas (todo) y los
@@ -1129,3 +1156,18 @@ const i18n = {
 };
 
 function t(key) { return i18n[currentLang] && i18n[currentLang][key] ? i18n[currentLang][key] : i18n['en'][key]; }
+
+// === Shared RTL/digit helpers ===
+// Canonical location for these — content.js and notepad.js both load this
+// file, so neither should keep its own copy. Persian and Arabic both read
+// right-to-left and both have their own digit glyphs, so any code that used
+// to test `currentLang === 'fa'` for direction/digits should go through
+// these two helpers instead of hardcoding 'fa'.
+function isRTL(lang) { return lang === 'fa' || lang === 'ar'; }
+function toPersianDigits(str) { return String(str).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+function toArabicDigits(str) { return String(str).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
+function localizeDigits(str) {
+  if (currentLang === 'fa') return toPersianDigits(str);
+  if (currentLang === 'ar') return toArabicDigits(str);
+  return String(str);
+}

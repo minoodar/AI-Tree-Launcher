@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const i18nPopup = {
+const i18nPopup = {
       en: {
         tabCore: "⚙️ Core", tabBackup: "🛡️ Backup", tabVault: "✨ Vault",
         lblLanguage: "App Language:", lblBirth: "Birth Year (for Clock Age):",
@@ -38,6 +38,25 @@ document.addEventListener('DOMContentLoaded', () => {
         religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
         poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب",
         vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست"
+      },
+      ar: {
+        tabCore: "⚙️ النواة", tabBackup: "🛡️ النسخ الاحتياطي", tabVault: "✨ الخزنة",
+        lblLanguage: "لغة الإضافة:", lblBirth: "سنة الميلاد (لحساب العمر):",
+        btnSave: "حفظ الإعدادات", btnExport: "📤 تصدير نسخة احتياطية (JSON)", btnImport: "📥 استيراد نسخة احتياطية (استعادة)",
+        toastSaved: "تم حفظ الإعدادات بنجاح!", toastExported: "تم تنزيل ملف JSON!", toastImported: "تم استيراد البيانات بنجاح!", toastRestored: "تمت استعادة البيانات بنجاح!",
+        invalidFile: "تنسيق الملف غير صالح.", errRead: "خطأ في قراءة ملف JSON.",
+        btnHide: "إخفاء", btnShow: "إظهار (إعادة تعيين)",
+        backupHint: "🟢 التصدير يحفظ كل شيء — العلامات المرجعية، المهام، أحداث التقويم، الإعدادات، المفكرة &nbsp;·&nbsp; 🟠 الاستيراد يستعيد كل شيء من ملف",
+        contactTitle: "✉︎ اتصل بنا", contactEmail: "البريد الإلكتروني:",
+        holidaysTitle: "العطلات الرسمية", holidaysEnable: "إظهار العطلات الرسمية على التقويم",
+        holidayAuto: "تلقائي — حسب لغة التطبيق", holidayIran: "إيران (بدون إنترنت، قائمة دقيقة)", holidayCustom: "دولة أخرى (أدخل الرمز)",
+        holidayHintAuto: "يستخدم إيران حاليًا عندما تكون لغة التطبيق فارسية، وإلا يتم تقدير الدولة بناءً على إعدادات النظام.",
+        holidayHintIran: "يستخدم القائمة المدمجة للعطلات الإيرانية بدون إنترنت — لا يحتاج لاتصال.",
+        holidayHintCustom: "أدخل رمز الدولة المكون من حرفين (ISO 3166-1، مثل US، DE، GB، FR). يتم جلبه من مصدر دولي عام للعطلات.",
+        quotesTitle: "اقتباسات الحكمة اليومية", religionSource: "مصدر الآيات الروحانية", poetrySource: "مصدر الشعر والأدب",
+        religionIslam: "☪️ الإسلام", religionJudaism: "✡️ اليهودية", religionChristianity: "✝️ المسيحية", religionEastern: "☸️ الشرق (الحكمة البوذية والهندوسية)",
+        poetryRumi: "🌙 جلال الدين الرومي", poetryWestern: "🖋️ الأدب الغربي",
+        vaultLiveSaved: "✓ تم الحفظ فوراً — لا حاجة للضغط على «حفظ الإعدادات»"
       },
       es: {
         tabCore: "⚙️ Principal", tabBackup: "🛡️ Respaldo", tabVault: "✨ Bóveda",

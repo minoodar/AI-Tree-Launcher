@@ -1,70 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const i18n = {
-    en: {
-      title: 'NOTEPAD', subtitle: 'Synced live with the AI Tree Launcher widget on your pages',
-      clear: 'Clear', copy: 'Copy', save: 'Save as .txt', back: 'Back to widget',
-      prompts: 'Prompts', send: 'Send',
-      tokenEmpty: '0 chars · 0 tokens', tokenMeter: '{chars} chars · {tokens} tokens',
-      toastCopied: 'Copied!', toastCleared: 'Cleared', toastDownloaded: 'Downloaded!',
-      toastEmptyPrompt: 'Write something first', toastSaved: 'Saved', toastDeleted: 'Deleted',
-      toastLimit: 'Custom prompt limit reached (12)', toastNeedFields: 'Title and text are required',
-      dockOpenedFilled: 'Opened {name} with your prompt', dockCopiedOpen: 'Copied — paste it into {name}',
-      tplNew: 'New prompt', tplEdit: 'Edit prompt', tplNamePh: 'Title', tplBodyPh: 'Prompt text…',
-      tplAdd: 'Add prompt', tplEditMode: 'Edit prompts', tplDoneMode: 'Done editing',
-      translate: 'Translate', translateTitle: 'Translate note (FA ↔ EN, auto-detect)',
-      toastTranslated: 'Translated 🌐', toastTranslateFail: 'Translation failed',
-      toastTranslateBusy: 'Translating…', toastTranslateLong: 'Text is too long (max ~4500 chars)',
-      spellcheck: 'Spell check', spellcheckTitle: 'Clean & Spell Check (FA/EN)',
-      toastSpellcheckBusy: 'Checking English grammar…',
-      toastSpellcheckNone: 'No grammar errors found! ✨',
-      toastSpellcheckFixed: '{n} English error(s) fixed! 🧹',
-      toastSpellcheckNoSuggest: 'No suggestions found.',
-      toastSpellcheckFail: 'Server error',
-      toastSpellcheckLong: 'Text is too long for spell-check',
-      toastSpellcheckFaFixed: 'Persian formatting fixed! 🧹',
-      toastSpellcheckFaClean: 'Text is already tidy! ✨',
-      speak: 'Speak', speakTitle: 'Read note aloud', speakStopTitle: 'Stop reading',
-      toastSpeakUnsupported: 'Read-aloud is not supported in this browser',
-      toastSpeakStopped: 'Stopped',
-      emojiOnline: 'Online vault', emojiOnlineTitle: 'Online emoji vault',
-      emojiOnlineSearch: 'Search… fire, heart, book',
-      emojiOnlineLoading: 'Loading vault…', emojiOnlineEmpty: 'No emoji found',
-      emojiOnlineError: 'Could not load online emojis'
-    },
-    fa: {
-      title: 'دفترچه یادداشت', subtitle: 'به‌صورت زنده با ویجت AI Tree Launcher روی صفحات هماهنگ است',
-      clear: 'پاک کردن', copy: 'کپی', save: 'ذخیره به‌صورت txt.', back: 'بازگشت به ویجت',
-      prompts: 'پرامپت‌ها', send: 'ارسال',
-      tokenEmpty: '۰ کاراکتر · ۰ توکن', tokenMeter: '{chars} کاراکتر · {tokens} توکن',
-      toastCopied: 'کپی شد!', toastCleared: 'پاک شد', toastDownloaded: 'دانلود شد!',
-      toastEmptyPrompt: 'اول چیزی بنویسید', toastSaved: 'ذخیره شد', toastDeleted: 'حذف شد',
-      toastLimit: 'به سقف ۱۲ پرامپت سفارشی رسیدید', toastNeedFields: 'عنوان و متن هر دو لازم است',
-      dockOpenedFilled: '{name} با پرامپت شما باز شد', dockCopiedOpen: 'کپی شد — در {name} پیست کنید',
-      tplNew: 'پرامپت جدید', tplEdit: 'ویرایش پرامپت', tplNamePh: 'عنوان', tplBodyPh: 'متن پرامپت…',
-      tplAdd: 'افزودن پرامپت', tplEditMode: 'ویرایش پرامپت‌ها', tplDoneMode: 'پایان ویرایش',
-      translate: 'ترجمه', translateTitle: 'ترجمه یادداشت (خودکار فارسی ↔ انگلیسی)',
-      toastTranslated: 'ترجمه شد 🌐', toastTranslateFail: 'ترجمه ناموفق بود',
-      toastTranslateBusy: 'در حال ترجمه…', toastTranslateLong: 'متن خیلی بلند است (حداکثر حدود ۴۵۰۰ نویسه)',
-      spellcheck: 'غلط‌یابی', spellcheckTitle: 'پاک‌سازی و غلط‌یابی (فارسی/انگلیسی)',
-      toastSpellcheckBusy: 'در حال بررسی گرامر انگلیسی…',
-      toastSpellcheckNone: 'غلط املایی یا گرامری یافت نشد! ✨',
-      toastSpellcheckFixed: '{n} خطای انگلیسی اصلاح شد! 🧹',
-      toastSpellcheckNoSuggest: 'پیشنهادی برای اصلاح یافت نشد.',
-      toastSpellcheckFail: 'خطا در ارتباط با سرور',
-      toastSpellcheckLong: 'متن برای غلط‌یابی خیلی بلند است',
-      toastSpellcheckFaFixed: 'نیم‌فاصله‌ها و علائم اصلاح شدند! 🧹',
-      toastSpellcheckFaClean: 'متن شما از قبل مرتب است! ✨',
-      speak: 'خواندن', speakTitle: 'خواندن یادداشت با صدا', speakStopTitle: 'توقف خواندن',
-      toastSpeakUnsupported: 'خواندن با صدا در این مرورگر پشتیبانی نمی‌شود',
-      toastSpeakStopped: 'متوقف شد',
-      emojiOnline: 'گنجینه آنلاین', emojiOnlineTitle: 'گنجینه آنلاین ایموجی',
-      emojiOnlineSearch: 'جستجو… آتش، قلب، کتاب',
-      emojiOnlineLoading: 'در حال بارگذاری…', emojiOnlineEmpty: 'ایموجی یافت نشد',
-      emojiOnlineError: 'بارگذاری آنلاین ناموفق بود'
-    }
-  };
-  let lang = 'en';
-  function t(key) { return (i18n[lang] && i18n[lang][key]) || i18n.en[key] || key; }
+  // i18n dictionary, t(), and currentLang now come from the shared i18n.js
+  // (loaded as a separate <script> before this file in notepad.html) —
+  // this used to be a private duplicate dictionary with only en/fa; using
+  // the shared one gives this standalone tab the same 7-language coverage
+  // as the main widget, with no dictionary to keep in sync by hand.
+
 
   const els = {
     title: document.getElementById('title'),
@@ -110,30 +50,30 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function applyTranslation() {
-    document.body.className = lang === 'fa' ? 'rtl' : '';
-    els.title.textContent = t('title');
-    els.subtitle.textContent = t('subtitle');
-    els.clearBtn.textContent = t('clear');
-    els.copyBtn.textContent = t('copy');
-    els.saveBtn.textContent = t('save');
-    els.backLabel.textContent = t('back');
-    els.promptsToggleLabel.textContent = t('prompts');
-    els.sendLabel.textContent = t('send');
+    document.body.className = isRTL(currentLang) ? 'rtl' : '';
+    els.title.textContent = t('notepadPageTitle');
+    els.subtitle.textContent = t('notepadPageSubtitle');
+    els.clearBtn.textContent = t('notepadClearBtn');
+    els.copyBtn.textContent = t('noteCopyBtn');
+    els.saveBtn.textContent = t('notepadSaveBtn');
+    els.backLabel.textContent = t('notepadBackBtn');
+    els.promptsToggleLabel.textContent = t('notepadPromptsBtn');
+    els.sendLabel.textContent = t('notepadSendBtn');
     if (els.translateBtn) {
-      els.translateBtn.title = t('translateTitle');
-      els.translateBtn.setAttribute('aria-label', t('translateTitle'));
+      els.translateBtn.title = t('noteTranslateTitle');
+      els.translateBtn.setAttribute('aria-label', t('noteTranslateTitle'));
     }
     if (els.spellcheckBtn) {
-      els.spellcheckBtn.title = t('spellcheckTitle');
-      els.spellcheckBtn.setAttribute('aria-label', t('spellcheckTitle'));
+      els.spellcheckBtn.title = t('noteSpellcheckTitle');
+      els.spellcheckBtn.setAttribute('aria-label', t('noteSpellcheckTitle'));
     }
     if (els.speakBtn) {
-      els.speakBtn.title = t('speakTitle');
-      els.speakBtn.setAttribute('aria-label', t('speakTitle'));
+      els.speakBtn.title = t('noteTtsTitle');
+      els.speakBtn.setAttribute('aria-label', t('noteTtsTitle'));
     }
     if (els.emojiOnlineBtn) {
-      els.emojiOnlineBtn.title = t('emojiOnline');
-      els.emojiOnlineBtn.setAttribute('aria-label', t('emojiOnline'));
+      els.emojiOnlineBtn.title = t('emojiOnlineBtn');
+      els.emojiOnlineBtn.setAttribute('aria-label', t('emojiOnlineBtn'));
     }
     if (els.emojiOnlineTitle) els.emojiOnlineTitle.textContent = t('emojiOnlineTitle');
     if (els.emojiOnlineSearch) els.emojiOnlineSearch.placeholder = t('emojiOnlineSearch');
@@ -156,8 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateTokenMeter() {
     const text = els.textarea.value;
-    if (!text.trim()) { els.tokenMeter.textContent = t('tokenEmpty'); return; }
-    els.tokenMeter.textContent = t('tokenMeter')
+    if (!text.trim()) { els.tokenMeter.textContent = t('noteTokenEmpty'); return; }
+    els.tokenMeter.textContent = t('noteTokenMeter')
       .replace('{chars}', String(text.length))
       .replace('{tokens}', String(estimateTokens(text)));
   }
@@ -210,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     els.textarea.value = '';
     updateTokenMeter();
     try { chrome.storage.local.set({ savedPromptDraft: '' }); } catch (e) {}
-    showToast(t('toastCleared'));
+    showToast(t('notepadToastCleared'));
   });
 
   els.copyBtn.addEventListener('click', () => {
@@ -303,9 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
     addBtn.type = 'button';
     addBtn.className = 'tpl-action';
     addBtn.textContent = '+';
-    addBtn.title = t('tplAdd');
+    addBtn.title = t('noteTplAdd');
     addBtn.addEventListener('click', () => {
-      if (customPrompts.length >= CUSTOM_PROMPT_MAX) { showToast(t('toastLimit')); return; }
+      if (customPrompts.length >= CUSTOM_PROMPT_MAX) { showToast(t('noteTplToastLimit')); return; }
       openTplModal(null);
     });
     els.promptsBar.appendChild(addBtn);
@@ -313,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editBtn.type = 'button';
     editBtn.className = 'tpl-action' + (tplEditMode ? ' is-active' : '');
     editBtn.textContent = tplEditMode ? '✓' : '✎';
-    editBtn.title = tplEditMode ? t('tplDoneMode') : t('tplEditMode');
+    editBtn.title = tplEditMode ? t('noteTplDone') : t('noteTplEdit');
     editBtn.addEventListener('click', () => { tplEditMode = !tplEditMode; renderPrompts(); });
     els.promptsBar.appendChild(editBtn);
   }
@@ -321,9 +261,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function openTplModal(promptOrNull) {
     tplEditingId = promptOrNull ? promptOrNull.id : null;
     tplEditingBuiltIn = !!(promptOrNull && promptOrNull.builtIn);
-    els.tplModalTitle.textContent = promptOrNull ? t('tplEdit') : t('tplNew');
-    els.tplModalName.placeholder = t('tplNamePh');
-    els.tplModalBody.placeholder = t('tplBodyPh');
+    els.tplModalTitle.textContent = promptOrNull ? t('noteTplFormTitleEdit') : t('noteTplFormTitleNew');
+    els.tplModalName.placeholder = t('noteTplFormName');
+    els.tplModalBody.placeholder = t('noteTplFormBody');
     els.tplModalName.value = promptOrNull ? (promptOrNull.title || '') : '';
     els.tplModalBody.value = promptOrNull ? (promptOrNull.text || '') : '';
     els.tplModalDelete.style.display = promptOrNull ? '' : 'none';
@@ -336,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
   els.tplModalSave.addEventListener('click', () => {
     const title = (els.tplModalName.value || '').trim().slice(0, 40);
     const body = (els.tplModalBody.value || '').trim();
-    if (!title || !body) { showToast(t('toastNeedFields')); return; }
+    if (!title || !body) { showToast(t('noteTplToastNeedFields')); return; }
     if (tplEditingId && tplEditingBuiltIn) {
       promptOverrides[tplEditingId] = { title, text: body };
       savePromptOverrides();
@@ -346,13 +286,13 @@ document.addEventListener('DOMContentLoaded', () => {
       else customPrompts.push({ id: tplEditingId, title, text: body });
       saveCustomPrompts();
     } else {
-      if (customPrompts.length >= CUSTOM_PROMPT_MAX) { showToast(t('toastLimit')); return; }
+      if (customPrompts.length >= CUSTOM_PROMPT_MAX) { showToast(t('noteTplToastLimit')); return; }
       customPrompts.push({ id: 'c-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), title, text: body });
       saveCustomPrompts();
     }
     closeTplModal();
     renderPrompts();
-    showToast(t('toastSaved'));
+    showToast(t('noteTplToastSaved'));
   });
   els.tplModalDelete.addEventListener('click', () => {
     if (!tplEditingId) return;
@@ -365,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     closeTplModal();
     renderPrompts();
-    showToast(t('toastDeleted'));
+    showToast(t('noteTplToastDeleted'));
   });
 
   els.promptsToggleBtn.addEventListener('click', () => {
@@ -434,9 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       els.emojiPopover.appendChild(grid);
     }
-    addGrid(lang === 'fa' ? 'ایموجی‌های موردعلاقه' : 'Favorite emojis', favoriteEmojis.slice());
+    addGrid(t('emojiTrayTitle'), favoriteEmojis.slice());
     const seen = new Set(favoriteEmojis);
-    addGrid(lang === 'fa' ? 'ایموجی‌های بیشتر' : 'More emojis', EMOJI_PICKER_GRID.filter(e => !seen.has(e)));
+    addGrid(t('emojiMoreTitle'), EMOJI_PICKER_GRID.filter(e => !seen.has(e)));
   }
   els.emojiToggleBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -456,7 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const la = (text.match(/[A-Za-z]/g) || []).length;
     if (fa > la) return 'en';
     if (la > 0) return 'fa';
-    return lang === 'fa' ? 'en' : 'fa';
+    return currentLang === 'fa' ? 'en' : 'fa';
   }
   function requestTranslation(text, targetLang) {
     return new Promise((resolve, reject) => {
@@ -482,8 +422,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function runTranslate() {
     if (translateBusy) return;
     const textVal = (els.textarea.value || '').trim();
-    if (!textVal) { showToast(t('toastEmptyPrompt')); return; }
-    if (textVal.length > 4500) { showToast(t('toastTranslateLong')); return; }
+    if (!textVal) { showToast(t('dockEmptyPrompt')); return; }
+    if (textVal.length > 4500) { showToast(t('toastTranslateTooLong')); return; }
     const targetLang = detectTranslateTarget(textVal);
     translateBusy = true;
     if (els.translateBtn) {
@@ -522,24 +462,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============================= خواندن با صدا (Web Speech API — رایگان و آفلاین) =============================
   function detectSpeechLang(text) {
-    const fa = (text.match(/[\u0600-\u06FF]/g) || []).length;
+    // Persian and Arabic share the same Unicode block, so script alone can't
+    // tell them apart — Persian-exclusive letters (پ چ ژ گ) disambiguate when
+    // present; otherwise fall back to the current app language as a tiebreaker.
+    const faOnly = (text.match(/[پچژگ]/g) || []).length;
+    const arabicScript = (text.match(/[\u0600-\u06FF]/g) || []).length;
     const la = (text.match(/[A-Za-z]/g) || []).length;
-    return fa > la ? 'fa-IR' : 'en-US';
+    if (arabicScript > la) {
+      if (faOnly > 0) return 'fa-IR';
+      return currentLang === 'fa' ? 'fa-IR' : 'ar-SA';
+    }
+    return 'en-US';
   }
   function stopSpeaking() {
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    if (els.speakBtn) { els.speakBtn.classList.remove('is-speaking'); els.speakBtn.title = t('speakTitle'); }
+    if (els.speakBtn) { els.speakBtn.classList.remove('is-speaking'); els.speakBtn.title = t('noteTtsTitle'); }
   }
   function runSpeak() {
-    if (!('speechSynthesis' in window)) { showToast(t('toastSpeakUnsupported')); return; }
+    if (!('speechSynthesis' in window)) { showToast(t('toastTtsUnsupported')); return; }
     // اگر همین الان در حال خواندن است، دکمه به‌عنوان توقف عمل کند
     if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
       stopSpeaking();
-      showToast(t('toastSpeakStopped'));
+      showToast(t('toastTtsStopped'));
       return;
     }
     const textVal = (els.textarea.value || '').trim();
-    if (!textVal) { showToast(t('toastEmptyPrompt')); return; }
+    if (!textVal) { showToast(t('dockEmptyPrompt')); return; }
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(textVal);
@@ -555,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
     utterance.onend = () => stopSpeaking();
     utterance.onerror = () => stopSpeaking();
 
-    if (els.speakBtn) { els.speakBtn.classList.add('is-speaking'); els.speakBtn.title = t('speakStopTitle'); }
+    if (els.speakBtn) { els.speakBtn.classList.add('is-speaking'); els.speakBtn.title = t('noteTtsStopTitle'); }
     window.speechSynthesis.speak(utterance);
   }
   if (els.speakBtn) {
@@ -623,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function runSpellcheck() {
     if (spellcheckBusy) return;
     const textVal = els.textarea.value || '';
-    if (!textVal.trim()) { showToast(t('toastEmptyPrompt')); return; }
+    if (!textVal.trim()) { showToast(t('dockEmptyPrompt')); return; }
 
     const isPersian = /[\u0600-\u06FF]/.test(textVal);
 
@@ -1054,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function sendPromptToSelectedAi() {
     const promptText = els.textarea.value.trim();
-    if (!promptText) { showToast(t('toastEmptyPrompt')); return; }
+    if (!promptText) { showToast(t('dockEmptyPrompt')); return; }
     const node = AI_DISPATCH_CATALOG.find(n => n.id === els.aiSelect.value) || AI_DISPATCH_CATALOG[0];
     pushPromptHistory(promptText);
     const targetUrl = buildAiDispatchUrl(node.url, promptText, node.qParam);
@@ -1087,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (changes[PROMPT_HIDDEN_KEY]) { promptHiddenIds = changes[PROMPT_HIDDEN_KEY].newValue || []; renderPrompts(); }
         if (changes.aiTreeEmojiMemory) { favoriteEmojis = changes.aiTreeEmojiMemory.newValue || DEFAULT_FAVORITE_EMOJIS.slice(); }
       }
-      if (area === 'sync' && changes.appLanguage) { lang = changes.appLanguage.newValue || 'en'; applyTranslation(); }
+      if (area === 'sync' && changes.appLanguage) { currentLang = changes.appLanguage.newValue || 'en'; applyTranslation(); }
     });
   } catch (e) {}
 
@@ -1109,7 +1057,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     );
     chrome.storage.sync.get(['appLanguage'], (data) => {
-      lang = (data && data.appLanguage) || 'en';
+      currentLang = (data && data.appLanguage) || 'en';
       applyTranslation();
     });
   } catch (e) {

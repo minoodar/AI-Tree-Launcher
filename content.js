@@ -1002,7 +1002,9 @@
     if (uiEls.smartDateInput) {
       uiEls.smartDateInput.placeholder = currentLang === 'fa'
         ? 'امروز · فردا · ۱۴۰۳/۰۵/۱۶ · 2026-07-27'
-        : currentLang === 'es'
+        : currentLang === 'ar'
+          ? 'اليوم · غدًا · 2026-07-27'
+          : currentLang === 'es'
           ? 'hoy · mañana · 2026-07-27'
           : currentLang === 'de'
             ? 'heute · morgen · 2026-07-27'
@@ -1048,12 +1050,19 @@
       const monthDay = (now.getMonth() + 1) * 100 + now.getDate();
       const season = monthDay >= 321 && monthDay <= 620 ? 'spring'
         : monthDay <= 922 ? 'summer' : monthDay <= 1220 ? 'autumn' : 'winter';
-      const seasonCopy = currentLang === 'fa'
+     const seasonCopy = currentLang === 'fa'
         ? {
             spring: ['بهار', 'نیم‌کرهٔ شمالی', '۱ فروردین تا ۳۱ خرداد · تقریباً 21 Mar–20 Jun', 'بهار در نیم‌کرهٔ شمالی از حوالی ۲۱ مارس آغاز می‌شود.'],
             summer: ['تابستان', 'نیم‌کرهٔ شمالی', '۱ تیر تا ۳۱ شهریور · تقریباً 21 Jun–22 Sep', 'تابستان تا حوالی ۲۲ سپتامبر ادامه دارد.'],
             autumn: ['پاییز', 'نیم‌کرهٔ شمالی', '۱ مهر تا ۳۰ آذر · تقریباً 23 Sep–20 Dec', 'پاییز از حوالی ۲۳ سپتامبر آغاز می‌شود.'],
             winter: ['زمستان', 'نیم‌کرهٔ شمالی', '۱ دی تا پایان اسفند · تقریباً 21 Dec–20 Mar', 'زمستان از حوالی ۲۱ دسامبر آغاز می‌شود.']
+          }
+        : currentLang === 'ar'
+        ? {
+            spring: ['الربيع', 'نصف الكرة الشمالي', '21 مارس – 20 يونيو', 'يبدأ الربيع في حوالي 21 مارس في نصف الكرة الشمالي.'],
+            summer: ['الصيف', 'نصف الكرة الشمالي', '21 يونيو – 22 سبتمبر', 'يستمر الصيف حتى 22 سبتمبر تقريبًا.'],
+            autumn: ['الخريف', 'نصف الكرة الشمالي', '23 سبتمبر – 20 ديسمبر', 'يبدأ الخريف في حوالي 23 سبتمبر.'],
+            winter: ['الشتاء', 'نصف الكرة الشمالي', '21 ديسمبر – 20 مارس', 'يبدأ الشتاء في حوالي 21 ديسمبر.']
           }
         : {
             spring: ['Spring', 'Northern Hemisphere', '21 Mar–20 Jun · Farvardin–Khordad', 'Spring begins around 21 March in the Northern Hemisphere.'],
@@ -1159,44 +1168,51 @@
     const isJ = m.cal === 'j' || m.cal === 'jalali';
     const isH = m.cal === 'h' || m.cal === 'hijri';
     const fa = currentLang === 'fa';
+    const ar = currentLang === 'ar';
     const es = currentLang === 'es';
     const de = currentLang === 'de';
     const fr = currentLang === 'fr';
     const ja = currentLang === 'ja';
     let dateStr, calHint;
+    
     if (isJ) {
       const monthName = JALALI_MONTHS_FA[m.month - 1] || '';
-      dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'شمسی' : es ? 'jalalí' : de ? 'Dschalali' : fr ? 'jalali' : ja ? 'ジャラリ暦' : 'Jalali';
+      dateStr = `${(fa || ar) ? toPersianDigits(m.day) : m.day} ${monthName}`;
+      calHint = fa ? 'شمسی' : ar ? 'شمسي' : es ? 'jalalí' : de ? 'Dschalali' : fr ? 'jalali' : ja ? 'ジャラリ暦' : 'Jalali';
     } else if (isH) {
-      const monthName = (fa ? HIJRI_MONTHS_FA : es ? HIJRI_MONTHS_ES : de ? HIJRI_MONTHS_DE : fr ? HIJRI_MONTHS_FR : ja ? HIJRI_MONTHS_JA : HIJRI_MONTHS_EN)[m.month - 1] || '';
-      dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'قمری' : es ? 'hijrí' : de ? 'Hidschri' : fr ? 'hijri' : ja ? 'ヒジュラ暦' : 'Hijri';
+      const monthName = (fa ? HIJRI_MONTHS_FA : ar ? HIJRI_MONTHS_AR : es ? HIJRI_MONTHS_ES : de ? HIJRI_MONTHS_DE : fr ? HIJRI_MONTHS_FR : ja ? HIJRI_MONTHS_JA : HIJRI_MONTHS_EN)[m.month - 1] || '';
+      dateStr = `${(fa || ar) ? toArabicDigits(m.day) : m.day} ${monthName}`;
+      calHint = fa ? 'قمری' : ar ? 'هجري' : es ? 'hijrí' : de ? 'Hidschri' : fr ? 'hijri' : ja ? 'ヒジュラ暦' : 'Hijri';
     } else {
       const monthName = getDisplayGregorianMonth(m.month - 1) || '';
-      dateStr = `${fa ? toPersianDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'میلادی' : es ? 'gregoriano' : de ? 'gregorianisch' : fr ? 'grégorien' : ja ? 'グレゴリオ暦' : 'Gregorian';
+      dateStr = `${(fa || ar) ? toArabicDigits(m.day) : m.day} ${monthName}`;
+      calHint = fa ? 'میلادی' : ar ? 'ميلادي' : es ? 'gregoriano' : de ? 'gregorianisch' : fr ? 'grégorien' : ja ? 'グレゴリオ暦' : 'Gregorian';
     }
+    
     if (uiEls.markEventBadge) {
       uiEls.markEventBadge.textContent = m.days === 0 ? '🎉' : (m.isPublic ? '🔴' : (m.golden ? '★' : '📌'));
     }
+    
     if (uiEls.markEventText) uiEls.markEventText.textContent = m.label;
+    
     if (uiEls.markEventMeta) {
       uiEls.markEventMeta.textContent = m.days === 0
-        ? (fa ? `امروز · ${dateStr} · ${calHint}` : es ? `Hoy · ${dateStr} · ${calHint}` : de ? `Heute · ${dateStr} · ${calHint}` : fr ? `Aujourd'hui · ${dateStr} · ${calHint}` : ja ? `今日 · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
+        ? (fa ? `امروز · ${dateStr} · ${calHint}` : ar ? `اليوم · ${dateStr} · ${calHint}` : es ? `Hoy · ${dateStr} · ${calHint}` : de ? `Heute · ${dateStr} · ${calHint}` : fr ? `Aujourd'hui · ${dateStr} · ${calHint}` : ja ? `今日 · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
         : (fa
-            ? `${m.days} روز مانده · ${dateStr} · ${calHint}`
-            : es
-              ? `en ${m.days}d · ${dateStr} · ${calHint}`
-              : de
-                ? `in ${m.days}T · ${dateStr} · ${calHint}`
-                : fr
-                  ? `dans ${m.days}j · ${dateStr} · ${calHint}`
-                  : ja
-                    ? `${m.days}日後 · ${dateStr} · ${calHint}`
-                    : `in ${m.days}d · ${dateStr} · ${calHint}`);
+            ? `${toPersianDigits(m.days)} روز مانده · ${dateStr} · ${calHint}`
+            : ar
+              ? `بعد ${toArabicDigits(m.days)} يوم · ${dateStr} · ${calHint}`
+              : es
+                ? `en ${m.days}d · ${dateStr} · ${calHint}`
+                : de
+                  ? `in ${m.days}T · ${dateStr} · ${calHint}`
+                  : fr
+                    ? `dans ${m.days}j · ${dateStr} · ${calHint}`
+                    : ja
+                      ? `${m.days}日後 · ${dateStr} · ${calHint}`
+                      : `in ${m.days}d · ${dateStr} · ${calHint}`);
     }
-    uiEls.markEventSheet.classList.remove('is-collapsed');
+ uiEls.markEventSheet.classList.remove('is-collapsed');
   }
 
   function closeMarkEventSheet() {
@@ -1271,7 +1287,7 @@
       dateStr = `${toPersianDigits(j.jd)} ${monthName}`;
     } else {
       const monthName = getDisplayGregorianMonth(gm - 1) || '';
-      dateStr = `${gd} ${monthName}`;
+      dateStr = `${currentLang === 'ar' ? toArabicDigits(gd) : gd} ${monthName}`;
     }
     if (uiEls.markEventBadge) uiEls.markEventBadge.textContent = '🗓️';
     if (uiEls.markEventText) uiEls.markEventText.textContent = t('markDayAgenda');
@@ -1378,7 +1394,7 @@
       const span = document.createElement('span'); span.className = 'ai-mark-item-label';
       const dd = String(m.day).padStart(2, '0'); const mm = String(m.month).padStart(2, '0');
       const isJ = m.cal === 'j' || m.cal === 'jalali';
-      const dateStr = (isJ && currentLang === 'fa') ? toPersianDigits(`${dd}/${mm}`) : `${dd}/${mm}`;
+      const dateStr = (isJ && currentLang === 'fa') ? toPersianDigits(`${dd}/${mm}`) : (currentLang === 'ar' ? toArabicDigits(`${dd}/${mm}`) : `${dd}/${mm}`);
       span.textContent = `${m.golden ? '★ ' : ''}${m.label}  ·  ${dateStr}`;
       const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-mark-item-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
       delBtn.addEventListener('click', (e) => {
@@ -1733,13 +1749,14 @@
   // کردنِ ویجت و بدون تکرار تا وقتی موس یک‌بار خارج و دوباره وارد شود. ---
   function formatNearestEventWhen(evt) {
     const fa = currentLang === 'fa';
+    const ar = currentLang === 'ar';
     if (evt.date === todayDashIso()) {
-      return fa ? `امروز ${evt.startTime}` : `Today ${evt.startTime}`;
+      return fa ? `امروز ${evt.startTime}` : ar ? `اليوم ${evt.startTime}` : `Today ${evt.startTime}`;
     }
     const [gy, gm, gd] = evt.date.split('-').map(Number);
     const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
     const diffDays = Math.round((new Date(gy, gm - 1, gd) - startOfToday) / 86400000);
-    const dayLabel = fa ? `${toPersianDigits(diffDays)} روز دیگر` : `in ${diffDays}d`;
+    const dayLabel = fa ? `${toPersianDigits(diffDays)} روز دیگر` : ar ? `بعد ${toArabicDigits(diffDays)} يوم` : `in ${diffDays}d`;
     return `${dayLabel} · ${evt.startTime}`;
   }
   function showNearestEventHoverToast() {
@@ -2028,17 +2045,9 @@
     return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
               .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
   }
-  function toPersianDigits(str) { return String(str).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
-  function toArabicDigits(str) { return String(str).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]); }
-  // Generalized RTL check — Persian and Arabic both read right-to-left, so
-  // any code that used to test `currentLang === 'fa'` for direction/digit
-  // purposes should go through these two helpers instead, not hardcode 'fa'.
-  function isRTL(lang) { return lang === 'fa' || lang === 'ar'; }
-  function localizeDigits(str) {
-    if (currentLang === 'fa') return toPersianDigits(str);
-    if (currentLang === 'ar') return toArabicDigits(str);
-    return String(str);
-  }
+  // toPersianDigits / toArabicDigits / isRTL / localizeDigits now live in
+  // i18n.js (single shared source — it loads before this file), so calls
+  // below just fall through to those global definitions.
 
   function isoFromYMD(y, m, d) {
     return `${String(y).padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -2069,8 +2078,8 @@
 
     const lower = toAsciiDigits(trimmed).toLowerCase().replace(/\s+/g, ' ');
 
-    const todayWords = ['today', 'امروز', 'hoy', 'heute', "aujourd'hui", 'aujourdhui', '今日'];
-    const tomorrowWords = ['tomorrow', 'فردا', 'mañana', 'manana', 'morgen', 'demain', '明日'];
+    const todayWords = ['today', 'امروز', 'hoy', 'heute', "aujourd'hui", 'aujourdhui', '今日', 'اليوم'];
+    const tomorrowWords = ['tomorrow', 'فردا', 'mañana', 'manana', 'morgen', 'demain', '明日', 'غدا', 'غدًا'];
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -2251,7 +2260,9 @@
     const monthLabelStr = getDisplayGregorianMonth(m - 1);
     uiEls.dualMonthLabel.textContent = preferJalali
       ? `${monthLabelStr} ${toPersianDigits(y)}`
-      : `${monthLabelStr} ${y}`;
+      : currentLang === 'ar'
+        ? `${monthLabelStr} ${toArabicDigits(y)}`
+        : `${monthLabelStr} ${y}`;
 
     // زیرعنوانِ سه‌تقویمی: چون این گرید همیشه یک ماه میلادیِ کامل است، معادلش در
     // تقویم شمسی و قمری می‌تواند بین دو ماه مشترک باشد — پس به‌جای انتخاب یکی،
