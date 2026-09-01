@@ -8,7 +8,7 @@
 
 **Floating Orbital Workspace · 4-Ring Galactic Vault · Omnilingual Smart Studio**
 
-[🇺🇸 English](#-english) • [🇪🇸 Español](#-español) • [🇩🇪 Deutsch](#-deutsch) • [🇫🇷 Français](#-français) • [🇯🇵 日本語](#-日本語-japanese) • [🇮🇷 فارسی](#-فارسی-persian)
+[🇺🇸 English](#-english) • [🇪🇸 Español](#-español) • [🇩🇪 Deutsch](#-deutsch) • [🇫🇷 Français](#-français) • [🇯🇵 日本語](#-日本語-japanese) • [🇸🇦 العربية](#-العربية-arabic) • [🇮🇷 فارسی](#-فارسی-persian)
 
 ---
 
@@ -25,7 +25,7 @@
 This release continues the evolution of the orbital workspace with native voice interaction, a powerful visual organization system, and expanded multilingual support — while maintaining our pure **Vanilla JS architecture**, zero heavy dependencies, and **60fps Eco-Mode performance**.
 
 #### 🌟 Key Highlights
-* **🌍 Six-Language Experience:** The interface is now available in: 🇮🇷 Persian · 🇬🇧 English · 🇪🇸 Spanish · 🇩🇪 German · 🇫🇷 French · 🇯🇵 Japanese.
+* **🌍 Seven-Language Experience:** The interface is now available in: 🇮🇷 Persian · 🇬🇧 English · 🇪🇸 Spanish · 🇩🇪 German · 🇫🇷 French · 🇯🇵 Japanese · 🇸🇦 Arabic.
 * **🎙️ Native Omnilingual Voice Engine:** Hands-free, low-latency voice dictation in the Linguistic Studio using Chrome's native Web Speech API, with no heavy external libraries.
 * **✨ 15-Tier Visual "Aura" System:** Bookmarks can be assigned to 15 specialized categories (AI, Finance, Dev Tools, Media, etc.). Categorized bookmarks generate a dynamic visual Aura within the orbital workspace.
 * **🔍 Tag-Based Deep Search:** Instantly filter the bookmark galaxy by typing category tags into the search hub.
@@ -51,7 +51,7 @@ As an independent AI developer based in war-torn Iran, maintaining and expanding
 Esta versión continúa la evolución del espacio de trabajo orbital con interacción de voz nativa, un potente sistema de organización visual y un soporte multilingüe ampliado, manteniendo nuestra arquitectura pura de **Vanilla JS**, sin dependencias pesadas y con un rendimiento de **60fps en Eco-Mode**.
 
 #### 🌟 Principales novedades
-* **🌍 Experiencia en seis idiomas:** La interfaz está disponible en: 🇮🇷 Persa · 🇬🇧 Inglés · 🇪🇸 Español · 🇩🇪 Alemán · 🇫🇷 Francés · 🇯🇵 Japonés.
+* **🌍 Experiencia en siete idiomas:** La interfaz está disponible en: 🇮🇷 Persa · 🇬🇧 Inglés · 🇪🇸 Español · 🇩🇪 Alemán · 🇫🇷 Francés · 🇯🇵 Japonés · 🇸🇦 Árabe.
 * **🎙️ Motor de Voz Nativo Multilingüe:** Dictado por voz manos libres y de baja latencia mediante la Web Speech API nativa de Chrome, sin bibliotecas externas pesadas.
 * **✨ Sistema Visual "Aura" de 15 Niveles:** Los marcadores pueden asignarse a 15 categorías especializadas. Los marcadores categorizados generan una Aura visual dinámica dentro del espacio orbital.
 * **🔍 Búsqueda Profunda por Etiquetas:** Filtra instantáneamente la galaxia de marcadores escribiendo etiquetas de categoría en el buscador.
@@ -77,7 +77,7 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 Diese Version entwickelt den orbitalen Workspace mit nativer Sprachinteraktion, einem leistungsstarken visuellen Organisationssystem und erweitertem Mehrsprachigkeitssupport weiter — bei gleichbleibender **Vanilla-JS-Architektur**, ohne schwere externe Abhängigkeiten und mit **60fps Eco-Mode-Performance**.
 
 #### 🌟 Highlights
-* **🌍 Sechs Sprachen:** Die Benutzeroberfläche ist verfügbar auf: 🇮🇷 Persisch · 🇬🇧 Englisch · 🇪🇸 Spanisch · 🇩🇪 Deutsch · 🇫🇷 Französisch · 🇯🇵 Japanisch.
+* **🌍 Sieben Sprachen:** Die Benutzeroberfläche ist verfügbar auf: 🇮🇷 Persisch · 🇬🇧 Englisch · 🇪🇸 Spanisch · 🇩🇪 Deutsch · 🇫🇷 Französisch · 🇯🇵 Japanisch · 🇸🇦 Arabisch.
 * **🎙️ Native omnilinguale Sprach-Engine:** Freihändiges und latenzarmes Diktieren über die native Web Speech API von Chrome — ohne schwere externe Bibliotheken.
 * **✨ 15-stufiges visuelles „Aura“-System:** Lesezeichen können 15 spezialisierten Kategorien zugeordnet werden und erzeugen eine dynamische Aura im orbitalen Workspace.
 * **🔍 Tiefensuche nach Tags:** Filtere die Lesezeichen-Galaxie sofort über Kategorie-Tags.
@@ -103,7 +103,7 @@ Als unabhängiger KI-Entwickler im vom Krieg gezeichneten Iran bin ich bei der P
 Cette version poursuit l’évolution de l’espace de travail orbital avec une interaction vocale native, un puissant système d’organisation visuelle et un support multilingue étendu, tout en conservant notre architecture **Vanilla JS pure**, sans dépendances lourdes et avec des performances **60fps en Eco-Mode**.
 
 #### 🌟 Principales nouveautés
-* **🌍 Expérience en six langues :** L’interface est désormais disponible en : 🇮🇷 Persan · 🇬🇧 Anglais · 🇪🇸 Espagnol · 🇩🇪 Allemand · 🇫🇷 Français · 🇯🇵 Japonais.
+* **🌍 Expérience en sept langues :** L’interface est désormais disponible en : 🇮🇷 Persan · 🇬🇧 Anglais · 🇪🇸 Espagnol · 🇩🇪 Allemand · 🇫🇷 Français · 🇯🇵 Japonais · 🇸🇦 Arabe.
 * **🎙️ Moteur vocal natif omnilingue :** Dictée vocale mains libres et à faible latence grâce à la Web Speech API native de Chrome, sans bibliothèques externes lourdes.
 * **✨ Système visuel « Aura » à 15 niveaux :** Les favoris peuvent être classés dans 15 catégories spécialisées. Les favoris catégorisés génèrent une Aura visuelle dynamique.
 * **🔍 Recherche avancée par tags :** Filtrez instantanément la galaxie de favoris en saisissant des tags de catégorie.
@@ -129,7 +129,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 ネイティブ音声入力、強力なビジュアル整理システム、多言語対応をさらに強化しながら、純粋な **Vanilla JS アーキテクチャ**、重い外部依存なし、**60fps Eco-Mode** のパフォーマンスを維持しています。
 
 #### 🌟 主なアップデート
-* **🌍 6言語対応:** インターフェースは以下の言語で利用できます： 🇮🇷 ペルシャ語 · 🇬🇧 英語 · 🇪🇸 スペイン語 · 🇩🇪 ドイツ語 · 🇫🇷 フランス語 · 🇯🇵 日本語。
+* **🌍 7言語対応:** インターフェースは以下の言語で利用できます： 🇮🇷 ペルシャ語 · 🇬🇧 英語 · 🇪🇸 スペイン語 · 🇩🇪 ドイツ語 · 🇫🇷 フランス語 · 🇯🇵 日本語 · 🇸🇦 アラビア語。
 * **🎙️ ネイティブ・オムニリンガル音声エンジン:** Chrome のネイティブ Web Speech API を直接利用し、ハンズフリー・低遅延の音声入力を実装しました。重い外部ライブラリは必要ありません。
 * **✨ 15段階のビジュアル「Aura」システム:** ブックマークを15種類の専門カテゴリ（AI、Finance、Dev Toolsなど）に分類できます。分類されたブックマークには、動的な「Aura」が表示されます。
 * **🔍 タグベースの高度な検索:** 検索ハブにカテゴリタグを入力するだけで、ブックマーク銀河を瞬時にフィルタリングできます。
@@ -152,12 +152,38 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 
 <div dir="rtl">
 
+## 🇸🇦 العربية (Arabic)
+### 🚀 AI Tree Launcher v34.0 — تطوّر عالمي للـ Aura والصوت
+يسعدنا الإعلان عن AI Tree Launcher v34.0، الذي أصبح الآن متاحًا بـ سبع لغات. يواصل هذا الإصدار تطوير مساحة العمل المدارية من خلال التفاعل الصوتي الأصلي، ونظام تنظيم بصري متطور، ودعم موسّع لتعدد اللغات، مع الحفاظ على بنية **Vanilla JS** الخالصة، ومن دون اعتماد على مكتبات خارجية ثقيلة، وأداء **60fps في Eco-Mode**.
+
+#### 🌟 أبرز الميزات
+* **🌍 تجربة بسبع لغات:** أصبحت الواجهة متاحة باللغات التالية: 🇮🇷 الفارسية · 🇬🇧 الإنجليزية · 🇪🇸 الإسبانية · 🇩🇪 الألمانية · 🇫🇷 الفرنسية · 🇯🇵 اليابانية · 🇸🇦 العربية.
+* **🎙️ محرك صوتي أصلي متعدد اللغات:** تمت إضافة الإملاء الصوتي دون استخدام اليدين وبزمن استجابة منخفض داخل Linguistic Studio، بالاعتماد مباشرة على Web Speech API الأصلية في Chrome، دون الحاجة إلى مكتبات خارجية ثقيلة.
+* **✨ نظام بصري «Aura» من 15 مستوى:** يمكن الآن تصنيف الإشارات المرجعية ضمن 15 فئة متخصصة مثل الذكاء الاصطناعي، والتمويل، وأدوات التطوير، والإعلام وغيرها. وتحصل الإشارات المرجعية المصنفة على Aura بصرية ديناميكية داخل مساحة العمل المدارية.
+* **🔍 بحث متقدم باستخدام الوسوم:** يمكنك تصفية مجرة الإشارات المرجعية فورًا من خلال كتابة وسم الفئة في مركز البحث.
+* **📜 Treasure (گنجینه) — دعم اللغات الحالي:** يتم حاليًا عرض محتوى Treasure (گنجینه) باللغة الإنجليزية للمستخدمين غير الناطقين بالفارسية. وسيتم إضافة المحتوى المترجم إلى اللغات الأخرى تدريجيًا في الإصدارات القادمة.
+
+#### ⚡ البنية والأداء
+**بنية Pure Vanilla JS** • بدون مكتبات خارجية ثقيلة • **استخدام واجهات API الأصلية للمتصفح** • أداء 60fps في Eco-Mode • **تنظيم مداري محسّن للإشارات المرجعية**
+
+#### 💻 طريقة التثبيت (وضع المطور)
+١. قم باستنساخ `minoodar/AI-Tree-Launcher` أو تحميل ملف ZIP.
+٢. اذهب إلى `chrome://extensions/` في متصفحك وقم بتفعيل **وضع المطور (Developer mode)**.
+٣. انقر على **Load unpacked** واختر مجلد المشروع.
+
+#### 💖 الدعم والمساهمة
+بصفتي مطور ذكاء اصطناعي مستقل في إيران التي مزقتها الحرب، فإن الحفاظ على هذا المشروع مفتوح المصدر وتطويره في ظل ظروف صعبة يعتمد بشكل كبير على دعم المجتمع. إذا وجدت هذه الأداة مفيدة، فإن مساهمتك تساعد في إبقاء الكود مفتوحًا واستمرار المشروع.
+* **بيتكوين (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **الريال الإيراني (IRR):** [تبرع عبر Donito](https://donito.me/u-b8wjr)
+
+---
+
 ## 🇮🇷 فارسی (Persian)
 ### 🚀 AI Tree Launcher v34.0 — تکامل جهانی هاله و صدا
 این نسخه با تعامل صوتی بومی، سیستم قدرتمند سازماندهی بصری و پشتیبانی گسترده‌تر از زبان‌ها، تکامل فضای کاری مداری را ادامه می‌دهد؛ در حالی که معماری خالص **Vanilla JS**، بدون وابستگی سنگین خارجی و عملکرد **60fps در Eco-Mode** حفظ شده است.
 
 #### 🌟 ویژگی‌های کلیدی
-* **🌍 تجربه شش‌زبانه:** رابط کاربری اکنون به این زبان‌ها در دسترس است: 🇮🇷 فارسی · 🇬🇧 انگلیسی · 🇪🇸 اسپانیایی · 🇩🇪 آلمانی · 🇫🇷 فرانسوی · 🇯🇵 ژاپنی.
+* **🌍 تجربه هفت‌زبانه:** رابط کاربری اکنون به این زبان‌ها در دسترس است: 🇮🇷 فارسی · 🇬🇧 انگلیسی · 🇪🇸 اسپانیایی · 🇩🇪 آلمانی · 🇫🇷 فرانسوی · 🇯🇵 ژاپنی · 🇸🇦 عربی.
 * **🎙️ موتور صوتی بومی و همه‌زبانه:** تایپ صوتی بدون نیاز به دست و با تأخیر بسیار کم با استفاده از Web Speech API بومی Chrome و بدون نیاز به کتابخانه‌های سنگین خارجی.
 * **✨ سیستم بصری «هاله» ۱۵ گانه:** بوک‌مارک‌ها می‌توانند در ۱۵ دسته تخصصی قرار گیرند. بوک‌مارک‌های دسته‌بندی‌شده یک هاله بصری پویا در فضای کاری مداری ایجاد می‌کنند.
 * **🔍 جستجوی عمیق بر اساس تگ:** با وارد کردن تگ دسته‌بندی در بخش جستجو، کهکشان بوک‌مارک‌ها را به‌صورت فوری فیلتر کنید.
