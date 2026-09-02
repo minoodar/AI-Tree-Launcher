@@ -29,7 +29,7 @@ This release continues the evolution of the orbital workspace with native voice 
 * **🎙️ Native Omnilingual Voice Engine:** Hands-free, low-latency voice dictation in the Linguistic Studio using Chrome's native Web Speech API, with no heavy external libraries.
 * **✨ 15-Tier Visual "Aura" System:** Bookmarks can be assigned to 15 specialized categories (AI, Finance, Dev Tools, Media, etc.). Categorized bookmarks generate a dynamic visual Aura within the orbital workspace.
 * **🔍 Tag-Based Deep Search:** Instantly filter the bookmark galaxy by typing category tags into the search hub.
-* **📜 Treasure (Current Language Support):** The Treasure (گنجینه) content collection is currently displayed in English for non-Persian users. Localized content for other languages will be introduced progressively in future updates.
+* **📜 Global Treasure Engine:** The entire Treasure (گنجینه) collection, featuring daily mindfulness, poetry, and philosophy, is now fully localized and available in all 8 supported languages, powered by our newly updated engine.
 
 #### ⚡ Architecture & Performance
 **Pure Vanilla JS** • Zero heavy dependencies • **Native browser APIs** • 60fps Eco-Mode • **Improved orbital organization**
@@ -55,7 +55,7 @@ Esta versión continúa la evolución del espacio de trabajo orbital con interac
 * **🎙️ Motor de Voz Nativo Multilingüe:** Dictado por voz manos libres y de baja latencia mediante la Web Speech API nativa de Chrome, sin bibliotecas externas pesadas.
 * **✨ Sistema Visual "Aura" de 15 Niveles:** Los marcadores pueden asignarse a 15 categorías especializadas. Los marcadores categorizados generan una Aura visual dinámica dentro del espacio orbital.
 * **🔍 Búsqueda Profunda por Etiquetas:** Filtra instantáneamente la galaxia de marcadores escribiendo etiquetas de categoría en el buscador.
-* **📜 Treasure (Soporte lingüístico actual):** El contenido de Treasure (گنجینه) se muestra actualmente en inglés para los usuarios que no utilizan persa. El contenido localizado se incorporará progresivamente.
+* **📜 Motor de Tesoro Global:** Toda la colección Treasure (گنجینه), que incluye atención plena diaria, poesía y filosofía, ahora está completamente localizada y disponible en los 8 idiomas compatibles, impulsada por nuestro motor recientemente actualizado.
 
 #### ⚡ Arquitectura y rendimiento
 **Vanilla JS puro** • Sin dependencias pesadas • **Integración de APIs nativas** • 60fps Eco-Mode • **Organización orbital mejorada**
@@ -81,7 +81,7 @@ Diese Version entwickelt den orbitalen Workspace mit nativer Sprachinteraktion, 
 * **🎙️ Native omnilinguale Sprach-Engine:** Freihändiges und latenzarmes Diktieren über die native Web Speech API von Chrome — ohne schwere externe Bibliotheken.
 * **✨ 15-stufiges visuelles „Aura“-System:** Lesezeichen können 15 spezialisierten Kategorien zugeordnet werden und erzeugen eine dynamische Aura im orbitalen Workspace.
 * **🔍 Tiefensuche nach Tags:** Filtere die Lesezeichen-Galaxie sofort über Kategorie-Tags.
-* **📜 Treasure (Aktuelle Sprachunterstützung):** Die Inhalte von Treasure (گنجینه) werden derzeit für nicht-persischsprachige Nutzer auf Englisch angezeigt. Lokalisierte Inhalte werden schrittweise ergänzt.
+* **📜 Globale Treasure-Engine:** Die gesamte Treasure-Kollektion (گنجینه) mit täglicher Achtsamkeit, Poesie und Philosophie ist nun vollständig lokalisiert und in allen 8 unterstützten Sprachen verfügbar, angetrieben von unserer neu aktualisierten Engine.
 
 #### ⚡ Architektur & Performance
 **Reines Vanilla JS** • Keine schweren Abhängigkeiten • **Native Browser-APIs** • 60fps Eco-Mode • **Verbesserte Lesezeichenorganisation**
@@ -107,7 +107,7 @@ Cette version poursuit l’évolution de l’espace de travail orbital avec une 
 * **🎙️ Moteur vocal natif omnilingue :** Dictée vocale mains libres et à faible latence grâce à la Web Speech API native de Chrome, sans bibliothèques externes lourdes.
 * **✨ Système visuel « Aura » à 15 niveaux :** Les favoris peuvent être classés dans 15 catégories spécialisées. Les favoris catégorisés génèrent une Aura visuelle dynamique.
 * **🔍 Recherche avancée par tags :** Filtrez instantanément la galaxie de favoris en saisissant des tags de catégorie.
-* **📜 Treasure (Support linguistique actuel) :** Le contenu de Treasure (گنجینه) est actuellement affiché en anglais pour les utilisateurs non persanophones. Le contenu localisé sera ajouté progressivement.
+* **📜 Moteur de Trésor Mondial :** Toute la collection Treasure (گنجینه), comprenant la pleine conscience quotidienne, la poésie et la philosophie, est désormais entièrement localisée et disponible dans les 8 langues prises en charge, propulsée par notre moteur récemment mis à jour.
 
 #### ⚡ Architecture & performances
 **Architecture pure Vanilla JS** • Aucune dépendance lourde • **Intégration API natives** • Performances 60fps • **Organisation orbitale améliorée**
@@ -133,7 +133,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🎙️ ネイティブ・オムニリンガル音声エンジン:** Chrome のネイティブ Web Speech API を直接利用し、ハンズフリー・低遅延の音声入力を実装しました。重い外部ライブラリは必要ありません。
 * **✨ 15段階のビジュアル「Aura」システム:** ブックマークを15種類の専門カテゴリ（AI、Finance、Dev Toolsなど）に分類できます。分類されたブックマークには、動的な「Aura」が表示されます。
 * **🔍 タグベースの高度な検索:** 検索ハブにカテゴリタグを入力するだけで、ブックマーク銀河を瞬時にフィルタリングできます。
-* **📜 Treasure (現在の言語対応):** 現在、ペルシャ語以外のユーザーには Treasure（گنجینه）のコンテンツが英語で表示されます。その他の言語へのローカライズは段階的に追加予定です。
+* **📜 グローバル・トレジャー・エンジン:** 日々のマインドフルネス、詩、哲学を特集した Treasure（گنجینه）コレクション全体が完全にローカライズされ、新しくアップデートされたエンジンによって駆動し、サポートされている8言語すべてで利用可能になりました。
 
 #### ⚡ アーキテクチャ & パフォーマンス
 **Pure Vanilla JS** • 重い外部依存なし • **ネイティブブラウザ API** • 60fps Eco-Mode • **ブックマークの整理強化**
@@ -159,7 +159,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🎙️ Встроенный многоязычный голосовой движок:** Голосовой ввод без помощи рук с низкой задержкой в Linguistic Studio с использованием встроенного Web Speech API Chrome, без использования тяжелых внешних библиотек.
 * **✨ 15-уровневая визуальная система "Aura":** Закладки можно назначать в 15 специализированных категорий (ИИ, Финансы, Инструменты разработки и т.д.). Категоризированные закладки создают динамичную визуальную "Ауру" в орбитальном пространстве.
 * **🔍 Глубокий поиск по тегам:** Мгновенно фильтруйте галактику закладок, вводя теги категорий в центр поиска.
-* **📜 Treasure (Текущая языковая поддержка):** Коллекция контента Treasure (گنجینه) в настоящее время отображается на английском языке для пользователей, не говорящих на персидском. Локализованный контент для других языков будет внедряться постепенно.
+* **📜 Глобальный движок сокровищницы:** Вся коллекция Treasure (گنجینه), включающая ежедневную осознанность, поэзию и философию, теперь полностью локализована и доступна на всех 8 поддерживаемых языках благодаря нашему недавно обновленному движку.
 
 #### ⚡ Архитектура и производительность
 **Чистый Vanilla JS** • Без тяжелых зависимостей • **Встроенные API браузера** • 60fps Eco-Mode • **Улучшенная орбитальная организация**
@@ -187,7 +187,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🎙️ محرك صوتي أصلي متعدد اللغات:** تمت إضافة الإملاء الصوتي دون استخدام اليدين وبزمن استجابة منخفض داخل Linguistic Studio، بالاعتماد مباشرة على Web Speech API الأصلية في Chrome، دون الحاجة إلى مكتبات خارجية ثقيلة.
 * **✨ نظام بصري «Aura» من 15 مستوى:** يمكن الآن تصنيف الإشارات المرجعية ضمن 15 فئة متخصصة مثل الذكاء الاصطناعي، والتمويل، وأدوات التطوير، والإعلام وغيرها. وتحصل الإشارات المرجعية المصنفة على Aura بصرية ديناميكية داخل مساحة العمل المدارية.
 * **🔍 بحث متقدم باستخدام الوسوم:** يمكنك تصفية مجرة الإشارات المرجعية فورًا من خلال كتابة وسم الفئة في مركز البحث.
-* **📜 Treasure (گنجینه) — دعم اللغات الحالي:** يتم حاليًا عرض محتوى Treasure (گنجینه) باللغة الإنجليزية للمستخدمين غير الناطقين بالفارسية. وسيتم إضافة المحتوى المترجم إلى اللغات الأخرى تدريجيًا في الإصدارات القادمة.
+* **📜 محرك الكنز العالمي (Treasure):** أصبحت مجموعة Treasure (گنجینه) بأكملها، والتي تضم التأمل اليومي والشعر والفلسفة، مترجمة بالكامل ومتاحة بجميع اللغات الثماني المدعومة، وتعمل بواسطة محركنا المحدّث مؤخرًا.
 
 #### ⚡ البنية والأداء
 **بنية Pure Vanilla JS** • بدون مكتبات خارجية ثقيلة • **استخدام واجهات API الأصلية للمتصفح** • أداء 60fps في Eco-Mode • **تنظيم مداري محسّن للإشارات المرجعية**
@@ -213,7 +213,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🎙️ موتور صوتی بومی و همه‌زبانه:** تایپ صوتی بدون نیاز به دست و با تأخیر بسیار کم با استفاده از Web Speech API بومی Chrome و بدون نیاز به کتابخانه‌های سنگین خارجی.
 * **✨ سیستم بصری «هاله» ۱۵ گانه:** بوک‌مارک‌ها می‌توانند در ۱۵ دسته تخصصی قرار گیرند. بوک‌مارک‌های دسته‌بندی‌شده یک هاله بصری پویا در فضای کاری مداری ایجاد می‌کنند.
 * **🔍 جستجوی عمیق بر اساس تگ:** با وارد کردن تگ دسته‌بندی در بخش جستجو، کهکشان بوک‌مارک‌ها را به‌صورت فوری فیلتر کنید.
-* **📜 گنجینه (وضعیت فعلی زبان):** در حال حاضر محتوای گنجینه برای کاربرانی که زبان فارسی را انتخاب نکرده‌اند، به زبان انگلیسی نمایش داده می‌شود. محتوای بومی‌سازی‌شده برای سایر زبان‌ها به‌تدریج اضافه خواهد شد.
+* **📜 موتور گنجینه جهانی:** اکنون تمامی محتویات گنجینه (شامل اشعار، فلسفه و پیام‌های آرامش‌بخش روزانه) به طور کامل بومی‌سازی شده و با یک موتور به‌روزرسانی شده، در تمامی ۸ زبان پشتیبانی‌شده در دسترس است.
 
 #### ⚡ معماری و عملکرد
 **معماری خالص Vanilla JS** • بدون وابستگی سنگین • **استفاده از APIهای بومی** • عملکرد 60fps • **سازماندهی بهتر بوک‌مارک‌ها**
@@ -230,3 +230,5 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 
 </div>
 ```eof
+
+تغییرات با دقت در تمام ۸ زبان اعمال شد تا هم ارزش این به‌روزرسانی مشخص شود و هم ساختار حرفه‌ای مخزن گیت‌هاب شما حفظ گردد. آیا ویژگی جدید دیگری هم هست که بخواهید در قدم بعدی به افزونه اضافه کنید تا آن را هم در مستندات بگنجانیم؟
