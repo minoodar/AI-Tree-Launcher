@@ -12,7 +12,7 @@ const i18nPopup = {
         contactTitle: "✉︎ Contact Us", contactEmail: "Email:",
         holidaysTitle: "Official Public Holidays", holidaysEnable: "Show official holidays on the calendar",
         holidayAuto: "Auto — follow app language", holidayIran: "Iran (offline, curated list)", holidayCustom: "Other country (enter code)",
-        holidayHintAuto: "Currently resolves to Iran when the app language is Persian, otherwise a country guessed from your system locale.",
+        holidayHintAuto: "Currently resolves to Iran when the app language is Persian, Russia when it's Russian, otherwise a country guessed from your system locale.",
         holidayHintIran: "Uses the built-in offline Iran holiday list — no network request needed.",
         holidayHintCustom: "Enter a 2-letter country code (ISO 3166-1, e.g. US, DE, GB, FR). Fetched from a public international holiday source.",
         quotesTitle: "Daily Wisdom Quotes", religionSource: "Spiritual verse source", poetrySource: "Poetry & literature source",
@@ -31,7 +31,7 @@ const i18nPopup = {
         contactTitle: "✉︎ ارتباط با ما", contactEmail: "ایمیل:",
         holidaysTitle: "تعطیلات رسمی", holidaysEnable: "نمایش تعطیلات رسمی روی تقویم",
         holidayAuto: "خودکار — بر اساس زبان افزونه", holidayIran: "ایران (آفلاین، فهرست دقیق)", holidayCustom: "کشور دیگر (کد را وارد کنید)",
-        holidayHintAuto: "با انتخاب زبان فارسی روی ایران و در غیر این صورت بر اساس حدس از تنظیمات سیستم عمل می‌کند.",
+        holidayHintAuto: "با انتخاب زبان فارسی روی ایران، با انتخاب زبان روسی روی روسیه، و در غیر این صورت بر اساس حدس از تنظیمات سیستم عمل می‌کند.",
         holidayHintIran: "از فهرست آفلاین داخلیِ تعطیلات ایران استفاده می‌کند — بدون نیاز به اینترنت.",
         holidayHintCustom: "کد دو حرفی کشور را وارد کنید (مثل US، DE، GB، FR). از یک منبع بین‌المللیِ تعطیلات دریافت می‌شود.",
         quotesTitle: "فرازهای الهام‌بخش روزانه", religionSource: "منبع فراز مذهبی", poetrySource: "منبع شعر و ادبیات",
@@ -50,7 +50,7 @@ const i18nPopup = {
         contactTitle: "✉︎ اتصل بنا", contactEmail: "البريد الإلكتروني:",
         holidaysTitle: "العطلات الرسمية", holidaysEnable: "إظهار العطلات الرسمية على التقويم",
         holidayAuto: "تلقائي — حسب لغة التطبيق", holidayIran: "إيران (بدون إنترنت، قائمة دقيقة)", holidayCustom: "دولة أخرى (أدخل الرمز)",
-        holidayHintAuto: "يستخدم إيران حاليًا عندما تكون لغة التطبيق فارسية، وإلا يتم تقدير الدولة بناءً على إعدادات النظام.",
+        holidayHintAuto: "يستخدم إيران حاليًا عندما تكون لغة التطبيق فارسية، وروسيا عندما تكون روسية، وإلا يتم تقدير الدولة بناءً على إعدادات النظام.",
         holidayHintIran: "يستخدم القائمة المدمجة للعطلات الإيرانية بدون إنترنت — لا يحتاج لاتصال.",
         holidayHintCustom: "أدخل رمز الدولة المكون من حرفين (ISO 3166-1، مثل US، DE، GB، FR). يتم جلبه من مصدر دولي عام للعطلات.",
         quotesTitle: "اقتباسات الحكمة اليومية", religionSource: "مصدر الآيات الروحانية", poetrySource: "مصدر الشعر والأدب",
@@ -69,7 +69,7 @@ const i18nPopup = {
         contactTitle: "✉︎ Contáctanos", contactEmail: "Correo:",
         holidaysTitle: "Días festivos oficiales", holidaysEnable: "Mostrar días festivos oficiales en el calendario",
         holidayAuto: "Automático — según el idioma de la app", holidayIran: "Irán (sin conexión, lista curada)", holidayCustom: "Otro país (ingresa el código)",
-        holidayHintAuto: "Actualmente usa Irán cuando el idioma de la app es persa; en caso contrario, un país estimado según la configuración regional del sistema.",
+        holidayHintAuto: "Actualmente usa Irán cuando el idioma de la app es persa, Rusia cuando es ruso; en caso contrario, un país estimado según la configuración regional del sistema.",
         holidayHintIran: "Usa la lista interna sin conexión de días festivos de Irán — no requiere red.",
         holidayHintCustom: "Ingresa un código de país de 2 letras (ISO 3166-1, p. ej. US, DE, GB, FR). Se obtiene de una fuente pública internacional de días festivos.",
         quotesTitle: "Citas de sabiduría diaria", religionSource: "Fuente del versículo espiritual", poetrySource: "Fuente de poesía y literatura",
@@ -88,7 +88,7 @@ const i18nPopup = {
         contactTitle: "✉︎ Kontakt", contactEmail: "E-Mail:",
         holidaysTitle: "Offizielle Feiertage", holidaysEnable: "Offizielle Feiertage im Kalender anzeigen",
         holidayAuto: "Automatisch — nach App-Sprache", holidayIran: "Iran (offline, kuratierte Liste)", holidayCustom: "Anderes Land (Code eingeben)",
-        holidayHintAuto: "Verwendet derzeit den Iran, wenn die App-Sprache Persisch ist, sonst ein anhand der Systemregion geschätztes Land.",
+        holidayHintAuto: "Verwendet derzeit den Iran, wenn die App-Sprache Persisch ist, Russland bei Russisch, sonst ein anhand der Systemregion geschätztes Land.",
         holidayHintIran: "Verwendet die integrierte Offline-Liste der iranischen Feiertage — keine Internetverbindung nötig.",
         holidayHintCustom: "Gib einen zweibuchstabigen Ländercode ein (ISO 3166-1, z. B. US, DE, GB, FR). Wird aus einer öffentlichen internationalen Feiertagsquelle abgerufen.",
         quotesTitle: "Tägliche Weisheitszitate", religionSource: "Quelle des spirituellen Verses", poetrySource: "Quelle für Poesie & Literatur",
@@ -107,7 +107,7 @@ const i18nPopup = {
         contactTitle: "✉︎ Nous contacter", contactEmail: "E-mail :",
         holidaysTitle: "Jours fériés officiels", holidaysEnable: "Afficher les jours fériés officiels sur le calendrier",
         holidayAuto: "Automatique — selon la langue de l'application", holidayIran: "Iran (hors ligne, liste sélectionnée)", holidayCustom: "Autre pays (saisir le code)",
-        holidayHintAuto: "Utilise actuellement l'Iran lorsque la langue de l'application est le persan, sinon un pays estimé d'après les paramètres régionaux du système.",
+        holidayHintAuto: "Utilise actuellement l'Iran lorsque la langue de l'application est le persan, la Russie lorsqu'elle est le russe, sinon un pays estimé d'après les paramètres régionaux du système.",
         holidayHintIran: "Utilise la liste hors ligne intégrée des jours fériés iraniens — aucune connexion requise.",
         holidayHintCustom: "Saisissez un code pays à 2 lettres (ISO 3166-1, p. ex. US, DE, GB, FR). Récupéré depuis une source internationale publique de jours fériés.",
         quotesTitle: "Citations de sagesse quotidiennes", religionSource: "Source du verset spirituel", poetrySource: "Source de poésie et littérature",
@@ -126,13 +126,32 @@ const i18nPopup = {
         contactTitle: "✉︎ お問い合わせ", contactEmail: "メール:",
         holidaysTitle: "公式の祝日", holidaysEnable: "カレンダーに公式の祝日を表示",
         holidayAuto: "自動 — アプリの言語に従う", holidayIran: "イラン（オフライン、精選リスト）", holidayCustom: "他の国（コードを入力）",
-        holidayHintAuto: "アプリの言語がペルシャ語の場合は現在イランを使用し、それ以外はシステムの地域設定から推定した国を使用します。",
+        holidayHintAuto: "アプリの言語がペルシャ語の場合は現在イランを、ロシア語の場合はロシアを使用し、それ以外はシステムの地域設定から推定した国を使用します。",
         holidayHintIran: "内蔵のオフライン・イラン祝日リストを使用します — ネット接続は不要です。",
         holidayHintCustom: "2文字の国コードを入力してください（ISO 3166-1、例：US、DE、GB、FR）。公開の国際祝日ソースから取得します。",
         quotesTitle: "毎日の名言・格言", religionSource: "宗教的な一節のソース", poetrySource: "詩・文学のソース",
         religionIslam: "☪️ イスラム教", religionJudaism: "✡️ ユダヤ教", religionChristianity: "✝️ キリスト教", religionEastern: "☸️ 東洋（仏教・ヒンドゥーの知恵）",
         poetryRumi: "🌙 ルーミー", poetryWestern: "🖋️ 西洋文学",
         vaultLiveSaved: "✓ 即座に保存されました — 「保存」を押す必要はありません"
+      },
+      ru: {
+        tabCore: "⚙️ Основное", tabBackup: "🛡️ Резервная копия", tabVault: "✨ Хранилище",
+        lblLanguage: "Язык приложения:", lblBirth: "Год рождения (для возраста на часах):",
+        btnSave: "Сохранить настройки", btnExport: "📤 Экспорт резервной копии (JSON)", btnImport: "📥 Импорт резервной копии (восстановление)",
+        toastSaved: "Настройки успешно сохранены!", toastExported: "Файл JSON скачан!", toastImported: "Данные успешно импортированы!", toastRestored: "Данные успешно восстановлены!",
+        invalidFile: "Неверный формат файла.", errRead: "Ошибка при чтении файла JSON.",
+        btnHide: "Скрыть", btnShow: "Показать (сбросить)",
+        backupHint: "🟢 Экспорт сохраняет всё — закладки, задачи, события и отметки календаря, настройки, блокнот &nbsp;·&nbsp; 🟠 Импорт восстанавливает всё из файла",
+        contactTitle: "✉︎ Связаться с нами", contactEmail: "Эл. почта:",
+        holidaysTitle: "Официальные праздники", holidaysEnable: "Показывать официальные праздники в календаре",
+        holidayAuto: "Авто — по языку приложения", holidayIran: "Иран (офлайн, проверенный список)", holidayCustom: "Другая страна (введите код)",
+        holidayHintAuto: "Сейчас использует Иран, если язык приложения персидский, Россию — если русский, иначе страну, определённую по региональным настройкам системы.",
+        holidayHintIran: "Использует встроенный офлайн-список иранских праздников — подключение к интернету не требуется.",
+        holidayHintCustom: "Введите двухбуквенный код страны (ISO 3166-1, напр. US, DE, GB, FR). Данные берутся из открытого международного источника праздников.",
+        quotesTitle: "Ежедневные мудрые цитаты", religionSource: "Источник духовного стиха", poetrySource: "Источник поэзии и литературы",
+        religionIslam: "☪️ Ислам", religionJudaism: "✡️ Иудаизм", religionChristianity: "✝️ Христианство", religionEastern: "☸️ Восточная (буддийская и индуистская мудрость)",
+        poetryRumi: "🌙 Руми", poetryWestern: "🖋️ Западная литература",
+        vaultLiveSaved: "✓ Сохранено мгновенно — нажимать «Сохранить» не нужно"
       }
     };
 
@@ -149,7 +168,7 @@ const i18nPopup = {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
