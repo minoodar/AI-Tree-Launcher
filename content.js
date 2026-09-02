@@ -979,6 +979,7 @@
 
     uiEls.searchInput.placeholder = t('searchPlaceholder');
     if (uiEls.bookmarkSearchLabel) uiEls.bookmarkSearchLabel.textContent = t('bookmarkSearchLabel');
+    if (uiEls.webSearchToggleLabel) uiEls.webSearchToggleLabel.textContent = t('webSearchToggleLabel');
     if (uiEls.webSearchSectionLabel) uiEls.webSearchSectionLabel.textContent = t('webSearchSectionLabel');
     if (uiEls.webSearchInput) uiEls.webSearchInput.placeholder = t('webSearchPlaceholder');
     if (uiEls.webSearchAddBtn) uiEls.webSearchAddBtn.title = t('webSearchAddEngineTitle');
@@ -3171,24 +3172,27 @@
   // نیستند؛ صرفاً یک لایه‌ی نمایشی/میانبر روی همان تگ‌های آزادِ موجودند. کلیک روی هرکدام دقیقاً
   // معادل نوشتن دستیِ همان کلمه در فیلد تگ‌هاست — یعنی هیچ فیلد جدیدی به مدل داده اضافه نشد،
   // مهاجرت/schema جدید لازم نیست، و بوک‌مارک می‌تواند هم‌زمان چند دسته‌ی ثابت + هر تگ آزاد دیگری داشته باشد.
+  // هر دسته اکنون یک برچسب برای هر ۷ زبانِ افزونه دارد (en/fa/ar/es/de/fr/ja) —
+  // قبلاً فقط fa/en داشت و categoryLabel برای بقیه‌ی زبان‌ها بی‌صدا به en
+  // برمی‌گشت؛ همین ناهماهنگی گزارش‌شده (بعضی زبان‌ها ترجمه، بعضی انگلیسی) بود.
   const AI_TAG_CATEGORIES = [
-    { key: 'music', icon: '🎵', fa: 'موسیقی', en: 'Music' },
-    { key: 'movies', icon: '🎬', fa: 'فیلم و سریال', en: 'Movies & Series' },
-    { key: 'shopping', icon: '🛒', fa: 'خرید', en: 'Shopping' },
-    { key: 'finance', icon: '💰', fa: 'مالی و ارز', en: 'Finance' },
-    { key: 'social', icon: '🌐', fa: 'شبکه اجتماعی', en: 'Social' },
-    { key: 'news', icon: '📰', fa: 'اخبار', en: 'News' },
-    { key: 'tech', icon: '💻', fa: 'فناوری', en: 'Tech' },
-    { key: 'ai', icon: '🧠', fa: 'هوش مصنوعی', en: 'AI' },
-    { key: 'games', icon: '🎮', fa: 'بازی', en: 'Games' },
-    { key: 'design', icon: '🎨', fa: 'طراحی', en: 'Design' },
-    { key: 'education', icon: '📚', fa: 'آموزش', en: 'Education' },
-    { key: 'tools', icon: '🛠️', fa: 'ابزار', en: 'Tools' },
-    { key: 'cloud', icon: '☁️', fa: 'ابر و هاست', en: 'Cloud' },
-    { key: 'health', icon: '🩺', fa: 'سلامت', en: 'Health' },
-    { key: 'travel', icon: '✈️', fa: 'سفر', en: 'Travel' }
+    { key: 'music',     icon: '🎵',  en: 'Music',            fa: 'موسیقی',           ar: 'الموسيقى',              es: 'Música',              de: 'Musik',              fr: 'Musique',            ja: '音楽' },
+    { key: 'movies',    icon: '🎬',  en: 'Movies & Series',  fa: 'فیلم و سریال',     ar: 'الأفلام والمسلسلات',    es: 'Películas y series',  de: 'Filme & Serien',     fr: 'Films et séries',    ja: '映画・ドラマ' },
+    { key: 'shopping',  icon: '🛒',  en: 'Shopping',         fa: 'خرید',             ar: 'التسوق',                es: 'Compras',             de: 'Einkaufen',          fr: 'Achats',             ja: 'ショッピング' },
+    { key: 'finance',   icon: '💰',  en: 'Finance',          fa: 'مالی و ارز',       ar: 'المالية والعملات',      es: 'Finanzas',            de: 'Finanzen',           fr: 'Finance',            ja: '金融' },
+    { key: 'social',    icon: '🌐',  en: 'Social',           fa: 'شبکه اجتماعی',     ar: 'التواصل الاجتماعي',     es: 'Redes sociales',      de: 'Soziale Netzwerke',  fr: 'Réseaux sociaux',    ja: 'ソーシャル' },
+    { key: 'news',      icon: '📰',  en: 'News',             fa: 'اخبار',            ar: 'الأخبار',               es: 'Noticias',            de: 'Nachrichten',        fr: 'Actualités',         ja: 'ニュース' },
+    { key: 'tech',      icon: '💻',  en: 'Tech',             fa: 'فناوری',           ar: 'التقنية',               es: 'Tecnología',          de: 'Technik',            fr: 'Technologie',        ja: 'テクノロジー' },
+    { key: 'ai',        icon: '🧠',  en: 'AI',               fa: 'هوش مصنوعی',       ar: 'الذكاء الاصطناعي',      es: 'IA',                  de: 'KI',                 fr: 'IA',                 ja: 'AI' },
+    { key: 'games',     icon: '🎮',  en: 'Games',            fa: 'بازی',             ar: 'الألعاب',               es: 'Juegos',              de: 'Spiele',             fr: 'Jeux',               ja: 'ゲーム' },
+    { key: 'design',    icon: '🎨',  en: 'Design',           fa: 'طراحی',            ar: 'التصميم',               es: 'Diseño',              de: 'Design',             fr: 'Design',             ja: 'デザイン' },
+    { key: 'education', icon: '📚',  en: 'Education',        fa: 'آموزش',            ar: 'التعليم',               es: 'Educación',           de: 'Bildung',            fr: 'Éducation',          ja: '教育' },
+    { key: 'tools',     icon: '🛠️', en: 'Tools',            fa: 'ابزار',            ar: 'الأدوات',               es: 'Herramientas',        de: 'Werkzeuge',          fr: 'Outils',             ja: 'ツール' },
+    { key: 'cloud',     icon: '☁️', en: 'Cloud',            fa: 'ابر و هاست',       ar: 'السحابة والاستضافة',    es: 'Nube y hosting',      de: 'Cloud & Hosting',    fr: 'Cloud et hébergement', ja: 'クラウド' },
+    { key: 'health',    icon: '🩺',  en: 'Health',           fa: 'سلامت',            ar: 'الصحة',                 es: 'Salud',               de: 'Gesundheit',         fr: 'Santé',              ja: '健康' },
+    { key: 'travel',    icon: '✈️', en: 'Travel',           fa: 'سفر',              ar: 'السفر',                 es: 'Viajes',              de: 'Reisen',             fr: 'Voyage',             ja: '旅行' }
   ];
-  function categoryLabel(cat) { return currentLang === 'fa' ? cat.fa : cat.en; }
+  function categoryLabel(cat) { return (cat && cat[currentLang]) || (cat && cat.en) || ''; }
 
   // نرمال‌سازی یک تگ تکی: کوچک‌شونده، فاصله‌های اضافه حذف، فاصله‌های داخلی به یک فاصله.
   // جلوگیری از تفرقه‌ی "Music" / "music " / "MUSIC" به عنوان سه تگ جدا.
@@ -3639,8 +3643,6 @@
       });
     } catch (e) { renderWebSearchEngineButtons(); }
   }
-
-  if (uiEls.webSearchToggleLabel) uiEls.webSearchToggleLabel.textContent = 'جستجوی وب / Search the web';
 
   function runWebSearch() {
     const q = (uiEls.webSearchInput && uiEls.webSearchInput.value || '').trim();

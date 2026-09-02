@@ -232,6 +232,7 @@ const i18n = {
     // === Web search drawer (layer 1: short labels/buttons — icon-carried,
     // es/de/fr/ja intentionally fall back to this English text via t()) ===
     bookmarkSearchLabel: "Bookmark search",
+    webSearchToggleLabel: "Search the web",
     webSearchSectionLabel: "Web search",
     webSearchPlaceholder: "Search the web…",
     webSearchAddEngineTitle: "Add a new search engine",
@@ -503,6 +504,7 @@ const i18n = {
     toastTtsUnsupported: "خواندن با صدا در این مرورگر پشتیبانی نمی‌شود",
     toastTtsStopped: "متوقف شد",
     bookmarkSearchLabel: "جستجوی بوک‌مارک‌ها",
+    webSearchToggleLabel: "جستجوی وب",
     webSearchSectionLabel: "جستجوی وب",
     webSearchPlaceholder: "جستجو در وب…",
     webSearchAddEngineTitle: "افزودن موتور جستجوی جدید",
@@ -767,6 +769,7 @@ const i18n = {
     toastTtsUnsupported: "القراءة الصوتية غير مدعومة في هذا المتصفح",
     toastTtsStopped: "تم الإيقاف",
     bookmarkSearchLabel: "البحث في العلامات المرجعية",
+    webSearchToggleLabel: "البحث في الويب",
     webSearchSectionLabel: "البحث في الويب",
     webSearchPlaceholder: "ابحث في الويب…",
     webSearchAddEngineTitle: "إضافة محرك بحث جديد",
