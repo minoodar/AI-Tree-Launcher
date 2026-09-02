@@ -1,13 +1,16 @@
+// هر دسته (دین/شاعر) اکنون برچسب هر ۸ زبانِ افزونه رو داره (en/fa/ar/es/de/fr/ja/ru)
+// — قبلاً فقط label/labelFa داشت. انتخاب برچسب با quoteCategoryLabel() در content.js
+// انجام می‌شود که مستقیم بر اساس currentLang جستجو می‌کند (با fallback به en).
 const AI_QUOTE_RELIGIONS = {
-  islam: { icon: '☪️', file: 'quran.json', label: 'Islam', labelFa: 'اسلام' },
-  judaism: { icon: '✡️', file: 'judaism.json', label: 'Judaism', labelFa: 'یهودیت' },
-  christianity: { icon: '✝️', file: 'christianity-luke.json', label: 'Christianity', labelFa: 'مسیحیت' },
-  eastern: { icon: '☸️', file: 'eastern-wisdom.json', label: 'Eastern Wisdom', labelFa: 'حکمت شرقی' }
+  islam:        { icon: '☪️', file: 'quran.json',              en: 'Islam',           fa: 'اسلام',        ar: 'الإسلام',           es: 'Islam',              de: 'Islam',            fr: 'Islam',              ja: 'イスラム教', ru: 'Ислам' },
+  judaism:      { icon: '✡️', file: 'judaism.json',             en: 'Judaism',         fa: 'یهودیت',       ar: 'اليهودية',          es: 'Judaísmo',           de: 'Judentum',         fr: 'Judaïsme',           ja: 'ユダヤ教',   ru: 'Иудаизм' },
+  christianity: { icon: '✝️', file: 'christianity-luke.json',   en: 'Christianity',    fa: 'مسیحیت',       ar: 'المسيحية',          es: 'Cristianismo',       de: 'Christentum',      fr: 'Christianisme',      ja: 'キリスト教', ru: 'Христианство' },
+  eastern:      { icon: '☸️', file: 'eastern-wisdom.json',      en: 'Eastern Wisdom',  fa: 'حکمت شرقی',    ar: 'الحكمة الشرقية',    es: 'Sabiduría oriental', de: 'Östliche Weisheit', fr: 'Sagesse orientale',  ja: '東洋の知恵', ru: 'Восточная мудрость' }
 };
 
 const AI_QUOTE_POETRY = {
-  rumi: { icon: '🌙', file: 'rumi.json', label: 'Rumi', labelFa: 'مولانا' },
-  western: { icon: '🖋️', file: 'western-literature.json', label: 'Western Literature', labelFa: 'ادبیات غرب' }
+  rumi:    { icon: '🌙', file: 'rumi.json',               en: 'Rumi',               fa: 'مولانا',      ar: 'جلال الدين الرومي', es: 'Rumi',                    de: 'Rumi',                  fr: 'Rumi',                    ja: 'ルーミー', ru: 'Руми' },
+  western: { icon: '🖋️', file: 'western-literature.json', en: 'Western Literature', fa: 'ادبیات غرب',  ar: 'الأدب الغربي',      es: 'Literatura occidental',   de: 'Westliche Literatur',   fr: 'Littérature occidentale', ja: '西洋文学', ru: 'Западная литература' }
 };
 
 const aiQuoteFileCache = {};
@@ -62,16 +65,19 @@ function aiCreateQuoteFeature(seed) {
 async function aiResolveActiveReligionKey() {
   const cfg = await chrome.storage.local.get(['quoteReligionSource']);
   if (AI_QUOTE_RELIGIONS[cfg.quoteReligionSource]) return cfg.quoteReligionSource;
-  // پیش‌فرض (وقتی کاربر هنوز خودش انتخاب نکرده): برای فارسی همان اسلام/قرآن
-  // مثل قبل؛ برای بقیهٔ زبان‌ها فعلاً یک منبعِ اصالتاً انگلیسی (مسیحیت/انجیل
-  // لوقا) تا راه‌حلِ چندزبانهٔ نهاییِ گنجینه طراحی شود
+  // پیش‌فرض (وقتی کاربر هنوز خودش انتخاب نکرده): برای فارسی اسلام/قرآن، برای
+  // بقیهٔ زبان‌ها مسیحیت/انجیل لوقا. توجه: این تمایز در ابتدا به این دلیل بود
+  // که فقط مسیحیت/انجیل لوقا منبعی اصالتاً انگلیسی/غیرفارسی بود؛ اکنون که همهٔ
+  // ۶ منبع به هر ۸ زبان ترجمه شده‌اند، این محدودیتِ فنی دیگر برقرار نیست — این
+  // فقط یک پیش‌فرضِ فرهنگی/سلیقه‌ای باقی‌مانده که عمداً دست‌نخورده نگه داشته شده.
   return currentLang === 'fa' ? 'islam' : 'christianity';
 }
 
 async function aiResolveActivePoetryKey() {
   const cfg = await chrome.storage.local.get(['quotePoetrySource']);
   if (AI_QUOTE_POETRY[cfg.quotePoetrySource]) return cfg.quotePoetrySource;
-  // همان منطق: فارسی → مولانا (مثل قبل)، بقیهٔ زبان‌ها → ادبیات غرب (انگلیسی)
+  // همان منطق و همان نکته: فارسی → مولانا، بقیهٔ زبان‌ها → ادبیات غرب — دیگر یک
+  // محدودیتِ فنی نیست، صرفاً پیش‌فرضِ فعلی که دست‌نخورده نگه داشته شده است.
   return currentLang === 'fa' ? 'rumi' : 'western';
 }
 

@@ -2765,30 +2765,44 @@
 
   let isQuoteCollapsed = true; // Hidden by default — shows only the closed "🌙" tab until the user opens it
 
+  // === کمک‌تابع‌های عمومیِ نقل‌قول ۸‌زبانه — یک‌بار تعریف، هم برای بخش
+  // آیه/متن مذهبی (todoQuote) و هم بخش شعر (clockQuote) استفاده می‌شود.
+  // قبلاً فقط بین q.fa/q.en سوییچ می‌کرد؛ حالا مستقیم بر اساس currentLang
+  // انتخاب می‌کند (با fallback به en سپس fa اگر آن زبان ترجمه نداشت).
+  function quoteText(q) { return (q && (q[currentLang] || q.en || q.fa)) || ''; }
+  function quoteIsRtl() { return currentLang === 'fa' || currentLang === 'ar'; }
+  function quoteDir() { return quoteIsRtl() ? 'rtl' : 'ltr'; }
+  // مرجع/رفرنس: برای فارسی و عربی رفرنسِ بومی (q.ref) اولویت دارد، برای بقیهٔ
+  // زبان‌ها رفرنسِ انگلیسی/لاتین (q.refEn) که بین‌المللی‌تر و شناخته‌شده‌تر است.
+  function quoteRef(q) {
+    if (!q) return '';
+    return quoteIsRtl() ? (q.ref || q.refEn || '') : (q.refEn || q.ref || '');
+  }
+  function quoteCategoryLabel(cat) { return (cat && (cat[currentLang] || cat.en)) || ''; }
+
   function renderDailyQuote() {
     const q = AITreeQuoteEngine.religionFeature.current();
     if (!q) return;
-    const isFa = currentLang === 'fa';
     const religionCat = AITreeQuoteEngine.religions[AITreeQuoteEngine.activeReligionKey];
     if (uiEls.todoQuoteFa) {
       uiEls.todoQuoteFa.textContent = q.text || '';
       uiEls.todoQuoteFa.dir = 'rtl';
       uiEls.todoQuoteFa.style.display = q.text ? '' : 'none';
     }
-    // Bilingual translation line — original-language verse above always stays as-is,
-    // only the translation underneath switches with the app language, same idea as the poetry drawer.
+    // خط ترجمه — متنِ زبانِ اصلی (اگر باشد) همیشه بالا ثابت می‌ماند، فقط
+    // ترجمهٔ زیرش با زبان فعال برنامه عوض می‌شود (بین هر ۸ زبان، نه فقط fa/en).
     if (uiEls.todoQuoteTranslation) {
-      const translation = isFa ? (q.fa || '') : (q.en || '');
+      const translation = quoteText(q);
       uiEls.todoQuoteTranslation.textContent = translation;
-      uiEls.todoQuoteTranslation.dir = isFa ? 'rtl' : 'ltr';
-      uiEls.todoQuoteTranslation.classList.toggle('is-fa', isFa);
-      uiEls.todoQuoteTranslation.classList.toggle('is-en', !isFa);
+      uiEls.todoQuoteTranslation.dir = quoteDir();
+      uiEls.todoQuoteTranslation.classList.toggle('is-fa', quoteIsRtl());
+      uiEls.todoQuoteTranslation.classList.toggle('is-en', !quoteIsRtl());
       uiEls.todoQuoteTranslation.style.display = translation ? '' : 'none';
     }
     if (uiEls.todoQuoteTitle) {
-      const ref = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
+      const ref = quoteRef(q);
       uiEls.todoQuoteTitle.textContent = ref ? `${religionCat.icon} ${ref}` : religionCat.icon;
-      uiEls.todoQuoteTitle.dir = isFa ? 'rtl' : 'ltr';
+      uiEls.todoQuoteTitle.dir = quoteDir();
       uiEls.todoQuoteTitle.style.display = '';
     }
     if (uiEls.todoQuote) uiEls.todoQuote.classList.toggle('is-collapsed', isQuoteCollapsed);
@@ -2809,7 +2823,7 @@
         const key = btn.dataset.key;
         const cat = AITreeQuoteEngine.religions[key];
         btn.classList.toggle('active', key === AITreeQuoteEngine.activeReligionKey);
-        if (cat) btn.title = currentLang === 'fa' ? cat.labelFa : cat.label;
+        if (cat) btn.title = quoteCategoryLabel(cat);
       });
     }
   }
@@ -2862,12 +2876,11 @@
   function buildDailyQuoteCopyText() {
     const q = AITreeQuoteEngine.religionFeature.current();
     if (!q) return '';
-    const isFa = currentLang === 'fa';
     const lines = [];
     if (q.text) lines.push(q.text);
-    const translation = isFa ? (q.fa || '') : (q.en || '');
+    const translation = quoteText(q);
     if (translation) lines.push(translation);
-    const ref = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
+    const ref = quoteRef(q);
     if (ref) lines.push(ref);
     return lines.join('\n\n');
   }
@@ -2909,17 +2922,16 @@
     const q = AITreeQuoteEngine.poetryFeature.current();
     if (!q) return;
     const cat = AITreeQuoteEngine.poetry[AITreeQuoteEngine.activePoetryKey];
-    const isFa = currentLang === 'fa';
     if (uiEls.clockQuoteText) {
-      uiEls.clockQuoteText.textContent = isFa ? (q.fa || '') : (q.en || '');
-      uiEls.clockQuoteText.dir = isFa ? 'rtl' : 'ltr';
-      uiEls.clockQuoteText.classList.toggle('is-fa', isFa);
-      uiEls.clockQuoteText.classList.toggle('is-en', !isFa);
+      uiEls.clockQuoteText.textContent = quoteText(q);
+      uiEls.clockQuoteText.dir = quoteDir();
+      uiEls.clockQuoteText.classList.toggle('is-fa', quoteIsRtl());
+      uiEls.clockQuoteText.classList.toggle('is-en', !quoteIsRtl());
     }
     if (uiEls.clockQuoteTitle) {
-      const itemRef = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
-      uiEls.clockQuoteTitle.textContent = itemRef ? `${cat.icon} ${itemRef}` : `${cat.icon} ${isFa ? cat.labelFa : cat.label}`;
-      uiEls.clockQuoteTitle.dir = isFa ? 'rtl' : 'ltr';
+      const itemRef = quoteRef(q);
+      uiEls.clockQuoteTitle.textContent = itemRef ? `${cat.icon} ${itemRef}` : `${cat.icon} ${quoteCategoryLabel(cat)}`;
+      uiEls.clockQuoteTitle.dir = quoteDir();
     }
     if (uiEls.clockQuote) uiEls.clockQuote.classList.toggle('is-collapsed', isRumiCollapsed);
     if (uiEls.clockQuoteChevron) uiEls.clockQuoteChevron.textContent = isRumiCollapsed ? '▼' : '▲';
@@ -2928,16 +2940,14 @@
       uiEls.clockQuoteLabel.textContent = isRumiCollapsed ? '🌙' : '☀️';
     }
     if (uiEls.clockQuoteTab) {
-      uiEls.clockQuoteTab.title = isRumiCollapsed
-        ? (isFa ? 'نمایش شعر' : 'Show poem')
-        : (isFa ? 'جمع کردن شعر' : 'Hide poem');
+      uiEls.clockQuoteTab.title = isRumiCollapsed ? t('quoteToggleShow') : t('quoteToggleHide');
     }
     if (uiEls.clockQuoteSourceTabs) {
       uiEls.clockQuoteSourceTabs.querySelectorAll('.ai-quote-source-tab').forEach((btn) => {
         const key = btn.dataset.key;
         const pCat = AITreeQuoteEngine.poetry[key];
         btn.classList.toggle('active', key === AITreeQuoteEngine.activePoetryKey);
-        if (pCat) btn.title = isFa ? pCat.labelFa : pCat.label;
+        if (pCat) btn.title = quoteCategoryLabel(pCat);
       });
     }
   }
@@ -2989,16 +2999,16 @@
   function buildRumiQuoteCopyText() {
     const q = AITreeQuoteEngine.poetryFeature.current();
     if (!q) return '';
-    const isFa = currentLang === 'fa';
     const lines = [];
-    const body = isFa ? (q.fa || '') : (q.en || '');
+    const body = quoteText(q);
     if (body) lines.push(body);
-    // Include the other language when available for a complete shareable block
-    const other = isFa ? (q.en || '') : (q.fa || '');
+    // Include the English rendering too (when different) for a complete shareable block —
+    // English stays the most universally readable second line regardless of active app language.
+    const other = currentLang === 'en' ? (q.fa || '') : (q.en || '');
     if (other && other !== body) lines.push(other);
     const cat = AITreeQuoteEngine.poetry[AITreeQuoteEngine.activePoetryKey];
-    const itemRef = isFa ? (q.ref || '') : (q.refEn || q.ref || '');
-    lines.push(itemRef || (isFa ? cat.labelFa : cat.label));
+    const itemRef = quoteRef(q);
+    lines.push(itemRef || quoteCategoryLabel(cat));
     return lines.join('\n\n');
   }
 
