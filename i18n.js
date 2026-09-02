@@ -1114,6 +1114,7 @@ const i18n = {
     searchMatchedInDesc: "desc",
 
     clockTitle: "Reloj y fecha",
+    hubHoldHint: "Mantén pulsado para guardar esta página\nSuelta en la estrella que quieras",
     markToggleTitle: "Días especiales",
     dashToggleTitle: "Agenda de hoy",
     dashNoEvents: "Sin eventos para este día",
@@ -1202,6 +1203,7 @@ const i18n = {
     searchMatchedInDesc: "Beschr.",
 
     clockTitle: "Uhr & Datum",
+    hubHoldHint: "Halten, um diese Seite zu speichern\nAm gewünschten Stern loslassen",
     markToggleTitle: "Besondere Tage",
     dashToggleTitle: "Heutige Agenda",
     dashNoEvents: "Keine Termine für diesen Tag",
@@ -1290,6 +1292,7 @@ const i18n = {
     searchMatchedInDesc: "desc.",
 
     clockTitle: "Horloge et date",
+    hubHoldHint: "Maintenez pour ajouter cette page\nRelâchez sur l'étoile souhaitée",
     markToggleTitle: "Jours spéciaux",
     dashToggleTitle: "Agenda du jour",
     dashNoEvents: "Aucun événement pour ce jour",
@@ -1378,6 +1381,7 @@ const i18n = {
     searchMatchedInDesc: "説明",
 
     clockTitle: "時計と日付",
+    hubHoldHint: "長押しでこのページをブックマーク\n希望の星の位置で指を離してください",
     markToggleTitle: "特別な日",
     dashToggleTitle: "今日の予定",
     dashNoEvents: "この日の予定はありません",
