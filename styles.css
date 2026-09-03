@@ -1108,13 +1108,20 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   display: grid;
   grid-template-rows: 1fr;
   opacity: 1;
-  padding: 8px 12px 30px; /* فضای دکمه کپی پایین-چپ */
+  padding: 6px 12px 26px; /* فضای دکمه کپی پایین-چپ */
   cursor: pointer;
+  /* سقف ارتفاع: حتی برای متن خیلی بلند، کاغذ بیش از این کشیده نمی‌شود و به‌جایش
+     خودش اسکرول می‌شود — این همان «ضریب لاغری» است که مستقل از طول متنِ گنجینه عمل می‌کند */
+  max-height: 250px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   transition:
     grid-template-rows 0.4s var(--ease-premium),
     opacity 0.35s var(--ease-premium),
     padding 0.35s var(--ease-premium);
 }
+.ai-todo-quote-body::-webkit-scrollbar { width: 4px; }
+.ai-todo-quote-body::-webkit-scrollbar-thumb { background: rgba(124, 90, 23, 0.28); border-radius: 4px; }
 .ai-todo-quote-body:hover {
   filter: brightness(1.08);
 }
@@ -1127,20 +1134,24 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   opacity: 0;
   padding-top: 0;
   padding-bottom: 0;
+  /* سقف ۲۵۰px که برای حالت باز گذاشتیم را اینجا صفر می‌کنیم تا در حالت بسته،
+     فارغ از طول متن گنجینه، همیشه یک نوار باریک بماند، نه چیزی که فقط تا ۲۵۰px جمع شود */
+  max-height: 0;
+  overflow: hidden;
   pointer-events: none;
 }
 
 /* Large readable ayah */
 .ai-todo-quote-fa {
-  font-size: 20px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 500;
   color: #f1f5f9;
   white-space: pre-line;
-  line-height: 1.85;
+  line-height: 1.55;
   direction: rtl;
   font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", "Traditional Arabic", serif;
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-  margin-bottom: 7px;
+  margin-bottom: 5px;
   letter-spacing: 0.01em;
   transition: color 0.3s;
 }
@@ -1148,16 +1159,22 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   color: #1a1a1a;
   text-shadow: none;
 }
+/* فقط در بخش اسلام (آیات کوتاه) متن اصلی ضخیم بماند؛ بقیه منابع همان وزن سبک‌تر را دارند */
+.ai-todo-quote[data-quote-source="islam"] .ai-todo-quote-fa {
+  font-weight: 800;
+}
 
 /* Translation line — switches with the app language, same idea as the Rumi drawer:
-   fa mode shows the Persian meaning, en mode shows the English translation. */
+   fa mode shows the Persian meaning, en mode shows the English translation.
+   اندازه فونت این خط یک سقف ثابت دارد (کوچک‌تر از قبل) تا حتی وقتی ترجمه طولانی
+   است، ارتفاعِ کاغذ به‌جای رشد بی‌حد و حصر، در مرز خوانایی/فشردگی بماند. */
 .ai-todo-quote-translation {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(241, 245, 249, 0.75);
   white-space: pre-line;
-  line-height: 1.45;
-  margin-bottom: 5px;
+  line-height: 1.3;
+  margin-bottom: 4px;
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   transition: color 0.3s;
 }
@@ -1169,6 +1186,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   direction: ltr;
   font-style: italic;
   font-family: "Georgia", "Times New Roman", serif;
+  font-size: 11.5px;
 }
 .ai-todo-quote:not(.is-collapsed) .ai-todo-quote-translation {
   color: rgba(26, 26, 26, 0.72);
@@ -1251,6 +1269,10 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
   justify-content: center;
   gap: 4px;
   margin: 6px 0 2px;
+}
+/* ضریب فشردگی مختصِ ویجت گنجینه در تب Todo — ویجت شعر در تب ساعت دست‌نخورده می‌ماند */
+.ai-todo-quote .ai-quote-source-tabs {
+  margin: 4px 0 0;
 }
 .ai-quote-source-tab {
   width: 21px;

@@ -901,7 +901,7 @@
 
 
 
-  function updateUITexts() {
+function updateUITexts() {
     setGalaxyTooltip(noteToggleDot, t('noteTitle'), GALAXY_ICONS.note, 'left');
     setGalaxyTooltip(todoToggleDot, t('todoTitle'), GALAXY_ICONS.todo, 'left');
     setGalaxyTooltip(clockToggleDot, t('clockTitle'), GALAXY_ICONS.clock, 'left');
@@ -1000,6 +1000,27 @@
     uiEls.markAddBtn.textContent = t('markAddBtn');
     if (uiEls.markGoldenRow) uiEls.markGoldenRow.title = t('markGoldenTitle');
     if (uiEls.markGoldenLabel) uiEls.markGoldenLabel.textContent = '★';
+
+    // تولتیپ دکمه تقویم و دکمه‌های ناوبری ماه قبل/بعد
+    if (uiEls.smartDatePickerBtn) {
+      uiEls.smartDatePickerBtn.title = langPick({
+        fa: 'تقویم', en: 'Calendar', ar: 'التقويم', es: 'Calendario',
+        de: 'Kalender', fr: 'Calendrier', ja: 'カレンダー', ru: 'Календарь'
+      });
+    }
+    if (uiEls.dualPrev) {
+      uiEls.dualPrev.setAttribute('aria-label', langPick({
+        fa: 'ماه قبل', en: 'Previous month', ar: 'الشهر السابق', es: 'Mes anterior',
+        de: 'Vorheriger Monat', fr: 'Mois précédent', ja: '先月', ru: 'Предыдущий месяц'
+      }));
+    }
+    if (uiEls.dualNext) {
+      uiEls.dualNext.setAttribute('aria-label', langPick({
+        fa: 'ماه بعد', en: 'Next month', ar: 'الشهر التالي', es: 'Mes siguiente',
+        de: 'Nächster Monat', fr: 'Mois suivant', ja: '来月', ru: 'Следующий месяц'
+      }));
+    }
+
     if (uiEls.smartDateInput) {
       uiEls.smartDateInput.placeholder = currentLang === 'fa'
         ? 'امروز · فردا · ۱۴۰۳/۰۵/۱۶ · 2026-07-27'
@@ -1032,12 +1053,53 @@
       uiEls.clockQuoteCopy.title = t('quoteCopyTitle');
       uiEls.clockQuoteCopy.setAttribute('aria-label', t('quoteCopyTitle'));
     }
-    if(todoPanel.classList.contains('active')) renderTodos();
-    if(clockPanel.classList.contains('active')) { updateClockAge(); renderMarkedDays(); if (typeof renderRumiQuote === 'function') renderRumiQuote(); }
-    if(uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI();
-    if(searchPanel.classList.contains('active')) renderSearchResults(uiEls.searchInput.value);
+
+    if (uiEls.markEventTab) {
+      uiEls.markEventTab.title = langPick({
+        fa: 'رویداد', en: 'Event', ar: 'الحدث', es: 'Evento',
+        de: 'Ereignis', fr: 'Événement', ja: 'イベント', ru: 'Событие'
+      });
+    }
+
+    if (todoPanel.classList.contains('active')) renderTodos();
+
+    if (clockPanel.classList.contains('active')) {
+      updateClockAge();
+      renderMarkedDays();
+      if (typeof renderRumiQuote === 'function') renderRumiQuote();
+
+      // ۱. اگر شبکه تقویم باز است، آن را فوراً با زبان و تولتیپ‌های جدید رندر کن
+      if (typeof renderDualGrid === 'function' && dualPickerOpen) {
+        renderDualGrid();
+      }
+
+      // ۲. اگر برگه کاغذی رویداد باز است، آن را هم درجا بازرسم کن.
+      // اولویت با currentOpenMarkEvent است چون از هر مسیری (گرید، دات‌ها، لیست) باز
+      // شده باشد، مرجع مستقیم رویداد را داریم؛ دیگر لازم نیست دوباره از روی iso حدس بزنیم.
+      if (uiEls.markEventSheet && !uiEls.markEventSheet.classList.contains('is-collapsed')) {
+        if (currentOpenMarkEvent) {
+          openMarkEventSheet({
+            ...currentOpenMarkEvent,
+            days: daysUntilNext(currentOpenMarkEvent.day, currentOpenMarkEvent.month, currentOpenMarkEvent.cal)
+          });
+          // اگر زیرِ همین رویداد، لیست رویدادهای ساعتی همان روز هم نمایش داده شده
+          // (وقتی از سلول گرید باز شده، dayEventSheetOpenIso هم ست می‌شود)، آن را هم
+          // بازرسم کن تا تولتیپ و متنِ داخلش با زبان جدید هماهنگ شود.
+          if (dayEventSheetOpenIso && getDayTimeEvents(dayEventSheetOpenIso).length) {
+            renderMarkEventDailyList(dayEventSheetOpenIso);
+          }
+        } else if (dayEventSheetOpenIso === todayDashIso()) {
+          openTodayGreetingSheet(dayEventSheetOpenIso);
+        } else if (dayEventSheetOpenIso && getDayTimeEvents(dayEventSheetOpenIso).length) {
+          openDayEventsSheet(dayEventSheetOpenIso);
+        }
+      }
+    }
+
+    if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI();
+    if (searchPanel.classList.contains('active')) renderSearchResults(uiEls.searchInput.value);
     renderTierDots();
-    if(isOpen) setHubLabel(currentLayerMode === 0 ? t('hubCore') : ringDisplayLabel(RING_CONFIG[currentLayerMode]));
+    if (isOpen) setHubLabel(currentLayerMode === 0 ? t('hubCore') : ringDisplayLabel(RING_CONFIG[currentLayerMode]));
     updateBookmarkCount();
   }
 
@@ -1166,63 +1228,183 @@
     return true;
   }
 
-  function openMarkEventSheet(m) {
+function openMarkEventSheet(m) {
     if (!uiEls.markEventSheet || !m) return;
+    currentOpenMarkEvent = m;
     const isJ = m.cal === 'j' || m.cal === 'jalali';
     const isH = m.cal === 'h' || m.cal === 'hijri';
-    const fa = currentLang === 'fa';
-    const ar = currentLang === 'ar';
-    const es = currentLang === 'es';
-    const de = currentLang === 'de';
-    const fr = currentLang === 'fr';
-    const ja = currentLang === 'ja';
-    const ru = currentLang === 'ru';
-    let dateStr, calHint;
-    
+
+    // برچسب نوع تقویم به تفکیک ۸ زبان
+    let calHint = '';
+    if (isJ) {
+      calHint = langPick({
+        fa: 'شمسی', en: 'Jalali', ar: 'شمسي', es: 'jalalí',
+        de: 'Dschalali', fr: 'jalali', ja: 'ジャラリ暦', ru: 'джалали'
+      });
+    } else if (isH) {
+      calHint = langPick({
+        fa: 'قمری', en: 'Hijri', ar: 'هجري', es: 'hijrí',
+        de: 'Hidschri', fr: 'hijri', ja: 'ヒジュラ暦', ru: 'хиджра'
+      });
+    } else {
+      calHint = langPick({
+        fa: 'میلادی', en: 'Gregorian', ar: 'ميلادي', es: 'gregoriano',
+        de: 'gregorianisch', fr: 'grégorien', ja: 'グレゴリオ暦', ru: 'григорианский'
+      });
+    }
+
+    // نام ماه و قالب‌بندی ارقام بر اساس زبان فعال
+    let dateStr = '';
     if (isJ) {
       const monthName = JALALI_MONTHS_FA[m.month - 1] || '';
-      dateStr = `${(fa || ar) ? toPersianDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'شمسی' : ar ? 'شمسي' : es ? 'jalalí' : de ? 'Dschalali' : fr ? 'jalali' : ja ? 'ジャラリ暦' : ru ? 'джалали' : 'Jalali';
+      dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else if (isH) {
-      const monthName = (fa ? HIJRI_MONTHS_FA : ar ? HIJRI_MONTHS_AR : es ? HIJRI_MONTHS_ES : de ? HIJRI_MONTHS_DE : fr ? HIJRI_MONTHS_FR : ja ? HIJRI_MONTHS_JA : ru ? HIJRI_MONTHS_RU : HIJRI_MONTHS_EN)[m.month - 1] || '';
-      dateStr = `${(fa || ar) ? toArabicDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'قمری' : ar ? 'هجري' : es ? 'hijrí' : de ? 'Hidschri' : fr ? 'hijri' : ja ? 'ヒジュラ暦' : ru ? 'хиджра' : 'Hijri';
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : HIJRI_MONTHS_EN;
+      const monthName = hijriNames[m.month - 1] || '';
+      dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else {
       const monthName = getDisplayGregorianMonth(m.month - 1) || '';
-      dateStr = `${(fa || ar) ? toArabicDigits(m.day) : m.day} ${monthName}`;
-      calHint = fa ? 'میلادی' : ar ? 'ميلادي' : es ? 'gregoriano' : de ? 'gregorianisch' : fr ? 'grégorien' : ja ? 'グレゴリオ暦' : ru ? 'григорианский' : 'Gregorian';
+      dateStr = `${localizeDigits(m.day)} ${monthName}`;
     }
     
     if (uiEls.markEventBadge) {
       uiEls.markEventBadge.textContent = m.days === 0 ? '🎉' : (m.isPublic ? '🔴' : (m.golden ? '★' : '📌'));
     }
-    
-    if (uiEls.markEventText) uiEls.markEventText.textContent = m.label;
-    
-    if (uiEls.markEventMeta) {
-      uiEls.markEventMeta.textContent = m.days === 0
-        ? (fa ? `امروز · ${dateStr} · ${calHint}` : ar ? `اليوم · ${dateStr} · ${calHint}` : es ? `Hoy · ${dateStr} · ${calHint}` : de ? `Heute · ${dateStr} · ${calHint}` : fr ? `Aujourd'hui · ${dateStr} · ${calHint}` : ja ? `今日 · ${dateStr} · ${calHint}` : `Today · ${dateStr} · ${calHint}`)
-        : (fa
-            ? `${toPersianDigits(m.days)} روز مانده · ${dateStr} · ${calHint}`
-            : ar
-              ? `بعد ${toArabicDigits(m.days)} يوم · ${dateStr} · ${calHint}`
-              : es
-                ? `en ${m.days}d · ${dateStr} · ${calHint}`
-                : de
-                  ? `in ${m.days}T · ${dateStr} · ${calHint}`
-                  : fr
-                    ? `dans ${m.days}j · ${dateStr} · ${calHint}`
-                    : ja
-                      ? `${m.days}日後 · ${dateStr} · ${calHint}`
-                      : `in ${m.days}d · ${dateStr} · ${calHint}`);
+
+    // تولتیپ تب باز/بسته‌کننده کشوی کاغذی به ۸ زبان
+    if (uiEls.markEventTab) {
+      uiEls.markEventTab.title = langPick({
+        fa: 'رویداد', en: 'Event', ar: 'الحدث', es: 'Evento',
+        de: 'Ereignis', fr: 'Événement', ja: 'イベント', ru: 'Событие'
+      });
     }
- uiEls.markEventSheet.classList.remove('is-collapsed');
+    
+    // متن رویداد + تولتیپ ویرایش کاملاً ۸ زبانه
+    if (uiEls.markEventText) {
+      uiEls.markEventText.textContent = m.label;
+
+      if (!m.isPublic) {
+        uiEls.markEventText.title = langPick({
+          fa: 'برای ویرایش متن کلیک کنید',
+          en: 'Click to edit text',
+          ar: 'انقر لتعديل النص',
+          es: 'Haz clic para editar el texto',
+          de: 'Klicken Sie, um den Text zu bearbeiten',
+          fr: 'Cliquez pour modifier le texte',
+          ja: 'クリックしてテキストを編集',
+          ru: 'Нажмите, чтобы изменить текст'
+        });
+        uiEls.markEventText.style.cursor = 'text';
+
+        uiEls.markEventText.onclick = (e) => {
+          e.stopPropagation();
+          if (uiEls.markEventText.querySelector('input')) return;
+
+          const oldVal = m.label;
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = oldVal;
+          input.dir = 'auto';
+
+          Object.assign(input.style, {
+            width: '100%',
+            background: 'rgba(0, 0, 0, 0.06)',
+            border: '1px dashed rgba(0, 0, 0, 0.25)',
+            borderRadius: '4px',
+            color: 'inherit',
+            fontFamily: 'inherit',
+            fontSize: 'inherit',
+            fontWeight: 'inherit',
+            padding: '2px 4px',
+            outline: 'none',
+            boxSizing: 'border-box'
+          });
+
+          uiEls.markEventText.textContent = '';
+          uiEls.markEventText.appendChild(input);
+          input.focus();
+          input.select();
+
+          let committed = false;
+
+          const commitEdit = () => {
+            if (committed) return;
+            committed = true;
+            const updated = input.value.trim();
+            if (updated && updated !== oldVal) {
+              m.label = updated;
+              const target = markedDays.find(item => item.id === m.id);
+              if (target) target.label = updated;
+              saveMarkedDays();
+              renderMarkedDays();
+              uiEls.markEventText.textContent = updated;
+              showToastNotification(langPick({
+                fa: 'رویداد ویرایش شد',
+                en: 'Event updated',
+                ar: 'تم تعديل الحدث',
+                es: 'Evento actualizado',
+                de: 'Ereignis aktualisiert',
+                fr: 'Événement mis à jour',
+                ja: 'イベントを更新しました',
+                ru: 'Событие обновлено'
+              }));
+            } else {
+              uiEls.markEventText.textContent = oldVal;
+            }
+          };
+
+          const cancelEdit = () => {
+            if (committed) return;
+            committed = true;
+            uiEls.markEventText.textContent = oldVal;
+          };
+
+          input.addEventListener('blur', commitEdit);
+          input.addEventListener('keydown', (ev) => {
+            ev.stopPropagation();
+            if (ev.key === 'Enter') { ev.preventDefault(); commitEdit(); }
+            else if (ev.key === 'Escape') { ev.preventDefault(); cancelEdit(); }
+          });
+          input.addEventListener('click', (ev) => ev.stopPropagation());
+        };
+      } else {
+        uiEls.markEventText.onclick = null;
+        uiEls.markEventText.style.cursor = 'default';
+        uiEls.markEventText.title = '';
+      }
+    }
+    
+    // متن زمان‌بندی پایین برگه کاغذی به ۸ زبان
+    if (uiEls.markEventMeta) {
+      if (m.days === 0) {
+        const todayWord = langPick({
+          fa: 'امروز', en: 'Today', ar: 'اليوم', es: 'Hoy',
+          de: 'Heute', fr: "Aujourd'hui", ja: '今日', ru: 'Сегодня'
+        });
+        uiEls.markEventMeta.textContent = `${todayWord} · ${dateStr} · ${calHint}`;
+      } else {
+        const daysLeftStr = langPick({
+          fa: `${localizeDigits(m.days)} روز مانده`,
+          en: `in ${m.days}d`,
+          ar: `بعد ${localizeDigits(m.days)} يوم`,
+          es: `en ${m.days}d`,
+          de: `in ${m.days}T`,
+          fr: `dans ${m.days}j`,
+          ja: `${m.days}日後`,
+          ru: `через ${m.days}д`
+        });
+        uiEls.markEventMeta.textContent = `${daysLeftStr} · ${dateStr} · ${calHint}`;
+      }
+    }
+
+    uiEls.markEventSheet.classList.remove('is-collapsed');
   }
 
   function closeMarkEventSheet() {
     if (!uiEls.markEventSheet) return;
     uiEls.markEventSheet.classList.add('is-collapsed');
     dayEventSheetOpenIso = null;
+    currentOpenMarkEvent = null;
     if (uiEls.markDotsRow) {
       uiEls.markDotsRow.querySelectorAll('.ai-mark-dot.is-active').forEach(d => d.classList.remove('is-active'));
     }
@@ -1255,6 +1437,101 @@
       const dot = document.createElement('span'); dot.className = 'ai-mark-event-daily-dot';
       const time = document.createElement('span'); time.className = 'ai-mark-event-daily-time'; time.textContent = evt.startTime;
       const title = document.createElement('span'); title.className = 'ai-mark-event-daily-title'; title.textContent = evt.title;
+
+      // عنوان رویداد ساعتی داخل برگه کاغذی هم قابل ویرایش درجا باشد، با همان تولتیپ ۸ زبانه
+      title.title = langPick({
+        fa: 'برای ویرایش متن کلیک کنید',
+        en: 'Click to edit text',
+        ar: 'انقر لتعديل النص',
+        es: 'Haz clic para editar el texto',
+        de: 'Klicken Sie, um den Text zu bearbeiten',
+        fr: 'Cliquez pour modifier le texte',
+        ja: 'クリックしてテキストを編集',
+        ru: 'Нажмите, чтобы изменить текст'
+      });
+      title.style.cursor = 'text';
+
+      title.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (title.querySelector('input')) return;
+
+        const currentVal = evt.title;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentVal;
+        input.dir = 'auto';
+        input.className = 'ai-mark-event-daily-title-inline-input';
+
+        Object.assign(input.style, {
+          width: '100%',
+          background: 'rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(255, 255, 255, 0.25)',
+          borderRadius: '6px',
+          color: 'inherit',
+          padding: '1px 6px',
+          fontSize: 'inherit',
+          fontFamily: 'inherit',
+          outline: 'none',
+          boxSizing: 'border-box'
+        });
+
+        title.textContent = '';
+        title.appendChild(input);
+        input.focus();
+        input.select();
+
+        let isCommitted = false;
+
+        const commitChange = () => {
+          if (isCommitted) return;
+          isCommitted = true;
+          const newText = input.value.trim();
+
+          if (newText && newText !== currentVal) {
+            evt.title = newText;
+
+            if (evt.linkedTodoId) {
+              const linked = todosData.find(td => td.id === evt.linkedTodoId);
+              if (linked) {
+                linked.text = `${evt.startTime} — ${newText}`;
+                saveTodos();
+                if (todoPanel.classList.contains('active')) renderTodos();
+              }
+            }
+
+            saveTimeEvents();
+            renderMarkEventDailyList(iso);
+            if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI();
+            showToastNotification(langPick({
+              fa: 'رویداد ویرایش شد',
+              en: 'Event updated',
+              ar: 'تم تعديل الحدث',
+              es: 'Evento actualizado',
+              de: 'Ereignis aktualisiert',
+              fr: 'Événement mis à jour',
+              ja: 'イベントを更新しました',
+              ru: 'Событие обновлено'
+            }));
+          } else {
+            title.textContent = currentVal;
+          }
+        };
+
+        const revertChange = () => {
+          if (isCommitted) return;
+          isCommitted = true;
+          title.textContent = currentVal;
+        };
+
+        input.addEventListener('blur', commitChange);
+        input.addEventListener('keydown', (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') { ev.preventDefault(); commitChange(); }
+          else if (ev.key === 'Escape') { ev.preventDefault(); revertChange(); }
+        });
+        input.addEventListener('click', (ev) => ev.stopPropagation());
+      });
+
       row.appendChild(dot); row.appendChild(time); row.appendChild(title);
       if (evt.linkedTodoId) {
         const link = document.createElement('span'); link.className = 'ai-mark-event-daily-link'; link.textContent = '↗'; link.title = t('dashLinkedTodo');
@@ -1274,6 +1551,7 @@
     if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = t('markEventMeta');
     uiEls.markEventSheet.classList.remove('is-collapsed');
     dayEventSheetOpenIso = iso;
+    currentOpenMarkEvent = null;
     renderMarkEventDailyList(iso);
   }
 
@@ -1298,6 +1576,7 @@
     if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = dateStr;
     uiEls.markEventSheet.classList.remove('is-collapsed');
     dayEventSheetOpenIso = iso;
+    currentOpenMarkEvent = null;
     renderMarkEventDailyList(iso);
   }
 
@@ -1400,7 +1679,93 @@
       const dd = String(m.day).padStart(2, '0'); const mm = String(m.month).padStart(2, '0');
       const isJ = m.cal === 'j' || m.cal === 'jalali';
       const dateStr = (isJ && currentLang === 'fa') ? toPersianDigits(`${dd}/${mm}`) : (currentLang === 'ar' ? toArabicDigits(`${dd}/${mm}`) : `${dd}/${mm}`);
-      span.textContent = `${m.golden ? '★ ' : ''}${m.label}  ·  ${dateStr}`;
+      
+      const starPrefix = m.golden ? '★ ' : '';
+      span.textContent = `${starPrefix}${m.label}  ·  ${dateStr}`;
+      span.title = langPick({
+        fa: 'دوبار کلیک برای ویرایش عنوان',
+        en: 'Double click to edit label',
+        ar: 'انقر مرتين لتعديل العنوان',
+        es: 'Doble clic para editar la etiqueta',
+        de: 'Doppelklick, um die Bezeichnung zu bearbeiten',
+        fr: 'Double-cliquez pour modifier le libellé',
+        ja: 'ダブルクリックしてラベルを編集',
+        ru: 'Дважды щёлкните, чтобы изменить название'
+      });
+
+      // دابل کلیک روی عنوان رویداد جهت ویرایش درجا (Inline Edit)
+      span.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        if (span.querySelector('input')) return;
+
+        const currentLabel = m.label;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentLabel;
+        input.dir = 'auto';
+        input.className = 'ai-mark-inline-edit-input';
+
+        Object.assign(input.style, {
+          background: 'rgba(255, 255, 255, 0.1)',
+          border: '1px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '4px',
+          color: '#fff',
+          padding: '1px 6px',
+          fontFamily: 'inherit',
+          fontSize: '12px',
+          outline: 'none',
+          width: '65%'
+        });
+
+        span.textContent = '';
+        span.appendChild(input);
+        const dateTag = document.createElement('span');
+        dateTag.textContent = `  ·  ${dateStr}`;
+        span.appendChild(dateTag);
+
+        input.focus();
+        input.select();
+
+        let isCommitted = false;
+
+        const commit = () => {
+          if (isCommitted) return;
+          isCommitted = true;
+          const newLabel = input.value.trim();
+          if (newLabel && newLabel !== currentLabel) {
+            m.label = newLabel;
+            saveMarkedDays();
+            renderMarkedDays();
+            showToastNotification(langPick({
+              fa: 'عنوان مناسبت ویرایش شد',
+              en: 'Event label updated',
+              ar: 'تم تعديل عنوان الحدث',
+              es: 'Etiqueta del evento actualizada',
+              de: 'Ereignisbezeichnung aktualisiert',
+              fr: "Libellé de l'événement mis à jour",
+              ja: 'イベントのラベルを更新しました',
+              ru: 'Название события обновлено'
+            }));
+          } else {
+            span.textContent = `${starPrefix}${currentLabel}  ·  ${dateStr}`;
+          }
+        };
+
+        const cancel = () => {
+          if (isCommitted) return;
+          isCommitted = true;
+          span.textContent = `${starPrefix}${currentLabel}  ·  ${dateStr}`;
+        };
+
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+          else if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+        });
+        input.addEventListener('click', (ev) => ev.stopPropagation());
+      });
+
       const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-mark-item-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
       delBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -1408,7 +1773,7 @@
         saveMarkedDays(); renderMarkedDays(); showToastNotification(t('markToastDeleted'));
       });
       li.addEventListener('click', (e) => {
-        if (e.target === delBtn || delBtn.contains(e.target)) return;
+        if (e.target === delBtn || delBtn.contains(e.target) || e.target.tagName === 'INPUT') return;
         e.stopPropagation();
         const withDays = { ...m, days: daysUntilNext(m.day, m.month, m.cal) };
         openMarkEventSheet(withDays);
@@ -1611,7 +1976,7 @@
     }
   }
 
-  function buildDashEventCard(evt) {
+function buildDashEventCard(evt) {
     const status = evaluateEventStatus(evt);
     const card = document.createElement('div');
     card.className = `ai-event-card status-${status}`;
@@ -1622,7 +1987,108 @@
     const dot = document.createElement('div'); dot.className = 'ai-event-dot'; dot.title = t('dashToggleDoneTitle');
     dot.addEventListener('click', (e) => { e.stopPropagation(); toggleDashEventDone(evt.id); });
     timeWrap.appendChild(timeIcon); timeWrap.appendChild(timeLabel); timeWrap.appendChild(dot);
-    const title = document.createElement('div'); title.className = 'ai-event-title'; title.textContent = evt.title;
+
+    // عنوان رویداد با قابلیت ویرایش درجا و ۸ زبانه
+    const title = document.createElement('div'); 
+    title.className = 'ai-event-title'; 
+    title.textContent = evt.title;
+    title.title = langPick({
+      fa: 'برای ویرایش متن کلیک کنید',
+      en: 'Click to edit text',
+      ar: 'انقر لتعديل النص',
+      es: 'Haz clic para editar el texto',
+      de: 'Klicken Sie, um den Text zu bearbeiten',
+      fr: 'Cliquez pour modifier le texte',
+      ja: 'クリックしてテキストを編集',
+      ru: 'Нажмите, чтобы изменить текст'
+    });
+    title.style.cursor = 'text';
+
+    title.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (title.querySelector('input')) return;
+
+      const currentVal = evt.title;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = currentVal;
+      input.dir = 'auto';
+      input.className = 'ai-event-title-inline-input';
+
+      Object.assign(input.style, {
+        width: '100%',
+        background: 'rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.25)',
+        borderRadius: '6px',
+        color: '#fff',
+        padding: '2px 6px',
+        fontSize: 'inherit',
+        fontFamily: 'inherit',
+        outline: 'none',
+        boxSizing: 'border-box'
+      });
+
+      title.textContent = '';
+      title.appendChild(input);
+      input.focus();
+      input.select();
+
+      let isCommitted = false;
+
+      const commitChange = () => {
+        if (isCommitted) return;
+        isCommitted = true;
+        const newText = input.value.trim();
+
+        if (newText && newText !== currentVal) {
+          evt.title = newText;
+
+          if (evt.linkedTodoId) {
+            const linked = todosData.find(td => td.id === evt.linkedTodoId);
+            if (linked) {
+              linked.text = `${evt.startTime} — ${newText}`;
+              saveTodos();
+              if (todoPanel.classList.contains('active')) renderTodos();
+            }
+          }
+
+          saveTimeEvents();
+          refreshDashUI();
+          showToastNotification(langPick({
+            fa: 'رویداد ویرایش شد',
+            en: 'Event updated',
+            ar: 'تم تعديل الحدث',
+            es: 'Evento actualizado',
+            de: 'Ereignis aktualisiert',
+            fr: 'Événement mis à jour',
+            ja: 'イベントを更新しました',
+            ru: 'Событие обновлено'
+          }));
+        } else {
+          title.textContent = currentVal;
+        }
+      };
+
+      const revertChange = () => {
+        if (isCommitted) return;
+        isCommitted = true;
+        title.textContent = currentVal;
+      };
+
+      input.addEventListener('blur', commitChange);
+      input.addEventListener('keydown', (ev) => {
+        ev.stopPropagation();
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          commitChange();
+        } else if (ev.key === 'Escape') {
+          ev.preventDefault();
+          revertChange();
+        }
+      });
+      input.addEventListener('click', (ev) => ev.stopPropagation());
+    });
+
     const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-event-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
     delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteDashEvent(evt.id); });
     card.appendChild(timeWrap); card.appendChild(title);
@@ -2045,6 +2511,10 @@
   // کدام روز (iso) در حال حاضر بنر رویدادش باز است — برای رفتار دوکاره‌ی کلیک:
   // کلیک اول باز می‌کند، کلیک دوم روی همان روز می‌بندد.
   let dayEventSheetOpenIso = null;
+  // آبجکت کامل رویداد فعلاً بازشده در برگه کاغذی — صرف‌نظر از این‌که از کجا باز شده
+  // (سلول گرید، دات‌های بالای ساعت، یا لیست رویدادها)، تا updateUITexts بتواند بدون
+  // نیاز به تطبیق دوبارهٔ iso، مستقیماً همان رویداد را با زبان جدید بازرسم کند.
+  let currentOpenMarkEvent = null;
 
   function toAsciiDigits(str) {
     return String(str).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
@@ -2784,12 +3254,14 @@
     const q = AITreeQuoteEngine.religionFeature.current();
     if (!q) return;
     const religionCat = AITreeQuoteEngine.religions[AITreeQuoteEngine.activeReligionKey];
+    // منبع فعال را روی خودِ ویجت می‌گذاریم تا CSS بتواند فقط برای بخش اسلام (آیات
+    // کوتاه) ضخامت متن اصلی را جدا از بقیه‌ی منابع تنظیم کند.
+    if (uiEls.todoQuote) uiEls.todoQuote.dataset.quoteSource = AITreeQuoteEngine.activeReligionKey || '';
     if (uiEls.todoQuoteFa) {
       uiEls.todoQuoteFa.textContent = q.text || '';
       uiEls.todoQuoteFa.dir = 'rtl';
       uiEls.todoQuoteFa.style.display = q.text ? '' : 'none';
-    }
-    // خط ترجمه — متنِ زبانِ اصلی (اگر باشد) همیشه بالا ثابت می‌ماند، فقط
+    }    // خط ترجمه — متنِ زبانِ اصلی (اگر باشد) همیشه بالا ثابت می‌ماند، فقط
     // ترجمهٔ زیرش با زبان فعال برنامه عوض می‌شود (بین هر ۸ زبان، نه فقط fa/en).
     if (uiEls.todoQuoteTranslation) {
       const translation = quoteText(q);
@@ -2839,6 +3311,7 @@
     if (e) e.stopPropagation();
     if (isQuoteCollapsed) return; // body is invisible/inert while collapsed — nothing to cycle
     if (Date.now() - todoQuoteSwipedAt < 400) return; // just swiped to switch source — don't also cycle the quote
+    if (Date.now() - todoQuoteScrolledAt < 400) return; // just scrolled inside a long quote — don't also cycle it
     AITreeQuoteEngine.religionFeature.cycleRandom();
     uiEls.todoQuote.classList.remove('pulse');
     void uiEls.todoQuote.offsetWidth;
@@ -2853,6 +3326,14 @@
   // Left-click on the verse body itself cycles to a new random verse (previously this was right-click only)
   if (uiEls.todoQuoteBody) {
     uiEls.todoQuoteBody.addEventListener('click', cycleToRandomQuote);
+  }
+
+  // برای متن‌های بلندِ گنجینه که خودشان اسکرول می‌شوند: تا ۴۰۰ میلی‌ثانیه بعد از
+  // اسکرول، کلیک روی بدنه باعث چرخش به نقل‌قول بعدی نشود — دقیقاً همان الگویی که
+  // برای سوایپِ تعویضِ منبع هم استفاده شده.
+  let todoQuoteScrolledAt = 0;
+  if (uiEls.todoQuoteBody) {
+    uiEls.todoQuoteBody.addEventListener('scroll', () => { todoQuoteScrolledAt = Date.now(); }, { passive: true });
   }
 
   let todoQuoteSwipedAt = 0;
