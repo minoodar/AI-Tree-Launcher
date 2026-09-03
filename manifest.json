@@ -33,6 +33,12 @@
       "matches": [
         "<all_urls>"
       ],
+      "exclude_matches": [
+        "*://accounts.google.com/*",
+        "*://appleid.apple.com/*",
+        "*://login.microsoftonline.com/*",
+        "*://login.live.com/*"
+      ],
       "css": [
         "styles.css",
         "toolbar-zen.css"

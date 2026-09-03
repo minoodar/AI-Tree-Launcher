@@ -7,7 +7,20 @@
   // ندارند — افزونه در این پنجره‌ها نیازی به فعال‌بودن ندارد.
   let isPopupWindow = false;
   try { isPopupWindow = !!(window.toolbar && window.toolbar.visible === false); } catch (e) {}
-  if (!isTopFrame || isPopupWindow || document.getElementById('ai-orbit-root')) return;
+  // صفحات ورود/تأییدهویتِ گوگل و مشابه (مثلاً "انتخاب اکانت") معمولاً در یک تبِ
+  // معمولی با نوار ابزار کامل باز می‌شوند، پس چک بالا (toolbar.visible) آن‌ها را
+  // نمی‌گیرد. این دامنه‌ها اختصاصاً برای فرآیند ورود هستند، پس افزونه هرگز نباید
+  // رویشان نمایش داده شود.
+  let isAuthHost = false;
+  try {
+    const host = window.location.hostname;
+    isAuthHost =
+      /(^|\.)accounts\.google\.com$/.test(host) ||
+      /(^|\.)appleid\.apple\.com$/.test(host) ||
+      /(^|\.)login\.microsoftonline\.com$/.test(host) ||
+      /(^|\.)login\.live\.com$/.test(host);
+  } catch (e) {}
+  if (!isTopFrame || isPopupWindow || isAuthHost || document.getElementById('ai-orbit-root')) return;
 
   // کمکیِ کوچک برای رشته‌های سخت‌کدشدهٔ چندزبانه‌ای که (برخلاف i18n.js) مستقیم
   // توی کد نوشته شده‌اند — با اضافه‌شدن هر زبانِ جدید فقط یک آرگومان اضافه
