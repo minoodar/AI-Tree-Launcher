@@ -383,7 +383,7 @@
     <div class="ai-calc-grid"></div>
   `;
 
-  const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-panel';
+const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-panel';
   clockPanel.innerHTML = `
     <div class="ai-clock-halo"></div>
     <div class="ai-mark-event-sheet is-collapsed" id="ai-mark-event-sheet">
@@ -427,19 +427,67 @@
       </div>
       <button type="button" class="ai-dash-add-btn" id="ai-dash-add-btn" title="Add event" aria-label="Add event">+</button>
     </div>
+
+    <!-- پنل کناری اختصاصی مناسبت‌ها و رویدادها (صفحه ۲) -->
     <div class="ai-clock-marks-panel" id="ai-clock-marks-panel">
-      <section class="ai-season-context" aria-live="polite">
-        <div class="ai-season-context-head"><span class="ai-season-context-dot" aria-hidden="true"></span><strong id="ai-season-name"></strong><span id="ai-season-hemisphere"></span></div>
-        <div class="ai-season-range" id="ai-season-range"></div>
-        <p class="ai-season-lesson" id="ai-season-lesson"></p>
+      <!-- بخش ردیاب ۴ فصلی سال شمسی در بالای صفحه ثبت رویداد -->
+      <section class="ai-season-context" id="ai-season-tracker" aria-live="polite">
+        <div class="ai-season-tracker-head">
+          <span class="ai-season-tracker-title" id="ai-season-current-title">--</span>
+          <span class="ai-season-tracker-sub" id="ai-season-hemisphere">نیم‌کرهٔ شمالی</span>
+        </div>
+        <div class="ai-season-bars">
+          <!-- بهار -->
+          <div class="ai-season-card season-spring" data-season="spring" title="بهار">
+            <div class="ai-season-fill"></div>
+            <div class="ai-season-info">
+              <span class="ai-season-name">بهار</span>
+              <span class="ai-season-days" id="ai-days-spring">--</span>
+            </div>
+          </div>
+          <!-- تابستان -->
+          <div class="ai-season-card season-summer" data-season="summer" title="تابستان">
+            <div class="ai-season-fill"></div>
+            <div class="ai-season-info">
+              <span class="ai-season-name">تابستان</span>
+              <span class="ai-season-days" id="ai-days-summer">--</span>
+            </div>
+          </div>
+          <!-- پاییز -->
+          <div class="ai-season-card season-autumn" data-season="autumn" title="پاییز">
+            <div class="ai-season-fill"></div>
+            <div class="ai-season-info">
+              <span class="ai-season-name">پاییز</span>
+              <span class="ai-season-days" id="ai-days-autumn">--</span>
+            </div>
+          </div>
+          <!-- زمستان -->
+          <div class="ai-season-card season-winter" data-season="winter" title="زمستان">
+            <div class="ai-season-fill"></div>
+            <div class="ai-season-info">
+              <span class="ai-season-name">زمستان</span>
+              <span class="ai-season-days" id="ai-days-winter">--</span>
+            </div>
+          </div>
+        </div>
       </section>
+
       <ul class="ai-clock-marks-list" id="ai-clock-marks-list"></ul>
       <div class="ai-clock-marks-form">
-        <input type="text" id="ai-mark-label-input" dir="auto" />
+        <!-- ردیف عنوان به همراه ستاره نشان‌دار (ماندگار) -->
+        <div class="ai-mark-input-star-row">
+          <input type="text" id="ai-mark-label-input" dir="auto" />
+          <label class="ai-mark-golden-toggle" id="ai-mark-golden-row" title="رویداد سالانه و ماندگار">
+            <input type="checkbox" id="ai-mark-golden-cb" class="ai-mark-golden-cb" />
+            <span class="ai-mark-star-btn" id="ai-mark-golden-label">★</span>
+          </label>
+        </div>
+
         <div class="ai-smart-date-wrap">
           <input type="text" id="ai-smart-date" dir="ltr" autocomplete="off" inputmode="text" />
           <button type="button" id="ai-smart-date-picker-btn" title="Calendar">📅</button>
         </div>
+
         <div class="ai-dual-picker" id="ai-dual-picker" hidden>
           <div class="ai-dual-picker-header">
             <button type="button" id="ai-dual-prev" aria-label="Previous">‹</button>
@@ -450,19 +498,26 @@
           <div class="ai-dual-weekdays" id="ai-dual-weekdays"></div>
           <div class="ai-dual-grid" id="ai-dual-grid"></div>
         </div>
-        <label class="ai-mark-golden-row" id="ai-mark-golden-row" title="">
-          <input type="checkbox" id="ai-mark-golden-cb" class="ai-mark-golden-cb" />
-          <span class="ai-mark-golden-box" aria-hidden="true"></span>
-          <span class="ai-mark-golden-label" id="ai-mark-golden-label">★</span>
-        </label>
-        <button type="button" id="ai-mark-add-btn"></button>
+
+      <button type="button" id="ai-mark-add-btn"></button>
       </div>
     </div>
+
+ <!-- نوار افق مسیر زندگی و شمارنده سن (مربوط به صفحه اصلی ساعت) -->
     <div class="ai-life-journey" id="ai-life-journey" style="display: none;">
-      <div class="ai-life-horizon"><span class="ai-life-origin"></span><span class="ai-life-path"></span><span class="ai-life-now"></span></div>
-      <div class="ai-life-copy"><span id="ai-life-start">آغاز</span><span id="ai-life-caption"></span><span id="ai-life-now-label">اکنون</span></div>
+      <div class="ai-life-horizon">
+        <span class="ai-life-origin"></span>
+        <span class="ai-life-path"></span>
+        <span class="ai-life-now"></span>
+      </div>
+      <div class="ai-life-copy">
+        <span id="ai-life-start">آغاز</span>
+        <span id="ai-life-caption"></span>
+        <span id="ai-life-now-label">اکنون</span>
+      </div>
     </div>
     <div class="ai-clock-age" id="ai-age" style="display: none;"></div>
+
     <div class="ai-clock-quote" id="ai-clock-quote">
       <button type="button" class="ai-rumi-tab" id="ai-rumi-tab" title="شعر روز">
         <span class="ai-rumi-tab-chevron" id="ai-rumi-tab-chevron">▼</span>
@@ -1123,42 +1178,7 @@ function updateUITexts() {
       if (document.hidden || !clockPanel.classList.contains('active')) return;
       const timeEl = document.getElementById('ai-time'); if (!timeEl) return; 
       const now = new Date();
-      // Northern hemisphere is the default audience. This is a visual theme only;
-      // dates and calendar calculations remain locale-accurate.
-      const monthDay = (now.getMonth() + 1) * 100 + now.getDate();
-      const season = monthDay >= 321 && monthDay <= 620 ? 'spring'
-        : monthDay <= 922 ? 'summer' : monthDay <= 1220 ? 'autumn' : 'winter';
-     const seasonCopy = currentLang === 'fa'
-        ? {
-            spring: ['بهار', 'نیم‌کرهٔ شمالی', '۱ فروردین تا ۳۱ خرداد · تقریباً 21 Mar–20 Jun', 'بهار در نیم‌کرهٔ شمالی از حوالی ۲۱ مارس آغاز می‌شود.'],
-            summer: ['تابستان', 'نیم‌کرهٔ شمالی', '۱ تیر تا ۳۱ شهریور · تقریباً 21 Jun–22 Sep', 'تابستان تا حوالی ۲۲ سپتامبر ادامه دارد.'],
-            autumn: ['پاییز', 'نیم‌کرهٔ شمالی', '۱ مهر تا ۳۰ آذر · تقریباً 23 Sep–20 Dec', 'پاییز از حوالی ۲۳ سپتامبر آغاز می‌شود.'],
-            winter: ['زمستان', 'نیم‌کرهٔ شمالی', '۱ دی تا پایان اسفند · تقریباً 21 Dec–20 Mar', 'زمستان از حوالی ۲۱ دسامبر آغاز می‌شود.']
-          }
-        : currentLang === 'ar'
-        ? {
-            spring: ['الربيع', 'نصف الكرة الشمالي', '21 مارس – 20 يونيو', 'يبدأ الربيع في حوالي 21 مارس في نصف الكرة الشمالي.'],
-            summer: ['الصيف', 'نصف الكرة الشمالي', '21 يونيو – 22 سبتمبر', 'يستمر الصيف حتى 22 سبتمبر تقريبًا.'],
-            autumn: ['الخريف', 'نصف الكرة الشمالي', '23 سبتمبر – 20 ديسمبر', 'يبدأ الخريف في حوالي 23 سبتمبر.'],
-            winter: ['الشتاء', 'نصف الكرة الشمالي', '21 ديسمبر – 20 مارس', 'يبدأ الشتاء في حوالي 21 ديسمبر.']
-          }
-        : {
-            spring: ['Spring', 'Northern Hemisphere', '21 Mar–20 Jun · Farvardin–Khordad', 'Spring begins around 21 March in the Northern Hemisphere.'],
-            summer: ['Summer', 'Northern Hemisphere', '21 Jun–22 Sep · Tir–Shahrivar', 'Summer lasts until around 22 September.'],
-            autumn: ['Autumn', 'Northern Hemisphere', '23 Sep–20 Dec · Mehr–Azar', 'Autumn begins around 23 September.'],
-            winter: ['Winter', 'Northern Hemisphere', '21 Dec–20 Mar · Dey–Esfand', 'Winter begins around 21 December.']
-          };
-      const copy = seasonCopy[season];
-      if (clockPanel.dataset.season !== season || clockPanel.dataset.seasonLang !== currentLang) {
-        clockPanel.dataset.season = season;
-        clockPanel.dataset.seasonLang = currentLang;
-        const [nameEl, hemisphereEl, rangeEl, lessonEl] = ['ai-season-name', 'ai-season-hemisphere', 'ai-season-range', 'ai-season-lesson']
-          .map(id => clockPanel.querySelector('#' + id));
-        if (nameEl) nameEl.textContent = copy[0];
-        if (hemisphereEl) hemisphereEl.textContent = copy[1];
-        if (rangeEl) rangeEl.textContent = copy[2];
-        if (lessonEl) lessonEl.textContent = copy[3];
-      }
+updateSeasonalTracker();
       // رنگ‌بندی نمایش فشردهٔ ساعت/تاریخ اصلی بر اساس ماه جلالیِ «امروز» — چرخهٔ
       // دوازده‌گانهٔ طبیعت (فروردین..اسفند)، مستقل از کارت اطلاعات فصل بالا.
       try {
@@ -1389,26 +1409,29 @@ function openMarkEventSheet(m) {
     
     // متن زمان‌بندی پایین برگه کاغذی به ۸ زبان
     if (uiEls.markEventMeta) {
-      if (m.days === 0) {
-        const todayWord = langPick({
-          fa: 'امروز', en: 'Today', ar: 'اليوم', es: 'Hoy',
-          de: 'Heute', fr: "Aujourd'hui", ja: '今日', ru: 'Сегодня'
-        });
-        uiEls.markEventMeta.textContent = `${todayWord} · ${dateStr} · ${calHint}`;
-      } else {
-        const daysLeftStr = langPick({
-          fa: `${localizeDigits(m.days)} روز مانده`,
-          en: `in ${m.days}d`,
-          ar: `بعد ${localizeDigits(m.days)} يوم`,
-          es: `en ${m.days}d`,
-          de: `in ${m.days}T`,
-          fr: `dans ${m.days}j`,
-          ja: `${m.days}日後`,
-          ru: `через ${m.days}д`
-        });
-        uiEls.markEventMeta.textContent = `${daysLeftStr} · ${dateStr} · ${calHint}`;
-      }
-    }
+  if (m.days === 0) {
+    const todayWord = langPick({
+      fa: 'امروز', en: 'Today', ar: 'اليوم', es: 'Hoy',
+      de: 'Heute', fr: "Aujourd'hui", ja: '今日', ru: 'Сегодня'
+    });
+    uiEls.markEventMeta.textContent = `${todayWord} · ${dateStr} · ${calHint}`;
+  } else {
+    const daysLeftStr = langPick({
+      // استفاده از RLE/PDF یا ایزوله‌سازی برای جلوگیری از پرش عدد به انتهای خط
+      fa: `${localizeDigits(m.days)} روز مانده`,
+      en: `in ${m.days}d`,
+      ar: `بعد ${localizeDigits(m.days)} يوم`,
+      es: `en ${m.days}d`,
+      de: `in ${m.days}T`,
+      fr: `dans ${m.days}j`,
+      ja: `${m.days}日後`,
+      ru: `через ${m.days}д`
+    });
+
+    // از جداکننده نقطه میانی (·) با ایزولاسیون جهت استفاده کنید
+    uiEls.markEventMeta.textContent = `${daysLeftStr} · ${dateStr} · ${calHint}`;
+  }
+}
 
     uiEls.markEventSheet.classList.remove('is-collapsed');
   }
@@ -1657,8 +1680,9 @@ function openMarkEventSheet(m) {
 
       nearestMarks.forEach((m, idx) => {
         const wrap = document.createElement('div'); wrap.className = 'ai-mark-dot-wrap';
-        const dot = document.createElement('button'); dot.type = 'button';
-        dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? ' is-golden' : '');
+const dot = document.createElement('button'); dot.type = 'button';
+const isExpired = !m.golden && isMarkedDayPast(m.day, m.month, m.cal);
+dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? ' is-golden' : '') + (isExpired ? ' is-expired' : '');
         dot.textContent = String(idx + 1);
         dot.title = m.label;
         dot.addEventListener('mousedown', (e) => e.stopPropagation());
@@ -1687,7 +1711,8 @@ function openMarkEventSheet(m) {
       return;
     }
     markedDays.slice().sort((a, b) => daysUntilNext(a.day, a.month, a.cal) - daysUntilNext(b.day, b.month, b.cal)).forEach(m => {
-      const li = document.createElement('li'); li.className = 'ai-mark-item' + (m.golden ? ' is-golden' : '');
+     const isExpired = !m.golden && isMarkedDayPast(m.day, m.month, m.cal);
+      const li = document.createElement('li'); li.className = 'ai-mark-item' + (m.golden ? ' is-golden' : '') + (isExpired ? ' is-expired' : '');
       const span = document.createElement('span'); span.className = 'ai-mark-item-label';
       const dd = String(m.day).padStart(2, '0'); const mm = String(m.month).padStart(2, '0');
       const isJ = m.cal === 'j' || m.cal === 'jalali';
@@ -2158,11 +2183,11 @@ function buildDashEventCard(evt) {
     } else {
       if (uiEls.dashToggle) uiEls.dashToggle.classList.add('has-items');
       todaysEvents.forEach((evt, idx) => {
-        const status = evaluateEventStatus(evt);
-        const wrap = document.createElement('div'); wrap.className = 'ai-mark-dot-wrap';
-        const dot = document.createElement('button'); dot.type = 'button';
-        dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (evt.status === 'done' ? ' is-done' : '');
-        dot.textContent = String(idx + 1);
+       const status = evaluateEventStatus(evt);
+const wrap = document.createElement('div'); wrap.className = 'ai-mark-dot-wrap';
+const dot = document.createElement('button'); dot.type = 'button';
+const isExpired = (status === 'missed' || evt.status === 'done');
+dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpired ? ' is-expired' : '');        dot.textContent = String(idx + 1);
         dot.title = `${evt.startTime} — ${evt.title}`;
         dot.addEventListener('mousedown', (e) => e.stopPropagation());
         dot.addEventListener('click', (e) => {
@@ -9783,5 +9808,143 @@ let hubAutoCollapsedByPanel = false;
     // Keep baseline optically centered as size changes
     el.setAttribute('y', size >= 10 ? '16.5' : (size >= 8 ? '16.2' : '15.8'));
   }
+  let isSeasonDrawerCollapsed = true; // در ابتدا بسته و جمع‌شده باشد
 
+  function updateSeasonalTracker() {
+    const tracker = document.getElementById('ai-season-tracker');
+    if (!tracker) return;
+
+    const now = new Date();
+    const jNow = gregorianToJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
+    const jy = jNow.jy;
+    const jm = jNow.jm;
+    const jd = jNow.jd;
+
+    let isLeapJalali = false;
+    try {
+      const gThisYear = jalaaliToGregorian(jy, 1, 1);
+      const gNextYear = jalaaliToGregorian(jy + 1, 1, 1);
+      const dayDiff = Math.round(
+        (new Date(gNextYear.gy, gNextYear.gm - 1, gNextYear.gd) - 
+         new Date(gThisYear.gy, gThisYear.gm - 1, gThisYear.gd)) / 86400000
+      );
+      isLeapJalali = (dayDiff === 366);
+    } catch (e) {
+      isLeapJalali = false;
+    }
+
+    const winterDays = isLeapJalali ? 90 : 89;
+
+    let dayOfYear = 0;
+    if (jm <= 6) {
+      dayOfYear = (jm - 1) * 31 + jd;
+    } else {
+      dayOfYear = 6 * 31 + (jm - 7) * 30 + jd;
+    }
+
+    const seasonsConfig = [
+      {
+        key: 'spring',
+        start: 1,
+        end: 93,
+        total: 93,
+        name: langPick({
+          fa: 'بهار', en: 'Spring', ar: 'الربيع', es: 'Primavera',
+          de: 'Frühling', fr: 'Printemps', ja: '春', ru: 'Весна'
+        })
+      },
+      {
+        key: 'summer',
+        start: 94,
+        end: 186,
+        total: 93,
+        name: langPick({
+          fa: 'تابستان', en: 'Summer', ar: 'الصيف', es: 'Verano',
+          de: 'Sommer', fr: 'Été', ja: '夏', ru: 'Лето'
+        })
+      },
+      {
+        key: 'autumn',
+        start: 187,
+        end: 276,
+        total: 90,
+        name: langPick({
+          fa: 'پاییز', en: 'Autumn', ar: 'الخريف', es: 'Otoño',
+          de: 'Herbst', fr: 'Automne', ja: '秋', ru: 'Осень'
+        })
+      },
+      {
+        key: 'winter',
+        start: 277,
+        end: 276 + winterDays,
+        total: winterDays,
+        name: langPick({
+          fa: 'زمستان', en: 'Winter', ar: 'الشتاء', es: 'Invierno',
+          de: 'Winter', fr: 'Hiver', ja: '冬', ru: 'Зима'
+        })
+      }
+    ];
+
+    let currentSeason = seasonsConfig[0];
+
+    seasonsConfig.forEach(season => {
+      const card = tracker.querySelector(`.ai-season-card[data-season="${season.key}"]`);
+      const fillEl = card ? card.querySelector('.ai-season-fill') : null;
+      const daysEl = document.getElementById(`ai-days-${season.key}`);
+      const nameEl = card ? card.querySelector('.ai-season-name') : null;
+
+      if (nameEl) nameEl.textContent = season.name;
+      if (!card || !fillEl || !daysEl) return;
+
+      card.classList.remove('status-past', 'status-current', 'status-future');
+
+      if (dayOfYear > season.end) {
+        card.classList.add('status-past');
+        fillEl.style.width = '100%';
+        daysEl.textContent = '✓';
+} else if (dayOfYear >= season.start && dayOfYear <= season.end) {
+        currentSeason = season;
+        card.classList.add('status-current');
+
+        const passed = dayOfYear - season.start + 1;
+        const percent = Math.min(100, Math.max(0, (passed / season.total) * 100));
+        fillEl.style.width = `${percent}%`;
+
+        // نمایش روزهای سپری‌شده از آغاز فصل
+        daysEl.textContent = langPick({
+          fa: `${localizeDigits(passed)} روز`,
+          en: `${passed}d`,
+          ar: `${localizeDigits(passed)} يوم`,
+          es: `${passed}d`,
+          de: `${passed}T`,
+          fr: `${passed}j`,
+          ja: `${passed}日`,
+          ru: `${passed}д`
+        });
+      } else {
+        card.classList.add('status-future');
+        fillEl.style.width = '0%';
+        daysEl.textContent = '-';
+      }
+    });
+
+    const currentTitleEl = document.getElementById('ai-season-current-title');
+    if (currentTitleEl && currentSeason) {
+      currentTitleEl.textContent = currentSeason.name;
+    }
+
+    const hemisphereEl = document.getElementById('ai-season-hemisphere');
+    if (hemisphereEl) {
+      hemisphereEl.textContent = langPick({
+        fa: 'نیم‌کرهٔ شمالی',
+        en: 'Northern Hemisphere',
+        ar: 'نصف الكرة الشمالي',
+        es: 'Hemisferio norte',
+        de: 'Nordhalbkugel',
+        fr: 'Hémisphère nord',
+        ja: '北半球',
+        ru: 'Северное полушарие'
+      });
+    }
+  }
 })();

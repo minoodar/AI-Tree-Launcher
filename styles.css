@@ -2573,36 +2573,90 @@ transition: font-size 0.2s var(--ease-premium);
 }
 
 .ai-mark-dot {
-width: 19px; height: 19px; border-radius: 50%; border: 1px solid rgba(251, 191, 36, 0.45);
-background: rgba(251, 191, 36, 0.14); color: #fde68a; font-size: 9.5px; font-weight: 800;
-display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;
-transition: 0.2s;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(251, 191, 36, 0.75);
+  background: rgba(251, 191, 36, 0.35);
+  color: #FFF7ED;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.25);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.ai-mark-dot:hover { background: rgba(251, 191, 36, 0.3); transform: scale(1.12); }
+
+.ai-mark-dot:hover {
+  background: rgba(251, 191, 36, 0.55);
+  border-color: #FBBF24;
+  transform: scale(1.14);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+}
+
+.ai-mark-dot.is-active {
+  background: #F59E0B !important;
+  border-color: #FEF3C7 !important;
+  color: #0F172A !important;
+  transform: scale(1.18);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.85), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+}
+
 .ai-mark-dot.is-today {
-color: #fff7ed; background: rgba(251, 146, 60, 0.4); border-color: rgba(251, 146, 60, 0.75);
-animation: pulseOrange 1.6s infinite alternate ease-in-out;
+  color: #fff7ed;
+  background: rgba(251, 146, 60, 0.6);
+  border-color: rgba(251, 146, 60, 0.95);
+  animation: pulseOrange 1.6s infinite alternate ease-in-out;
 }
 
 /* دات‌های رویدادِ ساعتی — رزگلدِ متمایل به نارنجی، برای تمایز روشن از دات‌های
    طلاییِ مناسبت‌های روزانه؛ همان اندازه/فرم، رنگ متفاوت */
-.ai-dash-dot {
-  width: 19px; height: 19px; border-radius: 50%; border: 1px solid rgba(244, 154, 111, 0.55);
-  background: rgba(238, 118, 88, 0.16); color: #fbcbb0; font-size: 9.5px; font-weight: 800;
-  display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;
-  transition: 0.2s;
+..ai-dash-dot {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(244, 154, 111, 0.8);
+  background: rgba(238, 118, 88, 0.38);
+  color: #FFF7ED;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 0 6px rgba(238, 118, 88, 0.25);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.ai-dash-dot:hover { background: rgba(238, 118, 88, 0.32); transform: scale(1.12); }
+
+.ai-dash-dot:hover {
+  background: rgba(238, 118, 88, 0.6);
+  border-color: #F2A679;
+  transform: scale(1.14);
+  box-shadow: 0 0 10px rgba(244, 154, 111, 0.5);
+}
+
+.ai-dash-dot.is-active {
+  background: #F49A6F !important;
+  border-color: #FFE4D1 !important;
+  color: #0F172A !important;
+  transform: scale(1.18);
+  box-shadow: 0 0 14px rgba(244, 154, 111, 0.85), inset 0 1px 2px rgba(255, 255, 255, 0.4) !important;
+}
+
 .ai-dash-dot.is-now {
-  color: #fff7ed; background: rgba(244, 114, 94, 0.45); border-color: rgba(244, 114, 94, 0.8);
+  color: #fff7ed;
+  background: rgba(244, 114, 94, 0.65);
+  border-color: rgba(244, 114, 94, 0.95);
   animation: pulseOrange 1.6s infinite alternate ease-in-out;
 }
-.ai-dash-dot.is-done { opacity: 0.42; }
-.ai-dash-dot.is-active {
-  background: rgba(244, 154, 111, 0.5);
-  border-color: #F2A679;
-  box-shadow: 0 0 10px rgba(244, 154, 111, 0.55);
-  color: #fff;
+
+.ai-dash-dot.is-done {
+  opacity: 0.45;
+  filter: grayscale(0.5);
 }
 .ai-mark-dot-popup {
 position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, 4px);
@@ -2662,68 +2716,71 @@ right: calc(100% + 2px);
 .ai-mark-item-label { flex: 1; min-width: 0; font-size: 12.5px; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ai-mark-item-del { background: transparent; border: none; color: rgba(252,165,165,0.8); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 3px; }
 .ai-mark-item-del:hover { color: #fca5a5; }
-
-/* Minimal golden checkbox — sits above Add, does not break form layout */
-.ai-mark-golden-row {
-  display: inline-flex;
+/* ردیف ترکیبی ورودی عنوان و ستاره ماندگاری رویداد */
+.ai-mark-input-star-row {
+  display: flex;
   align-items: center;
   gap: 6px;
-  align-self: flex-start;
-  margin: 2px 0 0;
+  width: 100%;
+}
+
+.ai-mark-input-star-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* دکمه ستاره نشان‌دار نئونی */
+.ai-mark-golden-toggle {
+  position: relative;
+  flex: 0 0 auto;
   cursor: pointer;
   user-select: none;
-  font-size: 11px;
-  color: rgba(253, 230, 138, 0.75);
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.ai-mark-golden-cb {
+
+.ai-mark-golden-toggle .ai-mark-golden-cb {
   position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
   pointer-events: none;
 }
-.ai-mark-golden-box {
-  width: 13px;
-  height: 13px;
-  border-radius: 3px;
-  border: 1.5px solid rgba(251, 191, 36, 0.75);
-  background: rgba(251, 191, 36, 0.08);
-  box-sizing: border-box;
-  position: relative;
-  flex-shrink: 0;
-  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s;
-}
-.ai-mark-golden-box::after {
-  content: '';
-  position: absolute;
-  left: 3.5px;
-  top: 0.5px;
-  width: 3.5px;
-  height: 7px;
-  border: solid rgba(253, 224, 71, 0.95);
-  border-width: 0 1.6px 1.6px 0;
-  transform: rotate(45deg) scale(0);
-  transition: transform 0.12s var(--ease-premium, ease);
-}
-.ai-mark-golden-cb:checked + .ai-mark-golden-box {
-  background: rgba(251, 191, 36, 0.28);
-  border-color: #FBBF24;
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.35);
-}
-.ai-mark-golden-cb:checked + .ai-mark-golden-box::after {
-  transform: rotate(45deg) scale(1);
-}
-.ai-mark-golden-label {
-  font-size: 12px;
-  color: #FBBF24;
-  opacity: 0.85;
+
+.ai-mark-star-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
   line-height: 1;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
-.ai-mark-golden-row:hover .ai-mark-golden-box {
-  border-color: #FCD34D;
-  background: rgba(251, 191, 36, 0.14);
+
+.ai-mark-star-btn:hover {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: rgba(251, 191, 36, 0.6);
+  background: rgba(251, 191, 36, 0.1);
+  transform: scale(1.05);
 }
+
+/* حالت فعال (ستاره روشن و دارای درخشش طلایی نئونی) */
+.ai-mark-golden-cb:checked + .ai-mark-star-btn {
+  border-color: #FBBF24;
+  color: #FBBF24;
+  background: rgba(251, 191, 36, 0.22);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+.
 
 .ai-mark-dot.is-golden {
   background: rgba(251, 191, 36, 0.9) !important;
@@ -4915,38 +4972,114 @@ body.rtl .ai-note-history-menu,
 #ai-clock-panel[data-cal-month="esfand"] {
   background: radial-gradient(circle at 13% 5%, rgba(101,122,91,.26), transparent 36%), radial-gradient(circle at 91% 88%, rgba(111,175,114,.12), transparent 38%), linear-gradient(145deg, #202b1c, #10160e 72%) !important;
 }
-
-/* The event drawer starts with context, so three calendars teach the season instead of floating on black. */
+/* === ردیاب ۴ فصلی سال شمسی در پنل رویدادها === */
 .ai-season-context {
   position: relative;
   overflow: hidden;
-  margin: 0 0 9px;
-  padding: 10px 11px 9px;
-  border: 1px solid var(--season-line, rgba(186,230,253,.28));
-  border-radius: 11px;
-  background: linear-gradient(135deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.11);
+  margin: 0 0 10px;
+  padding: 8px 10px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(10, 16, 28, 0.65);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-.ai-season-context::after {
-  content: "";
-  position: absolute;
-  width: 78px;
-  height: 78px;
-  right: -33px;
-  top: -43px;
-  border: 1px solid var(--season-line, rgba(186,230,253,.28));
-  border-radius: 50%;
-  box-shadow: 0 0 0 10px rgba(255,255,255,.025), 0 0 0 21px rgba(255,255,255,.018);
-  pointer-events: none;
-}
-.ai-season-context-head { display: flex; align-items: center; gap: 6px; position: relative; z-index: 1; }
-.ai-season-context-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--season-today, #7dd3fc); box-shadow: 0 0 10px var(--season-line, rgba(125,211,252,.5)); }
-.ai-season-context strong { color: var(--season-ink, #e0f2fe); font-size: 13px; letter-spacing: .01em; }
-#ai-season-hemisphere { color: var(--season-soft, rgba(224,242,254,.7)); font-size: 8.5px; font-weight: 700; }
-.ai-season-range { position: relative; z-index: 1; margin-top: 5px; color: var(--season-ink, #e0f2fe); font-size: 10.5px; font-weight: 650; direction: ltr; }
-.ai-season-lesson { position: relative; z-index: 1; margin: 5px 0 0; color: var(--season-soft, rgba(224,242,254,.7)); font-size: 9.5px; line-height: 1.45; }
-body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-season-range { direction: rtl; }
 
+.ai-season-tracker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.ai-season-tracker-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: #F8FAFC;
+}
+
+.ai-season-tracker-sub {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: rgba(186, 230, 253, 0.65);
+}
+
+.ai-season-bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 5px;
+  direction: rtl;
+}
+
+.ai-season-card {
+  position: relative;
+  height: 42px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ai-season-fill {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 0%;
+  border-radius: inherit;
+  transition: width 0.7s cubic-bezier(0.19, 1, 0.22, 1);
+  z-index: 1;
+}
+
+.ai-season-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.ai-season-name {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+
+.ai-season-days {
+  font-size: 8.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.season-spring { --season-color: #10B981; }
+.season-summer { --season-color: #F59E0B; }
+.season-autumn { --season-color: #F97316; }
+.season-winter { --season-color: #E0F2FE; }
+
+.ai-season-card.status-past { border-color: rgba(255, 255, 255, 0.15); }
+.ai-season-card.status-past .ai-season-fill { background: var(--season-color); opacity: 0.35; }
+.ai-season-card.status-past .ai-season-days { color: var(--season-color); }
+
+.ai-season-card.status-current {
+  border-color: var(--season-color);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+}
+.ai-season-card.status-current .ai-season-fill {
+  background: linear-gradient(90deg, transparent, var(--season-color));
+  opacity: 0.75;
+  box-shadow: 0 0 12px var(--season-color);
+}
+.ai-season-card.status-current .ai-season-days {
+  color: #FFF;
+  text-shadow: 0 0 6px var(--season-color);
+}
+
+.ai-season-card.status-future { opacity: 0.3; border-style: dashed; }
+.ai-season-card.status-future .ai-season-days { color: rgba(255, 255, 255, 0.35); }.ai-season-card.status-future .ai-season-days { color: rgba(255, 255, 255, 0.35); }
 /* The external drawer presents itself as the second page of a small calendar book. */
 .ai-clock-marks-panel.active {
   display: block;
@@ -5480,6 +5613,9 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
   font-weight: 600;
   color: rgba(124, 90, 23, 0.8);
   letter-spacing: 0.15px;
+  direction: auto;
+  unicode-bidi: plaintext;
+  text-align: center;
 }
 
 /* فهرست رویدادهای ساعتی/روزانهٔ همان روز (از داشبورد زمان)، زیر مناسبت/پیام روز */
@@ -5540,3 +5676,94 @@ body[dir="rtl"] .ai-season-range, .orbit-root[style*="direction: rtl"] .ai-seaso
 }
 
 #ai-clock-panel { overflow: visible !important; }
+/* ==========================================================================
+   تفکیک رنگی کامل دات‌ها و نمایش وضعیت انقضا
+   ========================================================================== */
+
+/* ۱. استایل مشترک پایه */
+.ai-mark-dot,
+.ai-dash-dot {
+  width: 20px !important;
+  height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  border-radius: 50% !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  outline: none !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  position: relative !important;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease !important;
+}
+
+/* ۲. ردیف اول: دات‌های روزانه / تقویمی (زرد نئونی خالص از همان ابتدا) */
+.ai-mark-dot {
+  color: #1E1B4B !important;
+  border: 1.5px solid #FCD34D !important;
+  background: #FBBF24 !important;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+}
+.ai-mark-dot:hover {
+  transform: scale(1.15) !important;
+  background: #FDE047 !important;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.8) !important;
+}
+.ai-mark-dot.is-active {
+  transform: scale(1.2) !important;
+  border-color: #FFFFFF !important;
+  background: #F59E0B !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ۳. ردیف دوم: دات‌های ساعتی داشبورد (رزگلد واقعی از همان ابتدا) */
+.ai-dash-dot {
+  color: #26110D !important;
+  border: 1.5px solid #F8B4A6 !important;
+  background: #E8927C !important;
+  box-shadow: 0 0 10px rgba(232, 146, 124, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+}
+.ai-dash-dot:hover {
+  transform: scale(1.15) !important;
+  background: #F4A593 !important;
+  box-shadow: 0 0 14px rgba(244, 165, 147, 0.8) !important;
+}
+.ai-dash-dot.is-active {
+  transform: scale(1.2) !important;
+  border-color: #FFFFFF !important;
+  background: #D97059 !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 16px rgba(217, 112, 89, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ۴. استایل دات‌های منقضی‌شده (روزانه و ساعتی) با افکت خط‌خوردگی/ضربدر مات */
+.ai-mark-dot.is-expired,
+.ai-dash-dot.is-expired,
+.ai-dash-dot.is-done {
+  opacity: 0.45 !important;
+  filter: grayscale(0.55) !important;
+  box-shadow: none !important;
+  text-decoration: line-through !important;
+  text-decoration-color: #EF4444 !important;
+  text-decoration-thickness: 2px !important;
+}
+
+/* خط روی عنوان آیتم‌های منقضی‌شده داخل لیست رویدادها */
+.ai-mark-item.is-expired .ai-mark-item-label,
+.ai-event-card.status-missed .ai-event-title,
+.ai-event-card.status-done .ai-event-title {
+  text-decoration: line-through !important;
+  opacity: 0.5 !important;
+  color: #EF4444 !important;
+}
