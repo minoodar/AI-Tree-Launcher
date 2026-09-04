@@ -17,7 +17,7 @@
 ---
 
 <details>
-<summary><h3>🇺🇸 English</h3></summary>
+<summary><strong>🇺🇸 English</strong></summary>
 
 <br>
 
@@ -46,7 +46,7 @@ As an independent AI developer based in war-torn Iran, maintaining and expanding
 </details>
 
 <details>
-<summary><h3>🇪🇸 Español</h3></summary>
+<summary><strong>🇪🇸 Español</strong></summary>
 
 <br>
 
@@ -75,7 +75,7 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 </details>
 
 <details>
-<summary><h3>🇩🇪 Deutsch</h3></summary>
+<summary><strong>🇩🇪 Deutsch</strong></summary>
 
 <br>
 
@@ -104,7 +104,7 @@ Als unabhängiger KI-Entwickler im vom Krieg gezeichneten Iran bin ich bei der P
 </details>
 
 <details>
-<summary><h3>🇫🇷 Français</h3></summary>
+<summary><strong>🇫🇷 Français</strong></summary>
 
 <br>
 
@@ -133,7 +133,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 </details>
 
 <details>
-<summary><h3>🇯🇵 日本語 (Japanese)</h3></summary>
+<summary><strong>🇯🇵 日本語 (Japanese)</strong></summary>
 
 <br>
 
@@ -162,7 +162,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 </details>
 
 <details>
-<summary><h3>🇷🇺 Русский (Russian)</h3></summary>
+<summary><strong>🇷🇺 Русский (Russian)</strong></summary>
 
 <br>
 
@@ -191,7 +191,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 </details>
 
 <details>
-<summary><h3>🇸🇦 العربية (Arabic)</h3></summary>
+<summary><strong>🇸🇦 العربية (Arabic)</strong></summary>
 
 <br>
 <div dir="rtl">
@@ -222,7 +222,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 </details>
 
 <details>
-<summary><h3>🇮🇷 فارسی (Persian)</h3></summary>
+<summary><strong>🇮🇷 فارسی (Persian)</strong></summary>
 
 <br>
 <div dir="rtl">
