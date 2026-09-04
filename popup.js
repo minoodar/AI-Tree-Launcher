@@ -390,7 +390,8 @@ const i18nPopup = {
         'showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry',
         'quoteReligionSource', 'quotePoetrySource',
         'noteTextAlign', 'noteFontSize',
-        'activeNoteAIIndex'
+        'activeNoteAIIndex',
+        'webSearchEngine', 'webSearchEngineOverrides', 'webSearchCustomEngines'
       ],
       sync: [
         'aiTreeTodos', 'aiTreeMarkedDays',
