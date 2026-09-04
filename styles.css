@@ -1987,18 +1987,28 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-cat-accordion.open .ai-cat-grid { display: grid; }
 .ai-cat-chip {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
-  padding: 7px 3px; cursor: pointer; color: rgba(255,255,255,0.6);
-  transition: background 0.15s var(--ease-premium), border-color 0.15s var(--ease-premium), transform 0.1s var(--ease-bounce);
+  background: rgba(255,255,255,0.065); border: 1px solid rgba(255,255,255,0.14); border-radius: 8px;
+  padding: 7px 3px; cursor: pointer; color: rgba(255,255,255,0.8);
+  position: relative; transform-origin: center;
+  transition: background 0.15s var(--ease-premium), border-color 0.15s var(--ease-premium), transform 0.15s var(--ease-bounce), box-shadow 0.15s var(--ease-premium);
 }
-.ai-cat-chip:hover { background: rgba(255,255,255,0.09); transform: translateY(-1px); }
+/* ذره‌بین: دقیقاً همان ایده‌ی هاورِ روزهای تقویم — با هاور، هم آیکون هم برچسب
+   یک‌جا (چون transform روی خودِ چیپ اعمال می‌شود نه تک‌تک اجزا) بزرگ و واضح‌تر
+   می‌شوند؛ z-index هم بالا می‌رود تا روی چیپ‌های مجاور بنشیند، نه زیرشان. */
+.ai-cat-chip:hover {
+  background: rgba(255,255,255,0.14); border-color: rgba(167, 139, 250, 0.5);
+  color: #f3f0ff;
+  transform: translateY(-2px) scale(1.28);
+  z-index: 30;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+}
 .ai-cat-chip:active { transform: scale(0.95); }
 .ai-cat-chip.active {
   background: rgba(167, 139, 250, 0.18); border-color: rgba(167, 139, 250, 0.5);
   color: #ede9fe; box-shadow: 0 0 10px rgba(167, 139, 250, 0.25);
 }
-.ai-cat-chip-icon { font-size: 17px; line-height: 1; }
-.ai-cat-chip-label { font-size: 8.5px; font-weight: 600; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ai-cat-chip-icon { font-size: 18px; line-height: 1; }
+.ai-cat-chip-label { font-size: 9px; font-weight: 600; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .ai-cat-accordion-search { padding: 0 0 2px; }
 .ai-cat-accordion-search .ai-cat-grid { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); max-height: 140px; }
 .ai-form-importance { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; }
@@ -4589,8 +4599,8 @@ body.rtl .ai-note-history-menu,
   padding: 6px;
 }
 .ai-cat-accordion-search .ai-cat-chip { padding: 5px 2px; }
-.ai-cat-accordion-search .ai-cat-chip-icon { font-size: 15px; }
-.ai-cat-accordion-search .ai-cat-chip-label { font-size: 8px; }
+.ai-cat-accordion-search .ai-cat-chip-icon { font-size: 16px; }
+.ai-cat-accordion-search .ai-cat-chip-label { font-size: 8.5px; }
 .ai-search-section-label,
 .ai-web-search-section-label {
   display: block;
