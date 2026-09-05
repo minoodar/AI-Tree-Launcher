@@ -74,6 +74,7 @@
   
   const WIDGET1_DEFAULT_LEFT = '28px'; const WIDGET1_DEFAULT_BOTTOM = '108px';
 
+
   const GOLDEN_ANGLE = 137.51; let SPACING = 32; const START_RADIUS = 88; const MAX_NODES = 80;
   const MIN_SPACING = 18; const MAX_SPACING = 84;
   let currentLayerMode = 0; let showAllOverride = false; const MAX_LAYERS = 6; // ۵ ردهٔ ستاره‌ای + مجموعهٔ سرریزِ دنبال‌دار
@@ -661,6 +662,21 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
   }
   if (document.body || document.documentElement) { mountWidget(); }
   else { document.addEventListener('DOMContentLoaded', mountWidget); }
+
+  // اگر این دامنه قبلاً از طریق دکمه‌ی «Hide» در پاپ‌آپ مخفی شده، باید در تمام
+  // زیرصفحه‌های همین دامنه (نه فقط همان تبی که مخفی‌اش کرده بود) مخفی بماند، تا
+  // وقتی کاربر خودش دکمه‌ی «Show (Reset)» را بزند. برخلاف چک دامنه‌های ورود
+  // (accounts.google.com و…) که کامل از تزریق صرف‌نظر می‌کند، اینجا باید عادی
+  // mount شویم — چون همان دکمه‌ی Show باید بدون رفرش صفحه دوباره نشانش بدهد، و
+  // برای آن پیام‌رسانی زنده به همین content script لازم است.
+  try {
+    if (chrome.runtime?.id) {
+      chrome.storage.local.get(['aiTreeHiddenDomains'], (res) => {
+        const hiddenDomains = Array.isArray(res.aiTreeHiddenDomains) ? res.aiTreeHiddenDomains : [];
+        if (hiddenDomains.includes(window.location.hostname)) root.style.display = 'none';
+      });
+    }
+  } catch (e) {}
 
   const noteTextarea = quickNoteForm.querySelector('#ai-note-text');
 
@@ -8574,6 +8590,15 @@ let hubAutoCollapsedByPanel = false;
         if (changes.quotePoetrySource) {
           AITreeQuoteEngine.initPoetry().then(renderRumiQuote);
         }
+        // اگر «Hide»/«Show (Reset)» از پاپ‌آپ برای همین دامنه در یک تبِ دیگر (نه
+        // لزوماً تبِ فعالی که پیام مستقیم گرفته) اجرا شده باشد، این تب هم بدون نیاز
+        // به رفرش زنده هماهنگ شود.
+        if (changes.aiTreeHiddenDomains) {
+          const list = Array.isArray(changes.aiTreeHiddenDomains.newValue) ? changes.aiTreeHiddenDomains.newValue : [];
+          const shouldBeHidden = list.includes(window.location.hostname);
+          if (shouldBeHidden && root.style.display !== 'none') root.style.display = 'none';
+          else if (!shouldBeHidden && root.style.display === 'none' && !widgetHiddenByFullscreen) root.style.display = '';
+        }
         // Two-way live sync with the standalone notepad tab (see notepad.js).
         // Only overwrite when this widget's textarea isn't the one being typed in.
         if (changes.savedPromptDraft && noteTextarea && document.activeElement !== noteTextarea) {
@@ -9732,6 +9757,9 @@ let hubAutoCollapsedByPanel = false;
   // و با خروج از تمام‌صفحه به همان وضعیت قبلی برمی‌گردد. اگر کاربر خودش قبلاً از پاپ‌آپ
   // «Hide» زده بود، این منطق دخالت نمی‌کند — چون آن حالت را عوض نکرده بودیم.
   let widgetHiddenByFullscreen = false;
+  // «Hide» از پاپ‌آپ حالا برای کلِ دامنه (تمام زیرصفحه‌ها) در chrome.storage.sync ثبت
+  // می‌شود، نه فقط همین یک تب — پس خروج از فول‌اسکرین هم نباید آن را دوباره ظاهر کند.
+  let widgetHiddenByDomain = false;
   function handleFullscreenChange() {
     const isFullscreen = !!document.fullscreenElement;
     if (isFullscreen) {
@@ -9741,7 +9769,7 @@ let hubAutoCollapsedByPanel = false;
       }
     } else if (widgetHiddenByFullscreen) {
       widgetHiddenByFullscreen = false;
-      root.style.display = '';
+      if (!widgetHiddenByDomain) root.style.display = '';
     }
   }
   document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -9835,6 +9863,7 @@ let hubAutoCollapsedByPanel = false;
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "resetFloatingMenuPositionAnly") {
       widgetHiddenByFullscreen = false;
+      widgetHiddenByDomain = false;
       cinemaModeActive = false; preCinemaPos = null; root.classList.remove('is-cinema-shifted');
       root.style.display = ''; root.style.left = WIDGET1_DEFAULT_LEFT; root.style.top = 'auto'; root.style.bottom = WIDGET1_DEFAULT_BOTTOM; 
       clockManuallyPositioned = false; // کادر ساعت هم به حالت لنگرشده روی هاب برمی‌گردد

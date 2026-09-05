@@ -356,6 +356,19 @@ const i18nPopup = {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, { action: "hideLauncherAnly" }).catch(() => {});
+            // ماندگار کردن مخفی‌بودن برای همین دامنه، تا در هر زیرصفحه‌ی دیگرِ همان
+            // سایت هم (نه فقط همین تب) تا اطلاع ثانوی مخفی بماند.
+            let hostname = '';
+            try { hostname = new URL(tabs[0].url).hostname; } catch (e) {}
+            if (hostname) {
+              chrome.storage.local.get(['aiTreeHiddenDomains'], (res) => {
+                const list = Array.isArray(res.aiTreeHiddenDomains) ? res.aiTreeHiddenDomains : [];
+                if (!list.includes(hostname)) {
+                  list.push(hostname);
+                  chrome.storage.local.set({ aiTreeHiddenDomains: list });
+                }
+              });
+            }
             window.close();
           }
         });
@@ -368,6 +381,15 @@ const i18nPopup = {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0]) {
             chrome.tabs.sendMessage(tabs[0].id, { action: "resetFloatingMenuPositionAnly" }).catch(() => {});
+            let hostname = '';
+            try { hostname = new URL(tabs[0].url).hostname; } catch (e) {}
+            if (hostname) {
+              chrome.storage.local.get(['aiTreeHiddenDomains'], (res) => {
+                const list = Array.isArray(res.aiTreeHiddenDomains) ? res.aiTreeHiddenDomains : [];
+                const next = list.filter(d => d !== hostname);
+                if (next.length !== list.length) chrome.storage.local.set({ aiTreeHiddenDomains: next });
+              });
+            }
             window.close();
           }
         });
