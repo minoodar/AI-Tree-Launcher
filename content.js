@@ -9564,6 +9564,10 @@ let hubAutoCollapsedByPanel = false;
     if (typeof renderTierDots === 'function') renderTierDots();
     if (typeof renderHubDots === 'function') renderHubDots();
     updateBookmarkCount();
+    // بستنِ منو یعنی هاب دوباره جمع می‌شود روی همان نقطه‌ای که (احتمالاً) باز بوده —
+    // اگر زیرش الان یک پلیر بزرگ افتاده باشد، باید همین‌جا دوباره چک شود، نه فقط
+    // منتظر رویدادهای play/resize/scroll ویدیو ماند.
+    if (typeof scheduleCinemaCheck === 'function') scheduleCinemaCheck();
   }
 
   collapseToggleDot.addEventListener('click', (e) => { if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); closeAllPanelsExcept(''); hub.classList.add('hub-collapsed'); if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes(); });
@@ -9618,6 +9622,9 @@ let hubAutoCollapsedByPanel = false;
   let startDragX, startDragY, startLeft, startTop;
   hub.addEventListener('mousedown', (e) => {
     if (uiToggles.includes(e.target.id)) return;
+    // اگر کاربر وسطِ حالت سینمایی خودش دستی بکشدش، دیگر نباید با خروج از حالت
+    // سینمایی به موقعیت قبلی برگردد — همین موقعیت جدید (دستی) از این پس معتبر است.
+    if (cinemaModeActive) { cinemaModeActive = false; preCinemaPos = null; root.classList.remove('is-cinema-shifted'); }
     isDragging = true; dragMoved = false; root.classList.add('dragging'); 
     const rect = root.getBoundingClientRect(); 
     startDragX = e.clientX; startDragY = e.clientY; 
@@ -9694,9 +9701,96 @@ let hubAutoCollapsedByPanel = false;
   }
   document.addEventListener('fullscreenchange', handleFullscreenChange);
 
+  // ---------------------------------------------------------------------
+  // «حالت سینمایی نرم» — برای سایت‌هایی که واقعاً Fullscreen API را صدا
+  // نمی‌زنند و فقط پلیر را در همان صفحه بزرگ می‌کنند (تئاترمود یوتیوب، کارت
+  // ویدیوی توییتر/ایکس، پلیرهای جاسازی‌شده و…). به‌جای شناسایی سایت‌به‌سایت
+  // (که شکننده است)، هر <video> صفحه را زیر نظر می‌گیریم: اگر مستطیل نمایشِ
+  // یکی از آن‌ها نسبت بزرگی از viewport را بپوشاند، ویجت را به‌جای پنهان‌شدن
+  // کامل، به گوشهٔ واقعیِ صفحه (نه موقعیت ریست، نه موقعیت دستیِ کاربر) شیفت
+  // می‌دهیم — چون معمولاً پلیرِ بزرگ‌شده (برخلاف فول‌اسکرین واقعی) تمام
+  // viewport را نمی‌پوشاند، گوشهٔ واقعی صفحه اغلب بیرون از قاب پلیر و کنترل‌هایش
+  // می‌ماند.
+  const CINEMA_SHIFT_LEFT = '16px';
+  const CINEMA_SHIFT_BOTTOM = '16px';
+  let cinemaModeActive = false;
+  let preCinemaPos = null; // { left, top, bottom } — دقیقاً همان چیزی که قبل از شیفت روی root بود
+
+  function isLargeVideoRect(rect) {
+    if (!rect || rect.width <= 0 || rect.height <= 0) return false;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    return rect.width >= vw * 0.55 && rect.height >= vh * 0.5;
+  }
+
+  function anyLargeVideoVisible() {
+    const videos = document.querySelectorAll('video');
+    for (const v of videos) {
+      if (v.readyState === 0 && !v.currentSrc) continue; // منبعی هنوز بارنشده — پلیر واقعی نیست
+      if (isLargeVideoRect(v.getBoundingClientRect())) return true;
+    }
+    return false;
+  }
+
+  function applyCinemaShift() {
+    if (cinemaModeActive || widgetHiddenByFullscreen || root.style.display === 'none') return;
+    cinemaModeActive = true;
+    preCinemaPos = { left: root.style.left, top: root.style.top, bottom: root.style.bottom };
+    root.style.left = CINEMA_SHIFT_LEFT;
+    root.style.top = 'auto';
+    root.style.bottom = CINEMA_SHIFT_BOTTOM;
+    root.classList.add('is-cinema-shifted');
+  }
+
+  function releaseCinemaShift() {
+    if (!cinemaModeActive) return;
+    cinemaModeActive = false;
+    root.classList.remove('is-cinema-shifted');
+    if (preCinemaPos) {
+      root.style.left = preCinemaPos.left;
+      root.style.top = preCinemaPos.top;
+      root.style.bottom = preCinemaPos.bottom;
+    }
+    preCinemaPos = null;
+  }
+
+  let cinemaCheckTimer = null;
+  function scheduleCinemaCheck() {
+    if (cinemaCheckTimer) return;
+    cinemaCheckTimer = setTimeout(() => {
+      cinemaCheckTimer = null;
+      if (document.fullscreenElement) return; // فول‌اسکرین واقعی خودش قبلاً کل ویجت را پنهان کرده
+      // وقتی تری باز است و کاربر دارد رویش کار می‌کند، نباید وسط تعامل (مثلاً با
+      // اسکرول یا تغییر اندازه‌ی ویدیو) ناگهان جابه‌جا شود — این تصمیم را عمداً به
+      // لحظه‌ی closeTree() موکول می‌کنیم که خودش دوباره همین تابع را صدا می‌زند.
+      if (isOpen) return;
+      if (anyLargeVideoVisible()) applyCinemaShift();
+      else releaseCinemaShift();
+    }, 350);
+  }
+
+  // رویداد play روی <video> بابل نمی‌کند، پس باید در فاز capture گوش داد.
+  document.addEventListener('play', (e) => { if (e.target && e.target.tagName === 'VIDEO') scheduleCinemaCheck(); }, true);
+  window.addEventListener('resize', scheduleCinemaCheck);
+  window.addEventListener('scroll', scheduleCinemaCheck, { passive: true });
+  document.addEventListener('fullscreenchange', scheduleCinemaCheck);
+
+  // 'resize' یک event استاندارد روی المان‌های معمولی نیست (فقط window دارد)، پس
+  // برای گرفتنِ لحظهٔ «تئاترمود شدن» یک ویدیوی مشخص (بدون تغییر اندازهٔ کل صفحه)
+  // باید هر <video> را جدا با ResizeObserver دنبال کرد.
+  const observedVideos = new WeakSet();
+  const cinemaVideoResizeObserver = new ResizeObserver(scheduleCinemaCheck);
+  function trackNewVideos() {
+    document.querySelectorAll('video').forEach(v => {
+      if (!observedVideos.has(v)) { observedVideos.add(v); cinemaVideoResizeObserver.observe(v); }
+    });
+  }
+  trackNewVideos();
+  new MutationObserver(() => { trackNewVideos(); scheduleCinemaCheck(); }).observe(document.documentElement, { childList: true, subtree: true });
+
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "resetFloatingMenuPositionAnly") {
       widgetHiddenByFullscreen = false;
+      cinemaModeActive = false; preCinemaPos = null; root.classList.remove('is-cinema-shifted');
       root.style.display = ''; root.style.left = WIDGET1_DEFAULT_LEFT; root.style.top = 'auto'; root.style.bottom = WIDGET1_DEFAULT_BOTTOM; 
       clockManuallyPositioned = false; // کادر ساعت هم به حالت لنگرشده روی هاب برمی‌گردد
       try { if (chrome.runtime?.id) chrome.storage.sync.remove(['clockCustomX', 'clockCustomY']); } catch (err) {}
@@ -9715,7 +9809,7 @@ let hubAutoCollapsedByPanel = false;
       }
       return true;
     }
-    if (message.action === "hideLauncherAnly") { widgetHiddenByFullscreen = false; root.style.display = 'none'; }
+    if (message.action === "hideLauncherAnly") { widgetHiddenByFullscreen = false; cinemaModeActive = false; preCinemaPos = null; root.classList.remove('is-cinema-shifted'); root.style.display = 'none'; }
     if (message.action === "getBookmarkBackups") {
       try { chrome.storage.local.get(['aiTreeBookmarkBackups'], (data) => sendResponse({ backups: data.aiTreeBookmarkBackups || [] })); return true; } catch (e) { sendResponse({ backups: [] }); }
     }

@@ -121,6 +121,9 @@
 
 .orbit-root { position: fixed; bottom: 28px; left: 28px; z-index: 2147483647; width: 0; height: 0; direction: ltr; }
 .orbit-root[style*="direction: rtl"] { direction: rtl; }
+/* حالت سینمایی نرم: وقتی افزونه به گوشه‌ی صفحه شیفت می‌شود (یا برمی‌گردد)، این
+   جابه‌جایی یک لغزشِ نرم باشد نه یک پرش ناگهانی */
+.orbit-root.is-cinema-shifted { transition: left 0.35s var(--ease-premium), bottom 0.35s var(--ease-premium), top 0.35s var(--ease-premium); }
 
 .orbit-hub {
 position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
