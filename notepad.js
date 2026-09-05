@@ -25,7 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
     backLabel: document.getElementById('back-label'),
     promptsToggleBtn: document.getElementById('prompts-toggle-btn'),
     promptsToggleLabel: document.getElementById('prompts-toggle-label'),
+    promptsPanel: document.getElementById('prompts-panel'),
     promptsBar: document.getElementById('prompts-bar'),
+    promptsSearchInput: document.getElementById('prompts-search-input'),
     emojiToggleBtn: document.getElementById('emoji-toggle-btn'),
     emojiPopover: document.getElementById('emoji-popover'),
     aiSelect: document.getElementById('ai-select'),
@@ -77,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (els.emojiOnlineTitle) els.emojiOnlineTitle.textContent = t('emojiOnlineTitle');
     if (els.emojiOnlineSearch) els.emojiOnlineSearch.placeholder = t('emojiOnlineSearch');
+    if (els.promptsSearchInput) els.promptsSearchInput.placeholder = t('noteTplSearchPlaceholder');
     updateTokenMeter();
     renderPrompts();
   }
@@ -195,6 +198,21 @@ document.addEventListener('DOMContentLoaded', () => {
   let tplEditMode = false;
   let tplEditingId = null;
   let tplEditingBuiltIn = false;
+  let promptSearchQuery = ''; // جستجوی فازیِ زنده روی عنوان/متن پرامپت‌ها
+
+  // همان تطبیق فازیِ سبک (زیررشته‌ایِ ترتیب‌دار) که در ویجت اصلی هم استفاده شده —
+  // بدون هیچ وابستگی خارجی، روی فارسی/عربی/انگلیسی یکسان کار می‌کند.
+  function fuzzyPromptMatch(query, text) {
+    if (!query) return true;
+    if (!text) return false;
+    query = query.toLowerCase();
+    text = text.toLowerCase();
+    let qi = 0;
+    for (let i = 0; i < text.length && qi < query.length; i++) {
+      if (text[i] === query[qi]) qi++;
+    }
+    return qi === query.length;
+  }
 
   function allPrompts() {
     const hidden = new Set(promptHiddenIds || []);
@@ -226,7 +244,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderPrompts() {
     els.promptsBar.innerHTML = '';
-    allPrompts().forEach((tpl) => {
+    const matched = allPrompts().filter(tpl => fuzzyPromptMatch(promptSearchQuery, tpl.title) || fuzzyPromptMatch(promptSearchQuery, tpl.text));
+    if (promptSearchQuery && !matched.length) {
+      const empty = document.createElement('span');
+      empty.className = 'prompts-empty';
+      empty.dir = 'auto';
+      empty.textContent = t('noteTplSearchEmpty');
+      els.promptsBar.appendChild(empty);
+    }
+    matched.forEach((tpl) => {
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'tpl-chip' + (tpl.builtIn ? '' : ' is-custom') + (tpl.overridden ? ' is-overridden' : '') + (tplEditMode ? ' is-editable' : '');
@@ -309,9 +335,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   els.promptsToggleBtn.addEventListener('click', () => {
-    els.promptsBar.classList.toggle('open');
-    els.promptsToggleBtn.classList.toggle('active', els.promptsBar.classList.contains('open'));
+    els.promptsPanel.classList.toggle('open');
+    els.promptsToggleBtn.classList.toggle('active', els.promptsPanel.classList.contains('open'));
   });
+
+  if (els.promptsSearchInput) {
+    els.promptsSearchInput.addEventListener('input', () => {
+      promptSearchQuery = els.promptsSearchInput.value.trim();
+      renderPrompts();
+    });
+  }
 
   // ============================= Emoji =============================
   const DEFAULT_FAVORITE_EMOJIS = ['✨', '📌', '🔥', '💡', '🌱', '🎯', '🚀', '⭐'];

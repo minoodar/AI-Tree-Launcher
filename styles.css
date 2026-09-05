@@ -3040,6 +3040,28 @@ display: flex; align-items: center; justify-content: center;
 #ai-mark-add-btn:hover { background: #34D399; }
 
 /* === Prompt Studio: glass key chips + manager === */
+.ai-note-tpl-search {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(15, 20, 32, 0.35);
+  color: rgba(236, 253, 245, 0.92);
+  font-size: 11px;
+  font-family: inherit;
+  padding: 6px 10px;
+  border-radius: 10px;
+  margin: 0 0 6px 0;
+  outline: none;
+  transition: border-color 0.18s var(--ease-premium, ease), background 0.18s var(--ease-premium, ease);
+}
+.ai-note-tpl-search::placeholder { color: rgba(236, 253, 245, 0.4); }
+.ai-note-tpl-search:focus { border-color: rgba(16, 185, 129, 0.55); background: rgba(15, 20, 32, 0.55); }
+.ai-note-tpl-empty {
+  font-size: 11px;
+  color: rgba(236, 253, 245, 0.5);
+  padding: 4px 2px;
+}
 .ai-note-tpl-bar {
   display: flex;
   flex-wrap: wrap;

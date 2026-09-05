@@ -128,20 +128,42 @@
   .prompts-btn, .emoji-btn, .ai-select-wrap {
     position: relative;
   }
-  .prompts-bar {
+  .prompts-panel {
     display: none;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
+  }
+  .prompts-panel.open { display: flex; }
+  .prompts-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11.5px;
+    font-family: inherit;
+    outline: none;
+    transition: 0.15s;
+  }
+  .prompts-search-input::placeholder { color: var(--text-muted); }
+  .prompts-search-input:focus { border-color: rgba(56, 189, 248, 0.45); }
+  .prompts-empty { font-size: 11.5px; color: var(--text-muted); padding: 4px 2px; }
+  .prompts-bar {
+    display: flex;
     flex-wrap: wrap;
     gap: 6px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
     padding: 8px;
-    margin-bottom: 8px;
     flex-shrink: 0;
     max-height: 120px;
     overflow-y: auto;
   }
-  .prompts-bar.open { display: flex; }
   .tpl-chip {
     border: 1px solid var(--border);
     background: rgba(255,255,255,0.04);
@@ -536,7 +558,10 @@
       <button type="button" class="send-btn zt-btn" id="send-btn"><span data-zen-icon="send"></span> <span id="send-label">Send</span></button>
     </div>
 
-    <div class="prompts-bar" id="prompts-bar"></div>
+    <div class="prompts-panel" id="prompts-panel">
+      <input type="text" class="prompts-search-input" id="prompts-search-input" dir="auto" autocomplete="off" />
+      <div class="prompts-bar" id="prompts-bar"></div>
+    </div>
 
     <div class="editor-wrap">
       <textarea id="note-text" dir="auto" placeholder=""></textarea>

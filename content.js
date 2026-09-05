@@ -331,6 +331,7 @@
       <button type="button" id="ai-note-tts-btn" class="ai-format-btn ai-tts-btn zt-btn" title="Read aloud" aria-label="Read aloud"><span data-zen-icon="tts"></span></button>
       <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn zt-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown"><span data-zen-icon="extractDoc"></span></button>
     </div>
+    <input type="text" class="ai-note-tpl-search" id="ai-note-tpl-search" dir="auto" autocomplete="off" />
     <div class="ai-note-tpl-bar" id="ai-note-tpl-bar"></div>
     <div class="ai-note-text-wrap" id="ai-note-text-wrap">
       <textarea id="ai-note-text" rows="2" dir="auto"></textarea>
@@ -712,6 +713,7 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
     socialPopover: quickNoteForm.querySelector('#ai-social-popover'),
     textWrap: quickNoteForm.querySelector('#ai-note-text-wrap'),
     tplBar: quickNoteForm.querySelector('#ai-note-tpl-bar'),
+    tplSearch: quickNoteForm.querySelector('#ai-note-tpl-search'),
     tokenMeter: quickNoteForm.querySelector('#ai-note-token-meter'),
     historyBtn: quickNoteForm.querySelector('#ai-note-history-btn'),
     historyMenu: quickNoteForm.querySelector('#ai-note-history-menu'),
@@ -1004,6 +1006,7 @@ function updateUITexts() {
     uiEls.formSave.textContent = editingNodeIndex === null ? t('formSaveBtn') : t('formUpdateBtn');
 
     uiEls.noteText.placeholder = t('noteInput');
+    if (uiEls.tplSearch) uiEls.tplSearch.placeholder = t('noteTplSearchPlaceholder');
     uiEls.noteClearBtn.textContent = t('noteClearBtn');
     uiEls.noteCopyBtn.textContent = t('noteCopyBtn');
     uiEls.saveTxtBtn.textContent = t('noteTxtBtn');
@@ -5463,6 +5466,7 @@ let hubAutoCollapsedByPanel = false;
     const selectors = [
       '.ai-note-header',
       '.ai-note-format-bar',
+      '.ai-note-tpl-search',
       '.ai-note-tpl-bar',
       '#ai-note-tpl-editor',
       '.ai-note-status-row',
@@ -6151,6 +6155,22 @@ let hubAutoCollapsedByPanel = false;
   let tplEditingId = null; // id being edited, or null for new
   let tplEditingBuiltIn = false;
   let expandedPromptCategory = null; // null = showing category folders; otherwise the open category's id
+  let promptSearchQuery = ''; // جستجوی فازیِ زنده روی عنوان/متن پرامپت‌ها — وقتی پر باشد، نمای پوشه‌ای/دسته کنار می‌رود و نتایج به‌صورت مسطح نشان داده می‌شوند
+
+  // تطبیق فازیِ سبک (زیررشته‌ایِ ترتیب‌دار): هر کاراکترِ عبارتِ جستجو باید به همان
+  // ترتیب — نه لزوماً پشت‌سرهم — در متن هدف پیدا شود. سریع و بدون هیچ وابستگی
+  // خارجی، و روی فارسی/عربی/انگلیسی یکسان کار می‌کند چون فقط مقایسه کاراکتری است.
+  function fuzzyPromptMatch(query, text) {
+    if (!query) return true;
+    if (!text) return false;
+    query = query.toLowerCase();
+    text = text.toLowerCase();
+    let qi = 0;
+    for (let i = 0; i < text.length && qi < query.length; i++) {
+      if (text[i] === query[qi]) qi++;
+    }
+    return qi === query.length;
+  }
 
   let promptHistory = [];
   let noteDraftSaveTimer = null;
@@ -6288,7 +6308,10 @@ let hubAutoCollapsedByPanel = false;
 
   function promptsByCategory() {
     const groups = {};
-    allPrompts().forEach((p) => {
+    const source = promptSearchQuery
+      ? allPrompts().filter(p => fuzzyPromptMatch(promptSearchQuery, p.title) || fuzzyPromptMatch(promptSearchQuery, p.text))
+      : allPrompts();
+    source.forEach((p) => {
       if (!groups[p.category]) groups[p.category] = [];
       groups[p.category].push(p);
     });
@@ -6471,13 +6494,46 @@ let hubAutoCollapsedByPanel = false;
     uiEls.tplBar.innerHTML = '';
     uiEls.tplBar.classList.toggle('is-editing', tplEditMode);
 
+    function makePromptChip(tpl) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'ai-note-tpl-chip' + (tpl.builtIn ? ' is-builtin' : ' is-custom');
+      if (tpl.overridden) chip.classList.add('is-overridden');
+      if (tplEditMode) chip.classList.add('is-editable');
+      chip.dir = 'auto'; // عنوان پرامپت ممکن است با زبان رابط کاربری فرق داشته باشد
+      chip.textContent = tpl.title;
+      chip.title = tplEditMode ? t('noteTplFormTitleEdit') : tpl.title;
+      chip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (tplEditMode) {
+          openTplEditor(tpl);
+          return;
+        }
+        insertNoteTemplate(tpl.text);
+      });
+      return chip;
+    }
+
     const groups = promptsByCategory();
 
     if (expandedPromptCategory && !groups[expandedPromptCategory]) {
       expandedPromptCategory = null; // آخرین پرامپت آن دسته حذف شده — برگرد به فهرست پوشه‌ها
     }
 
-    if (!expandedPromptCategory) {
+    if (promptSearchQuery) {
+      // نمای نتایج جستجو: مسطح روی همه‌ی دسته‌ها، بدون چیپ پوشه و بدون چیپ بازگشت —
+      // کاربر نباید برای دیدن نتیجه‌ی جستجو مجبور به بازکردن دستی یک دسته باشد.
+      const matched = PROMPT_CATEGORIES.reduce((acc, cat) => acc.concat(groups[cat.id] || []), []);
+      if (!matched.length) {
+        const empty = document.createElement('span');
+        empty.className = 'ai-note-tpl-empty';
+        empty.dir = 'auto';
+        empty.textContent = t('noteTplSearchEmpty');
+        uiEls.tplBar.appendChild(empty);
+      } else {
+        matched.forEach((tpl) => uiEls.tplBar.appendChild(makePromptChip(tpl)));
+      }
+    } else if (!expandedPromptCategory) {
       // نمای پوشه‌ها: هر دسته یک چیپ با شمارنده، مرتب‌شده بر اساس ترتیب ثابتِ PROMPT_CATEGORIES
       PROMPT_CATEGORIES.forEach((cat) => {
         const items = groups[cat.id];
@@ -6508,25 +6564,7 @@ let hubAutoCollapsedByPanel = false;
       });
       uiEls.tplBar.appendChild(backChip);
 
-      (groups[expandedPromptCategory] || []).forEach((tpl) => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'ai-note-tpl-chip' + (tpl.builtIn ? ' is-builtin' : ' is-custom');
-        if (tpl.overridden) chip.classList.add('is-overridden');
-        if (tplEditMode) chip.classList.add('is-editable');
-        chip.dir = 'auto'; // عنوان پرامپت ممکن است با زبان رابط کاربری فرق داشته باشد
-        chip.textContent = tpl.title;
-        chip.title = tplEditMode ? t('noteTplFormTitleEdit') : tpl.title;
-        chip.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (tplEditMode) {
-            openTplEditor(tpl);
-            return;
-          }
-          insertNoteTemplate(tpl.text);
-        });
-        uiEls.tplBar.appendChild(chip);
-      });
+      (groups[expandedPromptCategory] || []).forEach((tpl) => uiEls.tplBar.appendChild(makePromptChip(tpl)));
     }
 
     // + add
@@ -7414,6 +7452,13 @@ let hubAutoCollapsedByPanel = false;
       e.stopPropagation();
       e.preventDefault();
       insertExtractedMarkdownToNotepad();
+    });
+  }
+  if (uiEls.tplSearch) {
+    uiEls.tplSearch.addEventListener('click', (e) => e.stopPropagation());
+    uiEls.tplSearch.addEventListener('input', () => {
+      promptSearchQuery = uiEls.tplSearch.value.trim();
+      renderNoteTemplates();
     });
   }
   document.getElementById('ai-note-clear-btn').addEventListener('click', (e) => { e.stopPropagation(); clearNoteWithUndo(); });
