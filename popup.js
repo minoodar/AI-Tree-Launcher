@@ -168,7 +168,7 @@ const i18nPopup = {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;

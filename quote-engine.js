@@ -2,15 +2,15 @@
 // — قبلاً فقط label/labelFa داشت. انتخاب برچسب با quoteCategoryLabel() در content.js
 // انجام می‌شود که مستقیم بر اساس currentLang جستجو می‌کند (با fallback به en).
 const AI_QUOTE_RELIGIONS = {
-  islam:        { icon: '☪️', file: 'quran.json',              en: 'Islam',           fa: 'اسلام',        ar: 'الإسلام',           es: 'Islam',              de: 'Islam',            fr: 'Islam',              ja: 'イスラム教', ru: 'Ислам' },
-  judaism:      { icon: '✡️', file: 'judaism.json',             en: 'Judaism',         fa: 'یهودیت',       ar: 'اليهودية',          es: 'Judaísmo',           de: 'Judentum',         fr: 'Judaïsme',           ja: 'ユダヤ教',   ru: 'Иудаизм' },
-  christianity: { icon: '✝️', file: 'christianity-luke.json',   en: 'Christianity',    fa: 'مسیحیت',       ar: 'المسيحية',          es: 'Cristianismo',       de: 'Christentum',      fr: 'Christianisme',      ja: 'キリスト教', ru: 'Христианство' },
-  eastern:      { icon: '☸️', file: 'eastern-wisdom.json',      en: 'Eastern Wisdom',  fa: 'حکمت شرقی',    ar: 'الحكمة الشرقية',    es: 'Sabiduría oriental', de: 'Östliche Weisheit', fr: 'Sagesse orientale',  ja: '東洋の知恵', ru: 'Восточная мудрость' }
+  islam:        { icon: '☪️', file: 'quran.json',              en: 'Islam',           fa: 'اسلام',        ar: 'الإسلام',           es: 'Islam',              de: 'Islam',            fr: 'Islam',              ja: 'イスラム教', ru: 'Ислам',            tr: 'İslam' },
+  judaism:      { icon: '✡️', file: 'judaism.json',             en: 'Judaism',         fa: 'یهودیت',       ar: 'اليهودية',          es: 'Judaísmo',           de: 'Judentum',         fr: 'Judaïsme',           ja: 'ユダヤ教',   ru: 'Иудаизм',          tr: 'Yahudilik' },
+  christianity: { icon: '✝️', file: 'christianity-luke.json',   en: 'Christianity',    fa: 'مسیحیت',       ar: 'المسيحية',          es: 'Cristianismo',       de: 'Christentum',      fr: 'Christianisme',      ja: 'キリスト教', ru: 'Христианство',     tr: 'Hristiyanlık' },
+  eastern:      { icon: '☸️', file: 'eastern-wisdom.json',      en: 'Eastern Wisdom',  fa: 'حکمت شرقی',    ar: 'الحكمة الشرقية',    es: 'Sabiduría oriental', de: 'Östliche Weisheit', fr: 'Sagesse orientale',  ja: '東洋の知恵', ru: 'Восточная мудрость', tr: 'Doğu Bilgeliği' }
 };
 
 const AI_QUOTE_POETRY = {
-  rumi:    { icon: '🌙', file: 'rumi.json',               en: 'Rumi',               fa: 'مولانا',      ar: 'جلال الدين الرومي', es: 'Rumi',                    de: 'Rumi',                  fr: 'Rumi',                    ja: 'ルーミー', ru: 'Руми' },
-  western: { icon: '🖋️', file: 'western-literature.json', en: 'Western Literature', fa: 'ادبیات غرب',  ar: 'الأدب الغربي',      es: 'Literatura occidental',   de: 'Westliche Literatur',   fr: 'Littérature occidentale', ja: '西洋文学', ru: 'Западная литература' }
+  rumi:    { icon: '🌙', file: 'rumi.json',               en: 'Rumi',               fa: 'مولانا',      ar: 'جلال الدين الرومي', es: 'Rumi',                    de: 'Rumi',                  fr: 'Rumi',                    ja: 'ルーミー', ru: 'Руми',              tr: 'Mevlana' },
+  western: { icon: '🖋️', file: 'western-literature.json', en: 'Western Literature', fa: 'ادبیات غرب',  ar: 'الأدب الغربي',      es: 'Literatura occidental',   de: 'Westliche Literatur',   fr: 'Littérature occidentale', ja: '西洋文学', ru: 'Западная литература', tr: 'Batı Edebiyatı' }
 };
 
 const aiQuoteFileCache = {};
@@ -70,7 +70,7 @@ async function aiResolveActiveReligionKey() {
   // که فقط مسیحیت/انجیل لوقا منبعی اصالتاً انگلیسی/غیرفارسی بود؛ اکنون که همهٔ
   // ۶ منبع به هر ۸ زبان ترجمه شده‌اند، این محدودیتِ فنی دیگر برقرار نیست — این
   // فقط یک پیش‌فرضِ فرهنگی/سلیقه‌ای باقی‌مانده که عمداً دست‌نخورده نگه داشته شده.
-  return currentLang === 'fa' ? 'islam' : 'christianity';
+  return (currentLang === 'fa' || currentLang === 'tr') ? 'islam' : 'christianity';
 }
 
 async function aiResolveActivePoetryKey() {
@@ -78,7 +78,7 @@ async function aiResolveActivePoetryKey() {
   if (AI_QUOTE_POETRY[cfg.quotePoetrySource]) return cfg.quotePoetrySource;
   // همان منطق و همان نکته: فارسی → مولانا، بقیهٔ زبان‌ها → ادبیات غرب — دیگر یک
   // محدودیتِ فنی نیست، صرفاً پیش‌فرضِ فعلی که دست‌نخورده نگه داشته شده است.
-  return currentLang === 'fa' ? 'rumi' : 'western';
+  return (currentLang === 'fa' || currentLang === 'tr') ? 'rumi' : 'western';
 }
 
 const AITreeQuoteEngine = {

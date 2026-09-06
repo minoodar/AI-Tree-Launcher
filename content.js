@@ -1123,7 +1123,9 @@ function updateUITexts() {
                 ? '今日 · 明日 · 2026-07-27'
                 : currentLang === 'ru'
                   ? 'сегодня · завтра · 2026-07-27'
-                  : 'today · tomorrow · 2026-07-27 · 1403/05/16';
+                  : currentLang === 'tr'
+                    ? 'bugün · yarın · 2026-07-27'
+                    : 'today · tomorrow · 2026-07-27 · 1403/05/16';
     }
 
     root.style.direction = isRTL(currentLang) ? 'rtl' : 'ltr';
@@ -1311,7 +1313,7 @@ function openMarkEventSheet(m) {
       const monthName = JALALI_MONTHS_FA[m.month - 1] || '';
       dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else if (isH) {
-      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : HIJRI_MONTHS_EN;
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : HIJRI_MONTHS_EN;
       const monthName = hijriNames[m.month - 1] || '';
       dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else {
@@ -1643,6 +1645,7 @@ function openMarkEventSheet(m) {
     if (holidayRegionMode === 'custom' && holidayCustomCountry) return holidayCustomCountry;
     if (currentLang === 'fa') return 'IR';
     if (currentLang === 'ru') return 'RU';
+    if (currentLang === 'tr') return 'TR';
     try {
       const loc = Intl.DateTimeFormat().resolvedOptions().locale || '';
       const region = loc.split('-').find(p => p.length === 2 && p === p.toUpperCase());
@@ -2733,8 +2736,9 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   const GREG_MONTHS_STD_JA = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   const GREG_MONTHS_STD_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   const GREG_MONTHS_STD_RU = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  const GREG_MONTHS_STD_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   function getDisplayGregorianMonth(mIndex) {
-    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'ar' ? GREG_MONTHS_STD_AR[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : currentLang === 'de' ? GREG_MONTHS_STD_DE[mIndex] : currentLang === 'fr' ? GREG_MONTHS_STD_FR[mIndex] : currentLang === 'ja' ? GREG_MONTHS_STD_JA[mIndex] : currentLang === 'ru' ? GREG_MONTHS_STD_RU[mIndex] : GREG_MONTHS_STD_EN[mIndex];
+    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'ar' ? GREG_MONTHS_STD_AR[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : currentLang === 'de' ? GREG_MONTHS_STD_DE[mIndex] : currentLang === 'fr' ? GREG_MONTHS_STD_FR[mIndex] : currentLang === 'ja' ? GREG_MONTHS_STD_JA[mIndex] : currentLang === 'ru' ? GREG_MONTHS_STD_RU[mIndex] : currentLang === 'tr' ? GREG_MONTHS_STD_TR[mIndex] : GREG_MONTHS_STD_EN[mIndex];
   }
   const HIJRI_MONTHS_FA = ['محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی','رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه'];
   const HIJRI_MONTHS_AR = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
@@ -2744,6 +2748,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   const HIJRI_MONTHS_FR = ['mouharram','safar',"rabi al-awwal","rabi al-thani",'joumada al-oula','joumada al-thania','rajab',"chaabane",'ramadan','chawwal',"dhou al-qi'da",'dhou al-hijja'];
   const HIJRI_MONTHS_JA = ['ムハッラム','サファル','ラビー・ウル・アウワル','ラビー・ウッサーニー','ジュマーダ・ル・ウーラー','ジュマーダ・ッサーニヤ','ラジャブ','シャアバーン','ラマダーン','シャウワール','ズー・ル・カアダ','ズー・ル・ヒッジャ'];
   const HIJRI_MONTHS_RU = ['мухаррам','сафар','раби аль-авваль','раби ас-сани','джумада аль-авваль','джумада ас-сани','раджаб','шаабан','рамадан','шавваль','зуль-када','зуль-хиджа'];
+  const HIJRI_MONTHS_TR = ['Muharrem','Safer',"Rebîülevvel","Rebîülâhir",'Cemâziyelevvel','Cemâziyelâhir','Recep',"Şaban",'Ramazan','Şevval',"Zilkade",'Zilhicce'];
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
   const WEEKDAYS_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
@@ -2813,11 +2818,11 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         return `${namesArr[mStart - 1] || ''}–${namesArr[mEnd - 1] || ''}`;
       };
       const jalaliSpan = spanLabel(JALALI_MONTHS_FA, jFirst.jm, jLast.jm);
-      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : HIJRI_MONTHS_EN;
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : HIJRI_MONTHS_EN;
       const hijriSpan = (hFirst && hLast) ? spanLabel(hijriNames, hFirst.hm, hLast.hm) : '';
       if (uiEls.dualMonthSublabel) {
-        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'ar' ? 'جلالي' : currentLang === 'es' ? 'jalalí' : currentLang === 'de' ? 'Dschalali' : currentLang === 'fr' ? 'jalali' : currentLang === 'ja' ? 'ジャラリ暦' : currentLang === 'ru' ? 'джалали' : 'Jalali';
-        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'ar' ? 'هجري' : currentLang === 'es' ? 'hijrí' : currentLang === 'de' ? 'Hidschri' : currentLang === 'fr' ? 'hijri' : currentLang === 'ja' ? 'ヒジュラ暦' : currentLang === 'ru' ? 'хиджра' : 'Hijri';
+        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'ar' ? 'جلالي' : currentLang === 'es' ? 'jalalí' : currentLang === 'de' ? 'Dschalali' : currentLang === 'fr' ? 'jalali' : currentLang === 'ja' ? 'ジャラリ暦' : currentLang === 'ru' ? 'джалали' : currentLang === 'tr' ? 'Celalî' : 'Jalali';
+        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'ar' ? 'هجري' : currentLang === 'es' ? 'hijrí' : currentLang === 'de' ? 'Hidschri' : currentLang === 'fr' ? 'hijri' : currentLang === 'ja' ? 'ヒジュラ暦' : currentLang === 'ru' ? 'хиджра' : currentLang === 'tr' ? 'Hicrî' : 'Hijri';
         const parts = [];
         if (jalaliSpan) parts.push(`${jalaliSpan} ${shamsiLabel}`);
         if (hijriSpan) parts.push(`${hijriSpan} ${hijriLabel}`);
@@ -2871,10 +2876,11 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     const WEEKDAY_FULL_JA = ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'];
     const WEEKDAY_FULL_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     const WEEKDAY_FULL_RU = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+    const WEEKDAY_FULL_TR = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
     function dayHoverTip(gy, gm, gd) {
       const wdIdx = new Date(gy, gm - 1, gd).getDay();
       const weekdayKey = HAFT_PEYKAR_KEY[wdIdx];
-      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'ar' ? WEEKDAY_FULL_AR[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : currentLang === 'de' ? WEEKDAY_FULL_DE[wdIdx] : currentLang === 'fr' ? WEEKDAY_FULL_FR[wdIdx] : currentLang === 'ja' ? WEEKDAY_FULL_JA[wdIdx] : currentLang === 'ru' ? WEEKDAY_FULL_RU[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
+      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'ar' ? WEEKDAY_FULL_AR[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : currentLang === 'de' ? WEEKDAY_FULL_DE[wdIdx] : currentLang === 'fr' ? WEEKDAY_FULL_FR[wdIdx] : currentLang === 'ja' ? WEEKDAY_FULL_JA[wdIdx] : currentLang === 'ru' ? WEEKDAY_FULL_RU[wdIdx] : currentLang === 'tr' ? WEEKDAY_FULL_TR[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
       // Line 1 — Gregorian day/month, region-aware month name
       const monthName = getDisplayGregorianMonth(gm - 1);
       const dayStr = localizeDigits(gd);
