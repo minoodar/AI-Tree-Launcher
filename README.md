@@ -1,4 +1,4 @@
-# 🌌 AI Tree Launcher (V34.0)
+# 🌌 AI Tree Launcher (V34.33)
 
 <div align="center">
   
@@ -22,7 +22,7 @@
 <br>
 
 ### 🚀 The Ultimate Orbital Workspace
-AI Tree Launcher v34.0 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
+AI Tree Launcher v34.33 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
 
 #### 🌟 Core Features
 * **🌌 Orbital Vault:** Draggable, floating launcher with unlimited bookmarks across 4 hubs and a searchable 15-category tag grid.
@@ -31,7 +31,7 @@ AI Tree Launcher v34.0 is a pure **Vanilla JS**, zero-dependency extension that 
 * **🧠 Unified Search & AI Tools:** Combined web and bookmark search engine, comprehensive prompt library, and built-in calculator.
 * **🕊️ Global Wisdom Engine:** Daily localized poetry and insights from global spiritual traditions.
 * **🛡️ Secure & Reliable:** Chrome sync, 1-click full JSON backup/restore, auto-snapshots, and privacy-aware auto-hiding on login/fullscreen pages.
-* **🌍 8 Languages:** Fully localized in English, Persian, Arabic, Spanish, German, French, Japanese, and Russian (with RTL support).
+* **🌍 9 Languages:** Fully localized in English, Persian, Arabic, Turkish, Spanish, German, French, Japanese, and Russian (with RTL support).
 
 #### 💻 Installation (Developer Mode)
 1. Clone `minoodar/AI-Tree-Launcher` or download the ZIP.
@@ -42,6 +42,35 @@ AI Tree Launcher v34.0 is a pure **Vanilla JS**, zero-dependency extension that 
 As an independent AI developer based in war-torn Iran, maintaining and expanding this open-source project under challenging conditions relies heavily on community support. If you find this tool valuable, your contribution helps keep the code open and the project alive.
 * **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 * **Iranian Rial (IRR):** [Donate via Donito](https://donito.me/u-b8wjr)
+
+</details>
+
+<details>
+<summary><strong>🇹🇷 Türkçe (Turkish)</strong></summary>
+
+<br>
+
+### 🚀 Nihai Yörünge Çalışma Alanı
+AI Tree Launcher v34.33, tarayıcınızı yüzen bir üretkenlik ekosistemine dönüştüren, saf **Vanilla JS** ile yazılmış, bağımlılık içermeyen bir eklentidir.
+
+#### 🌟 Temel Özellikler
+* **🌌 Yörünge Kasası:** 4 merkezde sınırsız yer imi ve aranabilir 15 kategorili etiket ızgarasına sahip, sürüklenebilir, yüzen başlatıcı.
+* **🎙️ Akıllı Stüdyo ve Çevrimdışı Ses:** Mutlak gizlilik için yerel bir Whisper modeli aracılığıyla **%100 çevrimdışı sesle yazdırma** özelliğine sahip gelişmiş not defteri.
+* **📅 Zaman ve Görev Yönetimi:** Etkinlikler, resmi tatiller, yaş izleyici ve yapılacaklar listesi içeren üçlü takvim (Miladi, Celali, Hicri).
+* **🧠 Birleşik Arama ve Yapay Zeka Araçları:** Birleşik web ve yer imi arama motoru, kapsamlı komut (prompt) kütüphanesi ve dahili hesap makinesi.
+* **🕊️ Küresel Bilgelik Motoru:** Küresel manevi geleneklerden günlük şiirler ve içgörüler.
+* **🛡️ Güvenli ve Güvenilir:** Chrome senkronizasyonu, tek tıklamayla tam JSON yedekleme/geri yükleme ve giriş sayfalarında gizlilik odaklı otomatik gizleme.
+* **🌍 9 Dil:** Tamamen yerelleştirilmiş (RTL desteği ile).
+
+#### 💻 Kurulum (Geliştirici Modu)
+1. `minoodar/AI-Tree-Launcher` deposunu klonlayın veya ZIP olarak indirin.
+2. `chrome://extensions/` adresine gidin ve **Geliştirici modunu (Developer mode)** etkinleştirin.
+3. **Paketlenmemiş öğe yükle (Load unpacked)** butonuna tıklayın ve proje klasörünü seçin.
+
+#### 💖 Destek ve Katkı
+Savaşın yıktığı İran'da yaşayan bağımsız bir yapay zeka geliştiricisi olarak, bu açık kaynaklı projeyi zorlu koşullar altında sürdürmek ve genişletmek büyük ölçüde topluluk desteğine dayanıyor. Bu aracı değerli buluyorsanız, katkınız kodun açık kalmasına ve projenin yaşamasına yardımcı olur.
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **İran Riyali (IRR):** [Donito üzerinden bağış yapın](https://donito.me/u-b8wjr)
 
 </details>
 
@@ -60,7 +89,7 @@ Una extensión pura de **Vanilla JS** sin dependencias que transforma tu navegad
 * **🧠 Búsqueda Unificada y Herramientas IA:** Búsqueda combinada (web + marcadores), biblioteca de prompts y calculadora.
 * **🕊️ Motor de Sabiduría:** Poesía diaria y reflexiones de tradiciones globales.
 * **🛡️ Seguro y Fiable:** Sincronización, copias de seguridad JSON, y ocultación automática por privacidad en páginas de inicio de sesión.
-* **🌍 8 Idiomas:** Completamente localizado con soporte RTL.
+* **🌍 9 Idiomas:** Completamente localizado con soporte RTL.
 
 #### 💻 Instalación (Modo Desarrollador)
 1. Clona `minoodar/AI-Tree-Launcher` o descarga el ZIP.
@@ -89,7 +118,7 @@ Eine reine **Vanilla JS**-Erweiterung ohne Abhängigkeiten, die Ihren Browser in
 * **🧠 Einheitliche Suche & KI-Tools:** Kombinierte Web- und Lesezeichensuche, Prompt-Bibliothek und Taschenrechner.
 * **🕊️ Global Wisdom Engine:** Tägliche Poesie und Weisheiten.
 * **🛡️ Sicher & Zuverlässig:** Chrome-Sync, JSON-Backups und datenschutzfreundliches Auto-Hide.
-* **🌍 8 Sprachen:** Vollständig lokalisiert.
+* **🌍 9 Sprachen:** Vollständig lokalisiert.
 
 #### 💻 Installation (Entwicklermodus)
 1. Klone `minoodar/AI-Tree-Launcher` oder lade die ZIP herunter.
@@ -118,7 +147,7 @@ Une extension **Vanilla JS** pure, sans dépendances, qui transforme votre navig
 * **🧠 Recherche Unifiée & Outils IA :** Recherche combinée (web + favoris), bibliothèque de prompts et calculatrice.
 * **🕊️ Moteur de Sagesse :** Poésie et réflexions quotidiennes.
 * **🛡️ Sécurisé & Fiable :** Synchronisation, sauvegardes JSON, et masquage automatique pour la confidentialité.
-* **🌍 8 Langues :** Entièrement localisé.
+* **🌍 9 Langues :** Entièrement localisé.
 
 #### 💻 Installation (Mode Développeur)
 1. Clonez `minoodar/AI-Tree-Launcher` ou téléchargez le ZIP.
@@ -147,7 +176,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🧠 統合検索 & AIツール:** Web・ブックマーク統合検索、プロンプト・ライブラリ、電卓。
 * **🕊️ グローバル・ウィズダム:** 世界の詩や伝統的な知恵を毎日配信。
 * **🛡️ セキュリティ & バックアップ:** 同期、JSONバックアップ、プライバシーを配慮した自動非表示。
-* **🌍 8言語対応:** 完全ローカライズ。
+* **🌍 9言語対応:** 完全ローカライズ。
 
 #### 💻 インストール方法 (デベロッパーモード)
 1. `minoodar/AI-Tree-Launcher` をクローンするか、ZIP をダウンロードします。
@@ -176,7 +205,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🧠 Единый Поиск и ИИ-инструменты:** Объединенный поиск (веб + закладки), библиотека промптов и калькулятор.
 * **🕊️ Движок Мудрости:** Ежедневная поэзия и мудрости со всего мира.
 * **🛡️ Безопасность и Резервное копирование:** Синхронизация, JSON-бэкапы и автоматическое скрытие на страницах входа.
-* **🌍 8 Языков:** Полностью локализован (включая RTL).
+* **🌍 9 Языков:** Полностью локализован (включая RTL).
 
 #### 💻 Установка (Режим разработчика)
 1. Клонируйте `minoodar/AI-Tree-Launcher` или скачайте ZIP-архив.
@@ -206,7 +235,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🧠 بحث موحد وأدوات ذكية:** محرك بحث يدمج بين الويب والإشارات المرجعية، ومكتبة قوالب نصوص، وحاسبة مدمجة.
 * **🕊️ محرك الحكمة العالمي:** رسائل تأمل يومية وشعر من مختلف الثقافات.
 * **🛡️ الأمان والموثوقية:** مزامنة سحابية، نسخ احتياطي كامل (JSON)، وإخفاء تلقائي لحماية الخصوصية في شاشات تسجيل الدخول.
-* **🌍 8 لغات:** دعم كامل لـ 8 لغات بما فيها العربية.
+* **🌍 9 لغات:** دعم كامل لـ 9 لغات بما فيها العربية.
 
 #### 💻 طريقة التثبيت (وضع المطور)
 ١. قم باستنساخ `minoodar/AI-Tree-Launcher` أو تحميل ملف ZIP.
@@ -237,7 +266,7 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **🧠 جستجوی یکپارچه و ابزارهای AI:** موتور جستجوی تلفیقی (جستجو در وب و بوک‌مارک‌ها)، کتابخانه پرامپت‌ها و ماشین‌حساب داخلی.
 * **🕊️ موتور گنجینه جهانی:** نمایش دوزبانه اشعار و پیام‌های روزانه از ادبیات و سنت‌های معنوی جهان.
 * **🛡️ امنیت و پایداری:** همگام‌سازی ابری Chrome، بکاپ‌گیری کامل JSON با یک کلیک و پنهان‌سازی خودکار افزونه در صفحات حساس لاگین.
-* **🌍 پشتیبانی از ۸ زبان:** بومی‌سازی کامل برای ۸ زبان زنده دنیا (راست‌چین و چپ‌چین).
+* **🌍 پشتیبانی از ۹ زبان:** بومی‌سازی کامل برای ۹ زبان زنده دنیا (راست‌چین و چپ‌چین).
 
 #### 💻 آموزش نصب (Developer Mode)
 ۱. مخزن `minoodar/AI-Tree-Launcher` را کلون کرده یا فایل ZIP آن را دانلود کنید.
