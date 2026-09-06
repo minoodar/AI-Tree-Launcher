@@ -54,6 +54,30 @@
     .btn-export:hover { background: rgba(16, 185, 129, 0.22); }
     .btn-import { background: rgba(245, 158, 11, 0.12); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); }
     .btn-import:hover { background: rgba(245, 158, 11, 0.22); }
+    .btn-voidtab {
+      background: rgba(156, 163, 175, 0.08);
+      color: #E5E7EB;
+      border: 1px solid rgba(156, 163, 175, 0.45);
+      margin: 10px 16px 0;
+      width: calc(100% - 32px);
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      text-shadow: 0 0 6px rgba(203, 213, 225, 0.85), 0 0 14px rgba(156, 163, 175, 0.5);
+      box-shadow: 0 0 8px rgba(156, 163, 175, 0.25), inset 0 0 10px rgba(156, 163, 175, 0.06);
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s, color 0.25s;
+      animation: voidtabPulse 3s ease-in-out infinite;
+    }
+    .btn-voidtab:hover {
+      background: rgba(156, 163, 175, 0.18);
+      border-color: rgba(226, 232, 240, 0.8);
+      color: #F9FAFB;
+      box-shadow: 0 0 16px rgba(203, 213, 225, 0.55), 0 0 30px rgba(156, 163, 175, 0.3);
+      animation-play-state: paused;
+    }
+    @keyframes voidtabPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(156, 163, 175, 0.22), inset 0 0 10px rgba(156, 163, 175, 0.06); }
+      50%      { box-shadow: 0 0 15px rgba(156, 163, 175, 0.45), inset 0 0 10px rgba(156, 163, 175, 0.1); }
+    }
     .backup-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin: 4px 0 12px; line-height: 1.6; }
 
     .backup-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-right: 4px; }
@@ -101,6 +125,8 @@
   <div class="header">
     <h2>AI Tree Launcher</h2>
   </div>
+
+  <button id="voidTabBtn" class="btn btn-voidtab">⬛ Blank Offline Tab</button>
 
   <div class="tabs">
     <button class="tab-btn active" data-target="core" id="tab-core">⚙️ Core</button>

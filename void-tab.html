@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Void Tab</title>
+
+<!--
+  این صفحه به‌جای پس‌زمینه‌ی تخت مشکی، یک آسمانِ شبِ ملایم و متحرک (کانواس، بدون
+  هیچ درخواست شبکه‌ای) دارد. همان مجموعه اسکریپت/استایلی که content.js به‌عنوان
+  content script روی هر سایتی تزریق می‌کند، اینجا مستقیماً به‌عنوان اسکریپت خودِ
+  صفحه لود می‌شود؛ چون z-index هاب افزونه بسیار بالاتر از این کانواس است، آسمانِ
+  شب فقط پس‌زمینه می‌ماند و هیچ تداخلی با کارکرد افزونه ندارد.
+-->
+<style>
+    * { box-sizing: border-box; }
+
+    html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+    }
+
+    body {
+        position: relative;
+        font-family: system-ui, sans-serif;
+        user-select: none;
+    }
+
+    #starfield {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: #000;
+    }
+
+    /* Very subtle atmospheric glow */
+    .space-vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+            radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                rgba(0, 0, 0, 0.08) 45%,
+                rgba(0, 0, 0, 0.48) 100%
+            );
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #starfield { animation: none; }
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="starfield"></canvas>
+<div class="space-vignette"></div>
+
+<script src="void-starfield.js"></script>
+
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="toolbar-zen.css">
+<script src="i18n.js"></script>
+<script src="calendar-engine.js"></script>
+<script src="quote-engine.js"></script>
+<script src="voice-engine.js"></script>
+<script src="toolbar-icons.js"></script>
+<script src="toolbar-dock.js"></script>
+<script src="content.js"></script>
+</body>
+</html>

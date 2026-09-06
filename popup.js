@@ -18,7 +18,8 @@ const i18nPopup = {
         quotesTitle: "Daily Wisdom Quotes", religionSource: "Spiritual verse source", poetrySource: "Poetry & literature source",
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaism", religionChristianity: "✝️ Christianity", religionEastern: "☸️ Eastern (Buddhism & Hindu wisdom)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature",
-        vaultLiveSaved: "✓ Saved instantly — no need to press Save"
+        vaultLiveSaved: "✓ Saved instantly — no need to press Save",
+        btnVoidTab: "⬛ Blank Offline Tab"
       },
       fa: {
         tabCore: "⚙️ هسته", tabBackup: "🛡️ پشتیبان", tabVault: "✨ گنجینه",
@@ -37,7 +38,8 @@ const i18nPopup = {
         quotesTitle: "فرازهای الهام‌بخش روزانه", religionSource: "منبع فراز مذهبی", poetrySource: "منبع شعر و ادبیات",
         religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
         poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب",
-        vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست"
+        vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست",
+        btnVoidTab: "⬛ تب خالی آفلاین"
       },
       ar: {
         tabCore: "⚙️ النواة", tabBackup: "🛡️ النسخ الاحتياطي", tabVault: "✨ الخزنة",
@@ -56,7 +58,8 @@ const i18nPopup = {
         quotesTitle: "اقتباسات الحكمة اليومية", religionSource: "مصدر الآيات الروحانية", poetrySource: "مصدر الشعر والأدب",
         religionIslam: "☪️ الإسلام", religionJudaism: "✡️ اليهودية", religionChristianity: "✝️ المسيحية", religionEastern: "☸️ الشرق (الحكمة البوذية والهندوسية)",
         poetryRumi: "🌙 جلال الدين الرومي", poetryWestern: "🖋️ الأدب الغربي",
-        vaultLiveSaved: "✓ تم الحفظ فوراً — لا حاجة للضغط على «حفظ الإعدادات»"
+        vaultLiveSaved: "✓ تم الحفظ فوراً — لا حاجة للضغط على «حفظ الإعدادات»",
+        btnVoidTab: "⬛ علامة تبويب فارغة دون اتصال"
       },
       es: {
         tabCore: "⚙️ Principal", tabBackup: "🛡️ Respaldo", tabVault: "✨ Bóveda",
@@ -75,7 +78,8 @@ const i18nPopup = {
         quotesTitle: "Citas de sabiduría diaria", religionSource: "Fuente del versículo espiritual", poetrySource: "Fuente de poesía y literatura",
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabiduría budista e hindú)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura occidental",
-        vaultLiveSaved: "✓ Guardado al instante — no hace falta pulsar «Guardar»"
+        vaultLiveSaved: "✓ Guardado al instante — no hace falta pulsar «Guardar»",
+        btnVoidTab: "⬛ Pestaña sin conexión en blanco"
       },
       de: {
         tabCore: "⚙️ Allgemein", tabBackup: "🛡️ Sicherung", tabVault: "✨ Schatzkammer",
@@ -94,7 +98,8 @@ const i18nPopup = {
         quotesTitle: "Tägliche Weisheitszitate", religionSource: "Quelle des spirituellen Verses", poetrySource: "Quelle für Poesie & Literatur",
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judentum", religionChristianity: "✝️ Christentum", religionEastern: "☸️ Östlich (buddhistische & hinduistische Weisheit)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Westliche Literatur",
-        vaultLiveSaved: "✓ Sofort gespeichert — kein Klick auf „Speichern” nötig"
+        vaultLiveSaved: "✓ Sofort gespeichert — kein Klick auf „Speichern” nötig",
+        btnVoidTab: "⬛ Leere Offline-Registerkarte"
       },
       fr: {
         tabCore: "⚙️ Général", tabBackup: "🛡️ Sauvegarde", tabVault: "✨ Coffre",
@@ -113,7 +118,8 @@ const i18nPopup = {
         quotesTitle: "Citations de sagesse quotidiennes", religionSource: "Source du verset spirituel", poetrySource: "Source de poésie et littérature",
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaïsme", religionChristianity: "✝️ Christianisme", religionEastern: "☸️ Orientale (sagesse bouddhiste et hindoue)",
         poetryRumi: "🌙 Rûmî", poetryWestern: "🖋️ Littérature occidentale",
-        vaultLiveSaved: "✓ Enregistré instantanément — pas besoin de cliquer sur « Enregistrer »"
+        vaultLiveSaved: "✓ Enregistré instantanément — pas besoin de cliquer sur « Enregistrer »",
+        btnVoidTab: "⬛ Onglet hors ligne vierge"
       },
       ja: {
         tabCore: "⚙️ 全般", tabBackup: "🛡️ バックアップ", tabVault: "✨ ヴォールト",
@@ -132,7 +138,8 @@ const i18nPopup = {
         quotesTitle: "毎日の名言・格言", religionSource: "宗教的な一節のソース", poetrySource: "詩・文学のソース",
         religionIslam: "☪️ イスラム教", religionJudaism: "✡️ ユダヤ教", religionChristianity: "✝️ キリスト教", religionEastern: "☸️ 東洋（仏教・ヒンドゥーの知恵）",
         poetryRumi: "🌙 ルーミー", poetryWestern: "🖋️ 西洋文学",
-        vaultLiveSaved: "✓ 即座に保存されました — 「保存」を押す必要はありません"
+        vaultLiveSaved: "✓ 即座に保存されました — 「保存」を押す必要はありません",
+        btnVoidTab: "⬛ オフラインの空白タブ"
       },
       ru: {
         tabCore: "⚙️ Основное", tabBackup: "🛡️ Резервная копия", tabVault: "✨ Хранилище",
@@ -151,7 +158,28 @@ const i18nPopup = {
         quotesTitle: "Ежедневные мудрые цитаты", religionSource: "Источник духовного стиха", poetrySource: "Источник поэзии и литературы",
         religionIslam: "☪️ Ислам", religionJudaism: "✡️ Иудаизм", religionChristianity: "✝️ Христианство", religionEastern: "☸️ Восточная (буддийская и индуистская мудрость)",
         poetryRumi: "🌙 Руми", poetryWestern: "🖋️ Западная литература",
-        vaultLiveSaved: "✓ Сохранено мгновенно — нажимать «Сохранить» не нужно"
+        vaultLiveSaved: "✓ Сохранено мгновенно — нажимать «Сохранить» не нужно",
+        btnVoidTab: "⬛ Пустая офлайн-вкладка"
+      },
+      tr: {
+        tabCore: "⚙️ Genel", tabBackup: "🛡️ Yedekleme", tabVault: "✨ Hazine",
+        lblLanguage: "Uygulama Dili:", lblBirth: "Doğum Yılı (saat yaşı için):",
+        btnSave: "Ayarları Kaydet", btnExport: "📤 Yedeği Dışa Aktar (JSON)", btnImport: "📥 Yedeği İçe Aktar (Geri Yükle)",
+        toastSaved: "Ayarlar başarıyla kaydedildi!", toastExported: "JSON dosyası indirildi!", toastImported: "Veriler başarıyla içe aktarıldı!", toastRestored: "Veriler başarıyla geri yüklendi!",
+        invalidFile: "Geçersiz dosya biçimi.", errRead: "JSON dosyası okunurken hata oluştu.",
+        btnHide: "Gizle", btnShow: "Göster (Sıfırla)",
+        backupHint: "🟢 Dışa aktarma her şeyi kaydeder — yer imleri, görevler, takvim etkinlikleri ve özel günler, ayarlar, not defteri &nbsp;·&nbsp; 🟠 İçe aktarma her şeyi bir dosyadan geri yükler",
+        contactTitle: "✉︎ Bize Ulaşın", contactEmail: "E-posta:",
+        holidaysTitle: "Resmi Tatiller", holidaysEnable: "Takvimde resmi tatilleri göster",
+        holidayAuto: "Otomatik — uygulama diline göre", holidayIran: "İran (çevrimdışı, düzenlenmiş liste)", holidayCustom: "Diğer ülke (kod girin)",
+        holidayHintAuto: "Uygulama dili Farsça olduğunda İran'ı, Rusça olduğunda Rusya'yı; aksi hâlde sistem bölge ayarınızdan tahmin edilen bir ülkeyi kullanır.",
+        holidayHintIran: "Yerleşik çevrimdışı İran tatil listesini kullanır — internet bağlantısı gerekmez.",
+        holidayHintCustom: "2 harfli bir ülke kodu girin (ISO 3166-1, ör. US, DE, GB, FR). Genel bir uluslararası tatil kaynağından alınır.",
+        quotesTitle: "Günlük Bilgelik Sözleri", religionSource: "Manevi ayet kaynağı", poetrySource: "Şiir ve edebiyat kaynağı",
+        religionIslam: "☪️ İslam", religionJudaism: "✡️ Yahudilik", religionChristianity: "✝️ Hristiyanlık", religionEastern: "☸️ Doğu (Budist ve Hindu bilgeliği)",
+        poetryRumi: "🌙 Mevlana", poetryWestern: "🖋️ Batı Edebiyatı",
+        vaultLiveSaved: "✓ Anında kaydedildi — «Kaydet»e basmaya gerek yok",
+        btnVoidTab: "⬛ Boş Çevrimdışı Sekme"
       }
     };
 
@@ -170,6 +198,7 @@ const i18nPopup = {
       document.getElementById('lbl-birth').textContent = t.lblBirth;
       document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
+      if (document.getElementById('voidTabBtn')) document.getElementById('voidTabBtn').textContent = t.btnVoidTab;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
 
@@ -393,6 +422,18 @@ const i18nPopup = {
             window.close();
           }
         });
+      });
+    }
+
+    // «تب خالی آفلاین»: وقتی اینترنت نیست، یک تب مشکیِ ساده (بدون هیچ محتوای
+    // وبی) باز می‌شود که خودِ افزونه رویش کاملاً کار می‌کند — چون content.js
+    // مستقیم به‌عنوان اسکریپت همان صفحه لود می‌شود، نه به‌عنوان content script
+    // تزریق‌شده روی یک سایت واقعی.
+    const voidTabBtn = document.getElementById('voidTabBtn');
+    if (voidTabBtn) {
+      voidTabBtn.addEventListener('click', () => {
+        chrome.tabs.create({ url: chrome.runtime.getURL('void-tab.html') });
+        window.close();
       });
     }
 
