@@ -12,7 +12,9 @@
     "fr": "En vérité, mon Seigneur est avec moi ; Il me guidera.",
     "ja": "まことに、我が主は私と共にあられる。彼は私を導かれる。",
     "ru": "Поистине, со мной мой Господь; Он поведёт меня.",
-    "tr": "Şüphesiz Rabbim benimledir, O bana yol gösterecektir."
+    "tr": "Şüphesiz Rabbim benimledir, O bana yol gösterecektir.",
+    "zh-Hans": "我的主必与我同在，他将引导我。",
+    "zh-Hant": "我的主必與我同在，他將引導我。"
   },
   {
     "source": "Quran",
@@ -27,7 +29,9 @@
     "fr": "Et Il est avec vous où que vous soyez.",
     "ja": "Streamsそして彼は、あなたがたがどこにいようとも共におられる。",
     "ru": "И Он с вами, где бы вы ни были.",
-    "tr": "Nerede olursanız olun O sizinle beraberdir."
+    "tr": "Nerede olursanız olun O sizinle beraberdir.",
+    "zh-Hans": "无论你们在哪里，他都与你们同在。",
+    "zh-Hant": "無論你們在哪裡，他都與你們同在。"
   },
   {
     "source": "Quran",
@@ -42,7 +46,9 @@
     "fr": "Et Nous sommes plus proches de lui que sa veine jugulaire.",
     "ja": "われらは彼の頸動脈よりも彼に近い。",
     "ru": "И Мы ближе к нему, чем яремная вена [его].",
-    "tr": "Biz ona şah damarından daha yakınız."
+    "tr": "Biz ona şah damarından daha yakınız.",
+    "zh-Hans": "我比他的命脉还要接近他。",
+    "zh-Hant": "我比他的命脈還要接近他。"
   },
   {
     "source": "Quran",
@@ -57,7 +63,9 @@
     "fr": "Mais Allah est le meilleur gardien.",
     "ja": "だが、アッラーこそ最良の守護者であられる。",
     "ru": "Но Аллах — Лучший из хранителей.",
-    "tr": "Allah en hayırlı koruyucudur."
+    "tr": "Allah en hayırlı koruyucudur.",
+    "zh-Hans": "真主是最好的保护者。",
+    "zh-Hant": "真主是最好的保護者。"
   },
   {
     "source": "Quran",
@@ -72,7 +80,9 @@
     "fr": "Allah nous suffit ; Il est le meilleur garant.",
     "ja": "アッラーこそわれらに十分な御方、最善の管理者であられる。",
     "ru": "Довольно нам Аллаха, и как прекрасен Он — Попечитель!",
-    "tr": "Allah bize yeter, O ne güzel vekildir."
+    "tr": "Allah bize yeter, O ne güzel vekildir.",
+    "zh-Hans": "真主使我们心满意足，他是最好的监护者。",
+    "zh-Hant": "真主使我們心滿意足，他是最好的監護者。"
   },
   {
     "source": "Quran",
@@ -87,7 +97,9 @@
     "fr": "En vérité, c'est par le rappel d'Allah que les cœurs se tranquillisent.",
     "ja": "実に、アッラーを唱念することによって、心は安らぐ。",
     "ru": "Разве не поминанием Аллаха успокаиваются сердца?",
-    "tr": "Bilesiniz ki kalpler ancak Allah'ı anmakla huzur bulur."
+    "tr": "Bilesiniz ki kalpler ancak Allah'ı anmakla huzur bulur.",
+    "zh-Hans": "真的，惟有记念真主，才能使内心安宁。",
+    "zh-Hant": "真的，惟有記念真主，才能使內心安寧。"
   },
   {
     "source": "Quran",
@@ -102,7 +114,9 @@
     "fr": "En vérité, après la difficulté vient la facilité.",
     "ja": "まことに、困難とともに安易がある。",
     "ru": "Ведь вместе с тягостью — облегчение.",
-    "tr": "Demek ki zorlukla beraber bir kolaylık vardır."
+    "tr": "Demek ki zorlukla beraber bir kolaylık vardır.",
+    "zh-Hans": "因为，与艰难同在的，确有容易。",
+    "zh-Hant": "因為，與艱難同在的，確有容易。"
   },
   {
     "source": "Quran",
@@ -117,7 +131,9 @@
     "fr": "Certes, avec la difficulté vient la facilité.",
     "ja": "本当に、困難とともに安易がある。",
     "ru": "Поистине, вместе с тягостью — облегчение.",
-    "tr": "Evet, zorlukla beraber bir kolaylık vardır."
+    "tr": "Evet, zorlukla beraber bir kolaylık vardır.",
+    "zh-Hans": "真的，与艰难同在的，确有容易。",
+    "zh-Hant": "真的，與艱難同在的，確有容易。"
   },
   {
     "source": "Quran",
@@ -132,7 +148,9 @@
     "fr": "En vérité, Allah est avec les patients.",
     "ja": "まことに、アッラーは忍耐強い者と共におられる。",
     "ru": "Поистине, Аллах — с терпеливыми.",
-    "tr": "Şüphesiz Allah sabredenlerle beraberdir."
+    "tr": "Şüphesiz Allah sabredenlerle beraberdir.",
+    "zh-Hans": "真主确是与坚忍者同在的。",
+    "zh-Hant": "真主確是與堅忍者同在的。"
   },
   {
     "source": "Quran",
@@ -147,7 +165,9 @@
     "fr": "Nulle crainte pour eux, et ils ne seront point affligés.",
     "ja": "彼らに恐れはなく、また彼らは悲しむこともない。",
     "ru": "Не будет над ними страха, и не будут они опечалены.",
-    "tr": "Onlar için ne bir korku vardır, ne de üzüleceklerdir."
+    "tr": "Onlar için ne bir korku vardır, ne de üzüleceklerdir.",
+    "zh-Hans": "他们将没有恐惧，也不忧愁。",
+    "zh-Hant": "他們將沒有恐懼，也不憂愁。"
   },
   {
     "source": "Quran",
@@ -162,7 +182,9 @@
     "fr": "Ne désespérez pas de la miséricorde d'Allah.",
     "ja": "アッラーの慈悲に絶望してはならない。",
     "ru": "Не отчаивайтесь в милости Аллаха.",
-    "tr": "Allah'ın rahmetinden ümidinizi kesmeyin."
+    "tr": "Allah'ın rahmetinden ümidinizi kesmeyin.",
+    "zh-Hans": "你们不要对真主的慈恩绝望。",
+    "zh-Hant": "你們不要對真主的慈恩絕望。"
   },
   {
     "source": "Quran",
@@ -177,7 +199,9 @@
     "fr": "Mais Ma miséricorde embrasse toute chose.",
     "ja": "だが、我が慈悲は全てのものを包み込む。",
     "ru": "Но милость Моя объемлет всякую вещь.",
-    "tr": "Rahmetim ise her şeyi kuşatmıştır."
+    "tr": "Rahmetim ise her şeyi kuşatmıştır.",
+    "zh-Hans": "我的慈恩涵盖万物。",
+    "zh-Hant": "我的慈恩涵蓋萬物。"
   },
   {
     "source": "Quran",
@@ -192,7 +216,9 @@
     "fr": "En vérité, mon Seigneur est Miséricordieux et plein d'Amour.",
     "ja": "まことに、我が主は慈悲深く、愛に満ちておられる。",
     "ru": "Поистине, мой Господь Милосерден и Любящ.",
-    "tr": "Şüphesiz Rabbim çok merhametlidir, çok sevendir."
+    "tr": "Şüphesiz Rabbim çok merhametlidir, çok sevendir.",
+    "zh-Hans": "我的主确是至仁至爱的。",
+    "zh-Hant": "我的主確是至仁至愛的。"
   },
   {
     "source": "Quran",
@@ -207,7 +233,9 @@
     "fr": "En vérité, c'est Lui qui accueille le repentir, le Miséricordieux.",
     "ja": "まことに、彼こそは悔悟を受け入れる御方、慈悲深き御方であられる。",
     "ru": "Поистине, именно Он — Принимающий покаяние, Милосердный.",
-    "tr": "Şüphesiz O, tövbeleri çok kabul edendir, çok merhamet edendir."
+    "tr": "Şüphesiz O, tövbeleri çok kabul edendir, çok merhamet edendir.",
+    "zh-Hans": "他确是至宥恕的、至慈爱的。",
+    "zh-Hant": "他確是至宥恕的、至慈愛的。"
   },
   {
     "source": "Quran",
@@ -222,7 +250,9 @@
     "fr": "En vérité, Allah est Pardonneur et Miséricordieux.",
     "ja": "まことに、アッラーは寛容にして慈悲深き御方であられる。",
     "ru": "Поистине, Аллах — Прощающий, Милосердный.",
-    "tr": "Şüphesiz Allah çok bağışlayandır, çok merhamet edendir."
+    "tr": "Şüphesiz Allah çok bağışlayandır, çok merhamet edendir.",
+    "zh-Hans": "真主确是至赦宥的、至慈爱的。",
+    "zh-Hant": "真主確是至赦宥的、至慈愛的。"
   },
   {
     "source": "Quran",
@@ -237,7 +267,9 @@
     "fr": "En vérité, c'est Allah qui est le Pourvoyeur.",
     "ja": "まことに、アッラーこそは絶えざる糧を与える御方であられる。",
     "ru": "Поистине, Аллах — Дарующий удел.",
-    "tr": "Şüphesiz rızık veren ancak Allah'tır."
+    "tr": "Şüphesiz rızık veren ancak Allah'tır.",
+    "zh-Hans": "真主确是供给一切的给养者。",
+    "zh-Hant": "真主確是供給一切的給養者。"
   },
   {
     "source": "Quran",
@@ -252,7 +284,9 @@
     "fr": "Et en vérité, Allah est le meilleur des pourvoyeurs.",
     "ja": "그리고、アッラーこそ最善の糧を与える御方であられる。",
     "ru": "И поистине, Аллах — Лучший из дарующих удел.",
-    "tr": "Allah rızık verenlerin en hayırlısıdır."
+    "tr": "Allah rızık verenlerin en hayırlısıdır.",
+    "zh-Hans": "真主是最好的给养者。",
+    "zh-Hant": "真主是最好的給養者。"
   },
   {
     "source": "Quran",
@@ -267,7 +301,9 @@
     "fr": "Et Il le pourvoira par où il ne s'attend pas.",
     "ja": "そして彼が予期しない所から、糧を与えられる。",
     "ru": "И наделит его уделом оттуда, откуда он и не предполагает.",
-    "tr": "Ve onu beklemediği yerden rızıklandırır."
+    "tr": "Ve onu beklemediği yerden rızıklandırır.",
+    "zh-Hans": "他将从他意想不到的地方赐予他给养。",
+    "zh-Hant": "他將從他意想不到的地方賜予他給養。"
   },
   {
     "source": "Quran",
@@ -282,7 +318,9 @@
     "fr": "Et tout bienfait que vous avez vient d'Allah.",
     "ja": "あなたがたが受けているあらゆる恩恵は、アッラーからのものである。",
     "ru": "И какая бы милость ни была у вас — она от Аллаха.",
-    "tr": "Size ulaşan her nimet Allah'tandır."
+    "tr": "Size ulaşan her nimet Allah'tandır.",
+    "zh-Hans": "你们所享的恩惠，无一不是从真主降下的。",
+    "zh-Hant": "你們所享的恩惠，無一不是從真主降下的。"
   },
   {
     "source": "Quran",
@@ -297,7 +335,9 @@
     "fr": "Et Allah détient une grâce immense.",
     "ja": "アッラーは大いなる恩寵の主であられる。",
     "ru": "И Аллах обладает великой милостью.",
-    "tr": "Allah büyük lütuf sahibidir."
+    "tr": "Allah büyük lütuf sahibidir.",
+    "zh-Hans": "真主是有大恩惠的。",
+    "zh-Hant": "真主是有大恩惠的。"
   },
   {
     "source": "Quran",
@@ -312,7 +352,9 @@
     "fr": "Et quiconque place sa confiance en Allah, Il lui suffit.",
     "ja": "アッラーに信頼する者には、彼だけで十分である。",
     "ru": "А кто уповает на Аллаха — Он достаточен для него.",
-    "tr": "Kim Allah'a tevekkül ederse, O kendisine yeter."
+    "tr": "Kim Allah'a tevekkül ederse, O kendisine yeter.",
+    "zh-Hans": "凡信托真主的人，真主必使他满足。",
+    "zh-Hant": "凡信託真主的人，真主必使他滿足。"
   },
   {
     "source": "Quran",
@@ -327,7 +369,9 @@
     "fr": "Et que les croyants placent leur confiance en Allah.",
     "ja": "信者たちはアッラーにのみ信頼を置け。",
     "ru": "И пусть верующие уповают только на Аллаха.",
-    "tr": "Müminler yalnızca Allah'a tevekkül etsinler."
+    "tr": "Müminler yalnızca Allah'a tevekkül etsinler.",
+    "zh-Hans": "信士们只应信托真主。",
+    "zh-Hant": "信士們只應信託真主。"
   },
   {
     "source": "Quran",
@@ -342,7 +386,9 @@
     "fr": "En vérité, Allah aime ceux qui placent leur confiance en Lui.",
     "ja": "まことに、アッラーは信頼する者を愛される。",
     "ru": "Поистине, Аллах любит уповающих на Него.",
-    "tr": "Şüphesiz Allah, kendisine tevekkül edenleri sever."
+    "tr": "Şüphesiz Allah, kendisine tevekkül edenleri sever.",
+    "zh-Hans": "真主确是喜爱信托者的。",
+    "zh-Hant": "真主確是喜愛信託者的。"
   },
   {
     "source": "Quran",
@@ -357,7 +403,9 @@
     "fr": "Et c'est vers Allah que toutes les affaires retournent.",
     "ja": "そして全ての事はアッラーの御許に帰される。",
     "ru": "И к Аллаху возвращаются все дела.",
-    "tr": "Bütün işler ancak Allah'a döndürülür."
+    "tr": "Bütün işler ancak Allah'a döndürülür.",
+    "zh-Hans": "万事都要归依真主。",
+    "zh-Hant": "萬事都要歸依真主。"
   },
   {
     "source": "Quran",
@@ -372,7 +420,9 @@
     "fr": "Et vers Allah est la destination finale.",
     "ja": "そしてアッラーこそは最後の帰り所である。",
     "ru": "И к Аллаху предстоит [конечное] возвращение.",
-    "tr": "Dönüş ancak Allah'adır."
+    "tr": "Dönüş ancak Allah'adır.",
+    "zh-Hans": "万物的归宿都是真主。",
+    "zh-Hant": "萬物的歸宿都是真主。"
   },
   {
     "source": "Quran",
@@ -387,7 +437,9 @@
     "fr": "Allah est la Lumière des cieux et de la terre.",
     "ja": "アッラーは天と地の光であられる。",
     "ru": "Аллах — Свет небес и земли.",
-    "tr": "Allah, göklerin ve yerin nurudur."
+    "tr": "Allah, göklerin ve yerin nurudur.",
+    "zh-Hans": "真主是天地的光明。",
+    "zh-Hant": "真主是天地的光明。"
   },
   {
     "source": "Quran",
@@ -402,7 +454,9 @@
     "fr": "Et Allah guide qui Il veut.",
     "ja": "アッラーは御望みの者を導かれる。",
     "ru": "И Аллах ведёт прямым путём того, кого пожелает.",
-    "tr": "Allah dilediğini doğru yola iletir."
+    "tr": "Allah dilediğini doğru yola iletir.",
+    "zh-Hans": "真主引导他所意欲的人。",
+    "zh-Hant": "真主引導他所意欲的人。"
   },
   {
     "source": "Quran",
@@ -417,7 +471,9 @@
     "fr": "En vérité, mon Seigneur est proche et exauce [les prières].",
     "ja": "まことに、我が主は近くにあられ、応えてくださる御方である。",
     "ru": "Поистине, мой Господь близок и отвечает на мольбы.",
-    "tr": "Şüphesiz Rabbim yakındır, duaları kabul edendir."
+    "tr": "Şüphesiz Rabbim yakındır, duaları kabul edendir.",
+    "zh-Hans": "我的主确是临近的，确是有求必应的。",
+    "zh-Hant": "我的主確是臨近的，確是有求必應的。"
   },
   {
     "source": "Quran",
@@ -432,7 +488,9 @@
     "fr": "Mon Seigneur, accrois mon savoir.",
     "ja": "我が主よ、私の知識を増し加えてください。",
     "ru": "Господи, приумножь мои знания!",
-    "tr": "Rabbim, benim ilmimi artır."
+    "tr": "Rabbim, benim ilmimi artır.",
+    "zh-Hans": "我的主啊！求你增加我的知识。",
+    "zh-Hant": "我的主啊！求你增加我的知識。"
   },
   {
     "source": "Quran",
@@ -447,7 +505,9 @@
     "fr": "Et dis : « Mon Seigneur, fais-leur miséricorde. »",
     "ja": "そして言え。『我が主よ、彼ら二人に慈悲をお与えください』と。",
     "ru": "И скажи: «Господи, помилуй их обоих!»",
-    "tr": "De ki: «Rabbim! Onlara merhamet et.»"
+    "tr": "De ki: «Rabbim! Onlara merhamet et.»",
+    "zh-Hans": "我的主啊！求你怜悯他俩。",
+    "zh-Hant": "我的主啊！求你憐憫他倆。"
   },
   {
     "source": "Quran",
@@ -462,7 +522,9 @@
     "fr": "Et Il est le plus Miséricordieux des miséricordieux.",
     "ja": "彼は慈悲深き者の中で最も慈悲深き御方であられる。",
     "ru": "И Он — милосерднейший из милосердных.",
-    "tr": "O, merhametlilerin en merhametlisidir."
+    "tr": "O, merhametlilerin en merhametlisidir.",
+    "zh-Hans": "他是最仁慈的主宰。",
+    "zh-Hant": "他是最仁慈的主宰。"
   },
   {
     "source": "Quran",
@@ -477,7 +539,9 @@
     "fr": "En vérité, Allah est Omnipotent sur toute chose.",
     "ja": "まことに、アッラーは全てのことに全能であられる。",
     "ru": "Поистине, Аллах способен на всякую вещь.",
-    "tr": "Şüphesiz Allah'ın her şeye gücü yeter."
+    "tr": "Şüphesiz Allah'ın her şeye gücü yeter.",
+    "zh-Hans": "真主对于万事，确是全能的。",
+    "zh-Hant": "真主對於萬事，確是全能的。"
   },
   {
     "source": "Quran",
@@ -492,7 +556,9 @@
     "fr": "Et Allah est Omniscient de toute chose.",
     "ja": "アッラーは全てのことを知っておられる。",
     "ru": "И Аллах знает обо всякой вещи.",
-    "tr": "Şüphesiz Allah her şeyi hakkıyla bilendir."
+    "tr": "Şüphesiz Allah her şeyi hakkıyla bilendir.",
+    "zh-Hans": "真主对于万事，确是全知的。",
+    "zh-Hant": "真主對於萬事，確是全知的。"
   },
   {
     "source": "Quran",
@@ -507,7 +573,9 @@
     "fr": "En vérité, Allah est Doux et Parfaitement Informé.",
     "ja": "まことに、アッラーは深く精通し、知悉しておられる。",
     "ru": "Поистине, Аллах Проницателен, Сведущ.",
-    "tr": "Şüphesiz Allah en ince işleri bilir, her şeyden haberdardır."
+    "tr": "Şüphesiz Allah en ince işleri bilir, her şeyden haberdardır.",
+    "zh-Hans": "真主确是至仁的、至知的。",
+    "zh-Hant": "真主確是至仁的、至知的。"
   },
   {
     "source": "Quran",
@@ -522,7 +590,9 @@
     "fr": "En vérité, Allah est Puissant et Sage.",
     "ja": "まことに、アッラーは偉力ならびなく、英知に満ちた御方であられる。",
     "ru": "Поистине, Аллах — Могущественный, Мудрый.",
-    "tr": "Şüphesiz Allah mutlak güç sahibidir, hüküm ve hikmet sahibidir."
+    "tr": "Şüphesiz Allah mutlak güç sahibidir, hüküm ve hikmet sahibidir.",
+    "zh-Hans": "真主确是万能的、至睿智的。",
+    "zh-Hant": "真主確是萬能的、至睿智的。"
   },
   {
     "source": "Quran",
@@ -537,7 +607,9 @@
     "fr": "Louange à Allah, Seigneur des mondes.",
     "ja": "凡ての称賛は、諸世界の主、アッラーに属する。",
     "ru": "Хвала Аллаху, Господу миров.",
-    "tr": "Hamd, alemlerin Rabbi olan Allah'a mahsustur."
+    "tr": "Hamd, alemlerin Rabbi olan Allah'a mahsustur.",
+    "zh-Hans": "一切赞颂，全归真主，全世界的主。",
+    "zh-Hant": "一切讚頌，全歸真主，全世界的主。"
   },
   {
     "source": "Quran",
@@ -552,7 +624,9 @@
     "fr": "C'est Toi [Seul] que nous adorons, et c'est Toi [Seul] dont nous implorons secours.",
     "ja": "私たちはあなたにのみ仕え、あなたにのみ助けを求める。",
     "ru": "Тебе одному мы поклоняемся и Тебя одного молим о помощи.",
-    "tr": "Yalnız sana kulluk eder ve yalnız senden yardım dileriz."
+    "tr": "Yalnız sana kulluk eder ve yalnız senden yardım dileriz.",
+    "zh-Hans": "我们只崇拜你，只求你佑助。",
+    "zh-Hant": "我們只崇拜你，只求你佑助。"
   },
   {
     "source": "Quran",
@@ -567,7 +641,9 @@
     "fr": "Guide-nous dans le droit chemin.",
     "ja": "私たちを正しい道へと導いてください。",
     "ru": "Веди нас прямым путём.",
-    "tr": "Bizi doğru yola ilet."
+    "tr": "Bizi doğru yola ilet.",
+    "zh-Hans": "求你引导我们上正路。",
+    "zh-Hant": "求你引導我們上正路。"
   },
   {
     "source": "Quran",
@@ -582,7 +658,9 @@
     "fr": "En vérité, nous appartenons à Allah et c'est à Lui que nous retournerons.",
     "ja": "まことに、私たちはアッラーのものであり、彼の御許に帰るのである。",
     "ru": "Поистине, мы принадлежим Аллаху, и, поистине, к Нему мы вернёмся.",
-    "tr": "Biz şüphesiz Allah'a aitiz ve sonunda O'na döneceğiz."
+    "tr": "Biz şüphesiz Allah'a aitiz ve sonunda O'na döneceğiz.",
+    "zh-Hans": "我们确是真主所有的，我们确是要归依他的。",
+    "zh-Hant": "我們確是真主所有的，我們確是要歸依他的。"
   },
   {
     "source": "Quran",
@@ -597,6 +675,8 @@
     "fr": "Souvenez-vous donc de Moi, Je Me souviendrai de vous.",
     "ja": "だから我を唱念せよ、さすれば我はあなたがたを心に留めよう。",
     "ru": "Так поминайте же Меня — и Я буду помнить о вас.",
-    "tr": "Öyleyse beni anın ki ben de sizi anayım."
+    "tr": "Öyleyse beni anın ki ben de sizi anayım.",
+    "zh-Hans": "你们要记念我，我就记念你们。",
+    "zh-Hant": "你們要記念我，我就記念你們。"
   }
 ]

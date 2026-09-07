@@ -12,7 +12,9 @@
     "fr": "Dieu dit : Que la lumière soit ! Et la lumière fut.",
     "ja": "神は「光あれ」と言われた。すると光があった。",
     "ru": "И сказал Бог: да будет свет. И стал свет.",
-    "tr": "Ve Tanrı, «Işık olsun» diye buyurdu ve ışık oldu."
+    "tr": "Ve Tanrı, «Işık olsun» diye buyurdu ve ışık oldu.",
+    "zh-Hans": "神说：要有光，就有了光。",
+    "zh-Hant": "神說：要有光，就有了光。"
   },
   {
     "source": "Leviticus",
@@ -27,7 +29,9 @@
     "fr": "Tu aimeras ton prochain comme toi-même.",
     "ja": "自分自身のようにあなたの隣人を愛しなさい。",
     "ru": "Люби ближнего твоего, как самого себя.",
-    "tr": "Komşunu kendin gibi seveceksin."
+    "tr": "Komşunu kendin gibi seveceksin.",
+    "zh-Hans": "要爱人如己。",
+    "zh-Hant": "要愛人如己。"
   },
   {
     "source": "Deuteronomy",
@@ -42,7 +46,9 @@
     "fr": "Écoute, Israël, l'Éternel est notre Dieu, l'Éternel est un.",
     "ja": "聞け、イスラエルよ。我らの神、主は唯一の主である。",
     "ru": "Слушай, Израиль: Господь, Бог наш, Господь един есть.",
-    "tr": "Dinle, ey İsrail! Tanrımız RAB tek RAB'dir."
+    "tr": "Dinle, ey İsrail! Tanrımız RAB tek RAB'dir.",
+    "zh-Hans": "以色列啊，你要听！耶和华我们神是独一的主。",
+    "zh-Hant": "以色列啊，你要聽！耶和華我們神是獨一的主。"
   },
   {
     "source": "Psalm",
@@ -57,7 +63,9 @@
     "fr": "L'Éternel est mon berger : je ne manquerai de rien.",
     "ja": "主は私の羊飼い。私には乏しいことがない。",
     "ru": "Господь — Пастырь мой; я ни в чем не буду нуждаться.",
-    "tr": "RAB çobanımdır, hiçbir eksiğim olmaz."
+    "tr": "RAB çobanımdır, hiçbir eksiğim olmaz.",
+    "zh-Hans": "耶和华是我的牧者，我必不致缺乏。",
+    "zh-Hant": "耶和華是我的牧者，我必不致缺乏。"
   },
   {
     "source": "Proverbs",
@@ -72,7 +80,9 @@
     "fr": "Confie-toi en l'Éternel de tout ton cœur, et ne t'appuie pas sur ta sagesse.",
     "ja": "心を尽くして主に信頼し、自分の明哲に頼ってはならない。",
     "ru": "Надейся на Господа всем сердцем твоим, и не полагайся на разум твой.",
-    "tr": "Bütün yüreğinle RAB'be güven, kendi anlayışına dayanma."
+    "tr": "Bütün yüreğinle RAB'be güven, kendi anlayışına dayanma.",
+    "zh-Hans": "你要专心仰赖耶和华，不可倚靠自己的聪明。",
+    "zh-Hant": "你要專心仰賴耶和華，不可倚靠自己的聰明。"
   },
   {
     "source": "Micah",
@@ -87,7 +97,9 @@
     "fr": "Et ce que l'Éternel demande de toi, c'est que tu pratiques la justice, que tu aimes la miséricorde, et que tu marches humblement avec ton Dieu.",
     "ja": "主があなたに求めておられることは何か。ただ公義を行い、いつくしみを愛し、へりくだってあなたの神と共に歩むことではないか。",
     "ru": "И чего требует от тебя Господь: действовать справедливо, любить дела милосердия и смиренномудренно ходить пред Богом твоим.",
-    "tr": "RAB'bin senden istediği adil davranmandan, merhameti sevmenden ve Tanrın'la alçakgönüllülükle yürümenden başka nedir ki?"
+    "tr": "RAB'bin senden istediği adil davranmandan, merhameti sevmenden ve Tanrın'la alçakgönüllülükle yürümenden başka nedir ki?",
+    "zh-Hans": "世人哪，耶和华已指示你何为善。他向你所要的是什么呢？只要你行公义，好怜悯，存谦卑的心，与你的神同行。",
+    "zh-Hant": "世人哪，耶和華已指示你何為善。他向你所要的是什麼呢？只要你行公義，好憐憫，存謙卑的心，與你的神同行。"
   },
   {
     "source": "Ecclesiastes",
@@ -102,7 +114,9 @@
     "fr": "Il y a un temps pour tout, un temps pour toute chose sous les cieux :",
     "ja": "天の下のすべての事には季節があり、すべての目的には時がある。",
     "ru": "Всему свое время, и время всякой вещи под небом:",
-    "tr": "Her şeyin bir zamanı var, göklerin altındaki her olayın bir vakti vardır:"
+    "tr": "Her şeyin bir zamanı var, göklerin altındaki her olayın bir vakti vardır:",
+    "zh-Hans": "凡事都有定期，天下万务都有定时。",
+    "zh-Hant": "凡事都有定期，天下萬務都有定時。"
   },
   {
     "source": "Isaiah",
@@ -117,7 +131,9 @@
     "fr": "Mais ceux qui se confient en l'Éternel renouvellent leur force. Ils prennent le vol comme les aigles.",
     "ja": "しかし、主を待ち望む者は新たなる力を得、わしのように翼をはってのぼることができる。",
     "ru": "А надеющиеся на Господа обновятся в силе: поднимут крылья, как орлы.",
-    "tr": "Ama RAB'be umut bağlayanlar güçlerini tazeler, kartallar gibi kanat çırpıp yükselirler."
+    "tr": "Ama RAB'be umut bağlayanlar güçlerini tazeler, kartallar gibi kanat çırpıp yükselirler.",
+    "zh-Hans": "但那等候耶和华的，必重新得力，他们必如鹰展翅上腾。",
+    "zh-Hant": "但那等候耶和華的，必重新得力，他們必如鷹展翅上騰。"
   },
   {
     "source": "Psalm",
@@ -132,7 +148,9 @@
     "fr": "Ta parole est une lampe à mes pieds, et une lumière sur mon sentier.",
     "ja": "み言葉はわが足のともしび、わが道の光です。",
     "ru": "Слово Твое — светильник ноге моей и свет стезе моей.",
-    "tr": "Sözün adımlarım için çıra, yolum için ışıktır."
+    "tr": "Sözün adımlarım için çıra, yolum için ışıktır.",
+    "zh-Hans": "你的话是我脚前的灯，是我路上的光。",
+    "zh-Hant": "你的話是我腳前的燈，是我路上的光。"
   },
   {
     "source": "Proverbs",
@@ -147,7 +165,9 @@
     "fr": "La crainte de l'Éternel est le commencement de la science.",
     "ja": "主を恐れることは知識のはじめである。",
     "ru": "Начало мудрости — страх Господень.",
-    "tr": "RAB korkusu bilginin başlangıcıdır."
+    "tr": "RAB korkusu bilginin başlangıcıdır.",
+    "zh-Hans": "敬畏耶和华是知识的开端。",
+    "zh-Hant": "敬畏耶和華是知識的開端。"
   },
   {
     "source": "Zohar",
@@ -162,7 +182,9 @@
     "fr": "Lorsque le Roi conçut l'ordonnance, il grava des gravures dans l'éclat d'en haut.",
     "ja": "王が創造を意図したとき、いと高き光の中に刻印を刻んだ。",
     "ru": "Когда Царь замыслил сотворить, Он высек гравюры в сиянии на высоте.",
-    "tr": "Kral düzenlemeyi murat ettiğinde, yücelerdeki parıltının içine oymalar oydu."
+    "tr": "Kral düzenlemeyi murat ettiğinde, yücelerdeki parıltının içine oymalar oydu.",
+    "zh-Hans": "当君王构思创造之时，他在高处的光辉中刻下了印记。",
+    "zh-Hant": "當君王構思創造之時，他在高處的光輝中刻下了印記。"
   },
   {
     "source": "Zohar",
@@ -177,7 +199,9 @@
     "fr": "Il n'y a de lumière que celle qui jaillit des ténèbres.",
     "ja": "闇から発する光以外の光はない。",
     "ru": "Нет света, кроме того, который исходит из тьмы.",
-    "tr": "Karanlıktan doğan ışık dışında hiçbir ışık yoktur."
+    "tr": "Karanlıktan doğan ışık dışında hiçbir ışık yoktur.",
+    "zh-Hans": "没有光，除非它是从黑暗中生出的。",
+    "zh-Hant": "沒有光，除非它是從黑暗中生出的。"
   },
   {
     "source": "Zohar",
@@ -192,7 +216,9 @@
     "fr": "L'âme et le corps sont unis comme le feu et une bougie.",
     "ja": "魂と肉体は、火とろうそくのように結びついている。",
     "ru": "Душа и тело соединены, как огонь и свеча.",
-    "tr": "Ruh ile beden, ateş ile mum gibi birleşmiştir."
+    "tr": "Ruh ile beden, ateş ile mum gibi birleşmiştir.",
+    "zh-Hans": "灵魂与身体的结合，如同火焰与烛芯。",
+    "zh-Hant": "靈魂與身體的結合，如同火焰與燭芯。"
   },
   {
     "source": "Zohar",
@@ -207,7 +233,9 @@
     "fr": "Malheur à l'homme qui dit que la Torah est venue pour raconter de simples histoires et des affaires mondaines.",
     "ja": "トーラーが単なる物語や世俗的な事柄を語るために来たと口にする者には災いあれ。",
     "ru": "Горе тому человеку, который говорит, что Тора пришла только для того, чтобы рассказывать истории и мирские дела.",
-    "tr": "Tevrat'ın sadece sıradan hikayeler ve dünyevi meseleler anlatmak için geldiğini söyleyen insanın vay haline!"
+    "tr": "Tevrat'ın sadece sıradan hikayeler ve dünyevi meseleler anlatmak için geldiğini söyleyen insanın vay haline!",
+    "zh-Hans": "祸哉那说妥拉只是在讲述平凡故事的人。",
+    "zh-Hant": "禍哉那說妥拉只是在講述平凡故事的人。"
   },
   {
     "source": "Zohar",
@@ -222,7 +250,9 @@
     "fr": "Tout comme la rose a treize pétales, l'assemblée d'Israël possède treize attributs de miséricorde.",
     "ja": "バラに13の花びらがあるように、イスラエルの会衆にも13の慈悲の属性がある。",
     "ru": "Как у розы тринадцать лепестков, так и у собрания Израиля тринадцать атрибутов милосердия.",
-    "tr": "Gülün on üç taç yaprağı olduğu gibi, İsrail topluluğunun da on üç merhamet niteliği vardır."
+    "tr": "Gülün on üç taç yaprağı olduğu gibi, İsrail topluluğunun da on üç merhamet niteliği vardır.",
+    "zh-Hans": "正如玫瑰有十三片花瓣，以色列的会众也拥有十三种慈悲的属性。",
+    "zh-Hant": "正如玫瑰有十三片花瓣，以色列的會眾也擁有十三種慈悲的屬性。"
   },
   {
     "source": "Zohar",
@@ -237,7 +267,9 @@
     "fr": "Tout est lié à tout le reste, jusqu'au maillon le plus bas de la chaîne.",
     "ja": "鎖の最も低い輪に至るまで、すべてのものは他のすべてのものと結びついている。",
     "ru": "Всё связано со всем остальным, вплоть до самого нижнего звена в цепи.",
-    "tr": "Zincirin en alt halkasına kadar her şey diğer her şeyle bağlantılıdır."
+    "tr": "Zincirin en alt halkasına kadar her şey diğer her şeyle bağlantılıdır.",
+    "zh-Hans": "万物彼此相连，直到链条最低的一环。",
+    "zh-Hant": "萬物彼此相連，直到鏈條最低的一環。"
   },
   {
     "source": "Zohar",
@@ -252,7 +284,9 @@
     "fr": "Le Saint, béni soit-Il, la Torah et Israël sont tous un.",
     "ja": "聖なる者、ほむべきかな、トーラー、アンドイスラエルはすべて一つである。",
     "ru": "Святой, благословен Он, Тора и Израиль — все едины.",
-    "tr": "Kutsal Olan -Mübarektir O-, Tevrat ve İsrail hepsi birdir."
+    "tr": "Kutsal Olan -Mübarektir O-, Tevrat ve İsrail hepsi birdir.",
+    "zh-Hans": "至圣者、妥拉与以色列本为一体。",
+    "zh-Hant": "至聖者、妥拉與以色列本為一體。"
   },
   {
     "source": "Zohar",
@@ -267,7 +301,9 @@
     "fr": "Dieu est caché et révélé. Il est caché à tous les yeux, et pourtant révélé en toutes choses.",
     "ja": "神は隠されており、現されている。神はすべての目から隠されているが、すべてのものの中に現されている。",
     "ru": "Бог скрыт и проявлен. Он скрыт от всех глаз, но проявлен во всех вещах.",
-    "tr": "Tanrı gizlidir ve tezahür etmiştir. O, tüm gözlerden gizlenmiştir ama her şeyde tezahür eder."
+    "tr": "Tanrı gizlidir ve tezahür etmiştir. O, tüm gözlerden gizlenmiştir ama her şeyde tezahür eder.",
+    "zh-Hans": "神既隐藏又显现。祂对一切眼目隐藏，却在万物中显现。",
+    "zh-Hant": "神既隱藏又顯現。祂對一切眼目隱藏，卻在萬物中顯現。"
   },
   {
     "source": "Zohar",
@@ -282,7 +318,9 @@
     "fr": "Lorsqu'une personne naît, on lui donne une âme du côté saint.",
     "ja": "人が生まれるとき、聖なる側から魂が与えられる。",
     "ru": "Когда человек рождается, ему дается душа от святой стороны.",
-    "tr": "Bir insan doğduğunda, kendisine kutsal taraftan bir ruh verilir."
+    "tr": "Bir insan doğduğunda, kendisine kutsal taraftan bir ruh verilir.",
+    "zh-Hans": "人出生之时，便被赐予一个来自圣洁一方的灵魂。",
+    "zh-Hant": "人出生之時，便被賜予一個來自聖潔一方的靈魂。"
   },
   {
     "source": "Zohar",
@@ -297,7 +335,9 @@
     "fr": "La plus haute sagesse se trouve dans les profondeurs du silence.",
     "ja": "最高の知恵は沈黙の深淵に見出される。",
     "ru": "Высшая мудрость находится в глубинах молчания.",
-    "tr": "En yüksek hikmet, sessizliğin derinliklerinde bulunur."
+    "tr": "En yüksek hikmet, sessizliğin derinliklerinde bulunur.",
+    "zh-Hans": "至高的智慧，深藏于静默之中。",
+    "zh-Hant": "至高的智慧，深藏於靜默之中。"
   },
   {
     "source": "Sefer Yetzirah",
@@ -312,7 +352,9 @@
     "fr": "Avec trente-deux voies mystiques de Sagesse, Yah, le Seigneur des Armées, a gravé.",
     "ja": "知恵の32の神秘的な小道によって、万軍の主ヤーは刻んだ。",
     "ru": "Тридцатью двумя мистическими путями Мудрости высек Ях, Господь Воинств.",
-    "tr": "Hikmetin otuz iki mistik yoluyla Her Şeye Egemen Yah kazıdı."
+    "tr": "Hikmetin otuz iki mistik yoluyla Her Şeye Egemen Yah kazıdı.",
+    "zh-Hans": "万军之主耶以三十二条奥秘的智慧之路刻画了世界。",
+    "zh-Hant": "萬軍之主耶以三十二條奧秘的智慧之路刻畫了世界。"
   },
   {
     "source": "Sefer Yetzirah",
@@ -327,7 +369,9 @@
     "fr": "Dix Sefirot du Néant et vingt-deux Lettres de Fondation.",
     "ja": "無の10のセフィロトと、22の基礎の文字。",
     "ru": "Десять Сфирот из Ничего и двадцать две Буквы Основания.",
-    "tr": "Hiçliğin On Sefirot'u ve yirmi iki Temel Harf."
+    "tr": "Hiçliğin On Sefirot'u ve yirmi iki Temel Harf.",
+    "zh-Hans": "十个虚无的质点，二十二个根基字母。",
+    "zh-Hant": "十個虛無的質點，二十二個根基字母。"
   },
   {
     "source": "Sefer Yetzirah",
@@ -342,7 +386,9 @@
     "fr": "Dix Sefirot du Néant : leur fin est intégrée dans leur commencement, et leur commencement dans leur fin.",
     "ja": "無の10のセフィロト：その終わりは始まりに埋め込まれており、始まりは終わりに埋め込まれている。",
     "ru": "Десять Сфирот из Ничего: их конец заложен в их начале, а их начало — в их конце.",
-    "tr": "Hiçliğin On Sefirot'u: sonları başlangıçlarına gömülüdür, başlangıçları da sonlarına."
+    "tr": "Hiçliğin On Sefirot'u: sonları başlangıçlarına gömülüdür, başlangıçları da sonlarına.",
+    "zh-Hans": "十个虚无的质点：它们的终点嵌于起点之中，起点也嵌于终点之中。",
+    "zh-Hant": "十個虛無的質點：它們的終點嵌於起點之中，起點也嵌於終點之中。"
   },
   {
     "source": "Sefer Yetzirah",
@@ -357,7 +403,9 @@
     "fr": "Vingt-deux lettres de Fondation : Il les a dessinées, taillées, combinées et pesées.",
     "ja": "22の基礎の文字。彼はそれらを描き、切り出し、組み合わせ、重さを量った。",
     "ru": "Двадцать две буквы Основания: Он нарисовал их, высек их, соединил их и взвесил их.",
-    "tr": "Yirmi iki Temel harf: Onları çizdi, yonttu, birleştirdi ve tarttı."
+    "tr": "Yirmi iki Temel harf: Onları çizdi, yonttu, birleştirdi ve tarttı.",
+    "zh-Hans": "二十二个根基字母：祂描绘它们，雕琢它们，组合它们，权衡它们。",
+    "zh-Hant": "二十二個根基字母：祂描繪它們，雕琢它們，組合它們，權衡它們。"
   },
   {
     "source": "Sefer Yetzirah",
@@ -372,7 +420,9 @@
     "fr": "Dix Sefirot du Néant : Leur mesure est dix, qui n'ont pas de fin.",
     "ja": "無の10のセフィロト：その尺度は10であり、終わりがない。",
     "ru": "Десять Сфирот из Ничего: Их мера — десять, и они не имеют конца.",
-    "tr": "Hiçliğin On Sefirot'u: Ölçüleri ondur, fakat sonları yoktur."
+    "tr": "Hiçliğin On Sefirot'u: Ölçüleri ondur, fakat sonları yoktur.",
+    "zh-Hans": "十个虚无的质点：它们的量度是十，却没有尽头。",
+    "zh-Hant": "十個虛無的質點：它們的量度是十，卻沒有盡頭。"
   },
   {
     "source": "Bahir",
@@ -387,7 +437,9 @@
     "fr": "Et maintenant les hommes ne voient pas la lumière qui brille dans les cieux.",
     "ja": "そして今、人々は空に輝く光を見ていない。",
     "ru": "И теперь люди не видят света, который ярко светит в небесах.",
-    "tr": "Ve şimdi insanlar göklerde parlayan ışığı görmüyorlar."
+    "tr": "Ve şimdi insanlar göklerde parlayan ışığı görmüyorlar.",
+    "zh-Hans": "如今世人已看不见那明亮在天空中的光。",
+    "zh-Hant": "如今世人已看不見那明亮在天空中的光。"
   },
   {
     "source": "Bahir",
@@ -402,7 +454,9 @@
     "fr": "Pourquoi l'appelle-t-on l'Arbre de Vie ? Parce que toute vie y prend racine.",
     "ja": "なぜそれが生命の樹と呼ばれるのか？すべての命がそこに根ざしているからだ。",
     "ru": "Почему оно называется Древом Жизни? Потому что вся жизнь коренится в нем.",
-    "tr": "Neden ona Yaşam Ağacı denir? Çünkü tüm yaşam onda kök salmıştır."
+    "tr": "Neden ona Yaşam Ağacı denir? Çünkü tüm yaşam onda kök salmıştır.",
+    "zh-Hans": "为何它被称为生命之树？因为一切生命皆扎根于它。",
+    "zh-Hant": "為何它被稱為生命之樹？因為一切生命皆紮根於它。"
   },
   {
     "source": "Bahir",
@@ -417,7 +471,9 @@
     "fr": "Quelle est cette lumière ? C'est la lumière qui a été créée le premier jour.",
     "ja": "この光とは何か？それは第一の日に創造された光である。",
     "ru": "Что это за свет? Это свет, созданный в первый день.",
-    "tr": "Bu ışık nedir? İlk günde yaratılan ışıktır."
+    "tr": "Bu ışık nedir? İlk günde yaratılan ışıktır.",
+    "zh-Hans": "这光是什么？正是在第一日被造的那道光。",
+    "zh-Hant": "這光是什麼？正是在第一日被造的那道光。"
   },
   {
     "source": "Bahir",
@@ -432,7 +488,9 @@
     "fr": "Il y a un pilier de la terre au ciel, et son nom est Tzaddik (Le Juste).",
     "ja": "地から天への柱があり、その名はツァディク（義人）という。",
     "ru": "От земли до неба стоит столп, и имя ему Цаддик (Праведник).",
-    "tr": "Yerden göğe uzanan bir sütun vardır ve adı Tzadık'tır (Adil)."
+    "tr": "Yerden göğe uzanan bir sütun vardır ve adı Tzadık'tır (Adil).",
+    "zh-Hans": "有一根柱子从地直通天，它的名字叫义人。",
+    "zh-Hant": "有一根柱子從地直通天，它的名字叫義人。"
   },
   {
     "source": "Bahir",
@@ -447,7 +505,9 @@
     "fr": "L'âme est une étincelle divine, descendant dans le monde pour accomplir sa mission.",
     "ja": "魂は神聖な火花であり、使命を果たすために世界へと降りてくる。",
     "ru": "Душа — это божественная искра, спускающаяся в мир, чтобы завершить свою миссию.",
-    "tr": "Ruh, görevini tamamlamak için dünyaya inen ilahi bir kıvılcımdır."
+    "tr": "Ruh, görevini tamamlamak için dünyaya inen ilahi bir kıvılcımdır.",
+    "zh-Hans": "灵魂是神圣的火花，降临尘世以完成其使命。",
+    "zh-Hant": "靈魂是神聖的火花，降臨塵世以完成其使命。"
   },
   {
     "source": "Etz Chaim (Isaac Luria)",
@@ -462,7 +522,9 @@
     "fr": "Avant que toutes choses fussent créées, la Lumière Suprême était simple, et elle remplissait toute l'existence.",
     "ja": "万物が創造される前、至高の光は単純であり、すべての存在を満たしていた。",
     "ru": "До того, как все вещи были созданы, Высший Свет был прост и наполнял всё существование.",
-    "tr": "Her şey yaratılmadan önce, Yüce Işık yalındı ve tüm varoluşu dolduruyordu."
+    "tr": "Her şey yaratılmadan önce, Yüce Işık yalındı ve tüm varoluşu dolduruyordu.",
+    "zh-Hans": "在万物受造之前，至高之光是纯一的，充满了一切存在。",
+    "zh-Hant": "在萬物受造之前，至高之光是純一的，充滿了一切存在。"
   },
   {
     "source": "Tzimtzum (Isaac Luria)",
@@ -477,7 +539,9 @@
     "fr": "Il a contracté Sa lumière sur les côtés, laissant un vide central pour la création.",
     "ja": "彼は自らの光を側面に収縮させ、創造のために中央に空の真空を残した。",
     "ru": "Он сжал Свой свет по сторонам, оставив центральный, пустой вакуум для творения.",
-    "tr": "O, yaratılış için merkezde boş bir vakum bırakarak ışığını kenarlara doğru büzüştürdü."
+    "tr": "O, yaratılış için merkezde boş bir vakum bırakarak ışığını kenarlara doğru büzüştürdü.",
+    "zh-Hans": "祂将自己的光向两侧收敛，留下一处中心的、空虚的真空以容纳创造。",
+    "zh-Hant": "祂將自己的光向兩側收斂，留下一處中心的、空虛的真空以容納創造。"
   },
   {
     "source": "Tikkun Olam (Isaac Luria)",
@@ -492,7 +556,9 @@
     "fr": "Notre tâche est de rassembler les saintes étincelles qui ont été dispersées lorsque les vases se sont brisés.",
     "ja": "我々の任務は、器が砕けたときに散らばった神聖な火花を集めることである。",
     "ru": "Наша задача — собрать святые искры, которые были рассеяны, когда разбились сосуды.",
-    "tr": "Görevimiz, kaplar kırıldığında saçılan kutsal kıvılcımları toplamaktır."
+    "tr": "Görevimiz, kaplar kırıldığında saçılan kutsal kıvılcımları toplamaktır.",
+    "zh-Hans": "我们的任务，是收集那些在器皿破碎时四散的神圣火花。",
+    "zh-Hant": "我們的任務，是收集那些在器皿破碎時四散的神聖火花。"
   },
   {
     "source": "Baal Shem Tov",
@@ -507,7 +573,9 @@
     "fr": "De chaque être humain s'élève une lumière qui atteint directement le ciel.",
     "ja": "すべての人間から、天にまっすぐ届く光が立ち昇っている。",
     "ru": "От каждого человека исходит свет, который достигает прямо небес.",
-    "tr": "Her insandan doğrudan göğe ulaşan bir ışık yükselir."
+    "tr": "Her insandan doğrudan göğe ulaşan bir ışık yükselir.",
+    "zh-Hans": "每一个人的心中，都升起一道直达天堂的光。",
+    "zh-Hant": "每一個人的心中，都升起一道直達天堂的光。"
   },
   {
     "source": "Nachman of Breslov",
@@ -522,7 +590,9 @@
     "fr": "Le monde entier est un pont très étroit, et la chose la plus importante est de ne pas avoir peur.",
     "ja": "全世界は非常に狭い橋であり、最も重要なことは恐れないことである。",
     "ru": "Вся земля — это очень узкий мост, и самое главное — не бояться.",
-    "tr": "Bütün dünya çok dar bir köprüdür ve en önemli şey hiç korkmamaktır."
+    "tr": "Bütün dünya çok dar bir köprüdür ve en önemli şey hiç korkmamaktır.",
+    "zh-Hans": "整个世界是一座非常窄的桥，最重要的是不要害怕。",
+    "zh-Hant": "整個世界是一座非常窄的橋，最重要的是不要害怕。"
   },
   {
     "source": "Baal Shem Tov",
@@ -537,7 +607,9 @@
     "fr": "Ton prochain est ton miroir. Si ton propre visage est propre, l'image que tu perçois sera également sans défaut.",
     "ja": "隣人はあなたの鏡である。もし自分の顔がきれいなら、あなたが見る像も完璧である。",
     "ru": "Твой ближний — это твое зеркало. Если твое собственное лицо чисто, образ, который ты воспринимаешь, также будет безупречным.",
-    "tr": "Hemşehrin senin aynandır. Kendi yüzün temizse, onda gördüğün görüntü de kusursuz olacaktır."
+    "tr": "Hemşehrin senin aynandır. Kendi yüzün temizse, onda gördüğün görüntü de kusursuz olacaktır.",
+    "zh-Hans": "你的同伴是你的镜子。若你自己的脸是洁净的，你所见的影像也必无瑕。",
+    "zh-Hant": "你的同伴是你的鏡子。若你自己的臉是潔淨的，你所見的影像也必無瑕。"
   },
   {
     "source": "Nachman of Breslov",
@@ -552,7 +624,9 @@
     "fr": "Si tu crois que tu peux endommager, alors crois que tu peux réparer.",
     "ja": "もし自分が破壊できると信じるなら、修復できることも信じなさい。",
     "ru": "Если ты веришь, что можешь испортить, то поверь, что можешь и исправить.",
-    "tr": "Bozabileceğine inanıyorsan, düzeltebileceğine de inan."
+    "tr": "Bozabileceğine inanıyorsan, düzeltebileceğine de inan.",
+    "zh-Hans": "若你相信自己能造成损害，那就也要相信自己能修复它。",
+    "zh-Hant": "若你相信自己能造成損害，那就也要相信自己能修復它。"
   },
   {
     "source": "Tanya (Schneur Zalman of Liadi)",
@@ -567,7 +641,9 @@
     "fr": "L'esprit, par sa nature même, gouverne le cœur.",
     "ja": "心（知性）はその本質によって心（感情）を支配する。",
     "ru": "Разум по самой своей природе правит сердцем.",
-    "tr": "Zihin, yapısı gereği kalbe hükmeder."
+    "tr": "Zihin, yapısı gereği kalbe hükmeder.",
+    "zh-Hans": "心智本质上统御着心。",
+    "zh-Hant": "心智本質上統御著心。"
   },
   {
     "source": "Baal Shem Tov",
@@ -582,7 +658,9 @@
     "fr": "L'oubli mène à l'exil, tandis que le souvenir est le secret de la rédemption.",
     "ja": "忘却は追放につながり、追憶は救済の秘密である。",
     "ru": "Забвение ведет к изгнанию, тогда как память — это секрет искупления.",
-    "tr": "Unutkanlık sürgüne götürür, hatırlamak ise kurtuluşun sırrıdır."
+    "tr": "Unutkanlık sürgüne götürür, hatırlamak ise kurtuluşun sırrıdır.",
+    "zh-Hans": "遗忘导致流亡，而铭记则是救赎的奥秘。",
+    "zh-Hant": "遺忘導致流亡，而銘記則是救贖的奧秘。"
   },
   {
     "source": "Isaac Luria",
@@ -597,6 +675,8 @@
     "fr": "Chaque âme a sa propre chanson unique, sa propre lettre spéciale dans la Torah.",
     "ja": "すべての魂には独自の歌があり、トーラーの中に独自の特別な文字がある。",
     "ru": "У каждой души есть своя уникальная песня, своя особая буква в Торе.",
-    "tr": "Her ruhun kendine has bir şarkısı, Tevrat'ta özel bir harfi vardır."
+    "tr": "Her ruhun kendine has bir şarkısı, Tevrat'ta özel bir harfi vardır.",
+    "zh-Hans": "每一个灵魂都有自己独特的歌，在妥拉中都有属于自己的一个字母。",
+    "zh-Hant": "每一個靈魂都有自己獨特的歌，在妥拉中都有屬於自己的一個字母。"
   }
 ]

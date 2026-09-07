@@ -12,7 +12,9 @@
     "fr": "Tu as droit à ton travail, mais pas aux fruits de ton travail.",
     "ja": "あなたには自分の労働に対する権利があるが、その労働の果実に対する権利はない。",
     "ru": "У тебя есть право на твой труд, но не на плоды твоего труда.",
-    "tr": "Sadece yaptığın eylem üzerinde hakkın vardır, onun meyveleri üzerinde değil."
+    "tr": "Sadece yaptığın eylem üzerinde hakkın vardır, onun meyveleri üzerinde değil.",
+    "zh-Hans": "你有权利去努力，但无权享有努力的果实。",
+    "zh-Hant": "你有權利去努力，但無權享有努力的果實。"
   },
   {
     "source": "Bhagavad Gita",
@@ -27,7 +29,9 @@
     "fr": "Accomplis ton devoir avec équanimité, en abandonnant tout attachement au succès ou à l'échec.",
     "ja": "成功や失敗への執着をすべて捨て、平静な心で自分の義務を果たしなさい。",
     "ru": "Выполняй свой долг с невозмутимостью, оставив всякую привязанность к успеху или неудаче.",
-    "tr": "Başarıya veya başarısızlığa olan tüm bağlılığı bir kenara bırakarak görevini iç huzuruyla yerine getir."
+    "tr": "Başarıya veya başarısızlığa olan tüm bağlılığı bir kenara bırakarak görevini iç huzuruyla yerine getir.",
+    "zh-Hans": "以平等心履行你的职责，放下对成败的一切执着。",
+    "zh-Hant": "以平等心履行你的職責，放下對成敗的一切執著。"
   },
   {
     "source": "Bhagavad Gita",
@@ -42,7 +46,9 @@
     "fr": "Le yoga est l'habileté dans l'action.",
     "ja": "ヨーガとは行為における熟練である。",
     "ru": "Йога — это мастерство в действии.",
-    "tr": "Yoga, eylemde ustalıktır."
+    "tr": "Yoga, eylemde ustalıktır.",
+    "zh-Hans": "瑜伽即是行动中的智慧。",
+    "zh-Hant": "瑜伽即是行動中的智慧。"
   },
   {
     "source": "Bhagavad Gita",
@@ -57,7 +63,9 @@
     "fr": "Lorsqu'une personne renonce à tous les désirs surgissant dans l'esprit et trouve satisfaction dans le Soi seul, on la dit ferme dans la sagesse.",
     "ja": "心に生じるすべての欲望を捨て去り、真我のみに満足を見出すとき、その人は知恵が安定していると言われる。",
     "ru": "Когда человек отказывается от всех желаний, возникающих в уме, и находит удовлетворение только в Истинном Я, говорят, что он утвердился в мудрости.",
-    "tr": "Bir kişi zihinde doğan tüm arzuları terk edip yalnızca kendi Öz'ünde tatmin bulduğunda, onun bilgelikte sarsılmaz olduğu söylenir."
+    "tr": "Bir kişi zihinde doğan tüm arzuları terk edip yalnızca kendi Öz'ünde tatmin bulduğunda, onun bilgelikte sarsılmaz olduğu söylenir.",
+    "zh-Hans": "一个人若能舍弃心中生起的一切欲望，仅在自我中获得满足，便可称为智慧坚定之人。",
+    "zh-Hant": "一個人若能捨棄心中生起的一切慾望，僅在自我中獲得滿足，便可稱為智慧堅定之人。"
   },
   {
     "source": "Bhagavad Gita",
@@ -72,7 +80,9 @@
     "fr": "Celui dont l'esprit n'est pas troublé par l'adversité, dont le désir de bonheur a disparu, et qui est libre d'attachement, de peur et de colère, est appelé un sage à la sagesse immuable.",
     "ja": "逆境にあっても心を乱されず、幸福への欲望が消えうせ、執着、恐れ、怒りから解放された者は、安定した知恵を持つ賢者と呼ばれる。",
     "ru": "Того, чей ум не тревожат невзгоды, чье желание счастья исчезло и кто свободен от привязанности, страха и гнева, называют мудрецом с твердой мудростью.",
-    "tr": "Zihni zorluklar karşısında sarsılmayan, haz arzusu yok olmuş, bağlılıktan, korkudan ve öfkeden arınmış kişiye sarsılmaz bilge denir."
+    "tr": "Zihni zorluklar karşısında sarsılmayan, haz arzusu yok olmuş, bağlılıktan, korkudan ve öfkeden arınmış kişiye sarsılmaz bilge denir.",
+    "zh-Hans": "心不为逆境所扰，不再贪求快乐，且远离执着、恐惧与愤怒之人，方称智慧坚定的圣者。",
+    "zh-Hant": "心不為逆境所擾，不再貪求快樂，且遠離執著、恐懼與憤怒之人，方稱智慧堅定的聖者。"
   },
   {
     "source": "Bhagavad Gita",
@@ -87,7 +97,9 @@
     "fr": "Tout comme l'océan reste immobile bien que les eaux y pénètrent, le sage reste immobile au milieu des désirs.",
     "ja": "水が流れ込んでも海が動じないように、賢者も欲望のただ中で動じない。",
     "ru": "Подобно тому, как океан остается неподвижным, хотя в него впадают воды, так и мудрый остается неподвижным среди желаний.",
-    "tr": "Sular içine aksa da okyanus nasıl sarsılmadan kalırsa, bilge de arzuların ortasında öyle sarsılmaz kalır."
+    "tr": "Sular içine aksa da okyanus nasıl sarsılmadan kalırsa, bilge de arzuların ortasında öyle sarsılmaz kalır.",
+    "zh-Hans": "正如江河汇入大海而大海不为所动，智者也在欲望之中保持不动。",
+    "zh-Hant": "正如江河匯入大海而大海不為所動，智者也在慾望之中保持不動。"
   },
   {
     "source": "Bhagavad Gita",
@@ -102,7 +114,9 @@
     "fr": "Cette personne atteint la paix, celle qui abandonne tous les désirs et vit libre de soif, d'égoïsme et d'ego.",
     "ja": "すべての欲望を捨て、渇望、利己主義、エゴから解放されて生きる人は平安を得る。",
     "ru": "Тот обретает покой, кто отказывается от всех желаний и живет свободно от страсти, эгоизма и эго.",
-    "tr": "Tüm arzuları terk eden, özlemden, bencillikten ve egodan uzak yaşayan kişi huzura erer."
+    "tr": "Tüm arzuları terk eden, özlemden, bencillikten ve egodan uzak yaşayan kişi huzura erer.",
+    "zh-Hans": "舍弃一切欲望、无所贪求、无我无私而生活的人，方能获得平静。",
+    "zh-Hant": "捨棄一切慾望、無所貪求、無我無私而生活的人，方能獲得平靜。"
   },
   {
     "source": "Bhagavad Gita",
@@ -117,7 +131,9 @@
     "fr": "C'est l'état d'être établi en Brahman ; l'ayant atteint, on n'est plus égaré.",
     "ja": "これがブラフマンに確立された状態である。これに達した者は迷うことがない。",
     "ru": "Это состояние утвержденности в Брахмане; достигнув его, человек больше не заблуждается.",
-    "tr": "Bu, Brahman'da kök salma durumudur; buna ulaşan bir daha yanılgıya düşmez."
+    "tr": "Bu, Brahman'da kök salma durumudur; buna ulaşan bir daha yanılgıya düşmez.",
+    "zh-Hans": "这便是安住于梵的境界；一旦达到，便不再迷惑。",
+    "zh-Hant": "這便是安住於梵的境界；一旦達到，便不再迷惑。"
   },
   {
     "source": "Bhagavad Gita",
@@ -132,7 +148,9 @@
     "fr": "Par conséquent, accomplis toujours ton devoir sans attachement ; en faisant ainsi, on atteint le Suprême.",
     "ja": "したがって、常に執着せずに自分の義務を果たしなさい。そうすることで、人は至高の者に達する。",
     "ru": "Поэтому всегда выполняй свой долг без привязанности; так человек достигает Всевышнего.",
-    "tr": "Bu nedenle, görevini her zaman bağlılık duymadan yerine getir; çünkü insan ancak bağlılık duymadan hareket ederek Yüce Olana ulaşır."
+    "tr": "Bu nedenle, görevini her zaman bağlılık duymadan yerine getir; çünkü insan ancak bağlılık duymadan hareket ederek Yüce Olana ulaşır.",
+    "zh-Hans": "所以，要始终无所执着地履行职责；如此行事，方能达到至高境界。",
+    "zh-Hant": "所以，要始終無所執著地履行職責；如此行事，方能達到至高境界。"
   },
   {
     "source": "Bhagavad Gita",
@@ -147,7 +165,9 @@
     "fr": "Chaque fois que la droiture décline et que l'injustice s'élève, Je Me manifeste.",
     "ja": "正義が衰え、不正がはびこるとき、私は自らを現す。",
     "ru": "Всякий раз, когда праведность приходит в упадок, а неправедность возрастает, Я проявляю Себя.",
-    "tr": "Erdem ne zaman azalır ve erdemden sapma ne zaman artarsa, Ben Kendimi tecelli ettiririm."
+    "tr": "Erdem ne zaman azalır ve erdemden sapma ne zaman artarsa, Ben Kendimi tecelli ettiririm.",
+    "zh-Hans": "每当正法衰微、非法兴盛之时，我便化身降世。",
+    "zh-Hant": "每當正法衰微、非法興盛之時，我便化身降世。"
   },
   {
     "source": "Bhagavad Gita",
@@ -162,7 +182,9 @@
     "fr": "Pour protéger les justes, pour détruire le mal et pour établir la droiture, J'apparais d'âge en âge.",
     "ja": "正しい者を守り、悪を滅ぼし、正義を確立するために、私は時代ごとに姿を現す。",
     "ru": "Чтобы защитить праведных, уничтожить зло и утвердить праведность, Я появляюсь из века в век.",
-    "tr": "İyileri korumak, kötülüğü yok etmek ve erdemi yeniden tesis etmek için çağlar boyunca ortaya çıkarım."
+    "tr": "İyileri korumak, kötülüğü yok etmek ve erdemi yeniden tesis etmek için çağlar boyunca ortaya çıkarım.",
+    "zh-Hans": "为护持善良，为消灭邪恶，为重立正法，我于每个时代降临人间。",
+    "zh-Hant": "為護持善良，為消滅邪惡，為重立正法，我於每個時代降臨人間。"
   },
   {
     "source": "Bhagavad Gita",
@@ -177,7 +199,9 @@
     "fr": "Celui qui accomplit des actions sans attachement, en les dédiant au Suprême, reste épargné par le péché.",
     "ja": "至高の者に捧げて、執着なく行為を行う者は、罪に汚されることがない。",
     "ru": "Тот, кто совершает действия без привязанности, посвящая их Всевышнему, остается нетронутым грехом.",
-    "tr": "Eylemlerini hiçbir bağlılık duymadan, Yüce Olana adayarak yapan kişi günahtan etkilenmez."
+    "tr": "Eylemlerini hiçbir bağlılık duymadan, Yüce Olana adayarak yapan kişi günahtan etkilenmez.",
+    "zh-Hans": "无所执着而行动、将行为奉献于至高者的人，不会被罪所沾染。",
+    "zh-Hant": "無所執著而行動、將行為奉獻於至高者的人，不會被罪所沾染。"
   },
   {
     "source": "Bhagavad Gita",
@@ -192,7 +216,9 @@
     "fr": "Qu'une personne s'élève par elle-même ; qu'elle ne s'enfonce pas elle-même.",
     "ja": "人は自分自身によって自らを高めよ。自分自身を沈めてはならない。",
     "ru": "Пусть человек возвышает себя сам; пусть он не позволяет себе опуститься.",
-    "tr": "İnsan kendini kendi eliyle yükseltmeli, kendi kendini aşağı çekmemelidir."
+    "tr": "İnsan kendini kendi eliyle yükseltmeli, kendi kendini aşağı çekmemelidir.",
+    "zh-Hans": "人应当靠自己提升自己，而不应使自己沉沦。",
+    "zh-Hant": "人應當靠自己提升自己，而不應使自己沉淪。"
   },
   {
     "source": "Bhagavad Gita",
@@ -207,7 +233,9 @@
     "fr": "Pour celui qui s'est conquis lui-même, le soi est un ami ; mais pour celui qui n'y est pas parvenu, le soi agit comme un ennemi.",
     "ja": "自分自身を克服した者にとって、真我は友である。しかし、そうできなかった者にとっては、真我は敵として働く。",
     "ru": "Для того, кто победил себя, его я — друг; но для того, кто не смог этого сделать, его я действует как враг.",
-    "tr": "Nefsini fetheden kişi için kendi özü bir dosttur; fakat bunu başaramayan kişi için kendi özü bir düşman gibi davranır."
+    "tr": "Nefsini fetheden kişi için kendi özü bir dosttur; fakat bunu başaramayan kişi için kendi özü bir düşman gibi davranır.",
+    "zh-Hans": "对于战胜了自我的人，自我是朋友；对于未能如此的人，自我则如仇敌。",
+    "zh-Hant": "對於戰勝了自我的人，自我是朋友；對於未能如此的人，自我則如仇敵。"
   },
   {
     "source": "Bhagavad Gita",
@@ -222,7 +250,9 @@
     "fr": "Chaque fois que l'esprit agité s'égare, qu'on le ramène sous le contrôle du Soi.",
     "ja": "落ち着かない心がさまよい出るときはいつでも、真我のコントロール下に引き戻すべきである。",
     "ru": "Всякий раз, когда беспокойный ум блуждает, пусть человек возвращает его под контроль Истинного Я.",
-    "tr": "Huzursuz zihin ne zaman uzaklara dalsa, insan onu hemen geri getirmeli ve Öz'ün denetimi altına sokmalıdır."
+    "tr": "Huzursuz zihin ne zaman uzaklara dalsa, insan onu hemen geri getirmeli ve Öz'ün denetimi altına sokmalıdır.",
+    "zh-Hans": "每当浮躁的心游荡他方，就应将它带回，置于自我的掌控之下。",
+    "zh-Hant": "每當浮躁的心遊蕩他方，就應將它帶回，置於自我的掌控之下。"
   },
   {
     "source": "Bhagavad Gita",
@@ -237,7 +267,9 @@
     "fr": "Celui dont le soi est discipliné voit le Soi dans tous les êtres et tous les êtres dans le Soi.",
     "ja": "自己を修練した者は、すべての存在の中に真我を見、真我の中にすべての存在を見る。",
     "ru": "Тот, чье я дисциплинировано, видит Истинное Я во всех существах и всех существ в Истинном Я.",
-    "tr": "Kendi özünü disipline etmiş kişi, Öz'ü tüm varlıklarda ve tüm varlıkları Öz'ün içinde görür."
+    "tr": "Kendi özünü disipline etmiş kişi, Öz'ü tüm varlıklarda ve tüm varlıkları Öz'ün içinde görür.",
+    "zh-Hans": "自我受到约束的人，能在众生中看见自我，也在自我中看见众生。",
+    "zh-Hant": "自我受到約束的人，能在眾生中看見自我，也在自我中看見眾生。"
   },
   {
     "source": "Bhagavad Gita",
@@ -252,7 +284,9 @@
     "fr": "Quiconque M'offre une feuille, une fleur, un fruit ou de l'eau avec dévotion, J'accepte cette offrande.",
     "ja": "葉、花、果実、あるいは水を、献身とともに私に捧げるなら、私はその捧げ物を受け取る。",
     "ru": "Кто бы ни предложил Мне лист, цветок, плод или воду с преданностью, Я принимаю это подношение.",
-    "tr": "Kim Bana sevgi ve adanmışlıkla bir yaprak, bir çiçek, bir meyve ya da biraz su sunarsa, ben o sunuyu kabul ederim."
+    "tr": "Kim Bana sevgi ve adanmışlıkla bir yaprak, bir çiçek, bir meyve ya da biraz su sunarsa, ben o sunuyu kabul ederim.",
+    "zh-Hans": "凡怀着虔敬之心，向我奉献一片叶、一朵花、一枚果，或一捧水的人，我都接受这份供奉。",
+    "zh-Hant": "凡懷著虔敬之心，向我奉獻一片葉、一朵花、一枚果，或一捧水的人，我都接受這份供奉。"
   },
   {
     "source": "Bhagavad Gita",
@@ -267,7 +301,9 @@
     "fr": "Celui qui n'a de haine envers aucun être, qui est amical et compatissant, M'est cher.",
     "ja": "いかなる存在に対しても憎しみを抱かず、友好的で慈悲深い者は、私にとって愛おしい。",
     "ru": "Тот, кто не питает ненависти ни к какому существу, кто дружелюбен и сострадателен, дорог Мне.",
-    "tr": "Hiçbir canlıya karşı nefret beslemeyen, dost canlısı ve şefkatli olan kişi Benim için değerlidir."
+    "tr": "Hiçbir canlıya karşı nefret beslemeyen, dost canlısı ve şefkatli olan kişi Benim için değerlidir.",
+    "zh-Hans": "对任何生灵都不怀憎恨、待人友善且富有同情心的人，是我所珍爱的。",
+    "zh-Hant": "對任何生靈都不懷憎恨、待人友善且富有同情心的人，是我所珍愛的。"
   },
   {
     "source": "Bhagavad Gita",
@@ -282,7 +318,9 @@
     "fr": "Abandonne toutes les variétés de devoirs et abandonne-toi à Moi seul. Je te libérerai de tout péché ; ne t'afflige pas.",
     "ja": "あらゆる義務を捨て、ただ私にのみ委ねなさい。私はあなたをすべての罪から解放しよう。悲しむな。",
     "ru": "Оставь все виды долга и предайся Мне одному. Я освобожу тебя от всех грехов; не скорби.",
-    "tr": "Tüm sorumlulukları ve yolları bir kenara bırakıp yalnızca Bana sığın. Ben seni tüm günahlardan özgür kılacağım; kederlenme."
+    "tr": "Tüm sorumlulukları ve yolları bir kenara bırakıp yalnızca Bana sığın. Ben seni tüm günahlardan özgür kılacağım; kederlenme.",
+    "zh-Hans": "放下一切职责，唯独归依于我。我必使你摆脱一切罪过；不要忧伤。",
+    "zh-Hant": "放下一切職責，唯獨歸依於我。我必使你擺脫一切罪過；不要憂傷。"
   },
   {
     "source": "Bhagavad Gita",
@@ -297,7 +335,9 @@
     "fr": "Partout où se trouvent Krishna et l'archer, il y aura prospérité, victoire, bonheur et ferme droiture.",
     "ja": "クリシュナと弓を持つ者がいるところには、必ず繁栄、勝利、幸福、そして揺るぎない正義がある。",
     "ru": "Где есть Кришна и владеющий луком, там будет процветание, победа, счастье и твердая праведность.",
-    "tr": "Nerede Krishna ve nerede okçu (Arjuna) varsa, orada refah, zafer, mutluluk ve sarsılmaz bir erdem olacaktır."
+    "tr": "Nerede Krishna ve nerede okçu (Arjuna) varsa, orada refah, zafer, mutluluk ve sarsılmaz bir erdem olacaktır.",
+    "zh-Hans": "无论何处有奎师那与执弓者在，那里便有繁荣、胜利、幸福与坚定的正法。",
+    "zh-Hant": "無論何處有奎師那與執弓者在，那裡便有繁榮、勝利、幸福與堅定的正法。"
   },
   {
     "source": "Dhammapada",
@@ -312,7 +352,9 @@
     "fr": "Tout ce que nous sommes est le résultat de ce que nous avons pensé.",
     "ja": "私たちのすべての存在は、私たちが考えたことの結果である。",
     "ru": "Всё, что мы собой представляем — это результат того, о чем мы думали.",
-    "tr": "Şu an olduğumuz her şey, düşünmüş olduklarımızın sonucudur."
+    "tr": "Şu an olduğumuz her şey, düşünmüş olduklarımızın sonucudur.",
+    "zh-Hans": "我们的一切，皆是我们所思的结果。",
+    "zh-Hant": "我們的一切，皆是我們所思的結果。"
   },
   {
     "source": "Dhammapada",
@@ -327,7 +369,9 @@
     "fr": "Si une personne parle ou agit avec une mauvaise pensée, la souffrance s'ensuit.",
     "ja": "悪意をもって話し、行動するならば、苦しみはその後についてくる。",
     "ru": "Если человек говорит или действует со злым умыслом, за ним следует страдание.",
-    "tr": "Bir insan kötü bir düşünceyle konuşur veya hareket ederse, acı onu takip eder."
+    "tr": "Bir insan kötü bir düşünceyle konuşur veya hareket ederse, acı onu takip eder.",
+    "zh-Hans": "若人怀着恶念说话或行事，痛苦便随之而来。",
+    "zh-Hant": "若人懷著惡念說話或行事，痛苦便隨之而來。"
   },
   {
     "source": "Dhammapada",
@@ -342,7 +386,9 @@
     "fr": "La haine n'est jamais apaisée par la haine ; par la non-haine seule la haine est apaisée.",
     "ja": "憎しみは決して憎しみによって静まることはない。非憎しみによってのみ静まるのである。",
     "ru": "Ненависть никогда не успокаивается ненавистью; только отсутствием ненависти она успокаивается.",
-    "tr": "Nefret asla nefretle yatışmaz; nefret ancak nefretsizlikle (sevgiyle) yatışır."
+    "tr": "Nefret asla nefretle yatışmaz; nefret ancak nefretsizlikle (sevgiyle) yatışır.",
+    "zh-Hans": "仇恨永远不能以仇恨止息；唯有以无恨，方能止息仇恨。",
+    "zh-Hant": "仇恨永遠不能以仇恨止息；唯有以無恨，方能止息仇恨。"
   },
   {
     "source": "Dhammapada",
@@ -357,7 +403,9 @@
     "fr": "La vigilance est le chemin de l'immortalité ; la négligence est le chemin de la mort.",
     "ja": "怠りなきは不死の道であり、怠りは死の道である。",
     "ru": "Бдительность — это путь к бессмертию; беспечность — путь к смерти.",
-    "tr": "Farkındalık ölümsüzlüğün yoludur; dikkatsizlik ise ölümün yoludur."
+    "tr": "Farkındalık ölümsüzlüğün yoludur; dikkatsizlik ise ölümün yoludur.",
+    "zh-Hans": "警觉是通往不朽之路，放逸则是通往死亡之路。",
+    "zh-Hant": "警覺是通往不朽之路，放逸則是通往死亡之路。"
   },
   {
     "source": "Dhammapada",
@@ -372,7 +420,9 @@
     "fr": "Ceux qui méditent et sont inébranlables atteignent la plus haute paix.",
     "ja": "瞑想し、揺るぎない者は、最高の平安に達する。",
     "ru": "Те, кто медитируют и непоколебимы, достигают высшего покоя.",
-    "tr": "Meditasyon yapan ve kararlı olanlar en yüce huzura ulaşırlar."
+    "tr": "Meditasyon yapan ve kararlı olanlar en yüce huzura ulaşırlar.",
+    "zh-Hans": "静修而坚定不移的人，能获得至高的平静。",
+    "zh-Hant": "靜修而堅定不移的人，能獲得至高的平靜。"
   },
   {
     "source": "Dhammapada",
@@ -387,7 +437,9 @@
     "fr": "L'esprit est agité, turbulent, difficile à contrôler.",
     "ja": "心は落ち着きがなく、荒れ狂い、コントロールするのが難しい。",
     "ru": "Ум беспокоен, бурен, его трудно контролировать.",
-    "tr": "Zihin huzursuzdur, çalkantılıdır, denetim altına alınması zordur."
+    "tr": "Zihin huzursuzdur, çalkantılıdır, denetim altına alınması zordur.",
+    "zh-Hans": "心是躁动的、纷乱的，难以驾驭。",
+    "zh-Hant": "心是躁動的、紛亂的，難以駕馭。"
   },
   {
     "source": "Dhammapada",
@@ -402,7 +454,9 @@
     "fr": "Que nul ne trouve à redire aux autres ; que nul ne regarde les omissions et les actes d'autrui.",
     "ja": "他人の過ちを捜してはならない。他人がしたことやしなかったことを見るべきではない。",
     "ru": "Пусть никто не ищет недостатков в других; пусть никто не смотрит на упущения и поступки других.",
-    "tr": "Kimse başkalarında kusur aramasın; kimse başkalarının yapıp yapmadıklarına bakmasın."
+    "tr": "Kimse başkalarında kusur aramasın; kimse başkalarının yapıp yapmadıklarına bakmasın.",
+    "zh-Hans": "莫寻他人之过，莫见他人之缺失与逾越。",
+    "zh-Hant": "莫尋他人之過，莫見他人之缺失與逾越。"
   },
   {
     "source": "Dhammapada",
@@ -417,7 +471,9 @@
     "fr": "Si tu trouves une personne sage qui souligne tes fautes, suis une telle personne sage.",
     "ja": "あなたの過ちを指摘してくれる賢明な人に出会ったら、その賢明な人に従いなさい。",
     "ru": "Если ты найдешь мудреца, который указывает на твои недостатки, следуй за таким мудрецом.",
-    "tr": "Kusurlarını gösteren bilge birini bulursan, öyle bilge bir insanın peşinden git."
+    "tr": "Kusurlarını gösteren bilge birini bulursan, öyle bilge bir insanın peşinden git.",
+    "zh-Hans": "若你遇见指出你过错的智者，当追随这样的智者。",
+    "zh-Hant": "若你遇見指出你過錯的智者，當追隨這樣的智者。"
   },
   {
     "source": "Dhammapada",
@@ -432,7 +488,9 @@
     "fr": "Comme un rocher solide n'est pas ébranlé par le vent, ainsi les sages ne sont pas émus par l'éloge ou le blâme.",
     "ja": "固い岩が風に揺さぶられないように、賢者は称賛や非難に動じることはない。",
     "ru": "Как крепкая скала не сотрясается ветром, так и мудрые не поддаются похвале или порицанию.",
-    "tr": "Sağlam bir kaya rüzgarla nasıl sarsılmazsa, bilgeler de övgü ya da kınamayla öyle sarsılmaz."
+    "tr": "Sağlam bir kaya rüzgarla nasıl sarsılmazsa, bilgeler de övgü ya da kınamayla öyle sarsılmaz.",
+    "zh-Hans": "正如坚实的岩石不为风所动，智者也不为称誉或诋毁所动摇。",
+    "zh-Hant": "正如堅實的岩石不為風所動，智者也不為稱譽或詆譭所動搖。"
   },
   {
     "source": "Dhammapada",
@@ -447,7 +505,9 @@
     "fr": "Celui qui a achevé son voyage, qui est sans chagrin et libre de tous liens, est vraiment libre.",
     "ja": "旅を終え、悲しみを知らず、すべての束縛から解き放たれた者は、真に自由である。",
     "ru": "Тот, кто завершил свой путь, кто свободен от печали и от всех уз, поистине свободен.",
-    "tr": "Yolculuğunu tamamlamış, kedersiz ve tüm bağlardan özgürleşmiş kişi gerçekten özgürdür."
+    "tr": "Yolculuğunu tamamlamış, kedersiz ve tüm bağlardan özgürleşmiş kişi gerçekten özgürdür.",
+    "zh-Hans": "完成旅程、无忧无虑、摆脱一切束缚的人，才是真正的自由之人。",
+    "zh-Hant": "完成旅程、無憂無慮、擺脫一切束縛的人，才是真正的自由之人。"
   },
   {
     "source": "Dhammapada",
@@ -462,7 +522,9 @@
     "fr": "Tous les êtres tremblent devant la violence. Tous craignent la mort. Se comparant aux autres, on ne devrait ni tuer ni faire tuer.",
     "ja": "すべての生き物は暴力の前で震える。皆、死を恐れる。自分を他人に引き比べて、殺してはならない、また殺させてはならない。",
     "ru": "Все существа трепещут перед насилием. Все боятся смерти. Сравнивая себя с другими, не следует ни убивать, ни побуждать к убийству.",
-    "tr": "Bütün canlılar şiddet karşısında titrer. Bütünü ölümden korkar. İnsan kendini başkalarının yerine koyarak ne öldürmeli ne de öldürülmesine neden olmalıdır."
+    "tr": "Bütün canlılar şiddet karşısında titrer. Bütünü ölümden korkar. İnsan kendini başkalarının yerine koyarak ne öldürmeli ne de öldürülmesine neden olmalıdır.",
+    "zh-Hans": "众生皆惧于暴力，皆畏惧死亡。将心比心，便不应杀生，也不应教唆杀生。",
+    "zh-Hant": "眾生皆懼於暴力，皆畏懼死亡。將心比心，便不應殺生，也不應教唆殺生。"
   },
   {
     "source": "Dhammapada",
@@ -477,7 +539,9 @@
     "fr": "À travers de nombreuses naissances, j'ai erré en cherchant le constructeur de cette maison.",
     "ja": "多くの生まれ変わりを通じて、私はこの家の建築者を探し求めてさまよった。",
     "ru": "Через множество рождений я скитался в поисках строителя этого дома.",
-    "tr": "Bu evin mimarını arayarak pek çok doğum boyunca dolaşıp durdum."
+    "tr": "Bu evin mimarını arayarak pek çok doğum boyunca dolaşıp durdum.",
+    "zh-Hans": "我历经多生轮回，寻觅这座房舍的建造者。",
+    "zh-Hant": "我歷經多生輪迴，尋覓這座房舍的建造者。"
   },
   {
     "source": "Dhammapada",
@@ -492,7 +556,9 @@
     "fr": "Constructeur de la maison, tu es vu. Tu ne construiras plus jamais de maison.",
     "ja": "家を建てる者よ、あなたの正体は見破られた。あなたは二度と家を建てることはないだろう。",
     "ru": "Строитель дома, ты замечен. Ты больше не построишь дом.",
-    "tr": "Ey ev mimarı, görüldün! Artık bir daha ev inşa edemeyeceksin."
+    "tr": "Ey ev mimarı, görüldün! Artık bir daha ev inşa edemeyeceksin.",
+    "zh-Hans": "造屋者啊，你已被看见。你将不再建造此屋。",
+    "zh-Hant": "造屋者啊，你已被看見。你將不再建造此屋。"
   },
   {
     "source": "Dhammapada",
@@ -507,7 +573,9 @@
     "fr": "Le soi est le maître du soi ; qui d'autre pourrait être le maître ?",
     "ja": "自己の主は自己である。他に誰が主となりえようか？",
     "ru": "Сам человек — господин самому себе; кто еще мог бы быть господином?",
-    "tr": "İnsanın efendisi yine kendisidir; başka kim efendi olabilir ki?"
+    "tr": "İnsanın efendisi yine kendisidir; başka kim efendi olabilir ki?",
+    "zh-Hans": "自己才是自己的主宰；除此之外，谁还能作主？",
+    "zh-Hant": "自己才是自己的主宰；除此之外，誰還能作主？"
   },
   {
     "source": "Dhammapada",
@@ -522,7 +590,9 @@
     "fr": "Éviter tout mal, cultiver le bien et purifier son esprit - tel est l'enseignement des Bouddhas.",
     "ja": "すべての悪を避け、善を修め、自らの心を浄化すること、これが諸仏の教えである。",
     "ru": "Избегать всякого зла, культивировать добро и очищать свой ум — таково учение Будд.",
-    "tr": "Tüm kötülüklerden kaçınmak, iyiliği çoğaltmak ve zihnini arındırmak; işte Budaların öğretisi budur."
+    "tr": "Tüm kötülüklerden kaçınmak, iyiliği çoğaltmak ve zihnini arındırmak; işte Budaların öğretisi budur.",
+    "zh-Hans": "戒除一切恶行，培植一切善行，净化自己的心——这便是诸佛的教诲。",
+    "zh-Hant": "戒除一切惡行，培植一切善行，淨化自己的心——這便是諸佛的教誨。"
   },
   {
     "source": "Dhammapada",
@@ -537,7 +607,9 @@
     "fr": "La patience endurante est la plus haute austérité.",
     "ja": "耐え忍ぶ忍耐こそが最高の苦行である。",
     "ru": "Стойкое терпение — это высшая аскеза.",
-    "tr": "Sonsuz sabır, en yüce erdemdir."
+    "tr": "Sonsuz sabır, en yüce erdemdir.",
+    "zh-Hans": "恒久的忍耐，是最高的苦行。",
+    "zh-Hant": "恆久的忍耐，是最高的苦行。"
   },
   {
     "source": "Dhammapada",
@@ -552,7 +624,9 @@
     "fr": "La faim est la plus grande maladie, le monde conditionné la plus grande souffrance.",
     "ja": "飢えは最大の病であり、条件づけられた世界は最大の苦しみである。",
     "ru": "Голод — величайшая болезнь, обусловленный мир — величайшее страдание.",
-    "tr": "Açlık (doyumsuzluk) en büyük hastalık, koşullandırılmış varoluş ise en büyük ızdıraptır."
+    "tr": "Açlık (doyumsuzluk) en büyük hastalık, koşullandırılmış varoluş ise en büyük ızdıraptır.",
+    "zh-Hans": "饥饿是最大的疾病，因缘和合之身是最大的苦。",
+    "zh-Hant": "飢餓是最大的疾病，因緣和合之身是最大的苦。"
   },
   {
     "source": "Dhammapada",
@@ -567,7 +641,9 @@
     "fr": "La santé est le plus grand don, le contentement la plus grande richesse.",
     "ja": "健康は最大の贈り物であり、満足は最大の財産である。",
     "ru": "Здоровье — величайший дар, удовлетворенность — величайшее богатство.",
-    "tr": "Sağlık en büyük armağan, kanaat ise en büyük zenginliktir."
+    "tr": "Sağlık en büyük armağan, kanaat ise en büyük zenginliktir.",
+    "zh-Hans": "健康是最大的馈赠，知足是最大的财富。",
+    "zh-Hant": "健康是最大的饋贈，知足是最大的財富。"
   },
   {
     "source": "Dhammapada",
@@ -582,7 +658,9 @@
     "fr": "Toutes les choses conditionnées sont impermanentes.",
     "ja": "作られたものはすべて無常である。",
     "ru": "Все обусловленные вещи непостоянны.",
-    "tr": "Koşullara bağlı olan her şey geçicidir."
+    "tr": "Koşullara bağlı olan her şey geçicidir.",
+    "zh-Hans": "一切有为法，皆是无常。",
+    "zh-Hant": "一切有為法，皆是無常。"
   },
   {
     "source": "Dhammapada",
@@ -597,6 +675,8 @@
     "fr": "Toutes choses sont sans un soi durable.",
     "ja": "すべてのものは永遠の自己（実体）を持たない。",
     "ru": "Все вещи не имеют постоянного «я».",
-    "tr": "Hicbir şey kalıcı bir öz taşımaz."
+    "tr": "Hicbir şey kalıcı bir öz taşımaz.",
+    "zh-Hans": "一切法，皆无自性。",
+    "zh-Hant": "一切法，皆無自性。"
   }
 ]
