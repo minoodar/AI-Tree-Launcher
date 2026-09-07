@@ -30,8 +30,10 @@ AI Tree Launcher v34.33 is a pure **Vanilla JS**, zero-dependency extension that
 * **📅 Time & Task Management:** Triple calendar (Gregorian, Jalali, Hijri) with events, public holidays, age tracker, and a dual-tab To-Do list.
 * **🧠 Unified Search & AI Tools:** Combined web and bookmark search engine, comprehensive prompt library, and built-in calculator.
 * **🕊️ Global Wisdom Engine:** Daily localized poetry and insights from global spiritual traditions.
+* **✨ Offline Starry Tab:** A beautiful new empty tab with a dynamic stars background, automatically activated when you are offline.
 * **🛡️ Secure & Reliable:** Chrome sync, 1-click full JSON backup/restore, auto-snapshots, and privacy-aware auto-hiding on login/fullscreen pages.
-* **🌍 9 Languages:** Fully localized in English, Persian, Arabic, Turkish, Spanish, German, French, Japanese, and Russian (with RTL support).
+* **🌍 12 Languages:** Fully localized in English, Persian, Arabic, Turkish, Spanish, Portuguese (BR), German, French, Japanese, Russian, Simplified Chinese, and Traditional Chinese.
+* **🛠️ Enhancements:** Minor bug fixes and performance improvements.
 
 #### 💻 Installation (Developer Mode)
 1. Clone `minoodar/AI-Tree-Launcher` or download the ZIP.
@@ -42,6 +44,99 @@ AI Tree Launcher v34.33 is a pure **Vanilla JS**, zero-dependency extension that
 As an independent AI developer based in war-torn Iran, maintaining and expanding this open-source project under challenging conditions relies heavily on community support. If you find this tool valuable, your contribution helps keep the code open and the project alive.
 * **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 * **Iranian Rial (IRR):** [Donate via Donito](https://donito.me/u-b8wjr)
+
+</details>
+
+<details>
+<summary><strong>🇨🇳 简体中文 (Simplified Chinese)</strong></summary>
+
+<br>
+
+### 🚀 终极轨道工作区
+AI Tree Launcher v34.33 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
+
+#### 🌟 核心功能
+* **🌌 轨道金库：** 可拖拽的悬浮启动器，包含 4 个中心、无限书签和 15 个分类标签网格。
+* **🎙️ 智能工作室和离线语音：** 高级记事本，通过本地 Whisper 模型提供 **100% 离线语音输入**，绝对保护隐私。
+* **📅 时间与任务管理：** 三重日历（公历、波斯历、回历），包含事件、假日、年龄追踪器和待办事项列表。
+* **🧠 统一搜索和 AI 工具：** 综合网络和书签搜索引擎、全面的提示词库和内置计算器。
+* **🕊️ 全球智慧引擎：** 每日推送来自全球精神传统的诗歌和感悟。
+* **✨ 离线星空标签页：** 精美的全新空白标签页，带有动态星空背景，离线时自动激活。
+* **🛡️ 安全可靠：** Chrome 同步、一键 JSON 备份/恢复以及登录页隐私自动隐藏。
+* **🌍 12 种语言：** 完全本地化支持。
+* **🛠️ 优化与提升：** 修复了部分小错误并提升了整体性能。
+
+#### 💻 安装指南 (开发者模式)
+1. 克隆 `minoodar/AI-Tree-Launcher` 或下载 ZIP 文件。
+2. 转到 `chrome://extensions/` 并启用 **开发者模式 (Developer mode)**。
+3. 点击 **加载已解压的扩展程序 (Load unpacked)** 并选择项目文件夹。
+
+#### 💖 支持与贡献
+作为一名身处饱受战争蹂躏的伊朗的独立 AI 开发者，在充满挑战的条件下维护和扩展这个开源项目很大程度上依赖于社区的支持。如果您觉得这个工具对您有帮助，您的捐款将帮助保持代码开源和项目的持续发展。
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **伊朗里亚尔 (IRR):** [通过 Donito 捐赠](https://donito.me/u-b8wjr)
+
+</details>
+
+<details>
+<summary><strong>🇹🇼 繁體中文 (Traditional Chinese)</strong></summary>
+
+<br>
+
+### 🚀 終極軌道工作區
+AI Tree Launcher v34.33 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
+
+#### 🌟 核心功能
+* **🌌 軌道金庫：** 可拖曳的懸浮啟動器，包含 4 個中心、無限書籤和 15 個分類標籤網格。
+* **🎙️ 智能工作室和離線語音：** 高級記事本，透過本地 Whisper 模型提供 **100% 離線語音輸入**，絕對保護隱私。
+* **📅 時間與任務管理：** 三重日曆（公曆、波斯曆、回曆），包含事件、假日、年齡追蹤器和待辦事項列表。
+* **🧠 統一搜尋和 AI 工具：** 綜合網路和書籤搜尋引擎、全面的提示詞庫和內建計算機。
+* **🕊️ 全球智慧引擎：** 每日推播來自全球精神傳統的詩歌和感悟。
+* **✨ 離線星空分頁：** 精美的全新空白分頁，帶有動態星空背景，離線時自動啟用。
+* **🛡️ 安全可靠：** Chrome 同步、一鍵 JSON 備份/還原以及登入頁隱私自動隱藏。
+* **🌍 12 種語言：** 完全在地化支援。
+* **🛠️ 優化與提升：** 修復了部分小錯誤並提升了整體效能。
+
+#### 💻 安裝指南 (開發者模式)
+1. 複製 `minoodar/AI-Tree-Launcher` 或下載 ZIP 檔案。
+2. 前往 `chrome://extensions/` 並啟用 **開發人員模式 (Developer mode)**。
+3. 點擊 **載入未封裝項目 (Load unpacked)** 並選擇專案資料夾。
+
+#### 💖 支持與貢獻
+作為一名身處飽受戰爭蹂躪的伊朗的獨立 AI 開發者，在充滿挑戰的條件下維護和擴展這個開源項目很大程度上依賴於社區的支持。如果您覺得這個工具有幫助，您的捐款將幫助保持程式碼開源和項目的持續發展。
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **伊朗里亞爾 (IRR):** [透過 Donito 捐贈](https://donito.me/u-b8wjr)
+
+</details>
+
+<details>
+<summary><strong>🇧🇷 Português (Brazilian Portuguese)</strong></summary>
+
+<br>
+
+### 🚀 O Espaço de Trabalho Orbital Definitivo
+O AI Tree Launcher v34.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
+
+#### 🌟 Características Principais
+* **🌌 Cofre Orbital:** Lançador flutuante arrastável com favoritos ilimitados em 4 hubs e uma grade de tags de 15 categorias pesquisáveis.
+* **🎙️ Estúdio Inteligente & Voz Offline:** Bloco de notas avançado com **ditado 100% offline** (modelo Whisper local) para privacidade absoluta.
+* **📅 Gestão de Tempo e Tarefas:** Calendário triplo (Gregoriano, Jalali, Islâmico) com eventos, feriados e lista de tarefas.
+* **🧠 Busca Unificada e Ferramentas de IA:** Mecanismo de busca combinado (web e favoritos), biblioteca de prompts e calculadora integrada.
+* **🕊️ Motor de Sabedoria Global:** Poesia e reflexões diárias de tradições espirituais globais.
+* **✨ Guia Estrelada Offline:** Uma nova e bela guia vazia com fundo de estrelas dinâmico, ativada automaticamente quando você está offline.
+* **🛡️ Seguro e Confiável:** Sincronização do Chrome, backup JSON com 1 clique, e ocultação automática de privacidade.
+* **🌍 12 Idiomas:** Totalmente localizado para 12 idiomas diferentes.
+* **🛠️ Melhorias:** Pequenas correções de bugs e otimizações de desempenho.
+
+#### 💻 Instalação (Modo Desenvolvedor)
+1. Clone `minoodar/AI-Tree-Launcher` ou baixe o arquivo ZIP.
+2. Acesse `chrome://extensions/` e ative o **Modo do desenvolvedor (Developer mode)**.
+3. Clique em **Carregar sem compactação (Load unpacked)** e selecione a pasta do projeto.
+
+#### 💖 Apoio e Contribuição
+Como um desenvolvedor independente de IA baseado no Irã, afetado pela guerra, manter e expandir este projeto de código aberto sob condições desafiadoras depende muito do apoio da comunidade. Se você acha esta ferramenta valiosa, sua contribuição ajuda a manter o código aberto e o projeto vivo.
+* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+* **Rial Iraniano (IRR):** [Doe via Donito](https://donito.me/u-b8wjr)
 
 </details>
 
@@ -59,8 +154,10 @@ AI Tree Launcher v34.33, tarayıcınızı yüzen bir üretkenlik ekosistemine d�
 * **📅 Zaman ve Görev Yönetimi:** Etkinlikler, resmi tatiller, yaş izleyici ve yapılacaklar listesi içeren üçlü takvim (Miladi, Celali, Hicri).
 * **🧠 Birleşik Arama ve Yapay Zeka Araçları:** Birleşik web ve yer imi arama motoru, kapsamlı komut (prompt) kütüphanesi ve dahili hesap makinesi.
 * **🕊️ Küresel Bilgelik Motoru:** Küresel manevi geleneklerden günlük şiirler ve içgörüler.
-* **🛡️ Güvenli ve Güvenilir:** Chrome senkronizasyonu, tek tıklamayla tam JSON yedekleme/geri yükleme ve giriş sayfalarında gizlilik odaklı otomatik gizleme.
-* **🌍 9 Dil:** Tamamen yerelleştirilmiş (RTL desteği ile).
+* **✨ Çevrimdışı Yıldızlı Sekme:** Çevrimdışı olduğunuzda otomatik olarak etkinleşen, dinamik yıldız arka planına sahip yeni güzel bir boş sekme.
+* **🛡️ Güvenli ve Güvenilir:** Chrome senkronizasyonu, tek tıklamayla tam JSON yedekleme/geri yükleme ve giriş sayfalarında otomatik gizleme.
+* **🌍 12 Dil:** Tamamen yerelleştirilmiş 12 dil desteği.
+* **🛠️ İyileştirmeler:** Küçük hata düzeltmeleri ve performans iyileştirmeleri.
 
 #### 💻 Kurulum (Geliştirici Modu)
 1. `minoodar/AI-Tree-Launcher` deposunu klonlayın veya ZIP olarak indirin.
@@ -88,8 +185,10 @@ Una extensión pura de **Vanilla JS** sin dependencias que transforma tu navegad
 * **📅 Tiempo y Tareas:** Calendario triple (Gregoriano, Jalali, Hégira) con festivos y lista de tareas.
 * **🧠 Búsqueda Unificada y Herramientas IA:** Búsqueda combinada (web + marcadores), biblioteca de prompts y calculadora.
 * **🕊️ Motor de Sabiduría:** Poesía diaria y reflexiones de tradiciones globales.
-* **🛡️ Seguro y Fiable:** Sincronización, copias de seguridad JSON, y ocultación automática por privacidad en páginas de inicio de sesión.
-* **🌍 9 Idiomas:** Completamente localizado con soporte RTL.
+* **✨ Pestaña Estrellada Offline:** Una nueva y hermosa pestaña vacía con fondo de estrellas dinámico que se activa automáticamente sin conexión.
+* **🛡️ Seguro y Fiable:** Sincronización, copias de seguridad JSON, y ocultación automática por privacidad.
+* **🌍 12 Idiomas:** Completamente localizado para 12 idiomas (con soporte RTL).
+* **🛠️ Mejoras:** Correcciones de errores menores y mejoras de rendimiento.
 
 #### 💻 Instalación (Modo Desarrollador)
 1. Clona `minoodar/AI-Tree-Launcher` o descarga el ZIP.
@@ -117,8 +216,10 @@ Eine reine **Vanilla JS**-Erweiterung ohne Abhängigkeiten, die Ihren Browser in
 * **📅 Zeit & Aufgaben:** Dreifach-Kalender (Gregorianisch, Jalali, Hijri) mit Feiertagen und To-Do-Liste.
 * **🧠 Einheitliche Suche & KI-Tools:** Kombinierte Web- und Lesezeichensuche, Prompt-Bibliothek und Taschenrechner.
 * **🕊️ Global Wisdom Engine:** Tägliche Poesie und Weisheiten.
+* **✨ Offline-Sternen-Tab:** Ein wunderschöner neuer leerer Tab mit dynamischem Sternenhintergrund für die Offline-Nutzung.
 * **🛡️ Sicher & Zuverlässig:** Chrome-Sync, JSON-Backups und datenschutzfreundliches Auto-Hide.
-* **🌍 9 Sprachen:** Vollständig lokalisiert.
+* **🌍 12 Sprachen:** Vollständig in 12 Sprachen lokalisiert.
+* **🛠️ Verbesserungen:** Kleinere Fehlerbehebungen und Leistungsverbesserungen.
 
 #### 💻 Installation (Entwicklermodus)
 1. Klone `minoodar/AI-Tree-Launcher` oder lade die ZIP herunter.
@@ -146,8 +247,10 @@ Une extension **Vanilla JS** pure, sans dépendances, qui transforme votre navig
 * **📅 Temps & Tâches :** Triple calendrier (Grégorien, Jalali, Hégire) avec jours fériés et liste de tâches.
 * **🧠 Recherche Unifiée & Outils IA :** Recherche combinée (web + favoris), bibliothèque de prompts et calculatrice.
 * **🕊️ Moteur de Sagesse :** Poésie et réflexions quotidiennes.
+* **✨ Onglet Étoilé Hors Ligne :** Un bel onglet vide avec un fond d'étoiles dynamique activé automatiquement sans connexion.
 * **🛡️ Sécurisé & Fiable :** Synchronisation, sauvegardes JSON, et masquage automatique pour la confidentialité.
-* **🌍 9 Langues :** Entièrement localisé.
+* **🌍 12 Langues :** Entièrement localisé en 12 langues.
+* **🛠️ Améliorations :** Corrections de bugs mineurs et améliorations des performances.
 
 #### 💻 Installation (Mode Développeur)
 1. Clonez `minoodar/AI-Tree-Launcher` ou téléchargez le ZIP.
@@ -175,8 +278,10 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **📅 時間とタスク管理:** 祝日・イベント対応のトリプルカレンダー（グレゴリオ、ジャラリ、ヒジュラ）とTo-Doリスト。
 * **🧠 統合検索 & AIツール:** Web・ブックマーク統合検索、プロンプト・ライブラリ、電卓。
 * **🕊️ グローバル・ウィズダム:** 世界の詩や伝統的な知恵を毎日配信。
+* **✨ オフライン星空タブ:** オフライン時に自動的に表示される、ダイナミックな星空を背景にした美しい空のタブ。
 * **🛡️ セキュリティ & バックアップ:** 同期、JSONバックアップ、プライバシーを配慮した自動非表示。
-* **🌍 9言語対応:** 完全ローカライズ。
+* **🌍 12言語対応:** 12の言語に完全ローカライズ。
+* **🛠️ 改善:** 軽微なバグ修正とパフォーマンス向上。
 
 #### 💻 インストール方法 (デベロッパーモード)
 1. `minoodar/AI-Tree-Launcher` をクローンするか、ZIP をダウンロードします。
@@ -204,8 +309,10 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **📅 Время и Задачи:** Тройной календарь (Григорианский, Джалали, Хиджра) с праздниками и списком задач.
 * **🧠 Единый Поиск и ИИ-инструменты:** Объединенный поиск (веб + закладки), библиотека промптов и калькулятор.
 * **🕊️ Движок Мудрости:** Ежедневная поэзия и мудрости со всего мира.
+* **✨ Офлайн-вкладка со звездами:** Красивая новая пустая вкладка с динамичным звездным фоном, автоматически активируемая без интернета.
 * **🛡️ Безопасность и Резервное копирование:** Синхронизация, JSON-бэкапы и автоматическое скрытие на страницах входа.
-* **🌍 9 Языков:** Полностью локализован (включая RTL).
+* **🌍 12 Языков:** Полностью локализован на 12 языков (включая RTL).
+* **🛠️ Улучшения:** Мелкие исправления ошибок и улучшения производительности.
 
 #### 💻 Установка (Режим разработчика)
 1. Клонируйте `minoodar/AI-Tree-Launcher` или скачайте ZIP-архив.
@@ -234,8 +341,10 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **📅 إدارة الوقت والمهام:** تقويم ثلاثي (ميلادي، هجري، شمسي) مزود بالأحداث والعطلات، بالإضافة إلى قائمة مهام يومية.
 * **🧠 بحث موحد وأدوات ذكية:** محرك بحث يدمج بين الويب والإشارات المرجعية، ومكتبة قوالب نصوص، وحاسبة مدمجة.
 * **🕊️ محرك الحكمة العالمي:** رسائل تأمل يومية وشعر من مختلف الثقافات.
-* **🛡️ الأمان والموثوقية:** مزامنة سحابية، نسخ احتياطي كامل (JSON)، وإخفاء تلقائي لحماية الخصوصية في شاشات تسجيل الدخول.
-* **🌍 9 لغات:** دعم كامل لـ 9 لغات بما فيها العربية.
+* **✨ علامة تبويب النجوم دون اتصال:** علامة تبويب فارغة جديدة وجميلة بخلفية نجوم ديناميكية تتفعل تلقائيًا عند انقطاع الاتصال بالإنترنت.
+* **🛡️ الأمان والموثوقية:** مزامنة سحابية، نسخ احتياطي كامل (JSON)، وإخفاء تلقائي لحماية الخصوصية.
+* **🌍 12 لغة:** دعم كامل لـ 12 لغة مختلفة.
+* **🛠️ التحسينات:** إصلاحات طفيفة للأخطاء وتحسينات في الأداء.
 
 #### 💻 طريقة التثبيت (وضع المطور)
 ١. قم باستنساخ `minoodar/AI-Tree-Launcher` أو تحميل ملف ZIP.
@@ -265,8 +374,10 @@ En tant que développeur IA indépendant basé en Iran, un pays touché par la g
 * **📅 مدیریت زمان و وظایف:** تقویم سه‌گانه (جلالی، میلادی، قمری) با نمایش تعطیلات رسمی، رویدادها، شمارشگر سن و لیست پیشرفته کارها.
 * **🧠 جستجوی یکپارچه و ابزارهای AI:** موتور جستجوی تلفیقی (جستجو در وب و بوک‌مارک‌ها)، کتابخانه پرامپت‌ها و ماشین‌حساب داخلی.
 * **🕊️ موتور گنجینه جهانی:** نمایش دوزبانه اشعار و پیام‌های روزانه از ادبیات و سنت‌های معنوی جهان.
-* **🛡️ امنیت و پایداری:** همگام‌سازی ابری Chrome، بکاپ‌گیری کامل JSON با یک کلیک و پنهان‌سازی خودکار افزونه در صفحات حساس لاگین.
-* **🌍 پشتیبانی از ۹ زبان:** بومی‌سازی کامل برای ۹ زبان زنده دنیا (راست‌چین و چپ‌چین).
+* **✨ تب آفلاین پرستاره:** یک تب خالی جدید و زیبا با پس‌زمینه متحرک ستارگان که در زمان قطعی اینترنت به صورت خودکار فعال می‌شود.
+* **🛡️ امنیت و پایداری:** همگام‌سازی ابری Chrome، بکاپ‌گیری کامل JSON با یک کلیک و پنهان‌سازی خودکار در صفحات حساس لاگین.
+* **🌍 پشتیبانی از ۱۲ زبان:** بومی‌سازی کامل برای ۱۲ زبان زنده دنیا (راست‌چین و چپ‌چین).
+* **🛠️ بهبودها:** رفع ایرادات جزئی و ارتقای عملکرد نرم‌افزار.
 
 #### 💻 آموزش نصب (Developer Mode)
 ۱. مخزن `minoodar/AI-Tree-Launcher` را کلون کرده یا فایل ZIP آن را دانلود کنید.
