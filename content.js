@@ -1129,7 +1129,9 @@ function updateUITexts() {
                       ? '今天 · 明天 · 2026-07-27'
                       : currentLang === 'zh-Hant'
                         ? '今天 · 明天 · 2026-07-27'
-                        : 'today · tomorrow · 2026-07-27 · 1403/05/16';
+                        : currentLang === 'pt-BR'
+                          ? 'hoje · amanhã · 2026-07-27'
+                          : 'today · tomorrow · 2026-07-27 · 1403/05/16';
     }
 
     root.style.direction = isRTL(currentLang) ? 'rtl' : 'ltr';
@@ -1317,7 +1319,7 @@ function openMarkEventSheet(m) {
       const monthName = JALALI_MONTHS_FA[m.month - 1] || '';
       dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else if (isH) {
-      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : currentLang === 'zh-Hans' ? HIJRI_MONTHS_ZHHANS : currentLang === 'zh-Hant' ? HIJRI_MONTHS_ZHHANT : HIJRI_MONTHS_EN;
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : currentLang === 'zh-Hans' ? HIJRI_MONTHS_ZHHANS : currentLang === 'zh-Hant' ? HIJRI_MONTHS_ZHHANT : currentLang === 'pt-BR' ? HIJRI_MONTHS_PTBR : HIJRI_MONTHS_EN;
       const monthName = hijriNames[m.month - 1] || '';
       dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else {
@@ -1652,6 +1654,7 @@ function openMarkEventSheet(m) {
     if (currentLang === 'tr') return 'TR';
     if (currentLang === 'zh-Hans') return 'CN';
     if (currentLang === 'zh-Hant') return 'TW';
+    if (currentLang === 'pt-BR') return 'BR';
     try {
       const loc = Intl.DateTimeFormat().resolvedOptions().locale || '';
       const region = loc.split('-').find(p => p.length === 2 && p === p.toUpperCase());
@@ -2745,8 +2748,9 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   const GREG_MONTHS_STD_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
   const GREG_MONTHS_STD_ZHHANS = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
   const GREG_MONTHS_STD_ZHHANT = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const GREG_MONTHS_STD_PTBR = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
   function getDisplayGregorianMonth(mIndex) {
-    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'ar' ? GREG_MONTHS_STD_AR[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : currentLang === 'de' ? GREG_MONTHS_STD_DE[mIndex] : currentLang === 'fr' ? GREG_MONTHS_STD_FR[mIndex] : currentLang === 'ja' ? GREG_MONTHS_STD_JA[mIndex] : currentLang === 'ru' ? GREG_MONTHS_STD_RU[mIndex] : currentLang === 'tr' ? GREG_MONTHS_STD_TR[mIndex] : currentLang === 'zh-Hans' ? GREG_MONTHS_STD_ZHHANS[mIndex] : currentLang === 'zh-Hant' ? GREG_MONTHS_STD_ZHHANT[mIndex] : GREG_MONTHS_STD_EN[mIndex];
+    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'ar' ? GREG_MONTHS_STD_AR[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : currentLang === 'de' ? GREG_MONTHS_STD_DE[mIndex] : currentLang === 'fr' ? GREG_MONTHS_STD_FR[mIndex] : currentLang === 'ja' ? GREG_MONTHS_STD_JA[mIndex] : currentLang === 'ru' ? GREG_MONTHS_STD_RU[mIndex] : currentLang === 'tr' ? GREG_MONTHS_STD_TR[mIndex] : currentLang === 'zh-Hans' ? GREG_MONTHS_STD_ZHHANS[mIndex] : currentLang === 'zh-Hant' ? GREG_MONTHS_STD_ZHHANT[mIndex] : currentLang === 'pt-BR' ? GREG_MONTHS_STD_PTBR[mIndex] : GREG_MONTHS_STD_EN[mIndex];
   }
   const HIJRI_MONTHS_FA = ['محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی','رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه'];
   const HIJRI_MONTHS_AR = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
@@ -2759,6 +2763,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   const HIJRI_MONTHS_TR = ['Muharrem','Safer',"Rebîülevvel","Rebîülâhir",'Cemâziyelevvel','Cemâziyelâhir','Recep',"Şaban",'Ramazan','Şevval',"Zilkade",'Zilhicce'];
   const HIJRI_MONTHS_ZHHANS = ['穆哈兰姆月','色法尔月','赖比尔·敖外鲁月','赖比尔·阿色尼月','主马达·敖外鲁月','主马达·阿色尼月','赖哲卜月','舍尔邦月','莱麦丹月','闪瓦鲁月','都尔喀尔德月','都尔黑哲月'];
   const HIJRI_MONTHS_ZHHANT = ['穆哈蘭姆月','色法爾月','賴比爾·敖外魯月','賴比爾·阿色尼月','主馬達·敖外魯月','主馬達·阿色尼月','賴哲卜月','捨爾邦月','萊麥丹月','閃瓦魯月','都爾喀爾德月','都爾黑哲月'];
+  const HIJRI_MONTHS_PTBR = ['Muharram','Safar',"Rabi al-Awwal","Rabi al-Thani",'Jumada al-Awwal','Jumada al-Thani','Rajab',"Sha'ban",'Ramadã','Shawwal',"Dhu al-Qi'dah",'Dhu al-Hijjah'];
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
   const WEEKDAYS_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
@@ -2828,11 +2833,11 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         return `${namesArr[mStart - 1] || ''}–${namesArr[mEnd - 1] || ''}`;
       };
       const jalaliSpan = spanLabel(JALALI_MONTHS_FA, jFirst.jm, jLast.jm);
-      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : currentLang === 'zh-Hans' ? HIJRI_MONTHS_ZHHANS : currentLang === 'zh-Hant' ? HIJRI_MONTHS_ZHHANT : HIJRI_MONTHS_EN;
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : currentLang === 'zh-Hans' ? HIJRI_MONTHS_ZHHANS : currentLang === 'zh-Hant' ? HIJRI_MONTHS_ZHHANT : currentLang === 'pt-BR' ? HIJRI_MONTHS_PTBR : HIJRI_MONTHS_EN;
       const hijriSpan = (hFirst && hLast) ? spanLabel(hijriNames, hFirst.hm, hLast.hm) : '';
       if (uiEls.dualMonthSublabel) {
-        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'ar' ? 'جلالي' : currentLang === 'es' ? 'jalalí' : currentLang === 'de' ? 'Dschalali' : currentLang === 'fr' ? 'jalali' : currentLang === 'ja' ? 'ジャラリ暦' : currentLang === 'ru' ? 'джалали' : currentLang === 'tr' ? 'Celalî' : currentLang === 'zh-Hans' ? '波斯历' : currentLang === 'zh-Hant' ? '波斯曆' : 'Jalali';
-        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'ar' ? 'هجري' : currentLang === 'es' ? 'hijrí' : currentLang === 'de' ? 'Hidschri' : currentLang === 'fr' ? 'hijri' : currentLang === 'ja' ? 'ヒジュラ暦' : currentLang === 'ru' ? 'хиджра' : currentLang === 'tr' ? 'Hicrî' : currentLang === 'zh-Hans' ? '伊斯兰历' : currentLang === 'zh-Hant' ? '伊斯蘭曆' : 'Hijri';
+        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'ar' ? 'جلالي' : currentLang === 'es' ? 'jalalí' : currentLang === 'de' ? 'Dschalali' : currentLang === 'fr' ? 'jalali' : currentLang === 'ja' ? 'ジャラリ暦' : currentLang === 'ru' ? 'джалали' : currentLang === 'tr' ? 'Celalî' : currentLang === 'zh-Hans' ? '波斯历' : currentLang === 'zh-Hant' ? '波斯曆' : currentLang === 'pt-BR' ? 'persa' : 'Jalali';
+        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'ar' ? 'هجري' : currentLang === 'es' ? 'hijrí' : currentLang === 'de' ? 'Hidschri' : currentLang === 'fr' ? 'hijri' : currentLang === 'ja' ? 'ヒジュラ暦' : currentLang === 'ru' ? 'хиджра' : currentLang === 'tr' ? 'Hicrî' : currentLang === 'zh-Hans' ? '伊斯兰历' : currentLang === 'zh-Hant' ? '伊斯蘭曆' : currentLang === 'pt-BR' ? 'hégira' : 'Hijri';
         const parts = [];
         if (jalaliSpan) parts.push(`${jalaliSpan} ${shamsiLabel}`);
         if (hijriSpan) parts.push(`${hijriSpan} ${hijriLabel}`);
@@ -2889,10 +2894,11 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     const WEEKDAY_FULL_TR = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
     const WEEKDAY_FULL_ZHHANS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
     const WEEKDAY_FULL_ZHHANT = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    const WEEKDAY_FULL_PTBR = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
     function dayHoverTip(gy, gm, gd) {
       const wdIdx = new Date(gy, gm - 1, gd).getDay();
       const weekdayKey = HAFT_PEYKAR_KEY[wdIdx];
-      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'ar' ? WEEKDAY_FULL_AR[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : currentLang === 'de' ? WEEKDAY_FULL_DE[wdIdx] : currentLang === 'fr' ? WEEKDAY_FULL_FR[wdIdx] : currentLang === 'ja' ? WEEKDAY_FULL_JA[wdIdx] : currentLang === 'ru' ? WEEKDAY_FULL_RU[wdIdx] : currentLang === 'tr' ? WEEKDAY_FULL_TR[wdIdx] : currentLang === 'zh-Hans' ? WEEKDAY_FULL_ZHHANS[wdIdx] : currentLang === 'zh-Hant' ? WEEKDAY_FULL_ZHHANT[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
+      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'ar' ? WEEKDAY_FULL_AR[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : currentLang === 'de' ? WEEKDAY_FULL_DE[wdIdx] : currentLang === 'fr' ? WEEKDAY_FULL_FR[wdIdx] : currentLang === 'ja' ? WEEKDAY_FULL_JA[wdIdx] : currentLang === 'ru' ? WEEKDAY_FULL_RU[wdIdx] : currentLang === 'tr' ? WEEKDAY_FULL_TR[wdIdx] : currentLang === 'zh-Hans' ? WEEKDAY_FULL_ZHHANS[wdIdx] : currentLang === 'zh-Hant' ? WEEKDAY_FULL_ZHHANT[wdIdx] : currentLang === 'pt-BR' ? WEEKDAY_FULL_PTBR[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
       // Line 1 — Gregorian day/month, region-aware month name
       const monthName = getDisplayGregorianMonth(gm - 1);
       const dayStr = localizeDigits(gd);

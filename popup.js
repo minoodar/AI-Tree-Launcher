@@ -220,6 +220,26 @@ const i18nPopup = {
         poetryRumi: "🌙 魯米", poetryWestern: "🖋️ 西方文學",
         vaultLiveSaved: "✓ 已即時儲存——無需點擊「儲存」",
         btnVoidTab: "⬛ 離線空白標籤頁"
+      },
+      'pt-BR': {
+        tabCore: "⚙️ Principal", tabBackup: "🛡️ Backup", tabVault: "✨ Tesouro",
+        lblLanguage: "Idioma do aplicativo:", lblBirth: "Ano de nascimento (para a idade no relógio):",
+        btnSave: "Salvar Configurações", btnExport: "📤 Exportar Backup (JSON)", btnImport: "📥 Importar Backup (Restaurar)",
+        toastSaved: "Configurações salvas com sucesso!", toastExported: "Arquivo JSON baixado!", toastImported: "Dados importados com sucesso!", toastRestored: "Backup restaurado com sucesso!",
+        invalidFile: "Formato de arquivo inválido.", errRead: "Erro ao ler o arquivo JSON.",
+        btnHide: "Ocultar", btnShow: "Mostrar (Redefinir)",
+        backupHint: "🟢 A exportação salva tudo — favoritos, tarefas, eventos e datas do calendário, configurações, bloco de notas &nbsp;·&nbsp; 🟠 A importação restaura tudo a partir de um arquivo",
+        contactTitle: "✉︎ Fale Conosco", contactEmail: "E-mail:",
+        holidaysTitle: "Feriados Oficiais", holidaysEnable: "Mostrar feriados oficiais no calendário",
+        holidayAuto: "Automático — seguir o idioma do aplicativo", holidayIran: "Irã (offline, lista selecionada)", holidayCustom: "Outro país (digite o código)",
+        holidayHintAuto: "Usa o Irã quando o idioma do app é persa, a Rússia quando é russo; caso contrário, tenta adivinhar o país pela configuração regional do sistema.",
+        holidayHintIran: "Usa a lista offline embutida de feriados do Irã — não precisa de internet.",
+        holidayHintCustom: "Digite um código de país de 2 letras (ISO 3166-1, ex.: US, DE, GB, FR). Os dados vêm de uma fonte internacional geral de feriados.",
+        quotesTitle: "Sabedoria Diária", religionSource: "Fonte de versículos espirituais", poetrySource: "Fonte de poesia e literatura",
+        religionIslam: "☪️ Islamismo", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabedoria budista e hindu)",
+        poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura Ocidental",
+        vaultLiveSaved: "✓ Salvo instantaneamente — não é preciso clicar em Salvar",
+        btnVoidTab: "⬛ Aba Vazia Offline"
       }
     };
 
@@ -236,7 +256,7 @@ const i18nPopup = {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : (currentLang === 'zh-Hans' || currentLang === 'zh-Hant') ? "例如：1990" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : (currentLang === 'zh-Hans' || currentLang === 'zh-Hant') ? "例如：1990" : currentLang === 'pt-BR' ? "ex.: 1990" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       if (document.getElementById('voidTabBtn')) document.getElementById('voidTabBtn').textContent = t.btnVoidTab;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;

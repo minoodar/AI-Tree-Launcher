@@ -2,15 +2,15 @@
 // — قبلاً فقط label/labelFa داشت. انتخاب برچسب با quoteCategoryLabel() در content.js
 // انجام می‌شود که مستقیم بر اساس currentLang جستجو می‌کند (با fallback به en).
 const AI_QUOTE_RELIGIONS = {
-  islam:        { icon: '☪️', file: 'quran.json',              en: 'Islam',           fa: 'اسلام',        ar: 'الإسلام',           es: 'Islam',              de: 'Islam',            fr: 'Islam',              ja: 'イスラム教', ru: 'Ислам',            tr: 'İslam', 'zh-Hans': '伊斯兰教', 'zh-Hant': '伊斯蘭教' },
-  judaism:      { icon: '✡️', file: 'judaism.json',             en: 'Judaism',         fa: 'یهودیت',       ar: 'اليهودية',          es: 'Judaísmo',           de: 'Judentum',         fr: 'Judaïsme',           ja: 'ユダヤ教',   ru: 'Иудаизм',          tr: 'Yahudilik', 'zh-Hans': '犹太教', 'zh-Hant': '猶太教' },
-  christianity: { icon: '✝️', file: 'christianity-luke.json',   en: 'Christianity',    fa: 'مسیحیت',       ar: 'المسيحية',          es: 'Cristianismo',       de: 'Christentum',      fr: 'Christianisme',      ja: 'キリスト教', ru: 'Христианство',     tr: 'Hristiyanlık', 'zh-Hans': '基督教', 'zh-Hant': '基督教' },
-  eastern:      { icon: '☸️', file: 'eastern-wisdom.json',      en: 'Eastern Wisdom',  fa: 'حکمت شرقی',    ar: 'الحكمة الشرقية',    es: 'Sabiduría oriental', de: 'Östliche Weisheit', fr: 'Sagesse orientale',  ja: '東洋の知恵', ru: 'Восточная мудрость', tr: 'Doğu Bilgeliği', 'zh-Hans': '东方智慧', 'zh-Hant': '東方智慧' }
+  islam:        { icon: '☪️', file: 'quran.json',              en: 'Islam',           fa: 'اسلام',        ar: 'الإسلام',           es: 'Islam',              de: 'Islam',            fr: 'Islam',              ja: 'イスラム教', ru: 'Ислам',            tr: 'İslam', 'zh-Hans': '伊斯兰教', 'zh-Hant': '伊斯蘭教', 'pt-BR': 'Islamismo' },
+  judaism:      { icon: '✡️', file: 'judaism.json',             en: 'Judaism',         fa: 'یهودیت',       ar: 'اليهودية',          es: 'Judaísmo',           de: 'Judentum',         fr: 'Judaïsme',           ja: 'ユダヤ教',   ru: 'Иудаизм',          tr: 'Yahudilik', 'zh-Hans': '犹太教', 'zh-Hant': '猶太教', 'pt-BR': 'Judaísmo' },
+  christianity: { icon: '✝️', file: 'christianity-luke.json',   en: 'Christianity',    fa: 'مسیحیت',       ar: 'المسيحية',          es: 'Cristianismo',       de: 'Christentum',      fr: 'Christianisme',      ja: 'キリスト教', ru: 'Христианство',     tr: 'Hristiyanlık', 'zh-Hans': '基督教', 'zh-Hant': '基督教', 'pt-BR': 'Cristianismo' },
+  eastern:      { icon: '☸️', file: 'eastern-wisdom.json',      en: 'Eastern Wisdom',  fa: 'حکمت شرقی',    ar: 'الحكمة الشرقية',    es: 'Sabiduría oriental', de: 'Östliche Weisheit', fr: 'Sagesse orientale',  ja: '東洋の知恵', ru: 'Восточная мудрость', tr: 'Doğu Bilgeliği', 'zh-Hans': '东方智慧', 'zh-Hant': '東方智慧', 'pt-BR': 'Sabedoria Oriental' }
 };
 
 const AI_QUOTE_POETRY = {
-  rumi:    { icon: '🌙', file: 'rumi.json',               en: 'Rumi',               fa: 'مولانا',      ar: 'جلال الدين الرومي', es: 'Rumi',                    de: 'Rumi',                  fr: 'Rumi',                    ja: 'ルーミー', ru: 'Руми',              tr: 'Mevlana', 'zh-Hans': '鲁米', 'zh-Hant': '魯米' },
-  western: { icon: '🖋️', file: 'western-literature.json', en: 'Western Literature', fa: 'ادبیات غرب',  ar: 'الأدب الغربي',      es: 'Literatura occidental',   de: 'Westliche Literatur',   fr: 'Littérature occidentale', ja: '西洋文学', ru: 'Западная литература', tr: 'Batı Edebiyatı', 'zh-Hans': '西方文学', 'zh-Hant': '西方文學' }
+  rumi:    { icon: '🌙', file: 'rumi.json',               en: 'Rumi',               fa: 'مولانا',      ar: 'جلال الدين الرومي', es: 'Rumi',                    de: 'Rumi',                  fr: 'Rumi',                    ja: 'ルーミー', ru: 'Руми',              tr: 'Mevlana', 'zh-Hans': '鲁米', 'zh-Hant': '魯米', 'pt-BR': 'Rumi' },
+  western: { icon: '🖋️', file: 'western-literature.json', en: 'Western Literature', fa: 'ادبیات غرب',  ar: 'الأدب الغربي',      es: 'Literatura occidental',   de: 'Westliche Literatur',   fr: 'Littérature occidentale', ja: '西洋文学', ru: 'Западная литература', tr: 'Batı Edebiyatı', 'zh-Hans': '西方文学', 'zh-Hant': '西方文學', 'pt-BR': 'Literatura Ocidental' }
 };
 
 const aiQuoteFileCache = {};
