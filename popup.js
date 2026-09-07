@@ -489,11 +489,27 @@ const i18nPopup = {
     // وبی) باز می‌شود که خودِ افزونه رویش کاملاً کار می‌کند — چون content.js
     // مستقیم به‌عنوان اسکریپت همان صفحه لود می‌شود، نه به‌عنوان content script
     // تزریق‌شده روی یک سایت واقعی.
+    // «تب خالی آفلاین»: باز کردن یا سوئیچ به تب موجود (تک‌نسخه‌ای)
     const voidTabBtn = document.getElementById('voidTabBtn');
     if (voidTabBtn) {
       voidTabBtn.addEventListener('click', () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('void-tab.html') });
-        window.close();
+        const voidTabUrl = chrome.runtime.getURL('void-tab.html');
+        
+        // جستجو در تمام تب‌های باز
+        chrome.tabs.query({ url: voidTabUrl }, (tabs) => {
+          if (tabs && tabs.length > 0) {
+            // اگر تب از قبل باز است، به همان منتقل می‌شویم
+            const existingTab = tabs[0];
+            chrome.tabs.update(existingTab.id, { active: true });
+            if (existingTab.windowId) {
+              chrome.windows.update(existingTab.windowId, { focused: true });
+            }
+          } else {
+            // اگر باز نیست، تب جدید می‌سازیم
+            chrome.tabs.create({ url: voidTabUrl });
+          }
+          window.close();
+        });
       });
     }
 
