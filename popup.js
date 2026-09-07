@@ -180,6 +180,46 @@ const i18nPopup = {
         poetryRumi: "🌙 Mevlana", poetryWestern: "🖋️ Batı Edebiyatı",
         vaultLiveSaved: "✓ Anında kaydedildi — «Kaydet»e basmaya gerek yok",
         btnVoidTab: "⬛ Boş Çevrimdışı Sekme"
+      },
+      'zh-Hans': {
+        tabCore: "⚙️ 核心", tabBackup: "🛡️ 备份", tabVault: "✨ 宝藏",
+        lblLanguage: "应用语言：", lblBirth: "出生年份（用于时钟年龄）：",
+        btnSave: "保存设置", btnExport: "📤 导出备份 (JSON)", btnImport: "📥 导入备份（恢复）",
+        toastSaved: "设置已成功保存！", toastExported: "JSON 文件已下载！", toastImported: "数据已成功导入！", toastRestored: "备份已成功恢复！",
+        invalidFile: "文件格式无效。", errRead: "读取 JSON 文件时出错。",
+        btnHide: "隐藏", btnShow: "显示（重置）",
+        backupHint: "🟢 导出会保存全部内容——书签、待办事项、日历事件与纪念日、设置、记事本 &nbsp;·&nbsp; 🟠 导入会从文件恢复全部内容",
+        contactTitle: "✉︎ 联系我们", contactEmail: "邮箱：",
+        holidaysTitle: "法定节假日", holidaysEnable: "在日历上显示法定节假日",
+        holidayAuto: "自动——跟随应用语言", holidayIran: "伊朗（离线、精选列表）", holidayCustom: "其他国家（输入代码）",
+        holidayHintAuto: "应用语言为波斯语时使用伊朗，为俄语时使用俄罗斯；否则会根据系统区域设置猜测国家。",
+        holidayHintIran: "使用内置的离线伊朗节假日列表——无需联网。",
+        holidayHintCustom: "输入两位国家代码（ISO 3166-1，例如 US、DE、GB、FR）。数据来自通用的国际节假日源。",
+        quotesTitle: "每日箴言", religionSource: "灵性经文来源", poetrySource: "诗歌与文学来源",
+        religionIslam: "☪️ 伊斯兰教", religionJudaism: "✡️ 犹太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 东方（佛教与印度教智慧）",
+        poetryRumi: "🌙 鲁米", poetryWestern: "🖋️ 西方文学",
+        vaultLiveSaved: "✓ 已即时保存——无需点击「保存」",
+        btnVoidTab: "⬛ 离线空白标签页"
+      },
+      'zh-Hant': {
+        tabCore: "⚙️ 核心", tabBackup: "🛡️ 備份", tabVault: "✨ 寶藏",
+        lblLanguage: "應用程式語言：", lblBirth: "出生年份（用於時鐘年齡）：",
+        btnSave: "儲存設定", btnExport: "📤 匯出備份 (JSON)", btnImport: "📥 匯入備份（還原）",
+        toastSaved: "設定已成功儲存！", toastExported: "JSON 檔案已下載！", toastImported: "資料已成功匯入！", toastRestored: "備份已成功還原！",
+        invalidFile: "檔案格式無效。", errRead: "讀取 JSON 檔案時發生錯誤。",
+        btnHide: "隱藏", btnShow: "顯示（重置）",
+        backupHint: "🟢 匯出會儲存全部內容——書籤、待辦事項、行事曆活動與紀念日、設定、記事本 &nbsp;·&nbsp; 🟠 匯入會從檔案還原全部內容",
+        contactTitle: "✉︎ 聯絡我們", contactEmail: "電子郵件：",
+        holidaysTitle: "法定假日", holidaysEnable: "在行事曆上顯示法定假日",
+        holidayAuto: "自動——跟隨應用程式語言", holidayIran: "伊朗（離線、精選清單）", holidayCustom: "其他國家（輸入代碼）",
+        holidayHintAuto: "應用程式語言為波斯語時使用伊朗，為俄語時使用俄羅斯；否則會依系統地區設定猜測國家。",
+        holidayHintIran: "使用內建的離線伊朗假日清單——不需要網路連線。",
+        holidayHintCustom: "輸入兩位國家代碼（ISO 3166-1，例如 US、DE、GB、FR）。資料來自通用的國際假日來源。",
+        quotesTitle: "每日箴言", religionSource: "靈性經文來源", poetrySource: "詩歌與文學來源",
+        religionIslam: "☪️ 伊斯蘭教", religionJudaism: "✡️ 猶太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 東方（佛教與印度教智慧）",
+        poetryRumi: "🌙 魯米", poetryWestern: "🖋️ 西方文學",
+        vaultLiveSaved: "✓ 已即時儲存——無需點擊「儲存」",
+        btnVoidTab: "⬛ 離線空白標籤頁"
       }
     };
 
@@ -196,7 +236,7 @@ const i18nPopup = {
       document.getElementById('tab-vault').textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : "e.g., 1990 or 1375";
+      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : (currentLang === 'zh-Hans' || currentLang === 'zh-Hant') ? "例如：1990" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       if (document.getElementById('voidTabBtn')) document.getElementById('voidTabBtn').textContent = t.btnVoidTab;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;

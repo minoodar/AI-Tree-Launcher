@@ -1125,7 +1125,11 @@ function updateUITexts() {
                   ? 'сегодня · завтра · 2026-07-27'
                   : currentLang === 'tr'
                     ? 'bugün · yarın · 2026-07-27'
-                    : 'today · tomorrow · 2026-07-27 · 1403/05/16';
+                    : currentLang === 'zh-Hans'
+                      ? '今天 · 明天 · 2026-07-27'
+                      : currentLang === 'zh-Hant'
+                        ? '今天 · 明天 · 2026-07-27'
+                        : 'today · tomorrow · 2026-07-27 · 1403/05/16';
     }
 
     root.style.direction = isRTL(currentLang) ? 'rtl' : 'ltr';
@@ -1313,7 +1317,7 @@ function openMarkEventSheet(m) {
       const monthName = JALALI_MONTHS_FA[m.month - 1] || '';
       dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else if (isH) {
-      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : HIJRI_MONTHS_EN;
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : currentLang === 'zh-Hans' ? HIJRI_MONTHS_ZHHANS : currentLang === 'zh-Hant' ? HIJRI_MONTHS_ZHHANT : HIJRI_MONTHS_EN;
       const monthName = hijriNames[m.month - 1] || '';
       dateStr = `${localizeDigits(m.day)} ${monthName}`;
     } else {
@@ -1646,6 +1650,8 @@ function openMarkEventSheet(m) {
     if (currentLang === 'fa') return 'IR';
     if (currentLang === 'ru') return 'RU';
     if (currentLang === 'tr') return 'TR';
+    if (currentLang === 'zh-Hans') return 'CN';
+    if (currentLang === 'zh-Hant') return 'TW';
     try {
       const loc = Intl.DateTimeFormat().resolvedOptions().locale || '';
       const region = loc.split('-').find(p => p.length === 2 && p === p.toUpperCase());
@@ -2737,8 +2743,10 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   const GREG_MONTHS_STD_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   const GREG_MONTHS_STD_RU = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
   const GREG_MONTHS_STD_TR = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+  const GREG_MONTHS_STD_ZHHANS = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  const GREG_MONTHS_STD_ZHHANT = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
   function getDisplayGregorianMonth(mIndex) {
-    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'ar' ? GREG_MONTHS_STD_AR[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : currentLang === 'de' ? GREG_MONTHS_STD_DE[mIndex] : currentLang === 'fr' ? GREG_MONTHS_STD_FR[mIndex] : currentLang === 'ja' ? GREG_MONTHS_STD_JA[mIndex] : currentLang === 'ru' ? GREG_MONTHS_STD_RU[mIndex] : currentLang === 'tr' ? GREG_MONTHS_STD_TR[mIndex] : GREG_MONTHS_STD_EN[mIndex];
+    return currentLang === 'fa' ? GREG_MONTHS_STD_FA[mIndex] : currentLang === 'ar' ? GREG_MONTHS_STD_AR[mIndex] : currentLang === 'es' ? GREG_MONTHS_STD_ES[mIndex] : currentLang === 'de' ? GREG_MONTHS_STD_DE[mIndex] : currentLang === 'fr' ? GREG_MONTHS_STD_FR[mIndex] : currentLang === 'ja' ? GREG_MONTHS_STD_JA[mIndex] : currentLang === 'ru' ? GREG_MONTHS_STD_RU[mIndex] : currentLang === 'tr' ? GREG_MONTHS_STD_TR[mIndex] : currentLang === 'zh-Hans' ? GREG_MONTHS_STD_ZHHANS[mIndex] : currentLang === 'zh-Hant' ? GREG_MONTHS_STD_ZHHANT[mIndex] : GREG_MONTHS_STD_EN[mIndex];
   }
   const HIJRI_MONTHS_FA = ['محرم','صفر','ربیع‌الاول','ربیع‌الثانی','جمادی‌الاول','جمادی‌الثانی','رجب','شعبان','رمضان','شوال','ذوالقعده','ذوالحجه'];
   const HIJRI_MONTHS_AR = ['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
@@ -2749,6 +2757,8 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   const HIJRI_MONTHS_JA = ['ムハッラム','サファル','ラビー・ウル・アウワル','ラビー・ウッサーニー','ジュマーダ・ル・ウーラー','ジュマーダ・ッサーニヤ','ラジャブ','シャアバーン','ラマダーン','シャウワール','ズー・ル・カアダ','ズー・ル・ヒッジャ'];
   const HIJRI_MONTHS_RU = ['мухаррам','сафар','раби аль-авваль','раби ас-сани','джумада аль-авваль','джумада ас-сани','раджаб','шаабан','рамадан','шавваль','зуль-када','зуль-хиджа'];
   const HIJRI_MONTHS_TR = ['Muharrem','Safer',"Rebîülevvel","Rebîülâhir",'Cemâziyelevvel','Cemâziyelâhir','Recep',"Şaban",'Ramazan','Şevval',"Zilkade",'Zilhicce'];
+  const HIJRI_MONTHS_ZHHANS = ['穆哈兰姆月','色法尔月','赖比尔·敖外鲁月','赖比尔·阿色尼月','主马达·敖外鲁月','主马达·阿色尼月','赖哲卜月','舍尔邦月','莱麦丹月','闪瓦鲁月','都尔喀尔德月','都尔黑哲月'];
+  const HIJRI_MONTHS_ZHHANT = ['穆哈蘭姆月','色法爾月','賴比爾·敖外魯月','賴比爾·阿色尼月','主馬達·敖外魯月','主馬達·阿色尼月','賴哲卜月','捨爾邦月','萊麥丹月','閃瓦魯月','都爾喀爾德月','都爾黑哲月'];
   const WEEKDAYS_FA = ['ش','ی','د','س','چ','پ','ج'];
   const WEEKDAYS_EN = ['Su','Mo','Tu','We','Th','Fr','Sa'];
 
@@ -2818,11 +2828,11 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         return `${namesArr[mStart - 1] || ''}–${namesArr[mEnd - 1] || ''}`;
       };
       const jalaliSpan = spanLabel(JALALI_MONTHS_FA, jFirst.jm, jLast.jm);
-      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : HIJRI_MONTHS_EN;
+      const hijriNames = currentLang === 'fa' ? HIJRI_MONTHS_FA : currentLang === 'ar' ? HIJRI_MONTHS_AR : currentLang === 'es' ? HIJRI_MONTHS_ES : currentLang === 'de' ? HIJRI_MONTHS_DE : currentLang === 'fr' ? HIJRI_MONTHS_FR : currentLang === 'ja' ? HIJRI_MONTHS_JA : currentLang === 'ru' ? HIJRI_MONTHS_RU : currentLang === 'tr' ? HIJRI_MONTHS_TR : currentLang === 'zh-Hans' ? HIJRI_MONTHS_ZHHANS : currentLang === 'zh-Hant' ? HIJRI_MONTHS_ZHHANT : HIJRI_MONTHS_EN;
       const hijriSpan = (hFirst && hLast) ? spanLabel(hijriNames, hFirst.hm, hLast.hm) : '';
       if (uiEls.dualMonthSublabel) {
-        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'ar' ? 'جلالي' : currentLang === 'es' ? 'jalalí' : currentLang === 'de' ? 'Dschalali' : currentLang === 'fr' ? 'jalali' : currentLang === 'ja' ? 'ジャラリ暦' : currentLang === 'ru' ? 'джалали' : currentLang === 'tr' ? 'Celalî' : 'Jalali';
-        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'ar' ? 'هجري' : currentLang === 'es' ? 'hijrí' : currentLang === 'de' ? 'Hidschri' : currentLang === 'fr' ? 'hijri' : currentLang === 'ja' ? 'ヒジュラ暦' : currentLang === 'ru' ? 'хиджра' : currentLang === 'tr' ? 'Hicrî' : 'Hijri';
+        const shamsiLabel = currentLang === 'fa' ? 'شمسی' : currentLang === 'ar' ? 'جلالي' : currentLang === 'es' ? 'jalalí' : currentLang === 'de' ? 'Dschalali' : currentLang === 'fr' ? 'jalali' : currentLang === 'ja' ? 'ジャラリ暦' : currentLang === 'ru' ? 'джалали' : currentLang === 'tr' ? 'Celalî' : currentLang === 'zh-Hans' ? '波斯历' : currentLang === 'zh-Hant' ? '波斯曆' : 'Jalali';
+        const hijriLabel = currentLang === 'fa' ? 'قمری' : currentLang === 'ar' ? 'هجري' : currentLang === 'es' ? 'hijrí' : currentLang === 'de' ? 'Hidschri' : currentLang === 'fr' ? 'hijri' : currentLang === 'ja' ? 'ヒジュラ暦' : currentLang === 'ru' ? 'хиджра' : currentLang === 'tr' ? 'Hicrî' : currentLang === 'zh-Hans' ? '伊斯兰历' : currentLang === 'zh-Hant' ? '伊斯蘭曆' : 'Hijri';
         const parts = [];
         if (jalaliSpan) parts.push(`${jalaliSpan} ${shamsiLabel}`);
         if (hijriSpan) parts.push(`${hijriSpan} ${hijriLabel}`);
@@ -2877,10 +2887,12 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     const WEEKDAY_FULL_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
     const WEEKDAY_FULL_RU = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
     const WEEKDAY_FULL_TR = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    const WEEKDAY_FULL_ZHHANS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    const WEEKDAY_FULL_ZHHANT = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
     function dayHoverTip(gy, gm, gd) {
       const wdIdx = new Date(gy, gm - 1, gd).getDay();
       const weekdayKey = HAFT_PEYKAR_KEY[wdIdx];
-      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'ar' ? WEEKDAY_FULL_AR[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : currentLang === 'de' ? WEEKDAY_FULL_DE[wdIdx] : currentLang === 'fr' ? WEEKDAY_FULL_FR[wdIdx] : currentLang === 'ja' ? WEEKDAY_FULL_JA[wdIdx] : currentLang === 'ru' ? WEEKDAY_FULL_RU[wdIdx] : currentLang === 'tr' ? WEEKDAY_FULL_TR[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
+      const weekdayLine = currentLang === 'fa' ? WEEKDAY_FULL_FA[wdIdx] : currentLang === 'ar' ? WEEKDAY_FULL_AR[wdIdx] : currentLang === 'es' ? WEEKDAY_FULL_ES[wdIdx] : currentLang === 'de' ? WEEKDAY_FULL_DE[wdIdx] : currentLang === 'fr' ? WEEKDAY_FULL_FR[wdIdx] : currentLang === 'ja' ? WEEKDAY_FULL_JA[wdIdx] : currentLang === 'ru' ? WEEKDAY_FULL_RU[wdIdx] : currentLang === 'tr' ? WEEKDAY_FULL_TR[wdIdx] : currentLang === 'zh-Hans' ? WEEKDAY_FULL_ZHHANS[wdIdx] : currentLang === 'zh-Hant' ? WEEKDAY_FULL_ZHHANT[wdIdx] : WEEKDAY_FULL_EN[wdIdx];
       // Line 1 — Gregorian day/month, region-aware month name
       const monthName = getDisplayGregorianMonth(gm - 1);
       const dayStr = localizeDigits(gd);
@@ -9029,6 +9041,12 @@ let hubAutoCollapsedByPanel = false;
     isLabelManuallyEdited = !isAddFlow;
 
     document.querySelectorAll('.ai-node').forEach(node => node.classList.add('faded')); addNodeBtn.classList.remove('blinking');
+    // در حالت «نمایش همه» (Show All)، تری باز می‌ماند و فقط نودها fade می‌شوند —
+    // یعنی برخلاف حالت عادی، کلاس 'open' از root برداشته نمی‌شود، پس علامت + که
+    // با همان کلاس نمایان می‌شود همچنان دیده و حتی قابل کلیک می‌ماند و ممکن است
+    // درست زیرِ فرمِ ویرایشِ وسط‌چین‌شده بیفتد. صریحاً مخفی‌اش می‌کنیم؛ با بستن فرم
+    // (closeInlineForm) دوباره با renderSpiral به حالت درستش برمی‌گردد.
+    addNodeBtn.style.display = 'none';
     inlineForm.style.left = ''; inlineForm.style.top = '';
     
     uiEls.formUrl.value = link.url || ''; uiEls.formLabel.value = link.label || '';
@@ -9218,6 +9236,10 @@ let hubAutoCollapsedByPanel = false;
     document.querySelectorAll('.ai-node').forEach(node => node.classList.remove('faded'));
     if (uiEls.formTagsSuggest) uiEls.formTagsSuggest.classList.remove('active');
     if (uiEls.formCatAccordion) uiEls.formCatAccordion.classList.remove('open');
+    // علامتِ + را که هنگام باز بودن فرم عمداً مخفی کرده بودیم، با محاسبه‌ی دوباره‌ی
+    // موقعیت/نمایانی درستش (renderSpiral خودش تصمیم می‌گیرد جای خالی هست یا نه)
+    // برمی‌گردانیم — نه صرفاً با یک display خام که ممکن است در جای غلط ظاهر شود.
+    if (isOpen) renderSpiral();
   }
 
   function submitBookmarkForm() {
@@ -9630,7 +9652,19 @@ let hubAutoCollapsedByPanel = false;
     el.addEventListener('input', () => el.classList.remove('invalid'));
     el.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); submitBookmarkForm(); } else if (e.key === 'Escape') { e.preventDefault(); closeTree(); } });
   });
-  document.addEventListener('mousedown', (e) => { if (!inlineForm.classList.contains('active')) return; if (inlineForm.contains(e.target) || e.target === addNodeBtn) return; closeInlineForm(); });
+  // برخلاف قبل که با mousedown روی هر نقطه‌ی بیرون از فرم بلافاصله فرم را می‌بست،
+  // این رفتار مانع از انتخاب متنِ صفحه (مثلاً برای کپی‌کردن در توضیحات) می‌شد —
+  // چون خودِ شروعِ درگ برای انتخاب متن هم یک mousedown بیرون از فرم است. حالا با
+  // mouseup تصمیم می‌گیریم و اگر همین تعامل باعث ایجاد یک انتخاب متنیِ غیرخالی
+  // شده باشد (یعنی کاربر داشت متن انتخاب می‌کرد، نه اینکه می‌خواست فرم را ببندد)،
+  // فرم را باز نگه می‌داریم.
+  document.addEventListener('mouseup', (e) => {
+    if (!inlineForm.classList.contains('active')) return;
+    if (inlineForm.contains(e.target) || e.target === addNodeBtn) return;
+    const sel = window.getSelection ? window.getSelection().toString() : '';
+    if (sel && sel.trim().length > 0) return; // درحال انتخاب/کپیِ متنِ صفحه بود — فرم بسته نشود
+    closeInlineForm();
+  });
 
   function closeTree() {
     isOpen = false; showAllOverride = false; currentLayerMode = 0; editingNodeIndex = null; selectedGalaxy = 1;
