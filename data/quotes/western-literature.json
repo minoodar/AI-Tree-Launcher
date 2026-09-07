@@ -14,7 +14,8 @@
     "ru": "Будь верен самому себе.",
     "tr": "Kendine karşı dürüst ol.",
     "zh-Hans": "忠于自己。",
-    "zh-Hant": "忠於自己。"
+    "zh-Hant": "忠於自己。",
+    "pt-BR": "Sê fiel a ti mesmo."
   },
   {
     "source": "William Shakespeare",
@@ -31,7 +32,8 @@
     "ru": "Мы знаем, кто мы есть, но не знаем, кем мы можем быть.",
     "tr": "Ne olduğumuzu biliriz, ama ne olabileceğimizi bilemeyiz.",
     "zh-Hans": "我们知道自己现在是什么，却不知道自己将来会成为什么。",
-    "zh-Hant": "我們知道自己現在是什麼，卻不知道自己將來會成為什麼。"
+    "zh-Hant": "我們知道自己現在是什麼，卻不知道自己將來會成為什麼。",
+    "pt-BR": "Sabemos o que somos, mas não sabemos o que podemos vir a ser."
   },
   {
     "source": "William Shakespeare",
@@ -48,7 +50,8 @@
     "ru": "Весь мир — театр, а люди в нём — актеры.",
     "tr": "Bütün dünya bir sahnedir ve bütün kadınlar ile erkekler sadece birer oyuncudur.",
     "zh-Hans": "整个世界是一个舞台，所有男男女女不过是这舞台上的演员。",
-    "zh-Hant": "整個世界是一個舞臺，所有男男女女不過是這舞臺上的演員。"
+    "zh-Hant": "整個世界是一個舞臺，所有男男女女不過是這舞臺上的演員。",
+    "pt-BR": "O mundo inteiro é um palco, e todos os homens e mulheres são meros atores."
   },
   {
     "source": "William Shakespeare",
@@ -65,7 +68,8 @@
     "ru": "Нет ничего ни хорошего, ни плохого; это размышление делает его таковым.",
     "tr": "İyi ya da kötü diye bir şey yoktur, sadece düşüncelerimiz onu öyle yapar.",
     "zh-Hans": "事物本无好坏，皆因思想使然。",
-    "zh-Hant": "事物本無好壞，皆因思想使然。"
+    "zh-Hant": "事物本無好壞，皆因思想使然。",
+    "pt-BR": "Nada é bom nem mau, mas o pensamento é que assim o faz."
   },
   {
     "source": "Francis Bacon",
@@ -82,7 +86,8 @@
     "ru": "Знание само по себе есть сила.",
     "tr": "Bilginin kendisi güçtür.",
     "zh-Hans": "知识本身就是力量。",
-    "zh-Hant": "知識本身就是力量。"
+    "zh-Hant": "知識本身就是力量。",
+    "pt-BR": "O próprio conhecimento é poder."
   },
   {
     "source": "Francis Bacon",
@@ -99,7 +104,8 @@
     "ru": "Правда в том, что ложь похожа на правду.",
     "tr": "Gerçek şu ki, bir yalan gerçeğe benzer.",
     "zh-Hans": "事实是，谎言看起来就像真相。",
-    "zh-Hant": "事實是，謊言看起來就像真相。"
+    "zh-Hant": "事實是，謊言看起來就像真相。",
+    "pt-BR": "A verdade é que uma mentira se parece com a verdade."
   },
   {
     "source": "George Berkeley",
@@ -116,7 +122,8 @@
     "ru": "Существовать — значит быть воспринимаемым.",
     "tr": "Var olmak, algılanmış olmaktır.",
     "zh-Hans": "存在即被感知。",
-    "zh-Hant": "存在即被感知。"
+    "zh-Hant": "存在即被感知。",
+    "pt-BR": "Ser é ser percebido."
   },
   {
     "source": "John Locke",
@@ -133,7 +140,8 @@
     "ru": "Новые мнения всегда вызывают подозрения и обычно встречают сопротивление, без какой-либо иной причины, кроме той, что они еще не стали общепринятыми.",
     "tr": "Yeni fikirler her zaman şüpheyle karşılanır ve henüz yaygın olmadıkları gerekçesinden başka hiçbir neden olmaksızın genellikle karşı çıkılır.",
     "zh-Hans": "新的观点总是遭人怀疑，也常常遭人反对，唯一的原因不过是它们尚未成为普遍的观点。",
-    "zh-Hant": "新的觀點總是遭人懷疑，也常常遭人反對，唯一的原因不過是它們尚未成為普遍的觀點。"
+    "zh-Hant": "新的觀點總是遭人懷疑，也常常遭人反對，唯一的原因不過是它們尚未成為普遍的觀點。",
+    "pt-BR": "Opiniões novas são sempre suspeitas, e geralmente combatidas, sem outra razão senão a de ainda não serem comuns."
   },
   {
     "source": "David Hume",
@@ -150,7 +158,8 @@
     "ru": "Разум есть и должен быть лишь рабом страстей.",
     "tr": "Akıl, tutkuların kölesidir ve sadece öyle olmalıdır.",
     "zh-Hans": "理性是，也应当只是激情的奴隶。",
-    "zh-Hant": "理性是，也應當只是激情的奴隸。"
+    "zh-Hant": "理性是，也應當只是激情的奴隸。",
+    "pt-BR": "A razão é, e deve ser apenas, escrava das paixões."
   },
   {
     "source": "Adam Smith",
@@ -167,7 +176,8 @@
     "ru": "Каким бы эгоистичным ни казался человек, в его природе, очевидно, заложены некие принципы, которые заставляют его интересоваться судьбами других.",
     "tr": "İnsanın ne kadar bencil olduğu varsayılırsa varsayılsın, doğasında başkalarının kaderiyle ilgilenmesini sağlayan bazı ilkeler açıkça vardır.",
     "zh-Hans": "无论人被设想得多么自私，他的天性中显然存在某些原则，使他关心他人的命运。",
-    "zh-Hant": "無論人被設想得多麼自私，他的天性中顯然存在某些原則，使他關心他人的命運。"
+    "zh-Hant": "無論人被設想得多麼自私，他的天性中顯然存在某些原則，使他關心他人的命運。",
+    "pt-BR": "Por mais egoísta que se suponha o homem, há evidentemente em sua natureza alguns princípios que o fazem interessar-se pela sorte dos outros."
   },
   {
     "source": "Edmund Burke",
@@ -184,7 +194,8 @@
     "ru": "Единственное, что необходимо для триумфа зла, — это чтобы хорошие люди ничего не делали.",
     "tr": "Kötülüğün zaferi için gerekli olan tek şey, iyi insanların hiçbir şey yapmamasıdır.",
     "zh-Hans": "邪恶获胜所需要的唯一条件，就是好人袖手旁观。",
-    "zh-Hant": "邪惡獲勝所需要的唯一條件，就是好人袖手旁觀。"
+    "zh-Hant": "邪惡獲勝所需要的唯一條件，就是好人袖手旁觀。",
+    "pt-BR": "A única coisa necessária para o triunfo do mal é que os homens bons nada façam."
   },
   {
     "source": "Thomas Paine",
@@ -201,7 +212,8 @@
     "ru": "Разум, однажды просвещенный, не может снова погрузиться во тьму.",
     "tr": "Bir kez aydınlanan zihin, bir daha asla karanlığa bürünmez.",
     "zh-Hans": "心智一旦被启迪，便再也无法重归蒙昧。",
-    "zh-Hant": "心智一旦被啟迪，便再也無法重歸矇昧。"
+    "zh-Hant": "心智一旦被啟迪，便再也無法重歸矇昧。",
+    "pt-BR": "A mente, uma vez iluminada, não pode voltar a ser escura."
   },
   {
     "source": "Ralph Waldo Emerson",
@@ -218,7 +230,8 @@
     "ru": "Ничего великого никогда не достигалось без энтузиазма.",
     "tr": "Coşku olmadan harika hiçbir şey başarılamamıştır.",
     "zh-Hans": "没有热情，便从未成就过任何伟大的事业。",
-    "zh-Hant": "沒有熱情，便從未成就過任何偉大的事業。"
+    "zh-Hant": "沒有熱情，便從未成就過任何偉大的事業。",
+    "pt-BR": "Nada de grande jamais foi realizado sem entusiasmo."
   },
   {
     "source": "Ralph Waldo Emerson",
@@ -235,7 +248,8 @@
     "ru": "Единственный человек, которым вам суждено стать, — это тот, кем вы решите быть.",
     "tr": "Olmayı hedeflediğiniz tek kişi, olmaya karar verdiğiniz kişidir.",
     "zh-Hans": "你注定要成为的那个人，正是你决定要成为的那个人。",
-    "zh-Hant": "你註定要成為的那個人，正是你決定要成為的那個人。"
+    "zh-Hant": "你註定要成為的那個人，正是你決定要成為的那個人。",
+    "pt-BR": "A única pessoa que você está destinado a se tornar é a pessoa que você decide ser."
   },
   {
     "source": "Ralph Waldo Emerson",
@@ -252,7 +266,8 @@
     "ru": "То, что позади нас, и то, что впереди нас, — ничтожные вещи по сравнению с тем, что внутри нас.",
     "tr": "Arkamızda kalanlar ve önümüzde yatanlar, içimizde barındırdıklarımızın yanında çok küçük meselelerdir.",
     "zh-Hans": "与我们内心所拥有的相比，我们身后与身前的一切都不过是微不足道的小事。",
-    "zh-Hant": "與我們內心所擁有的相比，我們身後與身前的一切都不過是微不足道的小事。"
+    "zh-Hant": "與我們內心所擁有的相比，我們身後與身前的一切都不過是微不足道的小事。",
+    "pt-BR": "O que fica atrás de nós e o que fica diante de nós são coisas insignificantes comparadas ao que está dentro de nós."
   },
   {
     "source": "Henry David Thoreau",
@@ -269,7 +284,8 @@
     "ru": "Уверенно идите в направлении своих мечт. Живите той жизнью, которую вы себе представляли.",
     "tr": "Hayallerinizin doğrultusunda güvenle ilerleyin. Hayal ettiğiniz hayatı yaşayın.",
     "zh-Hans": "满怀信心地朝着梦想的方向前进吧。去过你所想象的那种生活。",
-    "zh-Hant": "滿懷信心地朝著夢想的方向前進吧。去過你所想象的那種生活。"
+    "zh-Hant": "滿懷信心地朝著夢想的方向前進吧。去過你所想象的那種生活。",
+    "pt-BR": "Vai com confiança na direção dos teus sonhos. Vive a vida que imaginaste."
   },
   {
     "source": "Henry David Thoreau",
@@ -286,7 +302,8 @@
     "ru": "Масса людей ведет жизнь тихого отчаяния.",
     "tr": "İnsanların çoğunluğu sessiz bir çaresizlik içinde yaşar.",
     "zh-Hans": "大多数人都在静默的绝望中度过一生。",
-    "zh-Hant": "大多數人都在靜默的絕望中度過一生。"
+    "zh-Hant": "大多數人都在靜默的絕望中度過一生。",
+    "pt-BR": "A massa dos homens leva vidas de silenciosa desesperação."
   },
   {
     "source": "Henry David Thoreau",
@@ -303,7 +320,8 @@
     "ru": "Важно не то, на что вы смотрите, а то, что вы видите.",
     "tr": "Önemli olan neye baktığınız değil, ne gördüğünüzdür.",
     "zh-Hans": "重要的不是你看到了什么，而是你看见了什么。",
-    "zh-Hant": "重要的不是你看到了什麼，而是你看見了什麼。"
+    "zh-Hant": "重要的不是你看到了什麼，而是你看見了什麼。",
+    "pt-BR": "Não é o que se olha que importa, é o que se vê."
   },
   {
     "source": "Walt Whitman",
@@ -320,7 +338,8 @@
     "ru": "Я велик, я вмещаю множества.",
     "tr": "Ben genişim, içimde kalabalıkları barındırırım.",
     "zh-Hans": "我辽阔博大，我包罗万象。",
-    "zh-Hant": "我遼闊博大，我包羅永珍。"
+    "zh-Hant": "我遼闊博大，我包羅永珍。",
+    "pt-BR": "Sou vasto, contenho multidões."
   },
   {
     "source": "Walt Whitman",
@@ -337,7 +356,8 @@
     "ru": "Я противоречу себе? Ну что ж, значит, я противоречу себе.",
     "tr": "Kendimle çelişiyor muyum? Pekala o zaman, çelişiyorum.",
     "zh-Hans": "我自相矛盾吗？那好，我就是自相矛盾。",
-    "zh-Hant": "我自相矛盾嗎？那好，我就是自相矛盾。"
+    "zh-Hant": "我自相矛盾嗎？那好，我就是自相矛盾。",
+    "pt-BR": "Contradigo-me? Pois bem, então me contradigo."
   },
   {
     "source": "Emily Dickinson",
@@ -354,7 +374,8 @@
     "ru": "Вечность состоит из мгновений «сейчас».",
     "tr": "Sonsuzluk, şimdilerden oluşur.",
     "zh-Hans": "永恒是由无数个此刻组成的。",
-    "zh-Hant": "永恆是由無數個此刻組成的。"
+    "zh-Hant": "永恆是由無數個此刻組成的。",
+    "pt-BR": "A eternidade é composta de agoras."
   },
   {
     "source": "Emily Dickinson",
@@ -371,7 +392,8 @@
     "ru": "То, что это никогда не повторится, и делает жизнь такой сладкой.",
     "tr": "Bir daha asla gelmeyecek olması, hayatı bu kadar tatlı kılan şeydir.",
     "zh-Hans": "正因为它永不再来，生命才如此甜美。",
-    "zh-Hant": "正因為它永不再來，生命才如此甜美。"
+    "zh-Hant": "正因為它永不再來，生命才如此甜美。",
+    "pt-BR": "É o fato de que nunca mais virá que torna a vida tão doce."
   },
   {
     "source": "Oscar Wilde",
@@ -388,7 +410,8 @@
     "ru": "Будьте собой; все остальные роли уже заняты.",
     "tr": "Kendiniz olun; diğer herkes kapıldı.",
     "zh-Hans": "做你自己吧；别人的角色都已经有人扮演了。",
-    "zh-Hant": "做你自己吧；別人的角色都已經有人扮演了。"
+    "zh-Hant": "做你自己吧；別人的角色都已經有人扮演了。",
+    "pt-BR": "Sê tu mesmo; todos os outros já estão ocupados."
   },
   {
     "source": "Oscar Wilde",
@@ -405,7 +428,8 @@
     "ru": "Мы все в сточной канаве, но некоторые из нас смотрят на звезды.",
     "tr": "Hepimiz çamurun içindeyiz ama bazılarımız yıldızlara bakıyor.",
     "zh-Hans": "我们都身处泥沼，但我们中有些人，依然仰望星空。",
-    "zh-Hant": "我們都身處泥沼，但我們中有些人，依然仰望星空。"
+    "zh-Hant": "我們都身處泥沼，但我們中有些人，依然仰望星空。",
+    "pt-BR": "Estamos todos na sarjeta, mas alguns de nós olham para as estrelas."
   },
   {
     "source": "Oscar Wilde",
@@ -422,7 +446,8 @@
     "ru": "Жить — это самое редкое явление в мире. Большинство людей просто существуют, вот и всё.",
     "tr": "Yaşamak dünyadaki en nadir şeydir. İnsanların çoğu sadece var olur, hepsi bu.",
     "zh-Hans": "活着，是这世上最稀罕的事。大多数人只是存在着，仅此而已。",
-    "zh-Hant": "活著，是這世上最稀罕的事。大多數人只是存在著，僅此而已。"
+    "zh-Hant": "活著，是這世上最稀罕的事。大多數人只是存在著，僅此而已。",
+    "pt-BR": "Viver é a coisa mais rara do mundo. A maioria das pessoas apenas existe, e é só isso."
   },
   {
     "source": "George Bernard Shaw",
@@ -439,7 +464,8 @@
     "ru": "Жизнь — это не поиск себя. Жизнь — это создание себя.",
     "tr": "Hayat kendini bulmakla ilgili değildir. Hayat kendini yaratmakla ilgilidir.",
     "zh-Hans": "人生不在于寻找自己，人生在于创造自己。",
-    "zh-Hant": "人生不在於尋找自己，人生在於創造自己。"
+    "zh-Hant": "人生不在於尋找自己，人生在於創造自己。",
+    "pt-BR": "A vida não é sobre encontrar a si mesmo. A vida é sobre criar a si mesmo."
   },
   {
     "source": "George Bernard Shaw",
@@ -456,7 +482,8 @@
     "ru": "Мы не перестаем играть, потому что стареем; мы стареем, потому что перестаем играть.",
     "tr": "Yaşlandığımız için oynamayı bırakmayız; oynamayı bıraktığımız için yaşlanırız.",
     "zh-Hans": "我们并非因为老去才停止玩耍，我们是因为停止玩耍才老去。",
-    "zh-Hant": "我們並非因為老去才停止玩耍，我們是因為停止玩耍才老去。"
+    "zh-Hant": "我們並非因為老去才停止玩耍，我們是因為停止玩耍才老去。",
+    "pt-BR": "Não paramos de brincar porque envelhecemos; envelhecemos porque paramos de brincar."
   },
   {
     "source": "Aldous Huxley",
@@ -473,7 +500,8 @@
     "ru": "Есть вещи известные, и есть вещи неизвестные, а между ними — Двери Восприятия.",
     "tr": "Bilinen şeyler vardır ve bilinmeyen şeyler vardır, ikisinin arasında ise Algı Kapıları durur.",
     "zh-Hans": "有已知之事，也有未知之事，而两者之间，便是那扇\"感知之门\"。",
-    "zh-Hant": "有已知之事，也有未知之事，而兩者之間，便是那扇\"感知之門\"。"
+    "zh-Hant": "有已知之事，也有未知之事，而兩者之間，便是那扇\"感知之門\"。",
+    "pt-BR": "Há coisas conhecidas e há coisas desconhecidas, e entre elas estão as Portas da Percepção."
   },
   {
     "source": "Aldous Huxley",
@@ -490,7 +518,8 @@
     "ru": "Опыт — это не то, что с вами происходит; это то, что вы делаете с тем, что с вами происходит.",
     "tr": "Deneyim, başınıza gelen şey değildir; başınıza gelen şeyle ne yaptığınızdır.",
     "zh-Hans": "经历本身并不重要，重要的是你如何面对所经历的一切。",
-    "zh-Hant": "經歷本身並不重要，重要的是你如何面對所經歷的一切。"
+    "zh-Hant": "經歷本身並不重要，重要的是你如何面對所經歷的一切。",
+    "pt-BR": "A experiência não é o que acontece com você; é o que você faz com o que acontece com você."
   },
   {
     "source": "George Orwell",
@@ -507,7 +536,8 @@
     "ru": "Во времена всеобщей лжи говорить правду — это революционный акт.",
     "tr": "Evrensel bir aldatmaca döneminde, gerçeği söylemek devrimci bir eylemdir.",
     "zh-Hans": "在一个充满谎言的时代，说出真相就是一种革命的行为。",
-    "zh-Hant": "在一個充滿謊言的時代，說出真相就是一種革命的行為。"
+    "zh-Hant": "在一個充滿謊言的時代，說出真相就是一種革命的行為。",
+    "pt-BR": "Em tempos de engano, dizer a verdade é um ato revolucionário."
   },
   {
     "source": "George Orwell",
@@ -524,7 +554,8 @@
     "ru": "Возможно, человек не столько хотел быть любимым, сколько быть понятым.",
     "tr": "Belki de insan sevilmekten çok anlaşılmayı istiyordu.",
     "zh-Hans": "或许一个人想要的，与其说是被爱，不如说是被理解。",
-    "zh-Hant": "或許一個人想要的，與其說是被愛，不如說是被理解。"
+    "zh-Hant": "或許一個人想要的，與其說是被愛，不如說是被理解。",
+    "pt-BR": "Talvez a pessoa não quisesse tanto ser amada quanto ser compreendida."
   },
   {
     "source": "C. S. Lewis",
@@ -541,7 +572,8 @@
     "ru": "Вы никогда не слишком стары, чтобы поставить перед собой еще одну цель или мечтать о новой мечте.",
     "tr": "Başka bir hedef koymak veya yeni bir hayal kurmak için asla çok yaşlı değilsiniz.",
     "zh-Hans": "设立新的目标，或梦想新的梦想，永远都不会太迟。",
-    "zh-Hant": "設立新的目標，或夢想新的夢想，永遠都不會太遲。"
+    "zh-Hant": "設立新的目標，或夢想新的夢想，永遠都不會太遲。",
+    "pt-BR": "Nunca se é velho demais para traçar outro objetivo ou sonhar um novo sonho."
   },
   {
     "source": "T. S. Eliot",
@@ -558,7 +590,8 @@
     "ru": "Только те, кто рискнет зайти слишком далеко, могут узнать, как далеко можно зайти.",
     "tr": "Sadece çok uzağa gitme riskini göze alanlar, ne kadar uzağa gidilebileceğini keşfedebilir.",
     "zh-Hans": "唯有敢于冒险走得太远的人，才有可能发现一个人究竟能走多远。",
-    "zh-Hant": "唯有敢於冒險走得太遠的人，才有可能發現一個人究竟能走多遠。"
+    "zh-Hant": "唯有敢於冒險走得太遠的人，才有可能發現一個人究竟能走多遠。",
+    "pt-BR": "Somente aqueles que arriscarem ir longe demais poderão descobrir até onde se pode ir."
   },
   {
     "source": "William Blake",
@@ -575,7 +608,8 @@
     "ru": "Если бы двери восприятия были очищены, все предстало бы человеку таким, какое оно есть — бесконечным.",
     "tr": "Algı kapıları temizlenseydi, her şey insana olduğu gibi görünürdü: sonsuz.",
     "zh-Hans": "倘若感知之门被洗涤干净，万物便会以其无限的本来面目，显现于人前。",
-    "zh-Hant": "倘若感知之門被洗滌乾淨，萬物便會以其無限的本來面目，顯現於人前。"
+    "zh-Hant": "倘若感知之門被洗滌乾淨，萬物便會以其無限的本來面目，顯現於人前。",
+    "pt-BR": "Se as portas da percepção fossem purificadas, tudo apareceria ao homem como realmente é: infinito."
   },
   {
     "source": "William Blake",
@@ -592,7 +626,8 @@
     "ru": "Человек, который никогда не меняет своих мнений, подобен стоячей воде и порождает рептилий ума.",
     "tr": "Fikirlerini hiç değiştirmeyen insan durgun su gibidir ve zihninde sürüngenler besler.",
     "zh-Hans": "一个从不改变自己观点的人，就像一潭死水，只会滋生思想上的爬虫。",
-    "zh-Hant": "一個從不改變自己觀點的人，就像一潭死水，只會滋生思想上的爬蟲。"
+    "zh-Hant": "一個從不改變自己觀點的人，就像一潭死水，只會滋生思想上的爬蟲。",
+    "pt-BR": "O homem que nunca muda de opinião é como água parada, e cria répteis da mente."
   },
   {
     "source": "Virginia Woolf",
@@ -609,7 +644,8 @@
     "ru": "Расставляй любые кусочки, которые попадаются тебе на пути.",
     "tr": "Yolunuza çıkan parçaları nasıl olursa olsun düzenleyin.",
     "zh-Hans": "把命运抛给你的那些碎片，一一拼接起来吧。",
-    "zh-Hant": "把命運拋給你的那些碎片，一一拼接起來吧。"
+    "zh-Hant": "把命運拋給你的那些碎片，一一拼接起來吧。",
+    "pt-BR": "Organiza quaisquer fragmentos que surjam em teu caminho."
   },
   {
     "source": "Herman Melville",
@@ -626,7 +662,8 @@
     "ru": "Мы не можем жить только для самих себя.",
     "tr": "Sadece kendimiz için yaşayamayız.",
     "zh-Hans": "我们不能只为自己而活。",
-    "zh-Hant": "我們不能只為自己而活。"
+    "zh-Hant": "我們不能只為自己而活。",
+    "pt-BR": "Não podemos viver apenas para nós mesmos."
   },
   {
     "source": "Ernest Hemingway",
@@ -643,7 +680,8 @@
     "ru": "Мир ломает каждого, и после этого многие становятся сильнее на сломанных местах.",
     "tr": "Dünya herkesi kırar ve sonrasında birçoğu kırılan yerlerinden güçlenir.",
     "zh-Hans": "这世界会击碎每一个人，而后，许多人在破碎之处变得更加坚强。",
-    "zh-Hant": "這世界會擊碎每一個人，而後，許多人在破碎之處變得更加堅強。"
+    "zh-Hant": "這世界會擊碎每一個人，而後，許多人在破碎之處變得更加堅強。",
+    "pt-BR": "O mundo quebra a todos, e depois, muitos ficam fortes nos lugares quebrados."
   },
   {
     "source": "Martin Luther King Jr.",
@@ -660,6 +698,7 @@
     "ru": "Тьма не может изгнать тьму; только свет может сделать это.",
     "tr": "Karanlık karanlığı kovamaz; bunu sadece ışık yapabilir.",
     "zh-Hans": "黑暗无法驱逐黑暗；唯有光明才能做到。",
-    "zh-Hant": "黑暗無法驅逐黑暗；唯有光明才能做到。"
+    "zh-Hant": "黑暗無法驅逐黑暗；唯有光明才能做到。",
+    "pt-BR": "A escuridão não pode expulsar a escuridão; só a luz pode fazer isso."
   }
 ]
