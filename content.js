@@ -327,7 +327,8 @@
         <div id="ai-emoji-popover" class="ai-emoji-popover" role="dialog"></div>
       </div>
       <button type="button" id="ai-note-mic-btn" class="ai-format-btn zt-btn zt-mic-btn" title="Voice Input" aria-label="Voice Input"><span data-zen-icon="mic"></span></button>
-      <button type="button" id="ai-note-translate-btn" class="ai-format-btn ai-translate-btn zt-btn" title="Translate (Auto-detect)" aria-label="Translate text"><span data-zen-icon="translate"></span></button>
+      <button type="button" id="ai-note-translate-btn" class="ai-format-btn ai-translate-btn zt-btn" title="Translate" aria-label="Translate text"><span data-zen-icon="translate"></span></button>
+      <button type="button" id="ai-note-translate-lang-btn" class="ai-format-btn ai-translate-lang-btn zt-btn" title="Translate target language" aria-label="Translate target language">EN</button>
       <button type="button" id="ai-note-spellcheck-btn" class="ai-format-btn ai-spellcheck-btn zt-btn" title="Clean & Spell Check (FA/EN)" aria-label="Fix Spelling"><span data-zen-icon="spellcheck"></span></button>
       <button type="button" id="ai-note-tts-btn" class="ai-format-btn ai-tts-btn zt-btn" title="Read aloud" aria-label="Read aloud"><span data-zen-icon="tts"></span></button>
       <button type="button" id="ai-note-extract-doc-btn" class="ai-format-btn ai-extract-doc-btn zt-btn" title="Extract page to Markdown" aria-label="Extract page to Markdown"><span data-zen-icon="extractDoc"></span></button>
@@ -720,6 +721,7 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
     micBtn: quickNoteForm.querySelector('#ai-note-mic-btn'),
     formatBar: quickNoteForm.querySelector('#ai-note-format-bar'),
     translateBtn: quickNoteForm.querySelector('#ai-note-translate-btn'),
+    translateLangBtn: quickNoteForm.querySelector('#ai-note-translate-lang-btn'),
     spellcheckBtn: quickNoteForm.querySelector('#ai-note-spellcheck-btn'),
     ttsBtn: quickNoteForm.querySelector('#ai-note-tts-btn'),
     extractDocBtn: quickNoteForm.querySelector('#ai-note-extract-doc-btn'),
@@ -1038,6 +1040,7 @@ function updateUITexts() {
       uiEls.translateBtn.title = t('noteTranslateTitle');
       uiEls.translateBtn.setAttribute('aria-label', t('noteTranslateTitle'));
     }
+    if (typeof updateTranslateLangBadge === 'function') updateTranslateLangBadge();
     if (uiEls.spellcheckBtn) {
       uiEls.spellcheckBtn.title = t('noteSpellcheckTitle');
       uiEls.spellcheckBtn.setAttribute('aria-label', t('noteSpellcheckTitle'));
@@ -6921,12 +6924,124 @@ let hubAutoCollapsedByPanel = false;
   }
   // --- Inline translate via background service worker (CSP-safe) ---
   let noteTranslateBusy = false;
-  function detectTranslateTarget(text) {
-    const fa = (text.match(/[\u0600-\u06FF]/g) || []).length;
-    const la = (text.match(/[A-Za-z]/g) || []).length;
-    if (fa > la) return 'en';
-    if (la > 0) return 'fa';
-    return currentLang === 'fa' ? 'en' : 'fa';
+
+  // --- انتخاب صریح زبان مقصد ترجمه (به‌جای حدسِ خودکارِ قدیمی که فقط fa/en را
+  // تشخیص می‌داد) — بک‌اند (background.js با sl=auto) از قبل هر زبانی را
+  // به‌عنوان مقصد قبول می‌کند؛ فقط لازم بود این‌جا صراحتاً پرسیده شود. با هر
+  // ۱۲ زبان افزونه کار می‌کند و در chrome.storage.local ذخیره/همگام می‌شود
+  // تا بین ویجت و صفحهٔ نوت‌پد مستقل یکسان بماند.
+  const TRANSLATE_LANGS = [
+    { code: 'en', label: 'English', short: 'EN' },
+    { code: 'fa', label: 'فارسی', short: 'FA' },
+    { code: 'ar', label: 'العربية', short: 'AR' },
+    { code: 'es', label: 'Español', short: 'ES' },
+    { code: 'de', label: 'Deutsch', short: 'DE' },
+    { code: 'fr', label: 'Français', short: 'FR' },
+    { code: 'ja', label: '日本語', short: 'JA' },
+    { code: 'ru', label: 'Русский', short: 'RU' },
+    { code: 'tr', label: 'Türkçe', short: 'TR' },
+    { code: 'zh-Hans', label: '简体中文', short: '简' },
+    { code: 'zh-Hant', label: '繁體中文', short: '繁' },
+    { code: 'pt-BR', label: 'Português', short: 'PT' }
+  ];
+
+  function defaultTranslateTargetLang() {
+    // پیش‌فرضِ اولیه — فقط تا وقتی کاربر خودش یک‌بار از منو انتخاب کند؛ بعد
+    // از آن، انتخاب کاربر همیشه ثابت می‌ماند و دیگر با تغییر زبان افزونه
+    // عوض نمی‌شود (چون دیگر «حدس» نیست، انتخاب صریح است).
+    return currentLang === 'en' ? 'fa' : 'en';
+  }
+
+  let translateTargetLang = defaultTranslateTargetLang();
+  try {
+    if (chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['translateTargetLang'], (res) => {
+        if (res && res.translateTargetLang) {
+          translateTargetLang = res.translateTargetLang;
+          updateTranslateLangBadge();
+        }
+      });
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.translateTargetLang) {
+          translateTargetLang = changes.translateTargetLang.newValue || defaultTranslateTargetLang();
+          updateTranslateLangBadge();
+        }
+      });
+    }
+  } catch (e) {}
+
+  function setTranslateTargetLang(code) {
+    translateTargetLang = code;
+    updateTranslateLangBadge();
+    try { chrome.storage.local.set({ translateTargetLang: code }); } catch (e) {}
+  }
+
+  function updateTranslateLangBadge() {
+    if (!uiEls.translateLangBtn) return;
+    const entry = TRANSLATE_LANGS.find((l) => l.code === translateTargetLang);
+    uiEls.translateLangBtn.textContent = entry ? entry.short : String(translateTargetLang).toUpperCase();
+    const label = entry ? entry.label : translateTargetLang;
+    uiEls.translateLangBtn.title = (t('translateTargetLabel') || 'Translate to') + ': ' + label;
+    uiEls.translateLangBtn.setAttribute('aria-label', (t('translateTargetLabel') || 'Translate to') + ': ' + label);
+  }
+
+  let translateLangPopoverEl = null;
+  function onTranslateLangOutsideClick(e) {
+    if (translateLangPopoverEl && !translateLangPopoverEl.contains(e.target) && e.target !== uiEls.translateLangBtn) {
+      closeTranslateLangPopover();
+    }
+  }
+  function closeTranslateLangPopover() {
+    if (!translateLangPopoverEl) return;
+    document.removeEventListener('mousedown', onTranslateLangOutsideClick, true);
+    translateLangPopoverEl.remove();
+    translateLangPopoverEl = null;
+  }
+  function openTranslateLangPopover() {
+    if (translateLangPopoverEl || !uiEls.translateLangBtn) return;
+    ensureTranslationPopoverCSS();
+    const pop = document.createElement('div');
+    pop.className = 'ai-translate-lang-popover';
+    pop.setAttribute('role', 'menu');
+    pop.style.direction = isRTL(currentLang) ? 'rtl' : 'ltr';
+    pop.innerHTML = TRANSLATE_LANGS.map((l) =>
+      `<button type="button" class="ai-translate-lang-opt${l.code === translateTargetLang ? ' is-active' : ''}" data-lang="${l.code}">${escapeHtml(l.label)}</button>`
+    ).join('');
+
+    const anchor = quickNoteForm;
+    anchor.appendChild(pop);
+    const btnRect = uiEls.translateLangBtn.getBoundingClientRect();
+    const anchorRect = anchor.getBoundingClientRect();
+    pop.style.position = 'absolute';
+    pop.style.top = (btnRect.bottom - anchorRect.top + 6) + 'px';
+    // اگر سمتِ راست جا نداشت، به چپِ دکمه بچسبد (برای جلوگیری از خروج از صفحه)
+    const roomRight = window.innerWidth - btnRect.left;
+    if (roomRight < 160) {
+      pop.style.right = (anchorRect.right - btnRect.right) + 'px';
+    } else {
+      pop.style.left = (btnRect.left - anchorRect.left) + 'px';
+    }
+
+    pop.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-lang]');
+      if (!btn) return;
+      setTranslateTargetLang(btn.getAttribute('data-lang'));
+      closeTranslateLangPopover();
+    });
+
+    translateLangPopoverEl = pop;
+    requestAnimationFrame(() => pop.classList.add('visible'));
+    setTimeout(() => document.addEventListener('mousedown', onTranslateLangOutsideClick, true), 50);
+  }
+
+  if (uiEls.translateLangBtn) {
+    updateTranslateLangBadge();
+    uiEls.translateLangBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (translateLangPopoverEl) closeTranslateLangPopover();
+      else openTranslateLangPopover();
+    });
   }
 
   function applyTranslatedNote(response, context) {
@@ -7048,6 +7163,34 @@ let hubAutoCollapsedByPanel = false;
       .ai-syn-footer {
         margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1);
         font-size: 10px; color: rgba(167, 243, 208, 0.55); text-align: center;
+      }
+      .ai-format-btn.ai-translate-lang-btn {
+        width: auto; min-width: 30px; padding: 0 6px;
+        font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
+      .ai-translate-lang-popover {
+        min-width: 150px; max-height: 260px; overflow-y: auto;
+        background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+        border-radius: var(--glass-radius); box-shadow: var(--glass-shadow), 0 0 20px rgba(var(--accent-note), 0.14);
+        padding: 6px; z-index: 60; opacity: 0; transform: translateY(-4px);
+        transition: opacity 0.18s var(--ease-premium), transform 0.18s var(--ease-premium);
+        pointer-events: none; font-family: var(--font-ui), "Vazirmatn", sans-serif;
+      }
+      .ai-translate-lang-popover.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+      .ai-translate-lang-popover::-webkit-scrollbar { width: 6px; }
+      .ai-translate-lang-popover::-webkit-scrollbar-thumb {
+        background: rgba(var(--accent-note), 0.35); border-radius: 3px;
+      }
+      .ai-translate-lang-opt {
+        display: block; width: 100%; text-align: inherit;
+        background: none; border: none; color: #E5E7EB;
+        padding: 7px 10px; border-radius: 8px; font-size: 12.5px;
+        font-family: inherit; cursor: pointer; transition: background 0.15s, color 0.15s;
+      }
+      .ai-translate-lang-opt:hover { background: rgba(var(--accent-note), 0.18); color: #fff; }
+      .ai-translate-lang-opt.is-active {
+        background: rgba(var(--accent-note), 0.3); color: #fff; font-weight: 700;
       }
     `;
     document.head.appendChild(style);
@@ -7220,7 +7363,7 @@ let hubAutoCollapsedByPanel = false;
       showToastNotification(t('toastTranslateTooLong'), true);
       return;
     }
-    const targetLang = detectTranslateTarget(textVal);
+    const targetLang = translateTargetLang;
     const btn = uiEls.translateBtn;
     noteTranslateBusy = true;
     if (btn) {
@@ -7234,7 +7377,13 @@ let hubAutoCollapsedByPanel = false;
       applyTranslatedNote(response, { hasSelection, startPos, endPos }); // toast/پاپ‌اور مناسب داخل خودِ این تابع نشان داده می‌شود
     } catch (err) {
       console.warn('[AI Tree] translate failed:', err);
-      showToastNotification(t('toastTranslateFail'), true);
+      const errMsg = (err && err.message) || '';
+      let toastMsg;
+      if (/rate_limited/.test(errMsg)) toastMsg = t('toastTranslateRateLimited');
+      else if (/network_offline/.test(errMsg)) toastMsg = t('toastTranslateOffline');
+      else if (/network_error/.test(errMsg)) toastMsg = t('toastTranslateNetworkError');
+      else toastMsg = t('toastTranslateFail');
+      showToastNotification(toastMsg, true);
     } finally {
       noteTranslateBusy = false;
       if (btn) {

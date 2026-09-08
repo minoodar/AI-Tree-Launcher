@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
       els.translateBtn.title = t('noteTranslateTitle');
       els.translateBtn.setAttribute('aria-label', t('noteTranslateTitle'));
     }
+    if (typeof updateTranslateLangBadge === 'function') updateTranslateLangBadge();
     if (els.spellcheckBtn) {
       els.spellcheckBtn.title = t('noteSpellcheckTitle');
       els.spellcheckBtn.setAttribute('aria-label', t('noteSpellcheckTitle'));
@@ -424,13 +425,142 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ============================= Translate (background SW) =============================
   let translateBusy = false;
-  function detectTranslateTarget(text) {
-    const fa = (text.match(/[\u0600-\u06FF]/g) || []).length;
-    const la = (text.match(/[A-Za-z]/g) || []).length;
-    if (fa > la) return 'en';
-    if (la > 0) return 'fa';
-    return currentLang === 'fa' ? 'en' : 'fa';
+
+  // --- انتخاب صریح زبان مقصد ترجمه — همان کلید ذخیره‌سازی (translateTargetLang)
+  // که در content.js (ویجت شناور) استفاده می‌شود، پس انتخاب کاربر بین این
+  // صفحه و ویجت هم‌زمان و یکسان می‌ماند. چون این المان‌ها در notepad.html
+  // وجود ندارند، اینجا به‌صورت پویا (JS) ساخته و کنار دکمهٔ ترجمه تزریق
+  // می‌شوند — دقیقاً همان الگویی که notepad-voice-init.js برای بنر مجوز
+  // میکروفون استفاده می‌کند (استایل inline، بدون وابستگی به CSS varهای صفحه).
+  const TRANSLATE_LANGS = [
+    { code: 'en', label: 'English', short: 'EN' },
+    { code: 'fa', label: 'فارسی', short: 'FA' },
+    { code: 'ar', label: 'العربية', short: 'AR' },
+    { code: 'es', label: 'Español', short: 'ES' },
+    { code: 'de', label: 'Deutsch', short: 'DE' },
+    { code: 'fr', label: 'Français', short: 'FR' },
+    { code: 'ja', label: '日本語', short: 'JA' },
+    { code: 'ru', label: 'Русский', short: 'RU' },
+    { code: 'tr', label: 'Türkçe', short: 'TR' },
+    { code: 'zh-Hans', label: '简体中文', short: '简' },
+    { code: 'zh-Hant', label: '繁體中文', short: '繁' },
+    { code: 'pt-BR', label: 'Português', short: 'PT' }
+  ];
+
+  function defaultTranslateTargetLang() {
+    return currentLang === 'en' ? 'fa' : 'en';
   }
+  let translateTargetLang = defaultTranslateTargetLang();
+
+  let translateLangBtnEl = null;
+  let translateLangPopoverEl = null;
+
+  function updateTranslateLangBadge() {
+    if (!translateLangBtnEl) return;
+    const entry = TRANSLATE_LANGS.find((l) => l.code === translateTargetLang);
+    translateLangBtnEl.textContent = entry ? entry.short : String(translateTargetLang).toUpperCase();
+    const label = entry ? entry.label : translateTargetLang;
+    const titleText = (t('translateTargetLabel') || 'Translate to') + ': ' + label;
+    translateLangBtnEl.title = titleText;
+    translateLangBtnEl.setAttribute('aria-label', titleText);
+  }
+
+  function setTranslateTargetLang(code) {
+    translateTargetLang = code;
+    updateTranslateLangBadge();
+    try { chrome.storage.local.set({ translateTargetLang: code }); } catch (e) {}
+  }
+
+  function closeTranslateLangPopover() {
+    if (!translateLangPopoverEl) return;
+    document.removeEventListener('mousedown', onTranslateLangOutsideClick, true);
+    translateLangPopoverEl.remove();
+    translateLangPopoverEl = null;
+  }
+  function onTranslateLangOutsideClick(e) {
+    if (translateLangPopoverEl && !translateLangPopoverEl.contains(e.target) && e.target !== translateLangBtnEl) {
+      closeTranslateLangPopover();
+    }
+  }
+  function openTranslateLangPopover() {
+    if (translateLangPopoverEl || !translateLangBtnEl) return;
+    const pop = document.createElement('div');
+    pop.setAttribute('role', 'menu');
+    pop.style.cssText =
+      'position:fixed;min-width:150px;max-height:260px;overflow-y:auto;' +
+      'background:rgba(20,22,30,0.97);border:1px solid rgba(255,255,255,0.12);' +
+      'border-radius:10px;padding:6px;z-index:99999;' +
+      'box-shadow:0 8px 24px rgba(0,0,0,0.5);' +
+      'font-family:-apple-system,BlinkMacSystemFont,"Vazirmatn","Segoe UI",sans-serif;' +
+      'direction:' + (isRTL(currentLang) ? 'rtl' : 'ltr') + ';';
+    pop.innerHTML = TRANSLATE_LANGS.map((l) => {
+      const active = l.code === translateTargetLang;
+      return '<button type="button" data-lang="' + l.code + '" style="' +
+        'display:block;width:100%;text-align:inherit;background:' + (active ? 'rgba(16,185,129,0.28)' : 'none') + ';' +
+        'border:none;color:' + (active ? '#fff' : '#E5E7EB') + ';font-weight:' + (active ? '700' : '400') + ';' +
+        'padding:7px 10px;border-radius:8px;font-size:12.5px;font-family:inherit;cursor:pointer;">' +
+        l.label + '</button>';
+    }).join('');
+
+    document.body.appendChild(pop);
+    const rect = translateLangBtnEl.getBoundingClientRect();
+    pop.style.top = (rect.bottom + 6) + 'px';
+    const roomRight = window.innerWidth - rect.left;
+    if (roomRight < 160) pop.style.left = (window.innerWidth - rect.right - 150) + 'px';
+    else pop.style.left = rect.left + 'px';
+
+    pop.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-lang]');
+      if (!btn) return;
+      setTranslateTargetLang(btn.getAttribute('data-lang'));
+      closeTranslateLangPopover();
+    });
+
+    translateLangPopoverEl = pop;
+    setTimeout(() => document.addEventListener('mousedown', onTranslateLangOutsideClick, true), 50);
+  }
+
+  function mountTranslateLangBtn() {
+    if (!els.translateBtn || translateLangBtnEl) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'EN';
+    btn.style.cssText =
+      'min-width:30px;padding:0 6px;margin-inline-start:4px;height:28px;' +
+      'font-size:10.5px;font-weight:700;letter-spacing:0.3px;' +
+      'display:inline-flex;align-items:center;justify-content:center;' +
+      'background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.14);' +
+      'border-radius:8px;color:#E5E7EB;cursor:pointer;font-family:inherit;';
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (translateLangPopoverEl) closeTranslateLangPopover();
+      else openTranslateLangPopover();
+    });
+    els.translateBtn.insertAdjacentElement('afterend', btn);
+    translateLangBtnEl = btn;
+    updateTranslateLangBadge();
+  }
+
+  try {
+    if (chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['translateTargetLang'], (res) => {
+        if (res && res.translateTargetLang) {
+          translateTargetLang = res.translateTargetLang;
+          updateTranslateLangBadge();
+        }
+      });
+      chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.translateTargetLang) {
+          translateTargetLang = changes.translateTargetLang.newValue || defaultTranslateTargetLang();
+          updateTranslateLangBadge();
+        }
+      });
+    }
+  } catch (e) {}
+
+  mountTranslateLangBtn();
+
   function requestTranslation(text, targetLang) {
     return new Promise((resolve, reject) => {
       try {
@@ -457,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const textVal = (els.textarea.value || '').trim();
     if (!textVal) { showToast(t('dockEmptyPrompt')); return; }
     if (textVal.length > 4500) { showToast(t('toastTranslateTooLong')); return; }
-    const targetLang = detectTranslateTarget(textVal);
+    const targetLang = translateTargetLang;
     translateBusy = true;
     if (els.translateBtn) {
       els.translateBtn.classList.add('is-busy');
@@ -477,7 +607,13 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast(t('toastTranslated'));
     } catch (err) {
       console.warn('[notepad] translate failed:', err);
-      showToast(t('toastTranslateFail'));
+      const errMsg = (err && err.message) || '';
+      let toastMsg;
+      if (/rate_limited/.test(errMsg)) toastMsg = t('toastTranslateRateLimited');
+      else if (/network_offline/.test(errMsg)) toastMsg = t('toastTranslateOffline');
+      else if (/network_error/.test(errMsg)) toastMsg = t('toastTranslateNetworkError');
+      else toastMsg = t('toastTranslateFail');
+      showToast(toastMsg);
     } finally {
       translateBusy = false;
       if (els.translateBtn) {

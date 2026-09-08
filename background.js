@@ -42,6 +42,81 @@ const IRAN_HOLIDAYS = [
 // تعطیلات قمری/رؤیت‌هلالی را اصلاً شامل نمی‌شود.
 const NAGER_BASE_URL = 'https://date.nager.at/api/v3/PublicHolidays';
 
+// ---------------------------------------------------------------------------
+// کش سبک ترجمه (فقط در حافظه — با خواب Service Worker پاک می‌شود، همین‌قدر هم
+// کافی است) — برای جلوگیری از فچ تکراری وقتی همان متن/زبان دوباره خواسته
+// می‌شود (مثلاً کلیک دوباره روی دکمهٔ ترجمه، یا برگشتن به همان کلمه در
+// دیکشنری). سقف اندازه دارد تا نشتی حافظه نداشته باشیم.
+const TRANSLATE_CACHE = new Map();
+const TRANSLATE_CACHE_MAX = 200;
+const TRANSLATE_CACHE_TTL_MS = 10 * 60 * 1000; // ۱۰ دقیقه
+
+function translateCacheKey(text, targetLang) {
+  return targetLang + '::' + text;
+}
+
+function translateCacheGet(key) {
+  const hit = TRANSLATE_CACHE.get(key);
+  if (!hit) return null;
+  if (Date.now() - hit.ts > TRANSLATE_CACHE_TTL_MS) {
+    TRANSLATE_CACHE.delete(key);
+    return null;
+  }
+  return hit.value;
+}
+
+function translateCacheSet(key, value) {
+  if (TRANSLATE_CACHE.size >= TRANSLATE_CACHE_MAX) {
+    // قدیمی‌ترین کلید را حذف کن (اولین کلیدِ Map به ترتیب درج است)
+    const oldestKey = TRANSLATE_CACHE.keys().next().value;
+    if (oldestKey !== undefined) TRANSLATE_CACHE.delete(oldestKey);
+  }
+  TRANSLATE_CACHE.set(key, { value, ts: Date.now() });
+}
+
+// اندپوینتِ translate.googleapis.com یک API رسمی/مستند نیست — همان اندپوینتِ
+// رایگانی است که translate.google.com خودش استفاده می‌کند و توسط گوگل بر
+// اساس IP مبدأ محدود به نرخ می‌شود (Rate Limit)، نه بر اساس این افزونه به‌تنهایی.
+// یعنی حتی با استفادهٔ معقول، ممکن است HTTP 429 برگردد (مثلاً وقتی IP شما با
+// کاربران زیاد دیگری در همان شبکه/ISP/VPN مشترک است). اینجا با یک backoff نمایی
+// کوتاه (حداکثر ۲ تلاش مجدد) این خطای گذرا را تا حد امکان جبران می‌کنیم؛ اگر
+// هدر Retry-After برگردد از همان استفاده می‌شود، وگرنه از تأخیر پیش‌فرض.
+async function fetchTranslateWithRetry(url, maxRetries) {
+  let attempt = 0;
+  for (;;) {
+    let res;
+    try {
+      res = await fetch(url);
+    } catch (networkErr) {
+      // خطای سطح شبکه (نه یک پاسخ HTTP با کد خطا) — یعنی fetch() اصلاً پاسخی
+      // برنگردانده: قطعی موقت اینترنت، مسدودشدن این دامنه توسط فایروال/VPN/
+      // ادبلاکر، یا افت لحظه‌ایِ خودِ سرور گوگل. قبلاً این حالت اصلاً retry
+      // نمی‌شد (فقط ۴۲۹ پوشش داده می‌شد) — همینجا هم مثل ۴۲۹ چند بار دوباره
+      // تلاش می‌کنیم، چون اکثر این خطاها گذرا هستند.
+      if (attempt < maxRetries) {
+        await new Promise((r) => setTimeout(r, 600 * Math.pow(2, attempt)));
+        attempt += 1;
+        continue;
+      }
+      // navigator.onLine در Service Worker هم در دسترس است؛ صرفاً یک راهنمای
+      // سریع است (نه تضمین قطعی)، ولی برای تفکیک پیام «کلاً آفلاینی» از
+      // «سرویس/دامنه در دسترس نیست» کافی است.
+      const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+      throw new Error(offline ? 'network_offline' : 'network_error');
+    }
+    if (res.ok) return res;
+    if (res.status === 429 && attempt < maxRetries) {
+      const retryAfterHeader = res.headers.get('Retry-After');
+      const retryAfterSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : NaN;
+      const delayMs = !isNaN(retryAfterSec) ? retryAfterSec * 1000 : 700 * Math.pow(2, attempt);
+      await new Promise((r) => setTimeout(r, delayMs));
+      attempt += 1;
+      continue;
+    }
+    throw new Error('HTTP ' + res.status);
+  }
+}
+
 function holidaysCacheKeyFor(countryCode, year) {
   return `aiTreeHolidays_${countryCode}_${year}`;
 }
@@ -145,6 +220,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return;
     }
 
+    // اول کش را چک کن — اگر همین متن/زبان اخیراً ترجمه شده، بدون هیچ فچی جواب بده
+    const cacheKey = translateCacheKey(text, targetLang);
+    const cached = translateCacheGet(cacheKey);
+    if (cached) {
+      sendResponse({ success: true, text: cached.text, synonyms: cached.synonyms, cached: true });
+      return;
+    }
+
     // dt=t: ترجمه اصلی — dt=bd: دیکشنری/مترادف‌ها (فقط برای کلمات/عبارات کوتاه پر می‌شود)
     const url =
       'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
@@ -152,11 +235,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       '&dt=t&dt=bd&q=' +
       encodeURIComponent(text);
 
-    fetch(url)
-      .then((res) => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+    fetchTranslateWithRetry(url, 2)
+      .then((res) => res.json())
       .then((data) => {
         let translatedText = '';
         if (Array.isArray(data) && Array.isArray(data[0])) {
@@ -184,10 +264,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           });
         }
 
+        translateCacheSet(cacheKey, { text: translatedText, synonyms: synonyms });
         sendResponse({ success: true, text: translatedText, synonyms: synonyms });
       })
       .catch((error) => {
-        sendResponse({ success: false, error: String((error && error.message) || error) });
+        const msg = String((error && error.message) || error);
+        // بعد از تمام‌شدن تلاش‌های مجدد هم اگر باز ۴۲۹ یا خطای شبکه بود، کدِ
+        // مشخصی برمی‌گردانیم تا content.js/notepad.js بتوانند پیامِ مناسبِ
+        // همان حالت را نشان دهند، نه یک پیام عمومیِ یکسان برای همه‌چیز
+        const isRateLimited = /HTTP 429/.test(msg);
+        sendResponse({ success: false, error: isRateLimited ? 'rate_limited' : msg });
       });
 
     return true;
