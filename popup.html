@@ -78,6 +78,37 @@
       0%, 100% { box-shadow: 0 0 8px rgba(156, 163, 175, 0.22), inset 0 0 10px rgba(156, 163, 175, 0.06); }
       50%      { box-shadow: 0 0 15px rgba(156, 163, 175, 0.45), inset 0 0 10px rgba(156, 163, 175, 0.1); }
     }
+
+    .btn-trio {
+      flex: 1;
+      padding: 8px 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .btn-trio-void {
+      background: rgba(139, 92, 246, 0.12);
+      color: #C4B5FD;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+    .btn-trio-void:hover { background: rgba(139, 92, 246, 0.22); }
+    .btn-trio-home {
+      background: rgba(59, 130, 246, 0.12);
+      color: #93C5FD;
+      border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+    .btn-trio-home:hover { background: rgba(59, 130, 246, 0.22); }
+    .btn-trio-copy {
+      background: rgba(16, 185, 129, 0.12);
+      color: #6EE7B7;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .btn-trio-copy:hover { background: rgba(16, 185, 129, 0.22); }
     .backup-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin: 4px 0 12px; line-height: 1.6; }
 
     .backup-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-right: 4px; }
@@ -126,9 +157,20 @@
     <h2>AI Tree Launcher</h2>
   </div>
 
-  <button id="restoreHomeBtn" class="btn btn-voidtab">🏠 <span id="lbl-restore-home">Open Chrome Home Page Settings</span></button>
-  <button id="copyVoidHomeUrlBtn" class="btn btn-secondary" style="margin: 6px 16px 0; width: calc(100% - 32px); font-size: 11px; padding: 7px;">📋 <span id="lbl-copy-void-home">Copy link to set as browser home page</span></button>
+  <div style="display: flex; gap: 6px; margin: 10px 16px 0;">
+    <button id="createVoidTabBtn" class="btn btn-trio btn-trio-void" title="Open Void Tab">🌌 <span id="lbl-create-void-tab">Void Tab</span></button>
+    <button id="restoreHomeBtn" class="btn btn-trio btn-trio-home" title="Open Chrome Home Page Settings">🏠 <span id="lbl-restore-home">Home</span></button>
+    <button id="copyVoidHomeUrlBtn" class="btn btn-trio btn-trio-copy" title="Copy link to set as browser home page">📋 <span id="lbl-copy-void-home">Copy Link</span></button>
+  </div>
   <div id="void-home-hint" style="font-size: 10.5px; color: var(--text-muted); text-align: center; margin: 4px 16px 10px; line-height: 1.6;"></div>
+
+  <div style="margin: 0 16px 10px; padding: 10px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px;">
+    <label id="lbl-ntp-mode" style="display:block; margin-bottom:6px; font-size:12px; color: var(--text-muted);">New Tab Behavior</label>
+    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; color: var(--text);">
+      <input type="checkbox" id="useDefaultNtpCb" style="width:auto; margin:0;">
+      <span id="lbl-use-default-ntp">Redirect to standard Search Engine on New Tab instead</span>
+    </label>
+  </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-target="core" id="tab-core">⚙️ Core</button>

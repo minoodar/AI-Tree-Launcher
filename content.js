@@ -9207,8 +9207,15 @@ let hubAutoCollapsedByPanel = false;
     selectedImportance = link.importance || DEFAULT_IMPORTANCE; paintStars(selectedImportance);
     uiEls.formImportanceWrap.style.display = (globalIdx < 5) ? 'none' : '';
     uiEls.formGalaxyWrap.style.display = isAddFlow ? 'none' : '';
+    // مقدار selectedGalaxy همیشه با کهکشانِ فعلی هم‌تراز می‌شود — حتی در حالتِ
+    // افزودن (add-flow، مثلاً پرکردنِ یک جایگاهِ خالیِ هسته). قبلاً این خط فقط
+    // داخل شرطِ !isAddFlow بود، یعنی اگر selectedGalaxy از یک تعاملِ قبلی مقدارِ
+    // قدیمی (مثلاً 1، باقی‌مانده از closeTree) داشت، پرکردنِ یک جایگاهِ خالیِ
+    // هسته در کهکشانِ دیگر (مثلاً کهکشان ۲) در submitBookmarkForm به‌اشتباه
+    // به‌عنوانِ «انتقال به کهکشان ۱» تفسیر می‌شد و بوک‌مارک به‌جای پر کردنِ همان
+    // جایگاهِ هسته، به‌صورتِ یک آیتمِ عادیِ ۵ستاره در کهکشانِ ۱ ذخیره می‌شد.
+    selectedGalaxy = currentHubIndex;
     if (!isAddFlow) {
-      selectedGalaxy = currentHubIndex;
       requestAnimationFrame(() => snapGalaxyKnobTo(selectedGalaxy, false));
     }
     if (isAddFlow) { uiEls.formMainTitle.textContent = t('formAddTitle'); uiEls.formSave.textContent = t('formSaveBtn'); }
@@ -9717,6 +9724,15 @@ let hubAutoCollapsedByPanel = false;
       if (e.target.closest('#ai-form-close')) return;
       e.stopPropagation();
       panning = true; inlineForm.classList.add('panning');
+      // این نشانگر همین الان (نه در onUp) ست می‌شود و در onUp با یک تأخیرِ صفر
+      // پاک می‌شود — چون listenerِ mouseup پایین‌تر (که با کلیکِ بیرون فرم را
+      // می‌بندد) هم روی document ثبت شده و در همان چرخه‌ی رویدادِ mouseup اجرا
+      // می‌شود. بدونِ این نشانگر، اگر کاربر با سرعت درگ کند، به‌خاطر throttleِ
+      // RAF موقعیتِ فرم ممکن است یک فریم عقب‌تر از نشانگرِ ماوس باشد؛ در لحظه‌ی
+      // release، مرورگر e.target را از رویِ موقعیتِ واقعیِ ماوس حساب می‌کند که
+      // ممکن است بیرون از کادرِ (هنوز جابه‌جا‌نشده‌ی) فرم باشد — و فرم را دقیقاً
+      // وسطِ درگ‌کردن می‌بندد.
+      inlineForm.dataset.justPanned = '1';
       const point = e.touches ? e.touches[0] : e;
       const rect = inlineForm.getBoundingClientRect();
       startX = point.clientX; startY = point.clientY; startLeft = rect.left; startTop = rect.top;
@@ -9739,7 +9755,14 @@ let hubAutoCollapsedByPanel = false;
         });
       }
     }
-    function onUp() { panning = false; inlineForm.classList.remove('panning'); }
+    function onUp() {
+      panning = false; inlineForm.classList.remove('panning');
+      // پاک‌کردنِ نشانگر با تأخیرِ صفر (نه بلافاصله)، تا listenerِ بستنِ فرم که
+      // پایین‌تر روی همین رویدادِ mouseup ثبت شده هنوز بتواند آن را ببیند —
+      // چون هر دو listener روی document و روی همین یک mouseup به ترتیبِ ثبت
+      // اجرا می‌شوند (این یکی زودتر ثبت شده، پس زودتر هم اجرا می‌شود).
+      setTimeout(() => { delete inlineForm.dataset.justPanned; }, 0);
+    }
 
     header.addEventListener('mousedown', onDown);
     header.addEventListener('touchstart', onDown, { passive: true });
@@ -9810,6 +9833,7 @@ let hubAutoCollapsedByPanel = false;
   // فرم را باز نگه می‌داریم.
   document.addEventListener('mouseup', (e) => {
     if (!inlineForm.classList.contains('active')) return;
+    if (inlineForm.dataset.justPanned) return; // همین الان داشتیم فرم را جابه‌جا (درگ) می‌کردیم — نبند
     if (inlineForm.contains(e.target) || e.target === addNodeBtn) return;
     const sel = window.getSelection ? window.getSelection().toString() : '';
     if (sel && sel.trim().length > 0) return; // درحال انتخاب/کپیِ متنِ صفحه بود — فرم بسته نشود

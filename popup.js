@@ -19,9 +19,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaism", religionChristianity: "✝️ Christianity", religionEastern: "☸️ Eastern (Buddhism & Hindu wisdom)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature",
         vaultLiveSaved: "✓ Saved instantly — no need to press Save",
-        lblRestoreHome: "Open Chrome Home Page Settings",
+        lblCreateVoidTab: "Void Tab",
+        lblRestoreHome: "Home",
         restoreHomeHint: "Go to chrome://settings/onStartup and choose \"Open the New Tab page\" to restore the default.",
-        lblCopyVoidHome: "Copy link to set as browser home page",
+        lblCopyVoidHome: "Copy Link",
+        lblNtpMode: "New Tab Behavior",
+        lblUseDefaultNtp: "Redirect to standard Search Engine on New Tab instead",
+        toastNtpDefaultOn: "Standard New Tab enabled",
+        toastNtpDefaultOff: "AI Tree New Tab restored",
         voidHomeCopiedHint: "✅ Copied! Paste it in Chrome Settings → On startup → Open a specific page"
       },
       fa: {
@@ -42,9 +47,14 @@ const i18nPopup = {
         religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
         poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب",
         vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست",
-        lblRestoreHome: "باز کردن تنظیمات صفحهٔ خانهٔ کروم",
+        lblCreateVoidTab: "تب وید",
+        lblRestoreHome: "خانه",
         restoreHomeHint: "به chrome://settings/onStartup برو و «باز کردن صفحهٔ تب جدید» رو انتخاب کن تا به حالت پیش‌فرض برگرده.",
-        lblCopyVoidHome: "کپی لینک برای صفحهٔ خانهٔ مرورگر",
+        lblCopyVoidHome: "کپی لینک",
+        lblNtpMode: "رفتار تب جدید",
+        lblUseDefaultNtp: "به‌جاش موتور جستجوی استاندارد در تب جدید باز شود",
+        toastNtpDefaultOn: "تب جدیدِ استاندارد فعال شد",
+        toastNtpDefaultOff: "تب جدیدِ AI Tree برگشت",
         voidHomeCopiedHint: "✅ کپی شد! توی تنظیمات کروم ← هنگام شروع ← باز کردن صفحهٔ خاص، پیستش کن"
       },
       ar: {
@@ -65,9 +75,14 @@ const i18nPopup = {
         religionIslam: "☪️ الإسلام", religionJudaism: "✡️ اليهودية", religionChristianity: "✝️ المسيحية", religionEastern: "☸️ الشرق (الحكمة البوذية والهندوسية)",
         poetryRumi: "🌙 جلال الدين الرومي", poetryWestern: "🖋️ الأدب الغربي",
         vaultLiveSaved: "✓ تم الحفظ فوراً — لا حاجة للضغط على «حفظ الإعدادات»",
-        lblRestoreHome: "فتح إعدادات الصفحة الرئيسية لكروم",
+        lblCreateVoidTab: "تبويب فارغ",
+        lblRestoreHome: "الرئيسية",
         restoreHomeHint: "اذهب إلى chrome://settings/onStartup واختر \"فتح صفحة التبويب الجديد\" لاستعادة الوضع الافتراضي.",
-        lblCopyVoidHome: "انسخ الرابط لتعيينه كصفحة رئيسية للمتصفح",
+        lblCopyVoidHome: "نسخ الرابط",
+        lblNtpMode: "سلوك علامة التبويب الجديدة",
+        lblUseDefaultNtp: "إعادة التوجيه إلى محرك البحث القياسي بدلاً من ذلك",
+        toastNtpDefaultOn: "تم تفعيل علامة التبويب الجديدة القياسية",
+        toastNtpDefaultOff: "تمت استعادة علامة التبويب الجديدة الخاصة بـ AI Tree",
         voidHomeCopiedHint: "✅ تم النسخ! الصقه في إعدادات كروم ← عند بدء التشغيل ← فتح صفحة معينة"
       },
       es: {
@@ -88,9 +103,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabiduría budista e hindú)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura occidental",
         vaultLiveSaved: "✓ Guardado al instante — no hace falta pulsar «Guardar»",
-        lblRestoreHome: "Abrir configuración de página de inicio de Chrome",
+        lblCreateVoidTab: "Pestaña Vacía",
+        lblRestoreHome: "Inicio",
         restoreHomeHint: "Ve a chrome://settings/onStartup y elige \"Abrir la página Nueva pestaña\" para restaurar el valor predeterminado.",
-        lblCopyVoidHome: "Copiar enlace para usar como página de inicio",
+        lblCopyVoidHome: "Copiar enlace",
+        lblNtpMode: "Comportamiento de Nueva Pestaña",
+        lblUseDefaultNtp: "Redirigir al motor de búsqueda estándar en su lugar",
+        toastNtpDefaultOn: "Nueva pestaña estándar activada",
+        toastNtpDefaultOff: "Nueva pestaña de AI Tree restaurada",
         voidHomeCopiedHint: "✅ ¡Copiado! Pégalo en Configuración de Chrome → Al iniciar → Abrir una página específica"
       },
       de: {
@@ -111,9 +131,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judentum", religionChristianity: "✝️ Christentum", religionEastern: "☸️ Östlich (buddhistische & hinduistische Weisheit)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Westliche Literatur",
         vaultLiveSaved: "✓ Sofort gespeichert — kein Klick auf „Speichern” nötig",
-        lblRestoreHome: "Chrome-Startseiteneinstellungen öffnen",
+        lblCreateVoidTab: "Leerer Tab",
+        lblRestoreHome: "Start",
         restoreHomeHint: "Gehe zu chrome://settings/onStartup und wähle \"Neue-Tab-Seite öffnen\", um den Standard wiederherzustellen.",
-        lblCopyVoidHome: "Link kopieren, um als Startseite festzulegen",
+        lblCopyVoidHome: "Link kopieren",
+        lblNtpMode: "Verhalten neuer Tabs",
+        lblUseDefaultNtp: "Stattdessen zur Standardsuchmaschine weiterleiten",
+        toastNtpDefaultOn: "Standard-Neuer-Tab aktiviert",
+        toastNtpDefaultOff: "AI Tree Neuer Tab wiederhergestellt",
         voidHomeCopiedHint: "✅ Kopiert! In Chrome-Einstellungen → Beim Start → Bestimmte Seite öffnen einfügen"
       },
       fr: {
@@ -134,9 +159,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaïsme", religionChristianity: "✝️ Christianisme", religionEastern: "☸️ Orientale (sagesse bouddhiste et hindoue)",
         poetryRumi: "🌙 Rûmî", poetryWestern: "🖋️ Littérature occidentale",
         vaultLiveSaved: "✓ Enregistré instantanément — pas besoin de cliquer sur « Enregistrer »",
-        lblRestoreHome: "Ouvrir les paramètres de la page d'accueil Chrome",
+        lblCreateVoidTab: "Onglet Vide",
+        lblRestoreHome: "Accueil",
         restoreHomeHint: "Allez sur chrome://settings/onStartup et choisissez \"Ouvrir la page Nouvel onglet\" pour restaurer le défaut.",
-        lblCopyVoidHome: "Copier le lien pour la page d'accueil du navigateur",
+        lblCopyVoidHome: "Copier le lien",
+        lblNtpMode: "Comportement du nouvel onglet",
+        lblUseDefaultNtp: "Rediriger vers le moteur de recherche standard à la place",
+        toastNtpDefaultOn: "Nouvel onglet standard activé",
+        toastNtpDefaultOff: "Nouvel onglet AI Tree restauré",
         voidHomeCopiedHint: "✅ Copié ! Collez-le dans Paramètres Chrome → Au démarrage → Ouvrir une page spécifique"
       },
       ja: {
@@ -157,9 +187,14 @@ const i18nPopup = {
         religionIslam: "☪️ イスラム教", religionJudaism: "✡️ ユダヤ教", religionChristianity: "✝️ キリスト教", religionEastern: "☸️ 東洋（仏教・ヒンドゥーの知恵）",
         poetryRumi: "🌙 ルーミー", poetryWestern: "🖋️ 西洋文学",
         vaultLiveSaved: "✓ 即座に保存されました — 「保存」を押す必要はありません",
-        lblRestoreHome: "Chromeのホームページ設定を開く",
+        lblCreateVoidTab: "空白タブ",
+        lblRestoreHome: "ホーム",
         restoreHomeHint: "chrome://settings/onStartup を開き、「新しいタブページを開く」を選んで既定に戻してください。",
-        lblCopyVoidHome: "ブラウザのホームページ用にリンクをコピー",
+        lblCopyVoidHome: "リンクをコピー",
+        lblNtpMode: "新しいタブの動作",
+        lblUseDefaultNtp: "代わりに標準の検索エンジンにリダイレクトする",
+        toastNtpDefaultOn: "標準の新しいタブが有効になりました",
+        toastNtpDefaultOff: "AI Tree の新しいタブに戻りました",
         voidHomeCopiedHint: "✅ コピーしました！Chromeの設定→起動時→特定のページを開く、に貼り付けてください"
       },
       ru: {
@@ -180,9 +215,14 @@ const i18nPopup = {
         religionIslam: "☪️ Ислам", religionJudaism: "✡️ Иудаизм", religionChristianity: "✝️ Христианство", religionEastern: "☸️ Восточная (буддийская и индуистская мудрость)",
         poetryRumi: "🌙 Руми", poetryWestern: "🖋️ Западная литература",
         vaultLiveSaved: "✓ Сохранено мгновенно — нажимать «Сохранить» не нужно",
-        lblRestoreHome: "Открыть настройки домашней страницы Chrome",
+        lblCreateVoidTab: "Пустая вкладка",
+        lblRestoreHome: "Домой",
         restoreHomeHint: "Перейдите в chrome://settings/onStartup и выберите «Открывать страницу новой вкладки», чтобы восстановить по умолчанию.",
-        lblCopyVoidHome: "Скопировать ссылку для домашней страницы браузера",
+        lblCopyVoidHome: "Скопировать ссылку",
+        lblNtpMode: "Поведение новой вкладки",
+        lblUseDefaultNtp: "Вместо этого перенаправлять на стандартную поисковую систему",
+        toastNtpDefaultOn: "Стандартная новая вкладка включена",
+        toastNtpDefaultOff: "Новая вкладка AI Tree восстановлена",
         voidHomeCopiedHint: "✅ Скопировано! Вставьте в настройках Chrome → При запуске → Открыть конкретную страницу"
       },
       tr: {
@@ -203,9 +243,14 @@ const i18nPopup = {
         religionIslam: "☪️ İslam", religionJudaism: "✡️ Yahudilik", religionChristianity: "✝️ Hristiyanlık", religionEastern: "☸️ Doğu (Budist ve Hindu bilgeliği)",
         poetryRumi: "🌙 Mevlana", poetryWestern: "🖋️ Batı Edebiyatı",
         vaultLiveSaved: "✓ Anında kaydedildi — «Kaydet»e basmaya gerek yok",
-        lblRestoreHome: "Chrome Ana Sayfa Ayarlarını Aç",
+        lblCreateVoidTab: "Boş Sekme",
+        lblRestoreHome: "Ana Sayfa",
         restoreHomeHint: "chrome://settings/onStartup adresine git ve varsayılana dönmek için \"Yeni sekme sayfasını aç\" seçeneğini seç.",
-        lblCopyVoidHome: "Tarayıcı ana sayfası için bağlantıyı kopyala",
+        lblCopyVoidHome: "Bağlantıyı Kopyala",
+        lblNtpMode: "Yeni Sekme Davranışı",
+        lblUseDefaultNtp: "Bunun yerine standart arama motoruna yönlendir",
+        toastNtpDefaultOn: "Standart Yeni Sekme etkinleştirildi",
+        toastNtpDefaultOff: "AI Tree Yeni Sekmesi geri yüklendi",
         voidHomeCopiedHint: "✅ Kopyalandı! Chrome Ayarları → Başlangıçta → Belirli bir sayfa aç kısmına yapıştır"
       },
       'zh-Hans': {
@@ -226,9 +271,14 @@ const i18nPopup = {
         religionIslam: "☪️ 伊斯兰教", religionJudaism: "✡️ 犹太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 东方（佛教与印度教智慧）",
         poetryRumi: "🌙 鲁米", poetryWestern: "🖋️ 西方文学",
         vaultLiveSaved: "✓ 已即时保存——无需点击「保存」",
-        lblRestoreHome: "打开 Chrome 主页设置",
+        lblCreateVoidTab: "空白标签",
+        lblRestoreHome: "主页",
         restoreHomeHint: "前往 chrome://settings/onStartup，选择“打开新标签页”即可恢复默认设置。",
-        lblCopyVoidHome: "复制链接以设为浏览器主页",
+        lblCopyVoidHome: "复制链接",
+        lblNtpMode: "新标签页行为",
+        lblUseDefaultNtp: "改为跳转到标准搜索引擎",
+        toastNtpDefaultOn: "已启用标准新标签页",
+        toastNtpDefaultOff: "已恢复 AI Tree 新标签页",
         voidHomeCopiedHint: "✅ 已复制！粘贴到 Chrome 设置 → 启动时 → 打开特定网页"
       },
       'zh-Hant': {
@@ -249,9 +299,14 @@ const i18nPopup = {
         religionIslam: "☪️ 伊斯蘭教", religionJudaism: "✡️ 猶太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 東方（佛教與印度教智慧）",
         poetryRumi: "🌙 魯米", poetryWestern: "🖋️ 西方文學",
         vaultLiveSaved: "✓ 已即時儲存——無需點擊「儲存」",
-        lblRestoreHome: "開啟 Chrome 首頁設定",
+        lblCreateVoidTab: "空白分頁",
+        lblRestoreHome: "首頁",
         restoreHomeHint: "前往 chrome://settings/onStartup，選擇「開啟新分頁」即可還原預設值。",
-        lblCopyVoidHome: "複製連結以設為瀏覽器首頁",
+        lblCopyVoidHome: "複製連結",
+        lblNtpMode: "新分頁行為",
+        lblUseDefaultNtp: "改為跳轉到標準搜尋引擎",
+        toastNtpDefaultOn: "已啟用標準新分頁",
+        toastNtpDefaultOff: "已還原 AI Tree 新分頁",
         voidHomeCopiedHint: "✅ 已複製！貼到 Chrome 設定 → 啟動時 → 開啟特定網頁"
       },
       'pt-BR': {
@@ -272,9 +327,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islamismo", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabedoria budista e hindu)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura Ocidental",
         vaultLiveSaved: "✓ Salvo instantaneamente — não é preciso clicar em Salvar",
-        lblRestoreHome: "Abrir configurações de página inicial do Chrome",
+        lblCreateVoidTab: "Aba Vazia",
+        lblRestoreHome: "Início",
         restoreHomeHint: "Vá em chrome://settings/onStartup e escolha \"Abrir a página Nova guia\" para restaurar o padrão.",
-        lblCopyVoidHome: "Copiar link para definir como página inicial do navegador",
+        lblCopyVoidHome: "Copiar Link",
+        lblNtpMode: "Comportamento da Nova Guia",
+        lblUseDefaultNtp: "Redirecionar para o mecanismo de busca padrão em vez disso",
+        toastNtpDefaultOn: "Nova guia padrão ativada",
+        toastNtpDefaultOff: "Nova guia do AI Tree restaurada",
         voidHomeCopiedHint: "✅ Copiado! Cole em Configurações do Chrome → Ao iniciar → Abrir uma página específica"
       }
     };
@@ -294,8 +354,11 @@ const i18nPopup = {
       document.getElementById('lbl-birth').textContent = t.lblBirth;
       document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : (currentLang === 'zh-Hans' || currentLang === 'zh-Hant') ? "例如：1990" : currentLang === 'pt-BR' ? "ex.: 1990" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
+      if (document.getElementById('lbl-create-void-tab')) document.getElementById('lbl-create-void-tab').textContent = t.lblCreateVoidTab;
       if (document.getElementById('lbl-restore-home')) document.getElementById('lbl-restore-home').textContent = t.lblRestoreHome;
       if (document.getElementById('lbl-copy-void-home')) document.getElementById('lbl-copy-void-home').textContent = t.lblCopyVoidHome;
+      if (document.getElementById('lbl-ntp-mode')) document.getElementById('lbl-ntp-mode').textContent = t.lblNtpMode;
+      if (document.getElementById('lbl-use-default-ntp')) document.getElementById('lbl-use-default-ntp').textContent = t.lblUseDefaultNtp;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
 
@@ -531,6 +594,30 @@ const i18nPopup = {
     // آدرس‌های chrome://settings/* از داخل popup قابل‌اعتماد نیست — همیشه یا
     // در همهٔ نسخه‌ها تضمینی کار نمی‌کند — پس عمداً به‌جای تلاش برای navigate
     // کردن، فقط مسیر دقیق را متنی نشان می‌دهیم؛ همان الگوی امنِ کپی‌لینک زیرش)
+    // «تب وید» — دقیقاً مثل قبل، حداکثر یک نمونه از این تب هم‌زمان باز می‌ماند:
+    // اگر از قبل باز است، فقط فوکوسش می‌کنیم؛ وگرنه یک تبِ تازه می‌سازیم. پارامترِ
+    // ?explicit=1 به void-tab-router.js می‌گوید که این باز شدن، درخواستِ صریحِ
+    // خودِ کاربر از همین دکمه بوده — حتی اگر «ریدایرکت به موتور جستجوی استاندارد»
+    // را هم روشن کرده باشد، این تبِ صریحاً درخواست‌شده هرگز نباید ریدایرکت شود.
+    const createVoidTabBtn = document.getElementById('createVoidTabBtn');
+    if (createVoidTabBtn) {
+      createVoidTabBtn.addEventListener('click', () => {
+        const voidTabUrl = chrome.runtime.getURL('void-tab.html');
+        chrome.tabs.query({}, (tabs) => {
+          const existingTab = tabs.find(t => t.url && t.url.indexOf(voidTabUrl) === 0);
+          if (existingTab) {
+            chrome.tabs.update(existingTab.id, { active: true });
+            if (existingTab.windowId) {
+              chrome.windows.update(existingTab.windowId, { focused: true });
+            }
+          } else {
+            chrome.tabs.create({ url: voidTabUrl + '?explicit=1' });
+          }
+          window.close();
+        });
+      });
+    }
+
     const restoreHomeBtn = document.getElementById('restoreHomeBtn');
     if (restoreHomeBtn) {
       restoreHomeBtn.addEventListener('click', () => {
@@ -568,6 +655,24 @@ const i18nPopup = {
             ? (tp.voidHomeCopiedHint || ('✅ ' + url))
             : url;
         }
+      });
+    }
+
+    // «رفتار تب جدید» — چون chrome_url_overrides.newtab در manifest.json ثابت
+    // است و هیچ API ای برای روشن/خاموش‌کردنِ آن در زمانِ اجرا وجود ندارد، این
+    // تنظیم به‌جایش به void-tab.html می‌گوید که خودش را نشان بدهد یا کاربر را
+    // به موتور جستجوی استاندارد هدایت کند (رجوع به void-tab-router.js).
+    const useDefaultNtpCb = document.getElementById('useDefaultNtpCb');
+    if (useDefaultNtpCb) {
+      chrome.storage.local.get(['useDefaultNtp'], (data) => {
+        useDefaultNtpCb.checked = !!data.useDefaultNtp;
+      });
+      useDefaultNtpCb.addEventListener('change', () => {
+        const enabled = useDefaultNtpCb.checked;
+        const tp = i18nPopup[currentLang] || i18nPopup.en;
+        chrome.storage.local.set({ useDefaultNtp: enabled }, () => {
+          showToast(enabled ? (tp.toastNtpDefaultOn || 'Standard New Tab enabled') : (tp.toastNtpDefaultOff || 'AI Tree New Tab restored'));
+        });
       });
     }
 

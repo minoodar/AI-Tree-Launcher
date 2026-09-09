@@ -6,7 +6,9 @@
   "permissions": [
     "storage",
     "tabs",
-    "offscreen"
+    "offscreen",
+    "topSites",
+    "favicon"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -66,7 +68,8 @@
         "notepad.html",
         "notepad.js",
         "icons/*",
-        "data/quotes/*.json"
+        "data/quotes/*.json",
+        "_favicon/*"
       ],
       "matches": [
         "<all_urls>"

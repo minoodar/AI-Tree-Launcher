@@ -278,7 +278,11 @@ const i18n = {
     notepadBackBtn: "Back to widget",
     notepadPromptsBtn: "Prompts",
     notepadSendBtn: "Send",
-    notepadToastCleared: "Cleared"
+    notepadToastCleared: "Cleared",
+    ntpMenuFocus: "Focus Mode",
+    ntpMenuTopsites: "Frequent Links",
+    ntpMenuSettings: "Settings",
+    ntpMenuStdTab: "Use Standard New Tab"
   },
   fa: {
     todoTitle: "📝 کارهای روزانه",
@@ -549,7 +553,11 @@ const i18n = {
     notepadBackBtn: "بازگشت به ویجت",
     notepadPromptsBtn: "پرامپت‌ها",
     notepadSendBtn: "ارسال",
-    notepadToastCleared: "پاک شد"
+    notepadToastCleared: "پاک شد",
+    ntpMenuFocus: "حالت تمرکز",
+    ntpMenuTopsites: "لینک‌های پرکاربرد",
+    ntpMenuSettings: "تنظیمات",
+    ntpMenuStdTab: "استفاده از تب جدیدِ استاندارد"
   },
   ar: {
     todoTitle: "📝 قائمة المهام",
@@ -816,7 +824,11 @@ const i18n = {
     notepadBackBtn: "العودة إلى الأداة",
     notepadPromptsBtn: "الموجّهات",
     notepadSendBtn: "إرسال",
-    notepadToastCleared: "تم المسح"
+    notepadToastCleared: "تم المسح",
+    ntpMenuFocus: "وضع التركيز",
+    ntpMenuTopsites: "الروابط الأكثر استخدامًا",
+    ntpMenuSettings: "الإعدادات",
+    ntpMenuStdTab: "استخدام علامة التبويب الجديدة القياسية"
   },
   ru: {
     todoTitle: "📝 Список дел",
@@ -1083,7 +1095,11 @@ const i18n = {
     notepadBackBtn: "Назад к виджету",
     notepadPromptsBtn: "Промпты",
     notepadSendBtn: "Отправить",
-    notepadToastCleared: "Очищено"
+    notepadToastCleared: "Очищено",
+    ntpMenuFocus: "Режим фокусировки",
+    ntpMenuTopsites: "Частые ссылки",
+    ntpMenuSettings: "Настройки",
+    ntpMenuStdTab: "Использовать стандартную новую вкладку"
   },
   tr: {
     todoTitle: "📝 Yapılacaklar Listesi",
@@ -1350,7 +1366,11 @@ const i18n = {
     notepadBackBtn: "Widget'a dön",
     notepadPromptsBtn: "Promptlar",
     notepadSendBtn: "Gönder",
-    notepadToastCleared: "Temizlendi"
+    notepadToastCleared: "Temizlendi",
+    ntpMenuFocus: "Odak Modu",
+    ntpMenuTopsites: "Sık Kullanılan Bağlantılar",
+    ntpMenuSettings: "Ayarlar",
+    ntpMenuStdTab: "Standart Yeni Sekmeyi Kullan"
   },
   'zh-Hans': {
     todoTitle: "📝 待办事项",
@@ -1617,7 +1637,11 @@ const i18n = {
     notepadBackBtn: "返回小工具",
     notepadPromptsBtn: "提示词",
     notepadSendBtn: "发送",
-    notepadToastCleared: "已清空"
+    notepadToastCleared: "已清空",
+    ntpMenuFocus: "专注模式",
+    ntpMenuTopsites: "常用链接",
+    ntpMenuSettings: "设置",
+    ntpMenuStdTab: "使用标准新标签页"
   },
   'zh-Hant': {
     todoTitle: "📝 待辦事項",
@@ -1884,7 +1908,11 @@ const i18n = {
     notepadBackBtn: "返回小工具",
     notepadPromptsBtn: "提示詞",
     notepadSendBtn: "傳送",
-    notepadToastCleared: "已清空"
+    notepadToastCleared: "已清空",
+    ntpMenuFocus: "專注模式",
+    ntpMenuTopsites: "常用連結",
+    ntpMenuSettings: "設定",
+    ntpMenuStdTab: "使用標準新分頁"
   },
   'pt-BR': {
     todoTitle: "📝 Lista de Tarefas",
@@ -2151,7 +2179,11 @@ const i18n = {
     notepadBackBtn: "Voltar ao widget",
     notepadPromptsBtn: "Prompts",
     notepadSendBtn: "Enviar",
-    notepadToastCleared: "Limpo"
+    notepadToastCleared: "Limpo",
+    ntpMenuFocus: "Modo Foco",
+    ntpMenuTopsites: "Links Frequentes",
+    ntpMenuSettings: "Configurações",
+    ntpMenuStdTab: "Usar Nova Guia Padrão"
   },
   es: {
     // === Paso 2: tooltips, calendario, búsqueda, tareas (todo) y los
@@ -2240,7 +2272,11 @@ const i18n = {
     noteTitle: "Bloc de notas e IA",
     webSearchNameRequired: "Ingresa un nombre",
     webSearchUrlInvalid: "La URL debe comenzar con http(s):// e incluir {q}",
-    toastTranslateTooLong: "El texto es demasiado largo (máx. ~4500 caracteres)"
+    toastTranslateTooLong: "El texto es demasiado largo (máx. ~4500 caracteres)",
+    ntpMenuFocus: "Modo de enfoque",
+    ntpMenuTopsites: "Enlaces frecuentes",
+    ntpMenuSettings: "Configuración",
+    ntpMenuStdTab: "Usar pestaña nueva estándar"
   },
   de: {
     // === Schritt 5: Tooltips, Kalender, Suche, Aufgaben (todo) und die
@@ -2329,7 +2365,11 @@ const i18n = {
     noteTitle: "Notizblock & KI",
     webSearchNameRequired: "Namen eingeben",
     webSearchUrlInvalid: "Die URL muss mit http(s):// beginnen und {q} enthalten",
-    toastTranslateTooLong: "Text ist zu lang (max. ~4500 Zeichen)"
+    toastTranslateTooLong: "Text ist zu lang (max. ~4500 Zeichen)",
+    ntpMenuFocus: "Fokusmodus",
+    ntpMenuTopsites: "Häufige Links",
+    ntpMenuSettings: "Einstellungen",
+    ntpMenuStdTab: "Standard-Neuen-Tab verwenden"
   },
   fr: {
     // === Étape 5 : infobulles, calendrier, recherche, tâches (todo) et les
@@ -2418,7 +2458,11 @@ const i18n = {
     noteTitle: "Bloc-notes et IA",
     webSearchNameRequired: "Saisissez un nom",
     webSearchUrlInvalid: "L'URL doit commencer par http(s):// et inclure {q}",
-    toastTranslateTooLong: "Le texte est trop long (max ~4500 caractères)"
+    toastTranslateTooLong: "Le texte est trop long (max ~4500 caractères)",
+    ntpMenuFocus: "Mode Focus",
+    ntpMenuTopsites: "Liens fréquents",
+    ntpMenuSettings: "Paramètres",
+    ntpMenuStdTab: "Utiliser l'onglet standard"
   },
   ja: {
     // === ステップ6: ツールチップ、カレンダー、検索、タスク(todo)に加えて、
@@ -2507,7 +2551,11 @@ const i18n = {
     noteTitle: "メモ帳とAI",
     webSearchNameRequired: "名前を入力してください",
     webSearchUrlInvalid: "URLはhttp(s)://で始まり、{q}を含める必要があります",
-    toastTranslateTooLong: "テキストが長すぎます（最大約4500文字）"
+    toastTranslateTooLong: "テキストが長すぎます（最大約4500文字）",
+    ntpMenuFocus: "フォーカスモード",
+    ntpMenuTopsites: "よく使うリンク",
+    ntpMenuSettings: "設定",
+    ntpMenuStdTab: "標準の新しいタブを使用"
   }
 };
 

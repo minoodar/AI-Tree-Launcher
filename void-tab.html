@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Void Tab</title>
 
+<!-- باید همیشه اولین چیز در <head> بماند — رجوع به توضیح داخل خودِ فایل -->
+<script src="void-tab-router.js"></script>
+
 <!--
   این صفحه به‌جای پس‌زمینه‌ی تخت مشکی، یک آسمانِ شبِ ملایم و متحرک (کانواس، بدون
   هیچ درخواست شبکه‌ای) دارد. همان مجموعه اسکریپت/استایلی که content.js به‌عنوان
@@ -56,6 +59,204 @@
     @media (prefers-reduced-motion: reduce) {
         #starfield { animation: none; }
     }
+
+    /* ------------------------------------------------------------------
+       نوار میانبرهای سریع (بالا-راست) — عمداً هیچ آیکون/لوگوی گوگل تقلید
+       نشده (نه grid سه‌در‌سه، نه رنگ‌های برند گوگل) چون Chrome Web Store از
+       سپتامبر ۲۰۲۴ صریحاً افزونه‌های New Tab را از شبیه‌سازیِ ظاهر گوگل منع
+       کرده. این فقط چند لینکِ ساده و متعلق به خودِ افزونه‌ست.
+       رفتار: پیش‌فرض کم‌رنگ/تقریباً نامرئی (opacity پایین + پس‌زمینهٔ خیلی
+       شفاف)، با hover روی کل ناحیه کاملاً واضح و شیشه‌ای می‌شود.
+    ------------------------------------------------------------------ */
+    #ai-ntp-quickbar {
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        z-index: 50;
+        display: flex;
+        gap: 6px;
+        padding: 6px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        opacity: 0.28;
+        backdrop-filter: blur(0px);
+        -webkit-backdrop-filter: blur(0px);
+        transition: opacity 0.25s ease, background 0.25s ease,
+                    border-color 0.25s ease, backdrop-filter 0.25s ease;
+    }
+    #ai-ntp-quickbar:hover,
+    #ai-ntp-quickbar:focus-within {
+        opacity: 1;
+        background: rgba(20, 22, 30, 0.55);
+        border-color: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+    #ai-ntp-quickbar a,
+    #ai-ntp-quickbar button {
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        color: #E5E7EB;
+        font-size: 15px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    #ai-ntp-quickbar a:hover,
+    #ai-ntp-quickbar button:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+    @media (prefers-reduced-motion: reduce) {
+        #ai-ntp-quickbar { transition: none; }
+    }
+
+    /* ------------------------------------------------------------------
+       سایت‌های پرکاربرد (Most Visited) — با chrome.topSites، همان API
+       رسمی/مجازِ خودِ گوگل برای این‌کار (نه شبیه‌سازیِ ظاهرِ گوگل، بلکه
+       نمایشِ دادهٔ واقعیِ خودِ کاربر با ظاهرِ خودِ افزونه).
+    ------------------------------------------------------------------ */
+    #ai-ntp-topsites {
+        position: fixed;
+        top: 78px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 40;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        max-width: 560px;
+        transition: opacity 0.25s ease;
+    }
+    #ai-ntp-topsites.hidden { display: none; }
+    .ai-ts-tile {
+        width: 76px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        padding: 8px 4px;
+        border-radius: 12px;
+        transition: background 0.15s ease;
+    }
+    .ai-ts-tile:hover { background: rgba(255, 255, 255, 0.06); }
+    .ai-ts-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .ai-ts-icon img { width: 20px; height: 20px; }
+    .ai-ts-label {
+        font-size: 11px;
+        color: #D1D5DB;
+        max-width: 74px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+    }
+
+    /* ------------------------------------------------------------------
+       منوی کرکره‌ای (بالا-چپ) — نسخهٔ بهینه‌شده: بدون هیچ لینکِ ازکارافتاده
+       (chrome-search://local-ntp دیگر در کروم کار نمی‌کند)، فقط گزینه‌هایی
+       که واقعاً کار می‌کنند.
+    ------------------------------------------------------------------ */
+    #ai-ntp-menu {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 51;
+    }
+    #ai-ntp-menu-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.03);
+        color: #E5E7EB;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        opacity: 0.28;
+        transition: opacity 0.25s ease, background 0.2s ease;
+    }
+    #ai-ntp-menu-btn:hover,
+    #ai-ntp-menu.open #ai-ntp-menu-btn {
+        opacity: 1;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    #ai-ntp-menu-panel {
+        position: absolute;
+        top: 38px;
+        left: 0;
+        min-width: 220px;
+        background: rgba(20, 22, 30, 0.9);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 6px;
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+        opacity: 0;
+        transform: translateY(-6px) scaleY(0.96);
+        transform-origin: top left;
+        pointer-events: none;
+        transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+    #ai-ntp-menu.open #ai-ntp-menu-panel {
+        opacity: 1;
+        transform: translateY(0) scaleY(1);
+        pointer-events: auto;
+    }
+    .ai-ntp-menu-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: none;
+        border: none;
+        color: #E5E7EB;
+        font-size: 12.5px;
+        font-family: inherit;
+        text-align: inherit;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    .ai-ntp-menu-item:hover { background: rgba(255, 255, 255, 0.08); }
+    .ai-ntp-menu-item .ai-ntp-menu-check {
+        font-size: 11px;
+        color: #6EE7B7;
+        opacity: 0;
+    }
+    .ai-ntp-menu-item[data-on="1"] .ai-ntp-menu-check { opacity: 1; }
+
+    body.ai-focus-mode #ai-ntp-quickbar,
+    body.ai-focus-mode #ai-ntp-topsites,
+    body.ai-focus-mode #ai-orbit-root {
+        opacity: 0 !important;
+        pointer-events: none !important;
+        transition: opacity 0.3s ease;
+    }
 </style>
 </head>
 
@@ -63,6 +264,35 @@
 
 <canvas id="starfield"></canvas>
 <div class="space-vignette"></div>
+
+<div id="ai-ntp-menu">
+  <button type="button" id="ai-ntp-menu-btn" title="Menu">☰</button>
+  <div id="ai-ntp-menu-panel" role="menu">
+    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-focus">
+      <span>🎯 <span id="ai-ntp-menu-focus-label">Focus Mode</span></span>
+      <span class="ai-ntp-menu-check">✓</span>
+    </button>
+    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-topsites" data-on="1">
+      <span>🔗 <span id="ai-ntp-menu-topsites-label">Frequent Links</span></span>
+      <span class="ai-ntp-menu-check">✓</span>
+    </button>
+    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-settings">
+      <span>⚙️ <span id="ai-ntp-menu-settings-label">Settings</span></span>
+      <span class="ai-ntp-menu-check"></span>
+    </button>
+    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-stdtab">
+      <span>🌐 <span id="ai-ntp-menu-stdtab-label">Use Standard New Tab</span></span>
+      <span class="ai-ntp-menu-check"></span>
+    </button>
+  </div>
+</div>
+
+<div id="ai-ntp-quickbar" role="toolbar" aria-label="Quick links">
+  <a href="https://mail.google.com" target="_blank" rel="noopener" title="Mail">✉️</a>
+  <a href="https://photos.google.com" target="_blank" rel="noopener" title="Photos">🖼️</a>
+</div>
+
+<div id="ai-ntp-topsites"></div>
 
 <script src="void-starfield.js"></script>
 
@@ -75,5 +305,120 @@
 <script src="toolbar-icons.js"></script>
 <script src="toolbar-dock.js"></script>
 <script src="content.js"></script>
+
+<script>
+(function () {
+  const menu = document.getElementById('ai-ntp-menu');
+  const menuBtn = document.getElementById('ai-ntp-menu-btn');
+  const topsitesEl = document.getElementById('ai-ntp-topsites');
+  const itemTopsites = document.getElementById('ai-ntp-menu-topsites');
+  const itemFocus = document.getElementById('ai-ntp-menu-focus');
+  const itemSettings = document.getElementById('ai-ntp-menu-settings');
+  const itemStdTab = document.getElementById('ai-ntp-menu-stdtab');
+
+  // برچسب‌ها — از سیستم ترجمهٔ مشترکِ افزونه (i18n.js/content.js که تا اینجا
+  // بار شده‌اند) استفاده می‌کنیم؛ اگر به هر دلیلی در دسترس نبود، همان متنِ
+  // انگلیسیِ استاتیکِ داخل HTML باقی می‌ماند (fallback امن).
+  try {
+    if (typeof t === 'function') {
+      document.getElementById('ai-ntp-menu-focus-label').textContent = t('ntpMenuFocus') || 'Focus Mode';
+      document.getElementById('ai-ntp-menu-topsites-label').textContent = t('ntpMenuTopsites') || 'Frequent Links';
+      document.getElementById('ai-ntp-menu-settings-label').textContent = t('ntpMenuSettings') || 'Settings';
+      document.getElementById('ai-ntp-menu-stdtab-label').textContent = t('ntpMenuStdTab') || 'Use Standard New Tab';
+      if (typeof isRTL === 'function' && typeof currentLang !== 'undefined' && isRTL(currentLang)) {
+        document.getElementById('ai-ntp-menu-panel').style.direction = 'rtl';
+        document.getElementById('ai-ntp-menu-panel').style.textAlign = 'right';
+      }
+    }
+  } catch (e) {}
+
+  // باز/بسته‌کردنِ کرکره
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target)) menu.classList.remove('open');
+  });
+
+  // ---- حالت تمرکز — فقط برای همین جلسه، ذخیره نمی‌شود (یک نگاهِ موقتِ تمیز) ----
+  itemFocus.addEventListener('click', () => {
+    const on = document.body.classList.toggle('ai-focus-mode');
+    itemFocus.setAttribute('data-on', on ? '1' : '0');
+  });
+
+  // ---- نمایش/عدم‌نمایشِ سایت‌های پرکاربرد — این یکی ذخیره می‌شود ----
+  function applyTopsitesVisibility(show) {
+    topsitesEl.classList.toggle('hidden', !show);
+    itemTopsites.setAttribute('data-on', show ? '1' : '0');
+  }
+  chrome.storage.local.get(['showTopSites'], (res) => {
+    applyTopsitesVisibility(res.showTopSites !== false); // پیش‌فرض: روشن
+  });
+  itemTopsites.addEventListener('click', () => {
+    const nowOn = itemTopsites.getAttribute('data-on') !== '1';
+    applyTopsitesVisibility(nowOn);
+    chrome.storage.local.set({ showTopSites: nowOn });
+  });
+
+  // ---- بارگذاریِ واقعیِ سایت‌های پرکاربرد از chrome.topSites ----
+  function faviconUrl(pageUrl) {
+    const url = new URL(chrome.runtime.getURL('/_favicon/'));
+    url.searchParams.set('pageUrl', pageUrl);
+    url.searchParams.set('size', '32');
+    return url.toString();
+  }
+  try {
+    if (chrome.topSites && chrome.topSites.get) {
+      chrome.topSites.get((sites) => {
+        (sites || []).slice(0, 8).forEach((site) => {
+          const a = document.createElement('a');
+          a.className = 'ai-ts-tile';
+          a.href = site.url;
+          a.title = site.title || site.url;
+          const iconWrap = document.createElement('div');
+          iconWrap.className = 'ai-ts-icon';
+          const img = document.createElement('img');
+          img.src = faviconUrl(site.url);
+          img.alt = '';
+          img.onerror = () => { img.style.display = 'none'; };
+          iconWrap.appendChild(img);
+          const label = document.createElement('div');
+          label.className = 'ai-ts-label';
+          label.textContent = site.title || new URL(site.url).hostname;
+          a.appendChild(iconWrap);
+          a.appendChild(label);
+          topsitesEl.appendChild(a);
+        });
+      });
+    }
+  } catch (e) { /* اگر topSites به هر دلیلی در دسترس نبود، فقط ردیف خالی می‌ماند */ }
+
+  // ---- تنظیمات — همان الگوی fallback‌دارِ قبلی ----
+  itemSettings.addEventListener('click', () => {
+    try {
+      if (chrome.action && chrome.action.openPopup) {
+        chrome.action.openPopup().catch(() => {
+          window.open(chrome.runtime.getURL('popup.html'), '_blank');
+        });
+      } else {
+        window.open(chrome.runtime.getURL('popup.html'), '_blank');
+      }
+    } catch (e) {
+      window.open(chrome.runtime.getURL('popup.html'), '_blank');
+    }
+  });
+
+  // ---- «استفاده از تب جدیدِ استاندارد» — همان کلیدِ useDefaultNtp که در
+  // popup هم قابل تنظیم است؛ اینجا فقط یک میان‌بُرِ مستقیم است. فعال‌کردنش از
+  // همینجا فوراً هم اعمال می‌شود (نه فقط برای دفعهٔ بعد) — با ریدایرکتِ آنی. ----
+  itemStdTab.addEventListener('click', () => {
+    chrome.storage.local.set({ useDefaultNtp: true }, () => {
+      window.location.replace('https://www.google.com');
+    });
+  });
+})();
+</script>
+
 </body>
 </html>
