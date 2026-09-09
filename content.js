@@ -7164,11 +7164,6 @@ let hubAutoCollapsedByPanel = false;
         margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1);
         font-size: 10px; color: rgba(167, 243, 208, 0.55); text-align: center;
       }
-      .ai-format-btn.ai-translate-lang-btn {
-        width: auto; min-width: 30px; padding: 0 6px;
-        font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px;
-        display: inline-flex; align-items: center; justify-content: center;
-      }
       .ai-translate-lang-popover {
         min-width: 150px; max-height: 260px; overflow-y: auto;
         background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);

@@ -19,7 +19,10 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaism", religionChristianity: "✝️ Christianity", religionEastern: "☸️ Eastern (Buddhism & Hindu wisdom)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature",
         vaultLiveSaved: "✓ Saved instantly — no need to press Save",
-        btnVoidTab: "⬛ Blank Offline Tab"
+        lblRestoreHome: "Open Chrome Home Page Settings",
+        restoreHomeHint: "Go to chrome://settings/onStartup and choose \"Open the New Tab page\" to restore the default.",
+        lblCopyVoidHome: "Copy link to set as browser home page",
+        voidHomeCopiedHint: "✅ Copied! Paste it in Chrome Settings → On startup → Open a specific page"
       },
       fa: {
         tabCore: "⚙️ هسته", tabBackup: "🛡️ پشتیبان", tabVault: "✨ گنجینه",
@@ -39,7 +42,10 @@ const i18nPopup = {
         religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
         poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب",
         vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست",
-        btnVoidTab: "⬛ تب خالی آفلاین"
+        lblRestoreHome: "باز کردن تنظیمات صفحهٔ خانهٔ کروم",
+        restoreHomeHint: "به chrome://settings/onStartup برو و «باز کردن صفحهٔ تب جدید» رو انتخاب کن تا به حالت پیش‌فرض برگرده.",
+        lblCopyVoidHome: "کپی لینک برای صفحهٔ خانهٔ مرورگر",
+        voidHomeCopiedHint: "✅ کپی شد! توی تنظیمات کروم ← هنگام شروع ← باز کردن صفحهٔ خاص، پیستش کن"
       },
       ar: {
         tabCore: "⚙️ النواة", tabBackup: "🛡️ النسخ الاحتياطي", tabVault: "✨ الخزنة",
@@ -59,7 +65,10 @@ const i18nPopup = {
         religionIslam: "☪️ الإسلام", religionJudaism: "✡️ اليهودية", religionChristianity: "✝️ المسيحية", religionEastern: "☸️ الشرق (الحكمة البوذية والهندوسية)",
         poetryRumi: "🌙 جلال الدين الرومي", poetryWestern: "🖋️ الأدب الغربي",
         vaultLiveSaved: "✓ تم الحفظ فوراً — لا حاجة للضغط على «حفظ الإعدادات»",
-        btnVoidTab: "⬛ علامة تبويب فارغة دون اتصال"
+        lblRestoreHome: "فتح إعدادات الصفحة الرئيسية لكروم",
+        restoreHomeHint: "اذهب إلى chrome://settings/onStartup واختر \"فتح صفحة التبويب الجديد\" لاستعادة الوضع الافتراضي.",
+        lblCopyVoidHome: "انسخ الرابط لتعيينه كصفحة رئيسية للمتصفح",
+        voidHomeCopiedHint: "✅ تم النسخ! الصقه في إعدادات كروم ← عند بدء التشغيل ← فتح صفحة معينة"
       },
       es: {
         tabCore: "⚙️ Principal", tabBackup: "🛡️ Respaldo", tabVault: "✨ Bóveda",
@@ -79,7 +88,10 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabiduría budista e hindú)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura occidental",
         vaultLiveSaved: "✓ Guardado al instante — no hace falta pulsar «Guardar»",
-        btnVoidTab: "⬛ Pestaña sin conexión en blanco"
+        lblRestoreHome: "Abrir configuración de página de inicio de Chrome",
+        restoreHomeHint: "Ve a chrome://settings/onStartup y elige \"Abrir la página Nueva pestaña\" para restaurar el valor predeterminado.",
+        lblCopyVoidHome: "Copiar enlace para usar como página de inicio",
+        voidHomeCopiedHint: "✅ ¡Copiado! Pégalo en Configuración de Chrome → Al iniciar → Abrir una página específica"
       },
       de: {
         tabCore: "⚙️ Allgemein", tabBackup: "🛡️ Sicherung", tabVault: "✨ Schatzkammer",
@@ -99,7 +111,10 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judentum", religionChristianity: "✝️ Christentum", religionEastern: "☸️ Östlich (buddhistische & hinduistische Weisheit)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Westliche Literatur",
         vaultLiveSaved: "✓ Sofort gespeichert — kein Klick auf „Speichern” nötig",
-        btnVoidTab: "⬛ Leere Offline-Registerkarte"
+        lblRestoreHome: "Chrome-Startseiteneinstellungen öffnen",
+        restoreHomeHint: "Gehe zu chrome://settings/onStartup und wähle \"Neue-Tab-Seite öffnen\", um den Standard wiederherzustellen.",
+        lblCopyVoidHome: "Link kopieren, um als Startseite festzulegen",
+        voidHomeCopiedHint: "✅ Kopiert! In Chrome-Einstellungen → Beim Start → Bestimmte Seite öffnen einfügen"
       },
       fr: {
         tabCore: "⚙️ Général", tabBackup: "🛡️ Sauvegarde", tabVault: "✨ Coffre",
@@ -119,7 +134,10 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaïsme", religionChristianity: "✝️ Christianisme", religionEastern: "☸️ Orientale (sagesse bouddhiste et hindoue)",
         poetryRumi: "🌙 Rûmî", poetryWestern: "🖋️ Littérature occidentale",
         vaultLiveSaved: "✓ Enregistré instantanément — pas besoin de cliquer sur « Enregistrer »",
-        btnVoidTab: "⬛ Onglet hors ligne vierge"
+        lblRestoreHome: "Ouvrir les paramètres de la page d'accueil Chrome",
+        restoreHomeHint: "Allez sur chrome://settings/onStartup et choisissez \"Ouvrir la page Nouvel onglet\" pour restaurer le défaut.",
+        lblCopyVoidHome: "Copier le lien pour la page d'accueil du navigateur",
+        voidHomeCopiedHint: "✅ Copié ! Collez-le dans Paramètres Chrome → Au démarrage → Ouvrir une page spécifique"
       },
       ja: {
         tabCore: "⚙️ 全般", tabBackup: "🛡️ バックアップ", tabVault: "✨ ヴォールト",
@@ -139,7 +157,10 @@ const i18nPopup = {
         religionIslam: "☪️ イスラム教", religionJudaism: "✡️ ユダヤ教", religionChristianity: "✝️ キリスト教", religionEastern: "☸️ 東洋（仏教・ヒンドゥーの知恵）",
         poetryRumi: "🌙 ルーミー", poetryWestern: "🖋️ 西洋文学",
         vaultLiveSaved: "✓ 即座に保存されました — 「保存」を押す必要はありません",
-        btnVoidTab: "⬛ オフラインの空白タブ"
+        lblRestoreHome: "Chromeのホームページ設定を開く",
+        restoreHomeHint: "chrome://settings/onStartup を開き、「新しいタブページを開く」を選んで既定に戻してください。",
+        lblCopyVoidHome: "ブラウザのホームページ用にリンクをコピー",
+        voidHomeCopiedHint: "✅ コピーしました！Chromeの設定→起動時→特定のページを開く、に貼り付けてください"
       },
       ru: {
         tabCore: "⚙️ Основное", tabBackup: "🛡️ Резервная копия", tabVault: "✨ Хранилище",
@@ -159,7 +180,10 @@ const i18nPopup = {
         religionIslam: "☪️ Ислам", religionJudaism: "✡️ Иудаизм", religionChristianity: "✝️ Христианство", religionEastern: "☸️ Восточная (буддийская и индуистская мудрость)",
         poetryRumi: "🌙 Руми", poetryWestern: "🖋️ Западная литература",
         vaultLiveSaved: "✓ Сохранено мгновенно — нажимать «Сохранить» не нужно",
-        btnVoidTab: "⬛ Пустая офлайн-вкладка"
+        lblRestoreHome: "Открыть настройки домашней страницы Chrome",
+        restoreHomeHint: "Перейдите в chrome://settings/onStartup и выберите «Открывать страницу новой вкладки», чтобы восстановить по умолчанию.",
+        lblCopyVoidHome: "Скопировать ссылку для домашней страницы браузера",
+        voidHomeCopiedHint: "✅ Скопировано! Вставьте в настройках Chrome → При запуске → Открыть конкретную страницу"
       },
       tr: {
         tabCore: "⚙️ Genel", tabBackup: "🛡️ Yedekleme", tabVault: "✨ Hazine",
@@ -179,7 +203,10 @@ const i18nPopup = {
         religionIslam: "☪️ İslam", religionJudaism: "✡️ Yahudilik", religionChristianity: "✝️ Hristiyanlık", religionEastern: "☸️ Doğu (Budist ve Hindu bilgeliği)",
         poetryRumi: "🌙 Mevlana", poetryWestern: "🖋️ Batı Edebiyatı",
         vaultLiveSaved: "✓ Anında kaydedildi — «Kaydet»e basmaya gerek yok",
-        btnVoidTab: "⬛ Boş Çevrimdışı Sekme"
+        lblRestoreHome: "Chrome Ana Sayfa Ayarlarını Aç",
+        restoreHomeHint: "chrome://settings/onStartup adresine git ve varsayılana dönmek için \"Yeni sekme sayfasını aç\" seçeneğini seç.",
+        lblCopyVoidHome: "Tarayıcı ana sayfası için bağlantıyı kopyala",
+        voidHomeCopiedHint: "✅ Kopyalandı! Chrome Ayarları → Başlangıçta → Belirli bir sayfa aç kısmına yapıştır"
       },
       'zh-Hans': {
         tabCore: "⚙️ 核心", tabBackup: "🛡️ 备份", tabVault: "✨ 宝藏",
@@ -199,7 +226,10 @@ const i18nPopup = {
         religionIslam: "☪️ 伊斯兰教", religionJudaism: "✡️ 犹太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 东方（佛教与印度教智慧）",
         poetryRumi: "🌙 鲁米", poetryWestern: "🖋️ 西方文学",
         vaultLiveSaved: "✓ 已即时保存——无需点击「保存」",
-        btnVoidTab: "⬛ 离线空白标签页"
+        lblRestoreHome: "打开 Chrome 主页设置",
+        restoreHomeHint: "前往 chrome://settings/onStartup，选择“打开新标签页”即可恢复默认设置。",
+        lblCopyVoidHome: "复制链接以设为浏览器主页",
+        voidHomeCopiedHint: "✅ 已复制！粘贴到 Chrome 设置 → 启动时 → 打开特定网页"
       },
       'zh-Hant': {
         tabCore: "⚙️ 核心", tabBackup: "🛡️ 備份", tabVault: "✨ 寶藏",
@@ -219,7 +249,10 @@ const i18nPopup = {
         religionIslam: "☪️ 伊斯蘭教", religionJudaism: "✡️ 猶太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 東方（佛教與印度教智慧）",
         poetryRumi: "🌙 魯米", poetryWestern: "🖋️ 西方文學",
         vaultLiveSaved: "✓ 已即時儲存——無需點擊「儲存」",
-        btnVoidTab: "⬛ 離線空白標籤頁"
+        lblRestoreHome: "開啟 Chrome 首頁設定",
+        restoreHomeHint: "前往 chrome://settings/onStartup，選擇「開啟新分頁」即可還原預設值。",
+        lblCopyVoidHome: "複製連結以設為瀏覽器首頁",
+        voidHomeCopiedHint: "✅ 已複製！貼到 Chrome 設定 → 啟動時 → 開啟特定網頁"
       },
       'pt-BR': {
         tabCore: "⚙️ Principal", tabBackup: "🛡️ Backup", tabVault: "✨ Tesouro",
@@ -239,7 +272,10 @@ const i18nPopup = {
         religionIslam: "☪️ Islamismo", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabedoria budista e hindu)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura Ocidental",
         vaultLiveSaved: "✓ Salvo instantaneamente — não é preciso clicar em Salvar",
-        btnVoidTab: "⬛ Aba Vazia Offline"
+        lblRestoreHome: "Abrir configurações de página inicial do Chrome",
+        restoreHomeHint: "Vá em chrome://settings/onStartup e escolha \"Abrir a página Nova guia\" para restaurar o padrão.",
+        lblCopyVoidHome: "Copiar link para definir como página inicial do navegador",
+        voidHomeCopiedHint: "✅ Copiado! Cole em Configurações do Chrome → Ao iniciar → Abrir uma página específica"
       }
     };
 
@@ -258,7 +294,8 @@ const i18nPopup = {
       document.getElementById('lbl-birth').textContent = t.lblBirth;
       document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : (currentLang === 'zh-Hans' || currentLang === 'zh-Hant') ? "例如：1990" : currentLang === 'pt-BR' ? "ex.: 1990" : "e.g., 1990 or 1375";
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
-      if (document.getElementById('voidTabBtn')) document.getElementById('voidTabBtn').textContent = t.btnVoidTab;
+      if (document.getElementById('lbl-restore-home')) document.getElementById('lbl-restore-home').textContent = t.lblRestoreHome;
+      if (document.getElementById('lbl-copy-void-home')) document.getElementById('lbl-copy-void-home').textContent = t.lblCopyVoidHome;
       document.getElementById('exportJsonBtn').textContent = t.btnExport;
       document.getElementById('importJsonBtn').textContent = t.btnImport;
 
@@ -485,31 +522,52 @@ const i18nPopup = {
       });
     }
 
-    // «تب خالی آفلاین»: وقتی اینترنت نیست، یک تب مشکیِ ساده (بدون هیچ محتوای
-    // وبی) باز می‌شود که خودِ افزونه رویش کاملاً کار می‌کند — چون content.js
-    // مستقیم به‌عنوان اسکریپت همان صفحه لود می‌شود، نه به‌عنوان content script
-    // تزریق‌شده روی یک سایت واقعی.
-    // «تب خالی آفلاین»: باز کردن یا سوئیچ به تب موجود (تک‌نسخه‌ای)
-    const voidTabBtn = document.getElementById('voidTabBtn');
-    if (voidTabBtn) {
-      voidTabBtn.addEventListener('click', () => {
-        const voidTabUrl = chrome.runtime.getURL('void-tab.html');
-        
-        // جستجو در تمام تب‌های باز
-        chrome.tabs.query({ url: voidTabUrl }, (tabs) => {
-          if (tabs && tabs.length > 0) {
-            // اگر تب از قبل باز است، به همان منتقل می‌شویم
-            const existingTab = tabs[0];
-            chrome.tabs.update(existingTab.id, { active: true });
-            if (existingTab.windowId) {
-              chrome.windows.update(existingTab.windowId, { focused: true });
-            }
-          } else {
-            // اگر باز نیست، تب جدید می‌سازیم
-            chrome.tabs.create({ url: voidTabUrl });
-          }
-          window.close();
-        });
+    // «بازگردانی صفحهٔ خانه به پیش‌فرض» — دکمهٔ قبلیِ «باز کردن تب وید»
+    // دیگر لازم نیست (چون حالا هم با override صفحهٔ تب جدید، هم با کپی‌لینکِ
+    // پایین، این صفحه در دسترسه)؛ این دکمه به‌جایش کاربر رو راهنمایی می‌کنه
+    // که چطور تنظیم صفحهٔ خانه رو به‌حالت پیش‌فرضِ خودِ کروم (باز کردن صفحهٔ
+    // تب جدید) برگردونه — چون این هم مثل تنظیمِ اولیه، هیچ API خودکاری نداره
+    // و فقط از طریق تنظیمات خودِ کروم قابل انجامه. (chrome.tabs.create روی
+    // آدرس‌های chrome://settings/* از داخل popup قابل‌اعتماد نیست — همیشه یا
+    // در همهٔ نسخه‌ها تضمینی کار نمی‌کند — پس عمداً به‌جای تلاش برای navigate
+    // کردن، فقط مسیر دقیق را متنی نشان می‌دهیم؛ همان الگوی امنِ کپی‌لینک زیرش)
+    const restoreHomeBtn = document.getElementById('restoreHomeBtn');
+    if (restoreHomeBtn) {
+      restoreHomeBtn.addEventListener('click', () => {
+        const hintEl = document.getElementById('void-home-hint');
+        if (hintEl) {
+          const tp = i18nPopup[currentLang] || i18nPopup.en;
+          hintEl.textContent = tp.restoreHomeHint || 'Go to chrome://settings/onStartup and choose "Open the New Tab page".';
+        }
+      });
+    }
+
+    // «کپی لینک برای صفحهٔ خانهٔ مرورگر» — بر خلاف صفحهٔ «تب جدید» که با یک
+    // کلید در manifest.json قابل override شدنه، صفحهٔ «خانه/آغازین مرورگر»
+    // (Home/Startup) هیچ API ای در کروم برای تنظیمِ خودکار توسط افزونه‌ها
+    // نداره (عمداً، برای جلوگیری از سوءاستفادهٔ افزونه‌های مخرب). تنها کاری
+    // که می‌تونیم بکنیم اینه که آدرسِ دقیقِ صفحه رو براحتی در اختیار کاربر
+    // بذاریم تا خودش در chrome://settings/onStartup پیستش کند.
+    const copyVoidHomeUrlBtn = document.getElementById('copyVoidHomeUrlBtn');
+    const voidHomeHintEl = document.getElementById('void-home-hint');
+    if (copyVoidHomeUrlBtn) {
+      copyVoidHomeUrlBtn.addEventListener('click', async () => {
+        const url = chrome.runtime.getURL('void-tab.html');
+        let copied = false;
+        try {
+          await navigator.clipboard.writeText(url);
+          copied = true;
+        } catch (e) {
+          // بعضی زمینه‌های popup اجازهٔ Clipboard API رو نمی‌دن؛ در آن صورت
+          // صرفاً خودِ آدرس رو نشان می‌دهیم تا کاربر دستی کپی کند
+          copied = false;
+        }
+        if (voidHomeHintEl) {
+          const tp = i18nPopup[currentLang] || i18nPopup.en;
+          voidHomeHintEl.textContent = copied
+            ? (tp.voidHomeCopiedHint || ('✅ ' + url))
+            : url;
+        }
       });
     }
 

@@ -126,7 +126,9 @@
     <h2>AI Tree Launcher</h2>
   </div>
 
-  <button id="voidTabBtn" class="btn btn-voidtab">⬛ Blank Offline Tab</button>
+  <button id="restoreHomeBtn" class="btn btn-voidtab">🏠 <span id="lbl-restore-home">Open Chrome Home Page Settings</span></button>
+  <button id="copyVoidHomeUrlBtn" class="btn btn-secondary" style="margin: 6px 16px 0; width: calc(100% - 32px); font-size: 11px; padding: 7px;">📋 <span id="lbl-copy-void-home">Copy link to set as browser home page</span></button>
+  <div id="void-home-hint" style="font-size: 10.5px; color: var(--text-muted); text-align: center; margin: 4px 16px 10px; line-height: 1.6;"></div>
 
   <div class="tabs">
     <button class="tab-btn active" data-target="core" id="tab-core">⚙️ Core</button>
