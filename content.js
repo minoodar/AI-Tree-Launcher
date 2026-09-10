@@ -3633,11 +3633,13 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       const text = document.createElement('span'); text.className = isGoal ? 'ai-goal-text' : 'ai-todo-text'; text.textContent = String(todo.text || '');
       const copyButton = document.createElement('div'); copyButton.className = isGoal ? 'ai-goal-copy' : 'ai-todo-copy'; copyButton.title = t('todoCopyTitle');
       copyButton.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+      const editButton = document.createElement('div'); editButton.className = isGoal ? 'ai-goal-edit' : 'ai-todo-edit'; editButton.title = t('todoEditTitle');
+      editButton.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>`;
       const isScheduledTomorrow = !isGoal && (todo.createdAt || now) > now;
       const postponeButton = (!isGoal && !isScheduledTomorrow) ? document.createElement('div') : null;
       if (postponeButton) { postponeButton.className = 'ai-todo-postpone'; postponeButton.title = t('todoPostponeTitle'); postponeButton.textContent = '📅'; }
       const deleteButton = document.createElement('div'); deleteButton.className = isGoal ? 'ai-goal-del' : 'ai-todo-del'; deleteButton.title = t('todoDelTitle'); deleteButton.textContent = '✕';
-      li.append(check, text, copyButton);
+      li.append(check, text, copyButton, editButton);
       if (postponeButton) li.append(postponeButton);
       li.append(deleteButton);
 
@@ -3659,6 +3661,40 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         const finish = () => showToastNotification(t('toastTodoCopied'));
         if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(todo.text || '').then(finish).catch(finish); }
         else { finish(); }
+      };
+      editButton.onclick = (e) => {
+        e.stopPropagation();
+        if (li.classList.contains('is-editing')) return; // یک ادیت هم‌زمان کافیست
+        li.classList.add('is-editing');
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = isGoal ? 'ai-goal-text-input' : 'ai-todo-text-input';
+        input.value = todo.text || '';
+        text.replaceWith(input);
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+
+        let settled = false;
+        const commit = () => {
+          if (settled) return; settled = true;
+          const newText = input.value.trim();
+          if (newText && newText !== todo.text) {
+            todo.text = newText;
+            saveTodos();
+          }
+          renderTodos(); // چه ذخیره شده باشد چه نه، رندرِ عادی متن درست را نشان می‌دهد
+        };
+        const cancel = () => {
+          if (settled) return; settled = true;
+          renderTodos(); // بدون تغییر در todo.text — یعنی انصراف
+        };
+
+        input.addEventListener('keydown', (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+          else if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+        });
+        input.addEventListener('blur', commit);
       };
       if (postponeButton) {
         postponeButton.onclick = (e) => {
