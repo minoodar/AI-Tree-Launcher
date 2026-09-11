@@ -3315,7 +3315,6 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     todosData.forEach(todo => {
       if (!todo.type) { todo.type = 'daily'; changed = true; }
       if (!todo.createdAt) { todo.createdAt = Date.now(); changed = true; }
-      if (!todo.id) { todo.id = newLinkId('td'); changed = true; }
     });
     return changed;
   }
@@ -3725,18 +3724,30 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       if (postponeButton) rail.append(postponeButton);
       rail.append(deleteButton);
 
-      li.append(check, text, chevron, rail);
-
+      // Same single-row layout for today and tomorrow:
+      // [check] [text] [optional tomorrow chip] [chevron] [action rail]
+      // Rail is always on the row — never appended underneath.
+      let expiry = null;
       if (!isGoal) {
-        const expiry = document.createElement('span'); expiry.className = 'ai-todo-expiry';
-        if ((todo.createdAt || now) > now) {
-          expiry.classList.add('scheduled'); expiry.textContent = t('todoScheduledTomorrow');
+        expiry = document.createElement('span');
+        expiry.className = 'ai-todo-expiry';
+        if (isScheduledTomorrow) {
+          expiry.classList.add('scheduled');
+          expiry.textContent = t('todoScheduledTomorrow');
+          expiry.title = t('todoScheduledTomorrow');
+          li.classList.add('is-tomorrow');
         } else {
           const remainMs = TODO_DAILY_TTL_MS - (now - (todo.createdAt || now));
           const remainH = Math.max(0, Math.floor(remainMs / 3600000));
           expiry.textContent = remainH < 1 ? t('todoExpiresSoon') : t('todoExpiresIn').replace('{h}', remainH);
         }
-        li.appendChild(expiry);
+      }
+
+      if (expiry && isScheduledTomorrow) {
+        li.append(check, text, expiry, chevron, rail);
+      } else {
+        // Today (and goals): no chip in the flex row; TTL span omitted from layout
+        li.append(check, text, chevron, rail);
       }
 
       check.onclick = (e) => { e.stopPropagation(); todo.done = !todo.done; saveTodos(); renderTodos(); };
@@ -3795,29 +3806,17 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       }
       deleteButton.onclick = (e) => {
         e.stopPropagation();
-        // Resolve index at click time (never trust a stale render-time index).
-        // Prefer stable id; fall back to object identity. Never use splice(-1).
         let removeIdx = -1;
-        if (todo && todo.id) {
-          removeIdx = todosData.findIndex((td) => td && td.id === todo.id);
-        }
+        if (todo && todo.id) removeIdx = todosData.findIndex((td) => td && td.id === todo.id);
+        if (removeIdx < 0) removeIdx = todosData.indexOf(todo);
         if (removeIdx < 0) {
-          removeIdx = todosData.indexOf(todo);
-        }
-        if (removeIdx < 0) {
-          // Last resort: match by text+type+createdAt for legacy items without id
           removeIdx = todosData.findIndex((td) =>
-            td && td !== todo &&
-            (td.text || '') === (todo.text || '') &&
-            (td.type || 'daily') === (todo.type || 'daily') &&
-            (td.createdAt || 0) === (todo.createdAt || 0)
+            td && (td.text || '') === (todo.text || '') && (td.type || 'daily') === (todo.type || 'daily')
           );
-          if (removeIdx < 0) removeIdx = todosData.findIndex((td) => td && (td.text || '') === (todo.text || '') && (td.type || 'daily') === (todo.type || 'daily'));
         }
         if (removeIdx < 0) return;
         const [deletedTodo] = todosData.splice(removeIdx, 1);
         if (!deletedTodo) return;
-        // Break link from hourly dash events so the task cannot reappear as a ghost row
         if (deletedTodo.id && Array.isArray(timeEventsData)) {
           timeEventsData.forEach((evt) => {
             if (evt && evt.linkedTodoId === deletedTodo.id) evt.linkedTodoId = null;
@@ -3855,7 +3854,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         const tmrw = new Date(); tmrw.setHours(24, 0, 0, 0); 
         createdAt = tmrw.getTime();
       }
-      todosData.push({ id: newLinkId('td'), text, done: false, type: activeTodoTab, createdAt }); input.value = ''; saveTodos(); renderTodos();
+      todosData.push({ id: (typeof newLinkId === 'function' ? newLinkId('td') : ('td_' + Date.now().toString(36))), text, done: false, type: activeTodoTab, createdAt }); input.value = ''; saveTodos(); renderTodos();
     }
   };
   document.getElementById('ai-todo-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') document.getElementById('ai-todo-add-btn').click(); });
