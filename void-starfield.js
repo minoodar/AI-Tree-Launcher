@@ -11,7 +11,8 @@
         twinkle: 0.22,
         coloredStars: 0.035,
         shootingStars: true,
-        shootingStarChance: 0.0015,
+        // کم‌تعداد اما چشمگیر؛ مثل شهاب‌های کوتاهِ پس‌زمینهٔ X، نه یک خطِ دائمی.
+        shootingStarChance: 0.00042,
         maxPixelRatio: 2
     };
 
@@ -119,11 +120,13 @@
         shootingStar = {
             x: Math.random() * width * 0.75,
             y: Math.random() * height * 0.45,
-            length: 80 + Math.random() * 130,
-            speed: 0.7 + Math.random() * 1.1,
+            length: 130 + Math.random() * 190,
+            speed: 0.85 + Math.random() * 1.25,
             progress: 0,
             angle: Math.PI * (0.12 + Math.random() * 0.12),
-            opacity: 0.35 + Math.random() * 0.35
+            opacity: 0.5 + Math.random() * 0.3,
+            color: Math.random() < 0.55 ? '190,220,255' : '255,235,205',
+            width: 1.05 + Math.random() * 0.9
         };
     }
 
@@ -144,16 +147,23 @@
         const endY = y - Math.sin(shootingStar.angle) * tail;
 
         const gradient = ctx.createLinearGradient(endX, endY, x, y);
-        gradient.addColorStop(0, "rgba(255,255,255,0)");
-        gradient.addColorStop(0.65, `rgba(255,255,255,${shootingStar.opacity * 0.25})`);
-        gradient.addColorStop(1, `rgba(255,255,255,${shootingStar.opacity})`);
+        gradient.addColorStop(0, `rgba(${shootingStar.color},0)`);
+        gradient.addColorStop(0.62, `rgba(${shootingStar.color},${shootingStar.opacity * 0.18})`);
+        gradient.addColorStop(1, `rgba(${shootingStar.color},${shootingStar.opacity})`);
 
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = 1;
+        ctx.lineWidth = shootingStar.width;
         ctx.beginPath();
         ctx.moveTo(endX, endY);
         ctx.lineTo(x, y);
         ctx.stroke();
+
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, 9);
+        glow.addColorStop(0, `rgba(255,255,255,${shootingStar.opacity})`);
+        glow.addColorStop(0.22, `rgba(${shootingStar.color},${shootingStar.opacity * 0.55})`);
+        glow.addColorStop(1, `rgba(${shootingStar.color},0)`);
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI * 2); ctx.fill();
     }
 
     function resize() {

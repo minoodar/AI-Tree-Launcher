@@ -349,7 +349,8 @@ const i18nPopup = {
 
       document.getElementById('tab-core').textContent = t.tabCore;
       document.getElementById('tab-backup').textContent = t.tabBackup;
-      document.getElementById('tab-vault').textContent = t.tabVault;
+      const vaultTab = document.getElementById('tab-vault');
+      if (vaultTab) vaultTab.textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
       document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : (currentLang === 'zh-Hans' || currentLang === 'zh-Hant') ? "例如：1990" : currentLang === 'pt-BR' ? "ex.: 1990" : "e.g., 1990 or 1375";
@@ -615,46 +616,6 @@ const i18nPopup = {
           }
           window.close();
         });
-      });
-    }
-
-    const restoreHomeBtn = document.getElementById('restoreHomeBtn');
-    if (restoreHomeBtn) {
-      restoreHomeBtn.addEventListener('click', () => {
-        const hintEl = document.getElementById('void-home-hint');
-        if (hintEl) {
-          const tp = i18nPopup[currentLang] || i18nPopup.en;
-          hintEl.textContent = tp.restoreHomeHint || 'Go to chrome://settings/onStartup and choose "Open the New Tab page".';
-        }
-      });
-    }
-
-    // «کپی لینک برای صفحهٔ خانهٔ مرورگر» — بر خلاف صفحهٔ «تب جدید» که با یک
-    // کلید در manifest.json قابل override شدنه، صفحهٔ «خانه/آغازین مرورگر»
-    // (Home/Startup) هیچ API ای در کروم برای تنظیمِ خودکار توسط افزونه‌ها
-    // نداره (عمداً، برای جلوگیری از سوءاستفادهٔ افزونه‌های مخرب). تنها کاری
-    // که می‌تونیم بکنیم اینه که آدرسِ دقیقِ صفحه رو براحتی در اختیار کاربر
-    // بذاریم تا خودش در chrome://settings/onStartup پیستش کند.
-    const copyVoidHomeUrlBtn = document.getElementById('copyVoidHomeUrlBtn');
-    const voidHomeHintEl = document.getElementById('void-home-hint');
-    if (copyVoidHomeUrlBtn) {
-      copyVoidHomeUrlBtn.addEventListener('click', async () => {
-        const url = chrome.runtime.getURL('void-tab.html');
-        let copied = false;
-        try {
-          await navigator.clipboard.writeText(url);
-          copied = true;
-        } catch (e) {
-          // بعضی زمینه‌های popup اجازهٔ Clipboard API رو نمی‌دن؛ در آن صورت
-          // صرفاً خودِ آدرس رو نشان می‌دهیم تا کاربر دستی کپی کند
-          copied = false;
-        }
-        if (voidHomeHintEl) {
-          const tp = i18nPopup[currentLang] || i18nPopup.en;
-          voidHomeHintEl.textContent = copied
-            ? (tp.voidHomeCopiedHint || ('✅ ' + url))
-            : url;
-        }
       });
     }
 

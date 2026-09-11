@@ -2687,7 +2687,7 @@ transition: font-size 0.2s var(--ease-premium);
 
 /* دات‌های رویدادِ ساعتی — رزگلدِ متمایل به نارنجی، برای تمایز روشن از دات‌های
    طلاییِ مناسبت‌های روزانه؛ همان اندازه/فرم، رنگ متفاوت */
-..ai-dash-dot {
+.ai-dash-dot {
   width: 19px;
   height: 19px;
   border-radius: 50%;
@@ -2731,6 +2731,48 @@ transition: font-size 0.2s var(--ease-premium);
   opacity: 0.45;
   filter: grayscale(0.5);
 }
+
+/* Todo compact mode: one short row per task; action rail stays ON the row
+   (not below it) so the first/last items are never undraggable or clipped by
+   the list's overflow container. */
+#ai-todo-list { max-height: 300px; gap: 4px; overflow-x: hidden; overflow-y: auto; }
+.ai-todo-item { position: relative; flex-wrap: nowrap; gap: 7px; min-height: 34px; padding: 6px 7px; border-radius: 8px; }
+.ai-todo-check { width: 16px; height: 16px; border-radius: 5px; flex-shrink: 0; }
+.ai-todo-text { min-width: 0; flex: 1 1 auto; font-size: 11.5px; line-height: 1.35; }
+.ai-todo-text:not(.ai-todo-item.expanded .ai-todo-text) { -webkit-line-clamp: 1; }
+.ai-todo-chevron { width: 12px; height: 12px; flex-shrink: 0; }
+.ai-todo-rail, .ai-goal-rail {
+  position: static;
+  inset: auto;
+  margin-inline-start: auto;
+  flex-shrink: 0;
+  box-shadow: none;
+  /* Always reachable: slight visibility even without hover so delete is never "gone" */
+  opacity: 0.55;
+}
+.ai-todo-item:hover .ai-todo-rail,
+.ai-todo-item:focus-within .ai-todo-rail,
+.ai-todo-item.expanded .ai-todo-rail,
+.ai-goal-item:hover .ai-goal-rail,
+.ai-goal-item:focus-within .ai-goal-rail,
+.ai-goal-item.expanded .ai-goal-rail {
+  opacity: 1;
+}
+.ai-todo-expiry { display: none; }
+
+/* Compact daily-task mirror in the calendar/time dashboard. */
+.ai-dash-todo-summary { margin: 4px 0 7px; padding: 7px; border: 1px solid rgba(129, 140, 248, .24); border-radius: 9px; background: rgba(99, 102, 241, .07); }
+.ai-dash-todo-head { display: flex; align-items: center; gap: 5px; color: #C7D2FE; font-size: 10px; font-weight: 800; }
+.ai-dash-todo-head > span:last-child { margin-inline-start: auto; color: rgba(224, 231, 255, .62); font-variant-numeric: tabular-nums; }
+.ai-dash-todo-list { display: grid; gap: 3px; margin-top: 5px; }
+.ai-dash-todo-row { display: flex; align-items: center; min-width: 0; gap: 6px; padding: 3px 4px; border: 0; border-radius: 5px; background: transparent; color: #EEF2FF; font: inherit; font-size: 10.5px; text-align: start; cursor: pointer; }
+.ai-dash-todo-row:hover { background: rgba(255,255,255,.07); }
+.ai-dash-todo-check { width: 12px; height: 12px; flex: 0 0 12px; display: grid; place-items: center; border: 1px solid rgba(199, 210, 254, .55); border-radius: 4px; color: #fff; font-size: 9px; }
+.ai-dash-todo-row.done { opacity: .52; }
+.ai-dash-todo-row.done .ai-dash-todo-check { background: #10B981; border-color: #10B981; }
+.ai-dash-todo-row.done .ai-dash-todo-text { text-decoration: line-through; }
+.ai-dash-todo-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-dash-todo-empty { padding: 2px 4px; color: rgba(224, 231, 255, .48); font-size: 10px; }
 .ai-mark-dot-popup {
 position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, 4px);
 margin-bottom: 7px; padding: 5.5px 10px; border-radius: 8px; background: rgba(10, 14, 24, 0.96);

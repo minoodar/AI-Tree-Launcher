@@ -5,16 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Void Tab</title>
 
-<!-- باید همیشه اولین چیز در <head> بماند — رجوع به توضیح داخل خودِ فایل -->
+<!-- باید همیشه اولین چیز در <head> بماند -->
 <script src="void-tab-router.js"></script>
 
-<!--
-  این صفحه به‌جای پس‌زمینه‌ی تخت مشکی، یک آسمانِ شبِ ملایم و متحرک (کانواس، بدون
-  هیچ درخواست شبکه‌ای) دارد. همان مجموعه اسکریپت/استایلی که content.js به‌عنوان
-  content script روی هر سایتی تزریق می‌کند، اینجا مستقیماً به‌عنوان اسکریپت خودِ
-  صفحه لود می‌شود؛ چون z-index هاب افزونه بسیار بالاتر از این کانواس است، آسمانِ
-  شب فقط پس‌زمینه می‌ماند و هیچ تداخلی با کارکرد افزونه ندارد.
--->
 <style>
     * { box-sizing: border-box; }
 
@@ -29,7 +22,7 @@
 
     body {
         position: relative;
-        font-family: system-ui, sans-serif;
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
         user-select: none;
     }
 
@@ -42,7 +35,6 @@
         background: #000;
     }
 
-    /* Very subtle atmospheric glow */
     .space-vignette {
         position: fixed;
         inset: 0;
@@ -60,14 +52,7 @@
         #starfield { animation: none; }
     }
 
-    /* ------------------------------------------------------------------
-       نوار میانبرهای سریع (بالا-راست) — عمداً هیچ آیکون/لوگوی گوگل تقلید
-       نشده (نه grid سه‌در‌سه، نه رنگ‌های برند گوگل) چون Chrome Web Store از
-       سپتامبر ۲۰۲۴ صریحاً افزونه‌های New Tab را از شبیه‌سازیِ ظاهر گوگل منع
-       کرده. این فقط چند لینکِ ساده و متعلق به خودِ افزونه‌ست.
-       رفتار: پیش‌فرض کم‌رنگ/تقریباً نامرئی (opacity پایین + پس‌زمینهٔ خیلی
-       شفاف)، با hover روی کل ناحیه کاملاً واضح و شیشه‌ای می‌شود.
-    ------------------------------------------------------------------ */
+    /* ---- Top-right quickbar (minimal) ---- */
     #ai-ntp-quickbar {
         position: fixed;
         top: 14px;
@@ -80,10 +65,7 @@
         background: rgba(255, 255, 255, 0.03);
         border: 1px solid rgba(255, 255, 255, 0.06);
         opacity: 0.28;
-        backdrop-filter: blur(0px);
-        -webkit-backdrop-filter: blur(0px);
-        transition: opacity 0.25s ease, background 0.25s ease,
-                    border-color 0.25s ease, backdrop-filter 0.25s ease;
+        transition: opacity 0.25s ease, background 0.25s ease, border-color 0.25s ease, backdrop-filter 0.25s ease;
     }
     #ai-ntp-quickbar:hover,
     #ai-ntp-quickbar:focus-within {
@@ -114,31 +96,258 @@
     #ai-ntp-quickbar button:hover {
         background: rgba(255, 255, 255, 0.1);
     }
-    @media (prefers-reduced-motion: reduce) {
-        #ai-ntp-quickbar { transition: none; }
+
+    /* ---- Center stage: search + shortcuts + topsites ---- */
+    #ai-void-stage {
+        position: fixed;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        z-index: 40;
+        width: min(640px, calc(100vw - 32px));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        pointer-events: none;
+    }
+    #ai-void-stage > * { pointer-events: auto; }
+
+    /* Multi-engine search */
+    #ai-void-search {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    .ai-void-search-brand-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        user-select: none;
+    }
+    .ai-void-search-nav {
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.06);
+        color: rgba(226,232,255,0.75);
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        transition: background .15s ease, color .15s ease;
+    }
+    .ai-void-search-nav:hover {
+        background: rgba(255,255,255,0.12);
+        color: #fff;
+    }
+    #ai-void-search-brand {
+        --engine-accent: #8ab4f8;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(12, 16, 32, 0.45);
+        border: 1px solid rgba(165, 180, 252, 0.18);
+        cursor: pointer;
+        transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    #ai-void-search-brand:hover {
+        border-color: rgba(165, 180, 252, 0.35);
+        box-shadow: 0 0 0 1px rgba(165,180,252,0.08), 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .ai-void-search-brand-pulse { animation: aiVoidBrandPulse .35s ease; }
+    @keyframes aiVoidBrandPulse {
+        0% { transform: scale(0.96); opacity: 0.7; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .ai-void-search-brand-mark {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #fff 0%, var(--engine-accent) 45%, transparent 70%);
+        box-shadow: 0 0 12px color-mix(in srgb, var(--engine-accent) 55%, transparent);
+        flex: 0 0 22px;
+    }
+    #ai-void-search-brand-name {
+        font-size: 22px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+        color: #F1F5FF;
+        text-shadow: 0 1px 12px rgba(0,0,0,0.45);
+    }
+    .ai-void-search-box {
+        width: 100%;
+        max-width: 584px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 8px 6px 16px;
+        border-radius: 28px;
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow:
+            0 1px 2px rgba(0,0,0,0.08),
+            0 8px 28px rgba(0,0,0,0.28),
+            0 0 0 1px rgba(165,180,252,0.08);
+        transition: box-shadow .2s ease;
+    }
+    .ai-void-search-box:focus-within {
+        box-shadow:
+            0 1px 2px rgba(0,0,0,0.06),
+            0 12px 36px rgba(0,0,0,0.35),
+            0 0 0 2px color-mix(in srgb, var(--engine-accent, #8ab4f8) 55%, transparent);
+    }
+    .ai-void-search-icon {
+        flex: 0 0 20px;
+        width: 20px;
+        height: 20px;
+        opacity: 0.45;
+        color: #3c4043;
+    }
+    #ai-void-search-input {
+        flex: 1;
+        min-width: 0;
+        border: 0;
+        outline: none;
+        background: transparent;
+        font: 16px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+        color: #202124;
+        padding: 10px 4px;
+    }
+    #ai-void-search-input::placeholder { color: #80868b; }
+    #ai-void-search-go {
+        flex: 0 0 40px;
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: 50%;
+        background: #1a2338;
+        color: #e8eeff;
+        font-size: 18px;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: background .15s ease, transform .12s ease;
+    }
+    #ai-void-search-go:hover { background: #2a3654; transform: scale(1.04); }
+    #ai-void-search-dots {
+        display: flex;
+        gap: 7px;
+        align-items: center;
+        justify-content: center;
+        min-height: 12px;
+    }
+    .ai-void-search-dot {
+        width: 7px;
+        height: 7px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(226, 232, 255, 0.28);
+        cursor: pointer;
+        transition: transform .15s ease, background .15s ease;
+    }
+    .ai-void-search-dot.is-active {
+        background: var(--engine-accent, #a5b4fc);
+        transform: scale(1.35);
+        box-shadow: 0 0 8px color-mix(in srgb, var(--engine-accent, #a5b4fc) 60%, transparent);
     }
 
-    /* ------------------------------------------------------------------
-       سایت‌های پرکاربرد (Most Visited) — با chrome.topSites، همان API
-       رسمی/مجازِ خودِ گوگل برای این‌کار (نه شبیه‌سازیِ ظاهرِ گوگل، بلکه
-       نمایشِ دادهٔ واقعیِ خودِ کاربر با ظاهرِ خودِ افزونه).
-    ------------------------------------------------------------------ */
-    #ai-ntp-topsites {
-        position: fixed;
-        top: 78px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 40;
+    /* Gmail / account shortcuts under search */
+    #ai-void-apps {
+        width: 100%;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 10px;
+        gap: 8px 10px;
+        padding: 4px 0 2px;
+    }
+    .ai-void-app {
+        width: 72px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 4px 6px;
+        border-radius: 14px;
+        text-decoration: none;
+        color: #E5E7EB;
+        border: 1px solid transparent;
+        background: transparent;
+        cursor: pointer;
+        transition: background .15s ease, border-color .15s ease, transform .12s ease;
+    }
+    .ai-void-app:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.08);
+        transform: translateY(-1px);
+    }
+    .ai-void-app-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: #fff;
+        background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+        overflow: hidden;
+    }
+    .ai-void-app-icon img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+    }
+    .ai-void-app-icon.is-mail { background: linear-gradient(145deg, #ea4335, #c5221f); }
+    .ai-void-app-icon.is-chooser { background: linear-gradient(145deg, #4285f4, #1a73e8); }
+    .ai-void-app-icon.is-drive { background: linear-gradient(145deg, #34a853, #188038); }
+    .ai-void-app-icon.is-cal { background: linear-gradient(145deg, #4285f4, #1967d2); }
+    .ai-void-app-icon.is-photos { background: linear-gradient(145deg, #fbbc04, #ea4335 80%); }
+    .ai-void-app-icon.is-custom { background: linear-gradient(145deg, #7c6af2, #4f46e5); }
+    .ai-void-app-label {
+        font-size: 11px;
+        color: rgba(226, 232, 255, 0.82);
+        max-width: 70px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
+    }
+    .ai-void-app-add {
+        opacity: 0.55;
+    }
+    .ai-void-app-add:hover { opacity: 1; }
+    .ai-void-app-add .ai-void-app-icon {
+        background: rgba(255,255,255,0.05);
+        border-style: dashed;
+        color: rgba(226,232,255,0.7);
+        font-size: 22px;
+        font-weight: 400;
+    }
+
+    /* Most visited — under shortcuts */
+    #ai-ntp-topsites {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
         max-width: 560px;
         transition: opacity 0.25s ease;
     }
     #ai-ntp-topsites.hidden { display: none; }
     .ai-ts-tile {
-        width: 76px;
+        width: 72px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -164,18 +373,14 @@
     .ai-ts-label {
         font-size: 11px;
         color: #D1D5DB;
-        max-width: 74px;
+        max-width: 70px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         text-align: center;
     }
 
-    /* ------------------------------------------------------------------
-       منوی کرکره‌ای (بالا-چپ) — نسخهٔ بهینه‌شده: بدون هیچ لینکِ ازکارافتاده
-       (chrome-search://local-ntp دیگر در کروم کار نمی‌کند)، فقط گزینه‌هایی
-       که واقعاً کار می‌کنند.
-    ------------------------------------------------------------------ */
+    /* Menu top-left */
     #ai-ntp-menu {
         position: fixed;
         top: 14px;
@@ -252,10 +457,164 @@
 
     body.ai-focus-mode #ai-ntp-quickbar,
     body.ai-focus-mode #ai-ntp-topsites,
+    body.ai-focus-mode #ai-void-apps,
     body.ai-focus-mode #ai-orbit-root {
         opacity: 0 !important;
         pointer-events: none !important;
         transition: opacity 0.3s ease;
+    }
+    body.ai-focus-mode #ai-void-search {
+        opacity: 0.35;
+    }
+
+    /* Todo dock */
+    #ai-void-todo-dock {
+        position: fixed; top: 22%; z-index: 2147483647;
+        display: block !important; visibility: visible !important; opacity: 1 !important;
+        pointer-events: auto !important;
+        width: min(280px, calc(100vw - 32px));
+        max-height: min(56vh, 430px);
+        color: #EEF2FF;
+        background: rgba(10, 14, 28, .7);
+        border: 1px solid rgba(165, 180, 252, .28);
+        border-radius: 14px;
+        backdrop-filter: blur(18px) saturate(1.15);
+        -webkit-backdrop-filter: blur(18px) saturate(1.15);
+        box-shadow: 0 15px 42px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.06);
+        overflow: hidden;
+        transition: box-shadow .2s ease, opacity .2s ease, max-height .28s cubic-bezier(.16,1,.3,1);
+    }
+    #ai-void-todo-dock[data-side="right"] { right: 16px; }
+    #ai-void-todo-dock[data-side="left"] { left: 16px; }
+    #ai-void-todo-dock:hover { box-shadow: 0 18px 48px rgba(0,0,0,.48), 0 0 0 1px rgba(165,180,252,.13); }
+    #ai-void-todo-dock.is-collapsed { max-height: 42px; }
+    #ai-void-todo-dock.is-collapsed .ai-void-todo-list { display: none; }
+    #ai-void-todo-dock.is-collapsed .ai-void-todo-head { border-bottom-color: transparent; }
+    .ai-void-todo-head {
+        display: flex; align-items: center; gap: 8px;
+        padding: 9px 10px;
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        cursor: pointer; user-select: none;
+    }
+    .ai-void-todo-head:active { cursor: grabbing; }
+    .ai-void-todo-title { font-size: 12px; font-weight: 800; letter-spacing: .02em; }
+    .ai-void-todo-count { margin-inline-start: auto; font-size: 10px; color: #C7D2FE; }
+    .ai-void-todo-chevron {
+        width: 18px; height: 18px; flex: 0 0 18px;
+        display: grid; place-items: center;
+        color: #C7D2FE; font-size: 10px;
+        transition: transform .22s ease; opacity: .85;
+    }
+    #ai-void-todo-dock:not(.is-collapsed) .ai-void-todo-chevron { transform: rotate(180deg); }
+    .ai-void-todo-side {
+        width: 22px; height: 22px; padding: 0; border: 0; border-radius: 6px;
+        background: transparent; color: #C7D2FE; cursor: pointer;
+    }
+    .ai-void-todo-side:hover { background: rgba(255,255,255,.09); }
+    .ai-void-todo-list {
+        display: grid; gap: 3px;
+        max-height: calc(min(56vh, 430px) - 42px);
+        padding: 7px; overflow: auto;
+    }
+    .ai-void-todo-row {
+        display: flex; align-items: center; min-width: 0; gap: 8px;
+        padding: 6px; border: 0; border-radius: 8px;
+        background: transparent; color: inherit;
+        font: 12px/1.35 system-ui, sans-serif;
+        text-align: start; cursor: pointer;
+    }
+    .ai-void-todo-row:hover { background: rgba(255,255,255,.07); }
+    .ai-void-todo-check {
+        width: 16px; height: 16px; flex: 0 0 16px;
+        display: grid; place-items: center;
+        border: 1px solid rgba(199,210,254,.58);
+        border-radius: 5px; color: white; font-size: 11px;
+    }
+    .ai-void-todo-row.done { opacity: .5; }
+    .ai-void-todo-row.done .ai-void-todo-check { background: #10B981; border-color: #10B981; }
+    .ai-void-todo-row.done .ai-void-todo-text { text-decoration: line-through; }
+    .ai-void-todo-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ai-void-todo-empty { padding: 16px 5px; color: rgba(224,231,255,.5); font-size: 11px; text-align: center; }
+
+    /* Gmail profile edit dialog */
+    #ai-void-profile-dialog {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483646;
+        display: none;
+        place-items: center;
+        background: rgba(0,0,0,0.45);
+        backdrop-filter: blur(4px);
+    }
+    #ai-void-profile-dialog.open { display: grid; }
+    .ai-void-profile-card {
+        width: min(340px, calc(100vw - 32px));
+        padding: 16px;
+        border-radius: 16px;
+        background: rgba(16, 20, 36, 0.96);
+        border: 1px solid rgba(165, 180, 252, 0.25);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        color: #EEF2FF;
+    }
+    .ai-void-profile-card h3 {
+        margin: 0 0 12px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+    .ai-void-profile-card label {
+        display: block;
+        font-size: 11px;
+        color: rgba(226,232,255,0.65);
+        margin: 8px 0 4px;
+    }
+    .ai-void-profile-card input {
+        width: 100%;
+        padding: 9px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(165,180,252,0.25);
+        background: rgba(255,255,255,0.06);
+        color: #F8FAFC;
+        font: 13px system-ui, sans-serif;
+        outline: none;
+    }
+    .ai-void-profile-card input:focus {
+        border-color: rgba(165,180,252,0.55);
+    }
+    .ai-void-profile-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        margin-top: 14px;
+    }
+    .ai-void-profile-actions button {
+        padding: 7px 12px;
+        border-radius: 8px;
+        border: 0;
+        font: 12px system-ui, sans-serif;
+        cursor: pointer;
+    }
+    .ai-void-profile-save {
+        background: #4f46e5;
+        color: #fff;
+    }
+    .ai-void-profile-cancel {
+        background: rgba(255,255,255,0.08);
+        color: #E5E7EB;
+    }
+    .ai-void-profile-delete {
+        margin-right: auto;
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+    }
+
+    @media (max-width: 700px) {
+        #ai-void-stage { top: 36%; width: calc(100vw - 24px); gap: 14px; }
+        #ai-void-search-brand-name { font-size: 18px; }
+        #ai-void-todo-dock { top: auto !important; bottom: 16px; width: min(320px, calc(100vw - 32px)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ai-void-search-brand-pulse { animation: none; }
+        #ai-ntp-quickbar { transition: none; }
     }
 </style>
 </head>
@@ -288,13 +647,62 @@
 </div>
 
 <div id="ai-ntp-quickbar" role="toolbar" aria-label="Quick links">
-  <a href="https://mail.google.com" target="_blank" rel="noopener" title="Mail">✉️</a>
-  <a href="https://photos.google.com" target="_blank" rel="noopener" title="Photos">🖼️</a>
+  <a href="https://mail.google.com/mail/u/0/" target="_blank" rel="noopener" title="Gmail">✉️</a>
+  <a href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmail.google.com" target="_blank" rel="noopener" title="Switch account">👤</a>
 </div>
 
-<div id="ai-ntp-topsites"></div>
+<section id="ai-void-stage">
+  <div id="ai-void-search" aria-label="Web search">
+    <div class="ai-void-search-brand-row">
+      <button type="button" class="ai-void-search-nav" id="ai-void-search-prev" title="Previous engine" aria-label="Previous search engine">‹</button>
+      <div id="ai-void-search-brand" data-engine="google" title="Swipe or click to switch engine">
+        <span class="ai-void-search-brand-mark" aria-hidden="true"></span>
+        <span id="ai-void-search-brand-name">Google</span>
+      </div>
+      <button type="button" class="ai-void-search-nav" id="ai-void-search-next" title="Next engine" aria-label="Next search engine">›</button>
+    </div>
+    <form class="ai-void-search-box" id="ai-void-search-form" action="#" onsubmit="return false;">
+      <svg class="ai-void-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="ai-void-search-input" name="q" autocomplete="off" spellcheck="false" dir="auto" placeholder="Search with Google…" />
+      <button type="button" id="ai-void-search-go" title="Search" aria-label="Search">→</button>
+    </form>
+    <div id="ai-void-search-dots" role="tablist" aria-label="Search engines"></div>
+  </div>
+
+  <div id="ai-void-apps" aria-label="Gmail and account shortcuts"></div>
+  <div id="ai-ntp-topsites"></div>
+</section>
+
+<aside id="ai-void-todo-dock" class="is-collapsed" data-side="right" aria-label="Daily tasks">
+  <div class="ai-void-todo-head" id="ai-void-todo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide tasks">
+    <span>✓</span><span class="ai-void-todo-title" id="ai-void-todo-title">Today's tasks</span><span class="ai-void-todo-count" id="ai-void-todo-count"></span>
+    <span class="ai-void-todo-chevron" id="ai-void-todo-chevron" aria-hidden="true">▾</span>
+    <button type="button" class="ai-void-todo-side" id="ai-void-todo-side" title="Move to other side">↔</button>
+  </div>
+  <div class="ai-void-todo-list" id="ai-void-todo-list"></div>
+</aside>
+
+<div id="ai-void-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="ai-void-profile-title">
+  <div class="ai-void-profile-card">
+    <h3 id="ai-void-profile-title">Gmail profile</h3>
+    <label for="ai-void-profile-label">Label</label>
+    <input id="ai-void-profile-label" type="text" maxlength="24" placeholder="Work, Personal…" autocomplete="off" />
+    <label for="ai-void-profile-url">URL</label>
+    <input id="ai-void-profile-url" type="url" dir="ltr" placeholder="https://mail.google.com/mail/u/0/" autocomplete="off" />
+    <div class="ai-void-profile-actions">
+      <button type="button" class="ai-void-profile-delete" id="ai-void-profile-delete" hidden>Delete</button>
+      <button type="button" class="ai-void-profile-cancel" id="ai-void-profile-cancel">Cancel</button>
+      <button type="button" class="ai-void-profile-save" id="ai-void-profile-save">Save</button>
+    </div>
+  </div>
+</div>
 
 <script src="void-starfield.js"></script>
+<script src="void-tab-search.js"></script>
+<script src="void-tab-apps.js"></script>
 
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="toolbar-zen.css">
@@ -307,6 +715,7 @@
 <script src="content.js"></script>
 
 <script src="void-tab-menu.js"></script>
+<script src="void-tab-todo.js"></script>
 
 </body>
 </html>

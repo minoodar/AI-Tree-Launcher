@@ -308,48 +308,59 @@ function warmupModelInBackground() {
   getTranscriber().catch(() => { /* خطا در handleVoiceStop هم گزارش می‌شود، اینجا فقط از throw خام جلوگیری می‌کنیم */ });
 }
 
+// Whisper (via transformers.js) expects full lowercase English language names,
+// not ISO/BCP-47 codes. zh-Hans and zh-Hant share Whisper's single "chinese"
+// token; Traditional script is handled in post-process when UI is zh-Hant.
 function mapLangCode(code) {
-  const map = { fa: 'persian', en: 'english' };
-  return map[code] || code;
+  const map = {
+    en: 'english',
+    fa: 'persian',
+    ar: 'arabic',
+    es: 'spanish',
+    de: 'german',
+    fr: 'french',
+    ja: 'japanese',
+    ru: 'russian',
+    tr: 'turkish',
+    'zh-Hans': 'chinese',
+    'zh-Hant': 'chinese',
+    'pt-BR': 'portuguese'
+  };
+  return map[code] || map[String(code || '').toLowerCase()] || null;
 }
 
 async function runTranscription(pcmFloat32) {
   const transcriber = await getTranscriber();
 
-  // طبق تصمیم قفل‌شده: به‌جای تکیه بر auto-detect ویسپر (که دقتش در این مدل آفلاین
-  // پایین است)، همیشه از زبان فعلیِ افزونه استفاده می‌شود مگر صراحتاً 'auto' درخواست
-  // شده باشد. مقادیر معتبر برای پارامتر language در transformers.js نام کامل زبان با
-  // حروف کوچک است (persian/english) — نه کد دو-حرفی خام و قطعاً نه توکن‌های ویژه
-  // مثل <|fa|>/<|en|>؛ mapLangCode همین را برمی‌گرداند.
-  const langCode = lastRequestedLang && lastRequestedLang !== 'auto' ? mapLangCode(lastRequestedLang) : null;
+  // Force the extension UI language (full English name). Avoid Whisper auto-detect
+  // on tiny — accuracy is too low. Never pass raw ISO codes like zh-Hans / pt-BR.
+  const requested = lastRequestedLang && lastRequestedLang !== 'auto' ? lastRequestedLang : null;
+  const langCode = requested ? mapLangCode(requested) : null;
 
   const durationSec = pcmFloat32.length / 16000;
-  console.log(`[AI Tree Voice][offscreen] audio ready: ${durationSec.toFixed(2)}s (${pcmFloat32.length} samples), lang=${langCode || 'auto'}`);
+  console.log(`[AI Tree Voice][offscreen] audio ready: ${durationSec.toFixed(2)}s (${pcmFloat32.length} samples), lang=${langCode || 'auto'} (ui=${requested || 'auto'})`);
 
   if (durationSec < 0.35) {
     console.log('[AI Tree Voice] Audio too short, skipping transcription.');
-    return ''; // برگرداندن رشته خالی به جای پرتاب خطا در کنسول
+    return '';
   }
 
   const options = {
     task: 'transcribe',
-    // temperature: 0 = رمزگشاییِ حریصانه (greedy) — قطعی‌ترین حالت، به‌طور کلی
-    // احتمال هذیان‌گویی/تکرار را کمتر می‌کند و مکملِ no_repeat_ngram_size است
+    // Greedy decoding — most deterministic; reduces hallucination loops on tiny.
     temperature: 0.0,
-    // جلوگیری از یکی از شناخته‌شده‌ترین حالت‌های خرابیِ Whisper: افتادن در یک
-    // حلقهٔ توهمیِ تکرار (مثلاً یک کلمه ده‌ها بار پشت سر هم). این پدیده در
-    // مدل‌های کوچک (tiny) و برای زبان‌های کم‌داده مثل فارسی بیشتر رخ می‌دهد و
-    // ربطی به اینکه کدام زبان انتخاب شده ندارد — یک محدودیت سطح تولید متن است.
+    // Blocks pathological repetition loops common on tiny / lower-resource langs.
     no_repeat_ngram_size: 3,
+    // Short dictation clips are independent; carrying prior text across chunks
+    // often seeds more hallucinations on tiny when chunking is enabled.
+    condition_on_previous_text: false,
+    // Skip emitting text when the clip is mostly silence/noise (tiny loves to invent words there).
+    no_speech_threshold: 0.6,
     ...(langCode ? { language: langCode } : {})
   };
 
-  // نکتهٔ کلیدیِ رفعِ باگِ خروجیِ خالی: chunk_length_s/stride_length_s فقط برای
-  // کلیپ‌های واقعاً طولانی معنا دارد. اعمال آن روی ضبط‌های کوتاه دفترچه (چند
-  // ثانیه تا چند ده‌ثانیه — دقیقاً حالت رایج استفاده) پایپ‌لاین را وارد مسیر
-  // long-form + merge-chunks می‌کند که برای این طول‌ها به‌طور شناخته‌شده خروجی
-  // خالی یا ناقص می‌دهد (رجوع: huggingface/transformers.js issue #1358). برای
-  // کلیپ کوتاه اصلاً chunking نمی‌فرستیم؛ پایپ‌لاین خودش short-form را درست هندل می‌کند.
+  // chunk_length_s/stride_length_s only for long clips — on short notes they trigger
+  // the known empty/truncated output path (transformers.js #1358).
   const CHUNKING_THRESHOLD_SEC = 25;
   if (durationSec > CHUNKING_THRESHOLD_SEC) {
     options.chunk_length_s = 30;
@@ -357,7 +368,65 @@ async function runTranscription(pcmFloat32) {
   }
 
   const result = await transcriber(pcmFloat32, options);
-  const text = ((result && result.text) || '').trim();
-  console.log('[AI Tree Voice][offscreen] transcription result:', JSON.stringify(text));
-  return text;
+  let out = ((result && result.text) || '').trim();
+
+  // Whisper has one "chinese" language token and is biased to Simplified.
+  // For Traditional UI users, apply a compact offline S→T map on the result.
+  if (out && requested === 'zh-Hant') {
+    out = simplifiedToTraditional(out);
+  }
+
+  console.log('[AI Tree Voice][offscreen] transcription result:', JSON.stringify(out));
+  return out;
+}
+
+// Compact offline Simplified → Traditional map for short dictation (not full OpenCC).
+// Covers high-frequency everyday characters; unknown chars pass through unchanged.
+function simplifiedToTraditional(input) {
+  if (!input) return input;
+  const S2T = {
+    '国': '國', '语': '語', '这': '這', '个': '個', '们': '們', '来': '來', '时': '時',
+    '会': '會', '说': '說', '对': '對', '开': '開', '关': '關', '门': '門', '问': '問',
+    '题': '題', '学': '學', '习': '習', '书': '書', '长': '長', '东': '東', '西': '西',
+    '南': '南', '北': '北', '中': '中', '华': '華', '为': '為', '义': '義', '发': '發',
+    '现': '現', '点': '點', '电': '電', '话': '話', '网': '網', '页': '頁', '脑': '腦',
+    '机': '機', '车': '車', '飞': '飛', '气': '氣', '爱': '愛', '乐': '樂', '听': '聽',
+    '见': '見', '觉': '覺', '认': '認', '识': '識', '记': '記', '请': '請', '谢': '謝',
+    '吗': '嗎', '呢': '呢', '吧': '吧', '着': '著', '过': '過', '还': '還', '没': '沒',
+    '从': '從', '与': '與', '和': '和', '在': '在', '是': '是', '的': '的', '了': '了',
+    '我': '我', '你': '你', '他': '他', '她': '她', '它': '它', '里': '裡', '后': '後',
+    '前': '前', '面': '面', '体': '體', '医': '醫', '药': '藥', '买': '買', '卖': '賣',
+    '钱': '錢', '银': '銀', '行': '行', '号': '號', '码': '碼', '数': '數', '据': '據',
+    '库': '庫', '软': '軟', '件': '件', '应': '應', '用': '用', '程': '程', '序': '序',
+    '设': '設', '计': '計', '备': '備', '选': '選', '择': '擇', '确': '確', '认': '認',
+    '取': '取', '消': '消', '保': '保', '存': '存', '删': '刪', '除': '除', '传': '傳',
+    '输': '輸', '导': '導', '入': '入', '出': '出', '开': '開', '始': '始', '结': '結',
+    '束': '束', '完': '完', '成': '成', '功': '功', '败': '敗', '错': '錯', '误': '誤',
+    '帮': '幫', '助': '助', '需': '需', '要': '要', '可': '可', '以': '以', '能': '能',
+    '够': '夠', '让': '讓', '给': '給', '把': '把', '被': '被', '将': '將', '把': '把',
+    '总': '總', '经': '經', '常': '常', '已': '已', '经': '經', '现': '現', '在': '在',
+    '今': '今', '天': '天', '明': '明', '昨': '昨', '年': '年', '月': '月', '日': '日',
+    '星': '星', '期': '期', '早': '早', '晚': '晚', '上': '上', '下': '下', '午': '午',
+    '小': '小', '大': '大', '多': '多', '少': '少', '好': '好', '坏': '壞', '新': '新',
+    '旧': '舊', '热': '熱', '冷': '冷', '快': '快', '慢': '慢', '高': '高', '低': '低',
+    '远': '遠', '近': '近', '内': '內', '外': '外', '左': '左', '右': '右', '旁': '旁',
+    '边': '邊', '处': '處', '所': '所', '地': '地', '区': '區', '城': '城', '市': '市',
+    '乡': '鄉', '村': '村', '家': '家', '房': '房', '间': '間', '屋': '屋', '楼': '樓',
+    '层': '層', '路': '路', '桥': '橋', '站': '站', '场': '場', '园': '園', '广': '廣',
+    '厂': '廠', '公': '公', '司': '司', '机': '機', '构': '構', '组': '組', '织': '織',
+    '团': '團', '队': '隊', '员': '員', '工': '工', '作': '作', '职': '職', '业': '業',
+    '专': '專', '业': '業', '学': '學', '校': '校', '班': '班', '课': '課', '教': '教',
+    '师': '師', '生': '生', '读': '讀', '写': '寫', '看': '看', '听': '聽', '说': '說',
+    '讲': '講', '谈': '談', '话': '話', '言': '言', '语': '語', '文': '文', '字': '字',
+    '词': '詞', '句': '句', '篇': '篇', '章': '章', '段': '段', '页': '頁', '张': '張',
+    '份': '份', '条': '條', '项': '項', '种': '種', '类': '類', '样': '樣', '式': '式',
+    '型': '型', '态': '態', '状': '狀', '况': '況', '情': '情', '报': '報', '告': '告',
+    '信': '信', '息': '息', '消': '消', '息': '息', '消': '消', '息': '息'
+  };
+  let out = '';
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    out += Object.prototype.hasOwnProperty.call(S2T, ch) ? S2T[ch] : ch;
+  }
+  return out;
 }

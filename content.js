@@ -424,6 +424,10 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
     </div>
     <div class="ai-time-dashboard" id="ai-time-dashboard">
       <div class="ai-dash-next-event" id="ai-next-event-widget" style="display:none;"></div>
+      <section class="ai-dash-todo-summary" id="ai-dash-todo-summary" aria-label="Today's tasks">
+        <div class="ai-dash-todo-head"><span>✓</span><span id="ai-dash-todo-title">Today's tasks</span><span id="ai-dash-todo-count"></span></div>
+        <div class="ai-dash-todo-list" id="ai-dash-todo-list"></div>
+      </section>
       <div class="ai-timeline-container" id="ai-timeline-container">
         <div class="ai-timeline-now-line" id="ai-now-line" style="display:none;"><span class="ai-now-label" id="ai-now-label"></span></div>
         <div class="ai-timeline-content" id="ai-timeline-content"></div>
@@ -796,6 +800,9 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
     nowLine: clockPanel.querySelector('#ai-now-line'),
     nowLabel: clockPanel.querySelector('#ai-now-label'),
     dashAddBtn: clockPanel.querySelector('#ai-dash-add-btn'),
+    dashTodoSummary: clockPanel.querySelector('#ai-dash-todo-summary'),
+    dashTodoList: clockPanel.querySelector('#ai-dash-todo-list'),
+    dashTodoCount: clockPanel.querySelector('#ai-dash-todo-count'),
     dashNotifyDot: clockPanel.querySelector('#ai-dash-notify-dot'),
     markPanel: clockPanel.querySelector('#ai-clock-marks-panel'),
     markList: clockPanel.querySelector('#ai-clock-marks-list'),
@@ -2196,8 +2203,50 @@ function buildDashEventCard(evt) {
         }
       });
     }
+    renderDashTodoSummary();
     updateNextEventWidget();
     updateNowLine();
+  }
+
+  // فهرست کوتاهِ کارهای روزانه در کنار تقویم/داشبورد زمان. این نسخه مستقل از
+  // رویدادهای ساعتی است تا هر کار روزانه، حتی اگر ساعت مشخصی ندارد، همان‌جا دیده شود.
+  function renderDashTodoSummary() {
+    const list = uiEls.dashTodoList;
+    if (!list) return;
+    const now = Date.now();
+    const todayTodos = todosData.filter(todo => {
+      const created = todo.createdAt || now;
+      return (todo.type || 'daily') === 'daily' && created <= now && now - created < TODO_DAILY_TTL_MS;
+    });
+    const pending = todayTodos.filter(todo => !todo.done).length;
+    if (uiEls.dashTodoCount) uiEls.dashTodoCount.textContent = todayTodos.length ? `${pending}/${todayTodos.length}` : '';
+    list.innerHTML = '';
+
+    if (!todayTodos.length) {
+      const empty = document.createElement('div');
+      empty.className = 'ai-dash-todo-empty';
+      empty.textContent = t('todoNoDaily');
+      list.appendChild(empty);
+      return;
+    }
+
+    todayTodos.slice(0, 5).forEach(todo => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'ai-dash-todo-row' + (todo.done ? ' done' : '');
+      row.title = todo.text || '';
+      const check = document.createElement('span'); check.className = 'ai-dash-todo-check'; check.textContent = todo.done ? '✓' : '';
+      const text = document.createElement('span'); text.className = 'ai-dash-todo-text'; text.textContent = todo.text || '';
+      row.append(check, text);
+      row.addEventListener('click', (e) => {
+        e.stopPropagation();
+        todo.done = !todo.done;
+        saveTodos();
+        renderDashTodoSummary();
+        if (todoPanel.classList.contains('active')) renderTodos();
+      });
+      list.appendChild(row);
+    });
   }
 
   // === ردیف دات‌های رزگلد/نارنجی — رویدادهای ساعتیِ «امروز»، کنار همان تاگلِ داشبورد ===
@@ -3241,13 +3290,32 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       // هاب دیگر مخفی نمی‌شود؛ کلیک روی ساعت نباید هاب را جابه‌جا کند یا پنل را ببندد
   });
 
-  function saveTodos() { try { if (chrome.runtime?.id) chrome.storage.sync.set({ aiTreeTodos: todosData }); } catch(e){} }
+  // Void Tab در همان صفحه می‌تواند این دادهٔ زنده را مستقیم دریافت کند؛ در نتیجه
+  // نمایش آن هیچ‌وقت وابسته به تأخیر یا ناسازگاری storage نخواهد بود.
+  function publishTodosToVoidTab() {
+    try {
+      window.__aiTreeTodosForVoid = todosData;
+      window.dispatchEvent(new CustomEvent('ai-tree-todos-updated', { detail: todosData }));
+    } catch (err) {}
+  }
+
+  // sync منبع اصلی است؛ آینهٔ local برای سازگاری با نصب‌های قدیمی حفظ می‌شود.
+  function saveTodos() {
+    try {
+      if (chrome.runtime?.id) {
+        chrome.storage.sync.set({ aiTreeTodos: todosData });
+        chrome.storage.local.set({ aiTreeTodos: todosData });
+      }
+    } catch(e){}
+    publishTodosToVoidTab();
+  }
 
   function migrateTodos() {
     let changed = false;
     todosData.forEach(todo => {
       if (!todo.type) { todo.type = 'daily'; changed = true; }
       if (!todo.createdAt) { todo.createdAt = Date.now(); changed = true; }
+      if (!todo.id) { todo.id = newLinkId('td'); changed = true; }
     });
     return changed;
   }
@@ -3608,6 +3676,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   function renderTodos() {
     pruneExpiredDailyTodos();
     renderDailyQuote();
+    renderDashTodoSummary();
     const list = document.getElementById('ai-todo-list'); const countEl = document.getElementById('ai-todo-count'); list.innerHTML = '';
     const now = Date.now();
     const visibleTodos = todosData.filter(td => {
@@ -3726,9 +3795,39 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       }
       deleteButton.onclick = (e) => {
         e.stopPropagation();
-        const [deletedTodo] = todosData.splice(idx, 1);
-        saveTodos(); renderTodos(); showToastNotification(t('toastTodoDeleted'), true);
-        setUndoState('todo', { item: deletedTodo, index: idx });
+        // Resolve index at click time (never trust a stale render-time index).
+        // Prefer stable id; fall back to object identity. Never use splice(-1).
+        let removeIdx = -1;
+        if (todo && todo.id) {
+          removeIdx = todosData.findIndex((td) => td && td.id === todo.id);
+        }
+        if (removeIdx < 0) {
+          removeIdx = todosData.indexOf(todo);
+        }
+        if (removeIdx < 0) {
+          // Last resort: match by text+type+createdAt for legacy items without id
+          removeIdx = todosData.findIndex((td) =>
+            td && td !== todo &&
+            (td.text || '') === (todo.text || '') &&
+            (td.type || 'daily') === (todo.type || 'daily') &&
+            (td.createdAt || 0) === (todo.createdAt || 0)
+          );
+          if (removeIdx < 0) removeIdx = todosData.findIndex((td) => td && (td.text || '') === (todo.text || '') && (td.type || 'daily') === (todo.type || 'daily'));
+        }
+        if (removeIdx < 0) return;
+        const [deletedTodo] = todosData.splice(removeIdx, 1);
+        if (!deletedTodo) return;
+        // Break link from hourly dash events so the task cannot reappear as a ghost row
+        if (deletedTodo.id && Array.isArray(timeEventsData)) {
+          timeEventsData.forEach((evt) => {
+            if (evt && evt.linkedTodoId === deletedTodo.id) evt.linkedTodoId = null;
+          });
+          try { saveTimeEvents(); } catch (err) {}
+        }
+        saveTodos();
+        renderTodos();
+        showToastNotification(t('toastTodoDeleted'), true);
+        setUndoState('todo', { item: deletedTodo, index: removeIdx });
       };
       list.appendChild(li);
 
@@ -3756,7 +3855,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         const tmrw = new Date(); tmrw.setHours(24, 0, 0, 0); 
         createdAt = tmrw.getTime();
       }
-      todosData.push({ text, done: false, type: activeTodoTab, createdAt }); input.value = ''; saveTodos(); renderTodos();
+      todosData.push({ id: newLinkId('td'), text, done: false, type: activeTodoTab, createdAt }); input.value = ''; saveTodos(); renderTodos();
     }
   };
   document.getElementById('ai-todo-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') document.getElementById('ai-todo-add-btn').click(); });
@@ -8931,7 +9030,13 @@ let hubAutoCollapsedByPanel = false;
 
     if(syncData.lastDeletedLink) setUndoState('storage', null);
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
-    if(syncData.aiTreeTodos) { todosData = syncData.aiTreeTodos; migrateTodos(); pruneExpiredDailyTodos(); }
+    if(syncData.aiTreeTodos) {
+      todosData = syncData.aiTreeTodos;
+      migrateTodos(); pruneExpiredDailyTodos();
+      // برای داده‌های قدیمی که فقط در sync بودند، یک‌بار آینهٔ Void Tab را بساز.
+      try { if (chrome.runtime?.id) chrome.storage.local.set({ aiTreeTodos: todosData }); } catch (err) {}
+    }
+    publishTodosToVoidTab();
     if(Array.isArray(syncData.aiTreeMarkedDays)) { markedDays = syncData.aiTreeMarkedDays; pruneExpiredMarkedDays(); }
     if(Array.isArray(localData.aiTreeTimeEvents)) { timeEventsData = localData.aiTreeTimeEvents; pruneExpiredDashEvents(); }
     try {
@@ -8953,6 +9058,10 @@ let hubAutoCollapsedByPanel = false;
     paintSpacingArc();
 
     root.classList.add('initial-reveal'); resetAutoCollapseTimer(); resetToggleTimeout();
+    // دات‌های ساعتی نباید منتظرِ کلیک روی تاگل بمانند؛ داده بعد از storage حالا
+    // آماده است، پس همان ابتدا ردیف را پر می‌کنیم.
+    renderDashDotsRow();
+    renderDashTodoSummary();
     renderTierDots(); syncDotsVisibility();
     renderSmartRibbon();
   }
