@@ -3631,17 +3631,32 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       const check = document.createElement('div'); check.className = (isGoal ? 'ai-goal-check' : 'ai-todo-check') + (todo.done ? ' checked' : '');
       if (isGoal) check.innerHTML = '<span class="ai-goal-star">✨</span>';
       const text = document.createElement('span'); text.className = isGoal ? 'ai-goal-text' : 'ai-todo-text'; text.textContent = String(todo.text || '');
+      const chevron = document.createElement('div'); chevron.className = isGoal ? 'ai-goal-chevron' : 'ai-todo-chevron';
+      chevron.innerHTML = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>`;
+      chevron.style.visibility = 'hidden'; // فقط اگر متن واقعاً بریده شده باشد نمایان می‌شود (پایین‌تر، بعد از اتصال به DOM)
+
       const copyButton = document.createElement('div'); copyButton.className = isGoal ? 'ai-goal-copy' : 'ai-todo-copy'; copyButton.title = t('todoCopyTitle');
       copyButton.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
       const editButton = document.createElement('div'); editButton.className = isGoal ? 'ai-goal-edit' : 'ai-todo-edit'; editButton.title = t('todoEditTitle');
       editButton.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>`;
+      // «انتقال به فردا/امروز» — قبلاً برای آیتم‌های فردا این دکمه اصلاً نمایش
+      // داده نمی‌شد (یعنی راهی برای برگرداندنش به امروز نبود). حالا برای هر دو
+      // حالت نمایش داده می‌شود و رفتار/آیکون/عنوانش بسته به وضعیتِ فعلی عوض می‌شود.
       const isScheduledTomorrow = !isGoal && (todo.createdAt || now) > now;
-      const postponeButton = (!isGoal && !isScheduledTomorrow) ? document.createElement('div') : null;
-      if (postponeButton) { postponeButton.className = 'ai-todo-postpone'; postponeButton.title = t('todoPostponeTitle'); postponeButton.textContent = '📅'; }
+      const postponeButton = !isGoal ? document.createElement('div') : null;
+      if (postponeButton) {
+        postponeButton.className = 'ai-todo-postpone';
+        postponeButton.title = isScheduledTomorrow ? t('todoMoveTodayTitle') : t('todoPostponeTitle');
+        postponeButton.textContent = isScheduledTomorrow ? '↻' : '📅';
+      }
       const deleteButton = document.createElement('div'); deleteButton.className = isGoal ? 'ai-goal-del' : 'ai-todo-del'; deleteButton.title = t('todoDelTitle'); deleteButton.textContent = '✕';
-      li.append(check, text, copyButton, editButton);
-      if (postponeButton) li.append(postponeButton);
-      li.append(deleteButton);
+
+      const rail = document.createElement('div'); rail.className = isGoal ? 'ai-goal-rail' : 'ai-todo-rail';
+      rail.append(copyButton, editButton);
+      if (postponeButton) rail.append(postponeButton);
+      rail.append(deleteButton);
+
+      li.append(check, text, chevron, rail);
 
       if (!isGoal) {
         const expiry = document.createElement('span'); expiry.className = 'ai-todo-expiry';
@@ -3699,9 +3714,14 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       if (postponeButton) {
         postponeButton.onclick = (e) => {
           e.stopPropagation();
-          const tmrw = new Date(); tmrw.setHours(24, 0, 0, 0);
-          todo.createdAt = tmrw.getTime();
-          saveTodos(); renderTodos(); showToastNotification(t('toastTodoPostponed'));
+          if (isScheduledTomorrow) {
+            todo.createdAt = Date.now(); // برگرداندن به امروز
+            saveTodos(); renderTodos(); showToastNotification(t('toastTodoMovedToday'));
+          } else {
+            const tmrw = new Date(); tmrw.setHours(24, 0, 0, 0);
+            todo.createdAt = tmrw.getTime();
+            saveTodos(); renderTodos(); showToastNotification(t('toastTodoPostponed'));
+          }
         };
       }
       deleteButton.onclick = (e) => {
@@ -3711,6 +3731,16 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         setUndoState('todo', { item: deletedTodo, index: idx });
       };
       list.appendChild(li);
+
+      // فقط اگر متن واقعاً در ۲ خط جا نمی‌شود، شِورون را نشان بده و کلیک‌پذیرش کن —
+      // این اندازه‌گیری باید بعد از اتصال به DOM انجام شود (قبلش scrollHeight درست نیست)
+      if (text.scrollHeight - text.clientHeight > 2) {
+        text.classList.add('truncatable');
+        chevron.style.visibility = 'visible';
+        const toggleExpand = (e) => { e.stopPropagation(); li.classList.toggle('expanded'); };
+        text.addEventListener('click', toggleExpand);
+        chevron.addEventListener('click', toggleExpand);
+      }
     });
     adjustTodoPosition(); 
   }
