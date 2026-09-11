@@ -334,6 +334,47 @@
         font-size: 22px;
         font-weight: 400;
     }
+    .ai-void-app { position: relative; }
+    .ai-void-app-edit {
+        position: absolute;
+        top: 4px;
+        inset-inline-end: 4px;
+        width: 20px;
+        height: 20px;
+        border: 0;
+        border-radius: 7px;
+        background: rgba(10, 14, 28, 0.78);
+        color: #fff;
+        font-size: 11px;
+        line-height: 1;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        opacity: 0;
+        transform: translateY(-2px);
+        transition: opacity .15s ease, transform .15s ease, background .15s ease;
+    }
+    .ai-void-app:hover .ai-void-app-edit,
+    .ai-void-app:focus-within .ai-void-app-edit {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .ai-void-app-edit:hover { background: rgba(79, 70, 229, 0.92); }
+    .ai-void-app-add .ai-void-app-edit { display: none; }
+
+    /* Account indicator avatar */
+    .ai-ntp-avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(145deg, #7c6af2, #4f46e5);
+        box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
+    }
 
     /* Most visited — under shortcuts */
     #ai-ntp-topsites {
@@ -378,6 +419,53 @@
         overflow: hidden;
         text-overflow: ellipsis;
         text-align: center;
+    }
+    .ai-ts-tile-wrap { position: relative; }
+    .ai-ts-controls {
+        position: absolute;
+        top: 2px;
+        inset-inline-end: 2px;
+        display: flex;
+        gap: 2px;
+        opacity: 0;
+        transform: translateY(-2px);
+        transition: opacity .15s ease, transform .15s ease;
+    }
+    .ai-ts-tile-wrap:hover .ai-ts-controls,
+    .ai-ts-tile-wrap:focus-within .ai-ts-controls {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .ai-ts-ctrl-btn {
+        width: 18px;
+        height: 18px;
+        border: 0;
+        border-radius: 6px;
+        background: rgba(10, 14, 28, 0.8);
+        color: #E5E7EB;
+        font-size: 10px;
+        line-height: 1;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: background .15s ease;
+    }
+    .ai-ts-ctrl-btn:hover { background: rgba(79, 70, 229, 0.9); }
+    .ai-ts-ctrl-remove:hover { background: rgba(239, 68, 68, 0.9); }
+    .ai-ts-tile-add {
+        border: 1px dashed rgba(255, 255, 255, 0.18);
+        background: transparent;
+        font: inherit;
+        color: inherit;
+        opacity: 0.6;
+    }
+    .ai-ts-tile-add:hover { opacity: 1; background: rgba(255,255,255,0.05); }
+    .ai-ts-icon-add {
+        font-size: 20px;
+        font-weight: 400;
+        color: rgba(226, 232, 255, 0.7);
+        background: rgba(255, 255, 255, 0.04);
+        border-style: dashed;
     }
 
     /* Menu top-left */
@@ -648,7 +736,7 @@
 
 <div id="ai-ntp-quickbar" role="toolbar" aria-label="Quick links">
   <a href="https://mail.google.com/mail/u/0/" target="_blank" rel="noopener" title="Gmail">✉️</a>
-  <a href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmail.google.com" target="_blank" rel="noopener" title="Switch account">👤</a>
+  <a id="ai-ntp-account" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmail.google.com" target="_blank" rel="noopener" title="Switch account">👤</a>
 </div>
 
 <section id="ai-void-stage">
@@ -702,7 +790,10 @@
 
 <script src="void-starfield.js"></script>
 <script src="void-tab-search.js"></script>
+<script src="void-tab-shortcuts.js"></script>
 <script src="void-tab-apps.js"></script>
+<script src="void-tab-topsites.js"></script>
+<script src="void-tab-account.js"></script>
 
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="toolbar-zen.css">

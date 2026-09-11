@@ -59,38 +59,10 @@
     chrome.storage.local.set({ showTopSites: nowOn });
   });
 
-  // ---- بارگذاریِ واقعیِ سایت‌های پرکاربرد از chrome.topSites ----
-  function faviconUrl(pageUrl) {
-    const url = new URL(chrome.runtime.getURL('/_favicon/'));
-    url.searchParams.set('pageUrl', pageUrl);
-    url.searchParams.set('size', '32');
-    return url.toString();
-  }
-  try {
-    if (chrome.topSites && chrome.topSites.get) {
-      chrome.topSites.get((sites) => {
-        (sites || []).slice(0, 8).forEach((site) => {
-          const a = document.createElement('a');
-          a.className = 'ai-ts-tile';
-          a.href = site.url;
-          a.title = site.title || site.url;
-          const iconWrap = document.createElement('div');
-          iconWrap.className = 'ai-ts-icon';
-          const img = document.createElement('img');
-          img.src = faviconUrl(site.url);
-          img.alt = '';
-          img.onerror = () => { img.style.display = 'none'; };
-          iconWrap.appendChild(img);
-          const label = document.createElement('div');
-          label.className = 'ai-ts-label';
-          label.textContent = site.title || new URL(site.url).hostname;
-          a.appendChild(iconWrap);
-          a.appendChild(label);
-          topsitesEl.appendChild(a);
-        });
-      });
-    }
-  } catch (e) { /* اگر topSites به هر دلیلی در دسترس نبود، فقط ردیف خالی می‌ماند */ }
+  // ---- بارگذاری/رندرِ واقعیِ ردیفِ لینک‌های پرکاربرد اکنون کاملاً به عهدهٔ
+  // void-tab-topsites.js است (ترکیبِ لینک‌های سنجاق‌شدهٔ قابل‌ویرایش کاربر +
+  // پیشنهادهای خودکارِ chrome.topSites با امکانِ حذف/تبدیل)؛ اینجا فقط دکمهٔ
+  // نمایش/عدم‌نمایشِ همان ردیف را کنترل می‌کنیم، بدونِ دخالت در محتوایش. ----
 
   // ---- تنظیمات — همان الگوی fallback‌دارِ قبلی ----
   itemSettings.addEventListener('click', () => {
