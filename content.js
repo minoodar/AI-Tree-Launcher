@@ -1509,6 +1509,95 @@ function openMarkEventSheet(m) {
       row.className = `ai-mark-event-daily-row status-${status}`;
       const dot = document.createElement('span'); dot.className = 'ai-mark-event-daily-dot';
       const time = document.createElement('span'); time.className = 'ai-mark-event-daily-time'; time.textContent = evt.startTime;
+      time.style.cursor = 'text';
+      time.title = langPick({
+        fa: 'برای ویرایش ساعت کلیک کنید',
+        en: 'Click to edit time',
+        ar: 'انقر لتعديل الوقت',
+        es: 'Haz clic para editar la hora',
+        de: 'Klicken Sie, um die Uhrzeit zu bearbeiten',
+        fr: "Cliquez pour modifier l'heure",
+        ja: 'クリックして時刻を編集',
+        ru: 'Нажмите, чтобы изменить время'
+      });
+      time.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (time.querySelector('input')) return;
+
+        const currentVal = evt.startTime;
+        const input = document.createElement('input');
+        input.type = 'time';
+        input.value = currentVal;
+        input.className = 'ai-mark-event-daily-time-inline-input';
+
+        Object.assign(input.style, {
+          width: '84px',
+          background: 'rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(255, 255, 255, 0.25)',
+          borderRadius: '6px',
+          color: 'inherit',
+          padding: '1px 4px',
+          fontSize: 'inherit',
+          fontFamily: 'inherit',
+          outline: 'none',
+          boxSizing: 'border-box'
+        });
+
+        time.textContent = '';
+        time.appendChild(input);
+        input.focus();
+
+        let isCommitted = false;
+
+        const commitTimeChange = () => {
+          if (isCommitted) return;
+          isCommitted = true;
+          const newVal = input.value;
+
+          if (newVal && newVal !== currentVal) {
+            evt.startTime = newVal;
+
+            if (evt.linkedTodoId) {
+              const linked = todosData.find(td => td.id === evt.linkedTodoId);
+              if (linked) {
+                linked.text = `${newVal} — ${evt.title}`;
+                saveTodos();
+                if (todoPanel.classList.contains('active')) renderTodos();
+              }
+            }
+
+            saveTimeEvents();
+            renderMarkEventDailyList(iso);
+            if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI();
+            showToastNotification(langPick({
+              fa: 'رویداد ویرایش شد',
+              en: 'Event updated',
+              ar: 'تم تعديل الحدث',
+              es: 'Evento actualizado',
+              de: 'Ereignis aktualisiert',
+              fr: 'Événement mis à jour',
+              ja: 'イベントを更新しました',
+              ru: 'Событие обновлено'
+            }));
+          } else {
+            time.textContent = currentVal;
+          }
+        };
+
+        const revertTimeChange = () => {
+          if (isCommitted) return;
+          isCommitted = true;
+          time.textContent = currentVal;
+        };
+
+        input.addEventListener('blur', commitTimeChange);
+        input.addEventListener('keydown', (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Enter') { ev.preventDefault(); commitTimeChange(); }
+          else if (ev.key === 'Escape') { ev.preventDefault(); revertTimeChange(); }
+        });
+        input.addEventListener('click', (ev) => ev.stopPropagation());
+      });
       const title = document.createElement('span'); title.className = 'ai-mark-event-daily-title'; title.textContent = evt.title;
 
       // عنوان رویداد ساعتی داخل برگه کاغذی هم قابل ویرایش درجا باشد، با همان تولتیپ ۸ زبانه
@@ -1610,6 +1699,14 @@ function openMarkEventSheet(m) {
         const link = document.createElement('span'); link.className = 'ai-mark-event-daily-link'; link.textContent = '↗'; link.title = t('dashLinkedTodo');
         row.appendChild(link);
       }
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button'; delBtn.className = 'ai-mark-event-daily-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
+      delBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteDashEvent(evt.id);
+        renderMarkEventDailyList(iso);
+      });
+      row.appendChild(delBtn);
       uiEls.markEventDailyList.appendChild(row);
     });
   }
@@ -2087,6 +2184,99 @@ function buildDashEventCard(evt) {
     const timeWrap = document.createElement('span'); timeWrap.className = 'ai-event-time-wrap';
     const timeIcon = document.createElement('span'); timeIcon.className = 'ai-event-time-icon'; timeIcon.textContent = dayNightIcon(evt.startTime);
     const timeLabel = document.createElement('span'); timeLabel.className = 'ai-event-time-label'; timeLabel.textContent = evt.startTime;
+    timeLabel.style.cursor = 'text';
+    timeLabel.title = langPick({
+      fa: 'برای ویرایش ساعت کلیک کنید',
+      en: 'Click to edit time',
+      ar: 'انقر لتعديل الوقت',
+      es: 'Haz clic para editar la hora',
+      de: 'Klicken Sie, um die Uhrzeit zu bearbeiten',
+      fr: "Cliquez pour modifier l'heure",
+      ja: 'クリックして時刻を編集',
+      ru: 'Нажмите, чтобы изменить время'
+    });
+    timeLabel.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (timeLabel.querySelector('input')) return;
+
+      const currentVal = evt.startTime;
+      const input = document.createElement('input');
+      input.type = 'time';
+      input.value = currentVal;
+      input.className = 'ai-event-time-inline-input';
+
+      Object.assign(input.style, {
+        width: '84px',
+        background: 'rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.25)',
+        borderRadius: '6px',
+        color: '#fff',
+        padding: '2px 4px',
+        fontSize: 'inherit',
+        fontFamily: 'inherit',
+        outline: 'none',
+        boxSizing: 'border-box'
+      });
+
+      timeLabel.textContent = '';
+      timeLabel.appendChild(input);
+      input.focus();
+
+      let isCommitted = false;
+
+      const commitTimeChange = () => {
+        if (isCommitted) return;
+        isCommitted = true;
+        const newVal = input.value;
+
+        if (newVal && newVal !== currentVal) {
+          evt.startTime = newVal;
+
+          if (evt.linkedTodoId) {
+            const linked = todosData.find(td => td.id === evt.linkedTodoId);
+            if (linked) {
+              linked.text = `${newVal} — ${evt.title}`;
+              saveTodos();
+              if (todoPanel.classList.contains('active')) renderTodos();
+            }
+          }
+
+          saveTimeEvents();
+          refreshDashUI();
+          showToastNotification(langPick({
+            fa: 'رویداد ویرایش شد',
+            en: 'Event updated',
+            ar: 'تم تعديل الحدث',
+            es: 'Evento actualizado',
+            de: 'Ereignis aktualisiert',
+            fr: 'Événement mis à jour',
+            ja: 'イベントを更新しました',
+            ru: 'Событие обновлено'
+          }));
+        } else {
+          timeLabel.textContent = currentVal;
+        }
+      };
+
+      const revertTimeChange = () => {
+        if (isCommitted) return;
+        isCommitted = true;
+        timeLabel.textContent = currentVal;
+      };
+
+      input.addEventListener('blur', commitTimeChange);
+      input.addEventListener('keydown', (ev) => {
+        ev.stopPropagation();
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          commitTimeChange();
+        } else if (ev.key === 'Escape') {
+          ev.preventDefault();
+          revertTimeChange();
+        }
+      });
+      input.addEventListener('click', (ev) => ev.stopPropagation());
+    });
     const dot = document.createElement('div'); dot.className = 'ai-event-dot'; dot.title = t('dashToggleDoneTitle');
     dot.addEventListener('click', (e) => { e.stopPropagation(); toggleDashEventDone(evt.id); });
     timeWrap.appendChild(timeIcon); timeWrap.appendChild(timeLabel); timeWrap.appendChild(dot);

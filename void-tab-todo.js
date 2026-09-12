@@ -111,10 +111,80 @@
     return 'future';
   }
 
+  function saveTimeEventsToStorage() {
+    try { chrome.storage.local.set({ aiTreeTimeEvents: timeEvents }); } catch (e) {}
+  }
+
+  // حذفِ یک رویداد: دقیقاً هم‌رفتار با deleteDashEvent در content.js — اگر
+  // رویداد یک TODوی روزانهٔ لینک‌شده دارد (linkedTodoId)، آن هم حذف می‌شود تا
+  // یک TODوی یتیم و بی‌معنی در پنلِ اصلی باقی نماند.
+  function deleteEvent(id) {
+    const evt = timeEvents.find(e => e.id === id);
+    if (evt && evt.linkedTodoId) {
+      const idx = todos.findIndex(td => td.id === evt.linkedTodoId);
+      if (idx !== -1) {
+        todos.splice(idx, 1);
+        try { chrome.storage.sync.set({ aiTreeTodos: todos }); chrome.storage.local.set({ aiTreeTodos: todos }); } catch (e) {}
+        renderTodos();
+      }
+    }
+    timeEvents = timeEvents.filter(e => e.id !== id);
+    saveTimeEventsToStorage();
+    renderEvents();
+  }
+
+  function updateEventTime(id, newTime) {
+    const evt = timeEvents.find(e => e.id === id);
+    if (!evt || !/^\d{2}:\d{2}$/.test(newTime) || evt.startTime === newTime) return;
+    evt.startTime = newTime;
+    // TODوی لینک‌شده هم متنش با ساعتِ جدید هماهنگ شود (همان قالبِ content.js: "HH:mm — عنوان")
+    if (evt.linkedTodoId) {
+      const linked = todos.find(td => td.id === evt.linkedTodoId);
+      if (linked) {
+        linked.text = `${newTime} — ${evt.title}`;
+        try { chrome.storage.sync.set({ aiTreeTodos: todos }); chrome.storage.local.set({ aiTreeTodos: todos }); } catch (e) {}
+        renderTodos();
+      }
+    }
+    saveTimeEventsToStorage();
+    renderEvents();
+  }
+
+  function beginTimeEdit(row, timeEl, evt) {
+    if (row.classList.contains('is-editing-time')) return;
+    row.classList.add('is-editing-time');
+    const input = document.createElement('input');
+    input.type = 'time';
+    input.className = 'ai-void-event-time-input';
+    input.value = evt.startTime;
+    timeEl.replaceWith(input);
+    input.focus();
+    let done = false;
+    const commit = () => {
+      if (done) return; done = true;
+      const val = input.value || evt.startTime;
+      input.replaceWith(timeEl);
+      row.classList.remove('is-editing-time');
+      if (val !== evt.startTime) updateEventTime(evt.id, val); else timeEl.textContent = evt.startTime;
+    };
+    const cancel = () => {
+      if (done) return; done = true;
+      input.replaceWith(timeEl);
+      row.classList.remove('is-editing-time');
+    };
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); }
+      else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+    });
+  }
+
   function buildEventRow(evt, status) {
     const row = document.createElement('div');
     row.className = 'ai-void-event-row' + (status === 'near' ? ' is-near' : status === 'missed' ? ' is-missed' : status === 'done' ? ' is-done' : status === 'recurring-elapsed' ? ' is-recurring-elapsed' : '');
     const time = document.createElement('span'); time.className = 'ai-void-event-time'; time.textContent = evt.startTime;
+    time.title = label('voidEditShortcut', 'Edit');
+    row.addEventListener('click', () => beginTimeEdit(row, time, evt));
     const title = document.createElement('span'); title.className = 'ai-void-event-title'; title.textContent = evt.title; title.title = evt.title;
     row.append(time, title);
     if (status === 'recurring-elapsed') {
@@ -125,6 +195,13 @@
       const star = document.createElement('span'); star.className = 'ai-void-event-badge'; star.textContent = '\u2605';
       row.appendChild(star);
     }
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button'; delBtn.className = 'ai-void-event-del';
+    delBtn.title = label('voidRemove', 'Remove');
+    delBtn.setAttribute('aria-label', label('voidRemove', 'Remove') + ': ' + evt.title);
+    delBtn.textContent = '\u00D7';
+    delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteEvent(evt.id); });
+    row.appendChild(delBtn);
     return row;
   }
 
@@ -145,17 +222,11 @@
     const tIso = tomorrowIso();
     const tomorrows = timeEvents.filter(e => e && e.date === tIso).slice().sort((a, b) => a.startTime.localeCompare(b.startTime));
     if (tomorrows.length) {
-      const box = document.createElement('div'); box.className = 'ai-void-tomorrow-box'; box.tabIndex = 0; box.setAttribute('role', 'button');
+      const box = document.createElement('div'); box.className = 'ai-void-tomorrow-box';
       const head = document.createElement('div'); head.className = 'ai-void-tomorrow-head';
       head.textContent = `${label('scrubberTomorrowBadge', 'Tomorrow')} \u00b7 ${tomorrows.length}`;
       box.appendChild(head);
-      tomorrows.slice(0, 3).forEach(evt => {
-        const row = document.createElement('div'); row.className = 'ai-void-tomorrow-row';
-        const time = document.createElement('span'); time.className = 'ai-void-event-time'; time.textContent = evt.startTime;
-        const title = document.createElement('span'); title.textContent = evt.title;
-        row.append(time, title);
-        box.appendChild(row);
-      });
+      tomorrows.slice(0, 3).forEach(evt => box.appendChild(buildEventRow(evt, evaluateStatus(evt))));
       eventsList.appendChild(box);
     }
   }

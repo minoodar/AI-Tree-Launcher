@@ -6,6 +6,17 @@
 // همهٔ اسکریپت‌های دیگر باید در یک فایل جدا باشد و با <script src="..."> لود شود.
 // ============================================================================
 (function () {
+  // تمامِ UI سفارشیِ void-tab (نوار جستجو، ردیف اپ‌ها/لینک‌ها، پنلِ «امروز») هیچ‌کدام
+  // به‌صورتِ پیش‌فرض RTL/LTR نمی‌شوند — چون content.js فقط پنل‌های داخلیِ خودش را
+  // (وقتی روی صفحاتِ دیگر تزریق می‌شود) جهت‌دار می‌کند، نه کلِ سندِ میزبان؛ و این
+  // صفحه یک سندِ کاملاً متعلق به خودِ افزونه است، پس اینجا خودمان مسئولِ اعمالِ
+  // جهتِ درستِ کلِ صفحه بر اساسِ زبانِ فعالِ افزونه‌ایم — یک‌بار، همین‌جا، مرکزی.
+  try {
+    if (typeof isRTL === 'function' && typeof currentLang !== 'undefined') {
+      document.documentElement.dir = isRTL(currentLang) ? 'rtl' : 'ltr';
+    }
+  } catch (e) {}
+
   const menu = document.getElementById('ai-ntp-menu');
   const menuBtn = document.getElementById('ai-ntp-menu-btn');
   const topsitesEl = document.getElementById('ai-ntp-topsites');

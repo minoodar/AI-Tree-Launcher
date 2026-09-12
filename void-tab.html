@@ -657,13 +657,48 @@
         padding: 5px 7px; border-radius: 7px;
         background: rgba(255,255,255,.03);
         font-size: 11.5px;
+        cursor: pointer;
+        transition: background .15s ease;
     }
+    .ai-void-event-row:hover { background: rgba(255,255,255,.065); }
     .ai-void-event-time {
         font-family: 'SF Mono', Consolas, monospace;
         font-weight: 700; flex: 0 0 auto;
         color: rgba(251,191,36,.85);
     }
     .ai-void-event-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: auto; text-align: start; color: #EEF2FF; }
+    .ai-void-event-time {
+        cursor: pointer;
+        border-radius: 4px;
+        padding: 0 2px;
+        transition: background .15s ease;
+    }
+    .ai-void-event-time:hover { background: rgba(251,191,36,.16); }
+    .ai-void-event-time-input {
+        font-family: 'SF Mono', Consolas, monospace;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #0F172A;
+        background: #FBBF24;
+        border: 0; border-radius: 4px;
+        padding: 0 2px;
+        width: 58px;
+        flex: 0 0 auto;
+    }
+    .ai-void-event-del {
+        flex: 0 0 auto;
+        width: 16px; height: 16px;
+        border: 0; border-radius: 5px;
+        background: transparent; color: rgba(255,255,255,.35);
+        font-size: 12px; line-height: 1;
+        cursor: pointer;
+        margin-inline-start: auto;
+        opacity: 0;
+        transition: opacity .15s ease, background .15s ease, color .15s ease;
+    }
+    .ai-void-event-row:hover .ai-void-event-del,
+    .ai-void-event-row:focus-within .ai-void-event-del { opacity: 1; }
+    .ai-void-event-del:hover { background: rgba(239,68,68,.85); color: #fff; }
     .ai-void-event-row.is-near { background: rgba(251,191,36,.1); }
     .ai-void-event-row.is-near .ai-void-event-time { text-shadow: 0 0 8px rgba(251,191,36,.65); }
     .ai-void-event-row.is-missed .ai-void-event-time { text-decoration: line-through; opacity: .55; }
@@ -781,7 +816,7 @@
         color: #E5E7EB;
     }
     .ai-void-profile-delete {
-        margin-right: auto;
+        margin-inline-end: auto;
         background: rgba(239, 68, 68, 0.2);
         color: #fca5a5;
     }

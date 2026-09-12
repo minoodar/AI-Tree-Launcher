@@ -5964,6 +5964,20 @@ body.rtl .ai-note-history-menu,
   flex: 0 0 auto;
   background: #ca8a04;
 }
+.ai-mark-event-daily-del {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  width: 16px; height: 16px; border: none; border-radius: 50%;
+  background: transparent; color: rgba(255,255,255,0.35);
+  font-size: 13px; line-height: 1; cursor: pointer; padding: 0;
+  opacity: 0;
+  transition: opacity .15s ease, background .15s ease, color .15s ease;
+}
+.ai-mark-event-daily-row:hover .ai-mark-event-daily-del,
+.ai-mark-event-daily-row:focus-within .ai-mark-event-daily-del {
+  opacity: 1;
+}
+.ai-mark-event-daily-del:hover { background: rgba(239,68,68,0.18); color: #fca5a5; }
 .ai-mark-event-daily-row.status-near .ai-mark-event-daily-dot {
   background: #d97706;
   box-shadow: 0 0 4px rgba(217, 119, 6, 0.6);

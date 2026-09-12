@@ -1,6 +1,7 @@
 let currentLang = 'en';
 const i18n = {
   en: {
+    voidAddShortcut: "Add shortcut", voidAdd: "Add", voidEditApp: "Edit shortcut", voidNewApp: "New shortcut", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Edit", voidEditShortcutAria: "Edit shortcut", voidAddLink: "Add link", voidEditLink: "Edit link", voidNewLink: "New link", voidLinkLabelPh: "Link name", voidRemoveLink: "Remove", voidCustomizeLink: "Customize", voidHideLink: "Hide from this list", voidRemove: "Remove",
     todoTitle: "📝 To-Do List",
     todoPending: "Pending",
     todoGoalPending: "In Progress",
@@ -288,6 +289,7 @@ const i18n = {
     ntpMenuStdTab: "Use Standard New Tab"
   },
   fa: {
+    voidAddShortcut: "افزودن میان‌بر", voidAdd: "افزودن", voidEditApp: "ویرایش میان‌بر", voidNewApp: "میان‌بر جدید", voidAppLabelPh: "Gmail، Drive…", voidEditShortcut: "ویرایش", voidEditShortcutAria: "ویرایش میان‌بر", voidAddLink: "افزودن لینک", voidEditLink: "ویرایش لینک", voidNewLink: "لینک جدید", voidLinkLabelPh: "نام لینک", voidRemoveLink: "حذف", voidCustomizeLink: "سفارشی‌سازی", voidHideLink: "پنهان‌کردن از این لیست", voidRemove: "حذف",
     todoTitle: "📝 کارهای روزانه",
     todoPending: "انجام نشده",
     todoGoalPending: "در مسیر",
@@ -566,6 +568,7 @@ const i18n = {
     ntpMenuStdTab: "استفاده از تب جدیدِ استاندارد"
   },
   ar: {
+    voidAddShortcut: "إضافة اختصار", voidAdd: "إضافة", voidEditApp: "تعديل الاختصار", voidNewApp: "اختصار جديد", voidAppLabelPh: "Gmail، Drive…", voidEditShortcut: "تعديل", voidEditShortcutAria: "تعديل الاختصار", voidAddLink: "إضافة رابط", voidEditLink: "تعديل الرابط", voidNewLink: "رابط جديد", voidLinkLabelPh: "اسم الرابط", voidRemoveLink: "إزالة", voidCustomizeLink: "تخصيص", voidHideLink: "إخفاء من هذه القائمة", voidRemove: "إزالة",
     todoTitle: "📝 قائمة المهام",
     todoPending: "قيد الانتظار",
     todoGoalPending: "قيد التنفيذ",
@@ -840,6 +843,7 @@ const i18n = {
     ntpMenuStdTab: "استخدام علامة التبويب الجديدة القياسية"
   },
   ru: {
+    voidAddShortcut: "Добавить ярлык", voidAdd: "Добавить", voidEditApp: "Изменить ярлык", voidNewApp: "Новый ярлык", voidAppLabelPh: "Gmail, Диск…", voidEditShortcut: "Изменить", voidEditShortcutAria: "Изменить ярлык", voidAddLink: "Добавить ссылку", voidEditLink: "Изменить ссылку", voidNewLink: "Новая ссылка", voidLinkLabelPh: "Название ссылки", voidRemoveLink: "Удалить", voidCustomizeLink: "Настроить", voidHideLink: "Скрыть из списка", voidRemove: "Удалить",
     todoTitle: "📝 Список дел",
     todoPending: "Не выполнено",
     todoGoalPending: "В процессе",
@@ -1114,6 +1118,7 @@ const i18n = {
     ntpMenuStdTab: "Использовать стандартную новую вкладку"
   },
   tr: {
+    voidAddShortcut: "Kısayol ekle", voidAdd: "Ekle", voidEditApp: "Kısayolu düzenle", voidNewApp: "Yeni kısayol", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Düzenle", voidEditShortcutAria: "Kısayolu düzenle", voidAddLink: "Bağlantı ekle", voidEditLink: "Bağlantıyı düzenle", voidNewLink: "Yeni bağlantı", voidLinkLabelPh: "Bağlantı adı", voidRemoveLink: "Kaldır", voidCustomizeLink: "Özelleştir", voidHideLink: "Bu listeden gizle", voidRemove: "Kaldır",
     todoTitle: "📝 Yapılacaklar Listesi",
     todoPending: "Bekliyor",
     todoGoalPending: "Devam Ediyor",
@@ -1388,6 +1393,7 @@ const i18n = {
     ntpMenuStdTab: "Standart Yeni Sekmeyi Kullan"
   },
   'zh-Hans': {
+    voidAddShortcut: "添加快捷方式", voidAdd: "添加", voidEditApp: "编辑快捷方式", voidNewApp: "新建快捷方式", voidAppLabelPh: "Gmail、Drive…", voidEditShortcut: "编辑", voidEditShortcutAria: "编辑快捷方式", voidAddLink: "添加链接", voidEditLink: "编辑链接", voidNewLink: "新建链接", voidLinkLabelPh: "链接名称", voidRemoveLink: "删除", voidCustomizeLink: "自定义", voidHideLink: "从此列表中隐藏", voidRemove: "删除",
     todoTitle: "📝 待办事项",
     todoPending: "待处理",
     todoGoalPending: "进行中",
@@ -1662,6 +1668,7 @@ const i18n = {
     ntpMenuStdTab: "使用标准新标签页"
   },
   'zh-Hant': {
+    voidAddShortcut: "新增捷徑", voidAdd: "新增", voidEditApp: "編輯捷徑", voidNewApp: "新捷徑", voidAppLabelPh: "Gmail、Drive…", voidEditShortcut: "編輯", voidEditShortcutAria: "編輯捷徑", voidAddLink: "新增連結", voidEditLink: "編輯連結", voidNewLink: "新連結", voidLinkLabelPh: "連結名稱", voidRemoveLink: "移除", voidCustomizeLink: "自訂", voidHideLink: "從此清單隱藏", voidRemove: "移除",
     todoTitle: "📝 待辦事項",
     todoPending: "待處理",
     todoGoalPending: "進行中",
@@ -1936,6 +1943,7 @@ const i18n = {
     ntpMenuStdTab: "使用標準新分頁"
   },
   'pt-BR': {
+    voidAddShortcut: "Adicionar atalho", voidAdd: "Adicionar", voidEditApp: "Editar atalho", voidNewApp: "Novo atalho", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Editar", voidEditShortcutAria: "Editar atalho", voidAddLink: "Adicionar link", voidEditLink: "Editar link", voidNewLink: "Novo link", voidLinkLabelPh: "Nome do link", voidRemoveLink: "Remover", voidCustomizeLink: "Personalizar", voidHideLink: "Ocultar desta lista", voidRemove: "Remover",
     todoTitle: "📝 Lista de Tarefas",
     todoPending: "Pendente",
     todoGoalPending: "Em Andamento",
@@ -2210,6 +2218,7 @@ const i18n = {
     ntpMenuStdTab: "Usar Nova Guia Padrão"
   },
   es: {
+    voidAddShortcut: "Añadir acceso directo", voidAdd: "Añadir", voidEditApp: "Editar acceso directo", voidNewApp: "Nuevo acceso directo", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Editar", voidEditShortcutAria: "Editar acceso directo", voidAddLink: "Añadir enlace", voidEditLink: "Editar enlace", voidNewLink: "Nuevo enlace", voidLinkLabelPh: "Nombre del enlace", voidRemoveLink: "Eliminar", voidCustomizeLink: "Personalizar", voidHideLink: "Ocultar de esta lista", voidRemove: "Eliminar",
     // === Paso 2: tooltips, calendario, búsqueda, tareas (todo) y los
     // botones clave del bloc de notas (Preguntar IA / Borrar-Cerrar / Copiar /
     // Compartir). El resto del bloc de notas (formulario de marcadores,
@@ -2306,6 +2315,7 @@ const i18n = {
     ntpMenuStdTab: "Usar pestaña nueva estándar"
   },
   de: {
+    voidAddShortcut: "Verknüpfung hinzufügen", voidAdd: "Hinzufügen", voidEditApp: "Verknüpfung bearbeiten", voidNewApp: "Neue Verknüpfung", voidAppLabelPh: "Gmail, Drive …", voidEditShortcut: "Bearbeiten", voidEditShortcutAria: "Verknüpfung bearbeiten", voidAddLink: "Link hinzufügen", voidEditLink: "Link bearbeiten", voidNewLink: "Neuer Link", voidLinkLabelPh: "Linkname", voidRemoveLink: "Entfernen", voidCustomizeLink: "Anpassen", voidHideLink: "Aus dieser Liste ausblenden", voidRemove: "Entfernen",
     // === Schritt 5: Tooltips, Kalender, Suche, Aufgaben (todo) und die
     // wichtigsten Notizblock-Schaltflächen (KI fragen / Löschen-Schließen /
     // Kopieren / Teilen). Der Rest des Notizblocks (Lesezeichen-Formular,
@@ -2402,6 +2412,7 @@ const i18n = {
     ntpMenuStdTab: "Standard-Neuen-Tab verwenden"
   },
   fr: {
+    voidAddShortcut: "Ajouter un raccourci", voidAdd: "Ajouter", voidEditApp: "Modifier le raccourci", voidNewApp: "Nouveau raccourci", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Modifier", voidEditShortcutAria: "Modifier le raccourci", voidAddLink: "Ajouter un lien", voidEditLink: "Modifier le lien", voidNewLink: "Nouveau lien", voidLinkLabelPh: "Nom du lien", voidRemoveLink: "Supprimer", voidCustomizeLink: "Personnaliser", voidHideLink: "Masquer de cette liste", voidRemove: "Supprimer",
     // === Étape 5 : infobulles, calendrier, recherche, tâches (todo) et les
     // boutons clés du bloc-notes (Demander à l'IA / Effacer-Fermer / Copier /
     // Partager). Le reste du bloc-notes (formulaire de favoris, catégories,
@@ -2498,6 +2509,7 @@ const i18n = {
     ntpMenuStdTab: "Utiliser l'onglet standard"
   },
   ja: {
+    voidAddShortcut: "ショートカットを追加", voidAdd: "追加", voidEditApp: "ショートカットを編集", voidNewApp: "新しいショートカット", voidAppLabelPh: "Gmail、Drive…", voidEditShortcut: "編集", voidEditShortcutAria: "ショートカットを編集", voidAddLink: "リンクを追加", voidEditLink: "リンクを編集", voidNewLink: "新しいリンク", voidLinkLabelPh: "リンク名", voidRemoveLink: "削除", voidCustomizeLink: "カスタマイズ", voidHideLink: "このリストから非表示", voidRemove: "削除",
     // === ステップ6: ツールチップ、カレンダー、検索、タスク(todo)に加えて、
     // メモ帳の主要ボタン（AIに聞く／消去・閉じる／コピー／共有）まで翻訳。
     // メモ帳のそれ以外の部分（ブックマークフォーム、カテゴリー、名言コレクション
