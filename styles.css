@@ -5690,6 +5690,28 @@ body.rtl .ai-note-history-menu,
   letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.5);
 }
+/* «فردا» — وقتی ساعتِ انتخاب‌شده در اسکرابر از الان گذشته، این رویداد برای فردا
+   ثبت خواهد شد؛ این نشان همان لحظه (پیش از ذخیره) صادقانه آن را نشان می‌دهد. */
+.ai-scrubber-tomorrow-badge {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #0F172A;
+  background: linear-gradient(135deg, #FDE68A, #FBBF24);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-top: 2px;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.35);
+}
+.ai-scrubber-tomorrow-badge.visible {
+  display: inline-block;
+  animation: aiScrubberBadgeIn 0.2s ease;
+}
+@keyframes aiScrubberBadgeIn {
+  from { opacity: 0; transform: translateY(-2px) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 .ai-scrubber-track {
   position: relative;
   width: 100%;

@@ -90,11 +90,12 @@
         font-size: 15px;
         text-decoration: none;
         cursor: pointer;
-        transition: background 0.15s ease;
+        transition: background 0.15s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
     }
     #ai-ntp-quickbar a:hover,
     #ai-ntp-quickbar button:hover {
         background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.14);
     }
 
     /* ---- Center stage: search + shortcuts + topsites ---- */
@@ -139,11 +140,12 @@
         line-height: 1;
         display: grid;
         place-items: center;
-        transition: background .15s ease, color .15s ease;
+        transition: background .15s ease, color .15s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
     }
     .ai-void-search-nav:hover {
         background: rgba(255,255,255,0.12);
         color: #fff;
+        transform: scale(1.14);
     }
     #ai-void-search-brand {
         --engine-accent: #8ab4f8;
@@ -173,6 +175,10 @@
         background: radial-gradient(circle at 35% 30%, #fff 0%, var(--engine-accent) 45%, transparent 70%);
         box-shadow: 0 0 12px color-mix(in srgb, var(--engine-accent) 55%, transparent);
         flex: 0 0 22px;
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
+    }
+    #ai-void-search-brand:hover .ai-void-search-brand-mark {
+        transform: scale(1.16);
     }
     #ai-void-search-brand-name {
         font-size: 22px;
@@ -259,23 +265,31 @@
         box-shadow: 0 0 8px color-mix(in srgb, var(--engine-accent, #a5b4fc) 60%, transparent);
     }
 
-    /* Gmail / account shortcuts under search */
+    /* Gmail / account shortcuts under search — deliberately small and quiet,
+       same visual weight as the quickbar / search-engine brand mark, not a
+       loud app-launcher grid. Color lives in the glyph, not in a filled tile. */
     #ai-void-apps {
         width: 100%;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 8px 10px;
-        padding: 4px 0 2px;
+        gap: 4px 6px;
+        padding: 2px 0 0;
+        opacity: 0.62;
+        transition: opacity .25s ease;
+    }
+    #ai-void-apps:hover,
+    #ai-void-apps:focus-within {
+        opacity: 1;
     }
     .ai-void-app {
-        width: 72px;
+        width: 46px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 6px;
-        padding: 8px 4px 6px;
-        border-radius: 14px;
+        gap: 4px;
+        padding: 6px 2px 4px;
+        border-radius: 12px;
         text-decoration: none;
         color: #E5E7EB;
         border: 1px solid transparent;
@@ -284,40 +298,45 @@
         transition: background .15s ease, border-color .15s ease, transform .12s ease;
     }
     .ai-void-app:hover {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.07);
         transform: translateY(-1px);
     }
     .ai-void-app-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+        width: 26px;
+        height: 26px;
+        border-radius: 9px;
         display: grid;
         place-items: center;
-        font-size: 18px;
+        font-size: 13px;
         font-weight: 700;
         letter-spacing: -0.02em;
-        color: #fff;
-        background: linear-gradient(145deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+        color: rgba(226, 232, 255, 0.82);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         overflow: hidden;
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
     }
-    .ai-void-app-icon img {
-        width: 22px;
-        height: 22px;
+    .ai-void-app:hover .ai-void-app-icon,
+    .ai-void-app:focus-within .ai-void-app-icon {
+        transform: scale(1.16);
+    }
+    .ai-void-app-icon img,
+    .ai-void-app-icon svg {
+        width: 14px;
+        height: 14px;
         object-fit: contain;
     }
-    .ai-void-app-icon.is-mail { background: linear-gradient(145deg, #ea4335, #c5221f); }
-    .ai-void-app-icon.is-chooser { background: linear-gradient(145deg, #4285f4, #1a73e8); }
-    .ai-void-app-icon.is-drive { background: linear-gradient(145deg, #34a853, #188038); }
-    .ai-void-app-icon.is-cal { background: linear-gradient(145deg, #4285f4, #1967d2); }
-    .ai-void-app-icon.is-photos { background: linear-gradient(145deg, #fbbc04, #ea4335 80%); }
-    .ai-void-app-icon.is-custom { background: linear-gradient(145deg, #7c6af2, #4f46e5); }
+    /* Brand identity is a hint of color in the glyph only — no filled blocks */
+    .ai-void-app-icon.is-mail { color: #f28b82; }
+    .ai-void-app-icon.is-drive { color: #7ecb92; }
+    .ai-void-app-icon.is-cal { color: #8ab4f8; }
+    .ai-void-app-icon.is-photos { color: #fdd663; }
+    .ai-void-app-icon.is-custom { color: rgba(226, 232, 255, 0.82); }
     .ai-void-app-label {
-        font-size: 11px;
-        color: rgba(226, 232, 255, 0.82);
-        max-width: 70px;
+        font-size: 9.5px;
+        color: rgba(226, 232, 255, 0.6);
+        max-width: 50px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -328,24 +347,24 @@
     }
     .ai-void-app-add:hover { opacity: 1; }
     .ai-void-app-add .ai-void-app-icon {
-        background: rgba(255,255,255,0.05);
+        background: rgba(255,255,255,0.04);
         border-style: dashed;
-        color: rgba(226,232,255,0.7);
-        font-size: 22px;
+        color: rgba(226,232,255,0.6);
+        font-size: 15px;
         font-weight: 400;
     }
     .ai-void-app { position: relative; }
     .ai-void-app-edit {
         position: absolute;
-        top: 4px;
-        inset-inline-end: 4px;
-        width: 20px;
-        height: 20px;
+        top: 1px;
+        inset-inline-end: 1px;
+        width: 16px;
+        height: 16px;
         border: 0;
-        border-radius: 7px;
-        background: rgba(10, 14, 28, 0.78);
+        border-radius: 6px;
+        background: rgba(10, 14, 28, 0.82);
         color: #fff;
-        font-size: 11px;
+        font-size: 9px;
         line-height: 1;
         cursor: pointer;
         display: grid;
@@ -376,45 +395,57 @@
         box-shadow: 0 0 0 1px rgba(255,255,255,0.15);
     }
 
-    /* Most visited — under shortcuts */
+    /* Most visited — under shortcuts. Same quiet scale/behavior as #ai-void-apps
+       so the two rows read as one calm system, not two different weights. */
     #ai-ntp-topsites {
         width: 100%;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 8px;
+        gap: 6px;
         max-width: 560px;
+        opacity: 0.62;
         transition: opacity 0.25s ease;
+    }
+    #ai-ntp-topsites:hover,
+    #ai-ntp-topsites:focus-within {
+        opacity: 1;
     }
     #ai-ntp-topsites.hidden { display: none; }
     .ai-ts-tile {
-        width: 72px;
+        width: 58px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         text-decoration: none;
-        padding: 8px 4px;
+        padding: 6px 2px 4px;
         border-radius: 12px;
         transition: background 0.15s ease;
     }
-    .ai-ts-tile:hover { background: rgba(255, 255, 255, 0.06); }
+    .ai-ts-tile:hover { background: rgba(255, 255, 255, 0.05); }
     .ai-ts-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.045);
+        border: 1px solid rgba(255, 255, 255, 0.09);
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
     }
-    .ai-ts-icon img { width: 20px; height: 20px; }
+    .ai-ts-tile:hover .ai-ts-icon,
+    .ai-ts-tile-wrap:hover .ai-ts-icon,
+    .ai-ts-tile-wrap:focus-within .ai-ts-icon {
+        transform: scale(1.16);
+    }
+    .ai-ts-icon img { width: 16px; height: 16px; }
     .ai-ts-label {
-        font-size: 11px;
-        color: #D1D5DB;
-        max-width: 70px;
+        font-size: 9.5px;
+        color: rgba(226, 232, 255, 0.7);
+        max-width: 58px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -461,7 +492,7 @@
     }
     .ai-ts-tile-add:hover { opacity: 1; background: rgba(255,255,255,0.05); }
     .ai-ts-icon-add {
-        font-size: 20px;
+        font-size: 15px;
         font-weight: 400;
         color: rgba(226, 232, 255, 0.7);
         background: rgba(255, 255, 255, 0.04);
@@ -605,7 +636,7 @@
         padding: 7px; overflow: auto;
     }
     .ai-void-todo-row {
-        display: flex; align-items: center; min-width: 0; gap: 8px;
+        display: flex; align-items: flex-start; min-width: 0; gap: 8px;
         padding: 6px; border: 0; border-radius: 8px;
         background: transparent; color: inherit;
         font: 12px/1.35 system-ui, sans-serif;
@@ -614,6 +645,7 @@
     .ai-void-todo-row:hover { background: rgba(255,255,255,.07); }
     .ai-void-todo-check {
         width: 16px; height: 16px; flex: 0 0 16px;
+        margin-top: 1px;
         display: grid; place-items: center;
         border: 1px solid rgba(199,210,254,.58);
         border-radius: 5px; color: white; font-size: 11px;
@@ -621,7 +653,12 @@
     .ai-void-todo-row.done { opacity: .5; }
     .ai-void-todo-row.done .ai-void-todo-check { background: #10B981; border-color: #10B981; }
     .ai-void-todo-row.done .ai-void-todo-text { text-decoration: line-through; }
-    .ai-void-todo-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ai-void-todo-text {
+        overflow-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap;
+        min-width: 0;
+    }
     .ai-void-todo-empty { padding: 16px 5px; color: rgba(224,231,255,.5); font-size: 11px; text-align: center; }
 
     /* Gmail profile edit dialog */

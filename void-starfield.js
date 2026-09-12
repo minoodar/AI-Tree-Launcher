@@ -1,22 +1,25 @@
 (() => {
     "use strict";
 
-    // Tuned toward X (Twitter) new-tab starfield: calm star field, rare slow meteors.
+    // Calm deep-space field, but with more life than a static wallpaper:
+    // a gentle drift, a little more twinkle, and meteors often enough that
+    // the sky never feels frozen — still unhurried, never busy.
     const CONFIG = {
         starDensity: 0.00012,
         maxStars: 900,
         minStars: 280,
-        brightness: 0.88,
-        // Near-static drift — X stars barely crawl
-        speed: 0.012,
+        brightness: 0.9,
+        speed: 0.02,
         parallax: 0.35,
-        twinkle: 0.12,
-        coloredStars: 0.04,
+        twinkle: 0.16,
+        coloredStars: 0.05,
         shootingStars: true,
-        // Rare: roughly one every 12–20s at 60fps
-        shootingStarChance: 0.00009,
+        // Roughly one every 3–6s at 60fps — noticeably more alive than before
+        shootingStarChance: 0.00032,
+        // Small chance a second, fainter meteor trails shortly behind the first
+        doubleShootingStarChance: 0.22,
         // Multiplier on meteor travel (lower = slower streak)
-        shootingStarSpeedScale: 0.32,
+        shootingStarSpeedScale: 0.34,
         maxPixelRatio: 2
     };
 
@@ -34,7 +37,7 @@
     let dpr = 1;
 
     let stars = [];
-    let shootingStar = null;
+    let shootingStars = [];
 
     let mouseX = 0;
     let mouseY = 0;
@@ -124,56 +127,59 @@
         for (let i = 0; i < count; i++) stars.push(new Star());
     }
 
-    function createShootingStar() {
-        if (!CONFIG.shootingStars || prefersReducedMotion) return;
-        // Thin, short, slow streak — X-style, not a fireball
-        shootingStar = {
+    function makeShootingStar(faint) {
+        // Thin, short, slow streak — X-style, not a fireball. `faint` marks a
+        // trailing companion meteor (slightly smaller/dimmer, launched a beat
+        // after the first) so occasional pairs read as a natural variation,
+        // not a repeating pattern.
+        const sizeScale = faint ? 0.75 : 1;
+        return {
             x: Math.random() * width * 0.85,
             y: Math.random() * height * 0.4,
-            length: 60 + Math.random() * 90,
+            length: (60 + Math.random() * 90) * sizeScale,
             speed: (0.22 + Math.random() * 0.28) * CONFIG.shootingStarSpeedScale,
             progress: 0,
             angle: Math.PI * (0.1 + Math.random() * 0.14),
-            opacity: 0.28 + Math.random() * 0.22,
+            opacity: (0.28 + Math.random() * 0.22) * (faint ? 0.7 : 1),
             color: Math.random() < 0.6 ? "200,220,255" : "240,235,220",
-            width: 0.7 + Math.random() * 0.45
+            width: (0.7 + Math.random() * 0.45) * sizeScale
         };
     }
 
-    function updateShootingStar(delta) {
+    function createShootingStar() {
         if (!CONFIG.shootingStars || prefersReducedMotion) return;
-
-        if (!shootingStar) {
-            if (Math.random() < CONFIG.shootingStarChance * delta) createShootingStar();
-            return;
+        if (shootingStars.length >= 3) return;
+        shootingStars.push(makeShootingStar(false));
+        if (Math.random() < CONFIG.doubleShootingStarChance) {
+            // Companion meteor arrives a little later, nearby but not identical.
+            setTimeout(() => {
+                if (!CONFIG.shootingStars || prefersReducedMotion) return;
+                if (shootingStars.length < 3) shootingStars.push(makeShootingStar(true));
+            }, 220 + Math.random() * 260);
         }
+    }
 
-        shootingStar.progress += shootingStar.speed * delta;
-        if (shootingStar.progress > 100) {
-            shootingStar = null;
-            return;
-        }
-
-        const life = shootingStar.progress / 100;
+    function drawShootingStar(star) {
+        const life = star.progress / 100;
         // Soft fade in / out so it never flashes harshly
         const fade = life < 0.15 ? life / 0.15 : life > 0.75 ? (1 - life) / 0.25 : 1;
-        const opacity = shootingStar.opacity * Math.max(0, fade);
+        const opacity = star.opacity * Math.max(0, fade);
 
         // Distance scale kept low so motion reads as a gentle glide
-        const distance = shootingStar.progress * 2.15;
-        const x = shootingStar.x + Math.cos(shootingStar.angle) * distance;
-        const y = shootingStar.y + Math.sin(shootingStar.angle) * distance;
-        const tail = shootingStar.length * (1 - shootingStar.progress / 130);
-        const endX = x - Math.cos(shootingStar.angle) * tail;
-        const endY = y - Math.sin(shootingStar.angle) * tail;
+        const distance = star.progress * 2.15;
+        const x = star.x + Math.cos(star.angle) * distance;
+        const y = star.y + Math.sin(star.angle) * distance;
+        const tail = star.length * (1 - star.progress / 130);
+        const endX = x - Math.cos(star.angle) * tail;
+        const endY = y - Math.sin(star.angle) * tail;
 
         const gradient = ctx.createLinearGradient(endX, endY, x, y);
-        gradient.addColorStop(0, "rgba(" + shootingStar.color + ",0)");
-        gradient.addColorStop(0.55, "rgba(" + shootingStar.color + "," + (opacity * 0.14) + ")");
-        gradient.addColorStop(1, "rgba(" + shootingStar.color + "," + opacity + ")");
+        gradient.addColorStop(0, "rgba(" + star.color + ",0)");
+        gradient.addColorStop(0.55, "rgba(" + star.color + "," + (opacity * 0.14) + ")");
+        gradient.addColorStop(1, "rgba(" + star.color + "," + opacity + ")");
 
         ctx.strokeStyle = gradient;
-        ctx.lineWidth = shootingStar.width;
+        ctx.lineWidth = star.width;
         ctx.lineCap = "round";
         ctx.beginPath();
         ctx.moveTo(endX, endY);
@@ -183,12 +189,26 @@
         // Tiny head glow — not a large fireball
         const glow = ctx.createRadialGradient(x, y, 0, x, y, 4.5);
         glow.addColorStop(0, "rgba(255,255,255," + opacity + ")");
-        glow.addColorStop(0.4, "rgba(" + shootingStar.color + "," + (opacity * 0.35) + ")");
-        glow.addColorStop(1, "rgba(" + shootingStar.color + ",0)");
+        glow.addColorStop(0.4, "rgba(" + star.color + "," + (opacity * 0.35) + ")");
+        glow.addColorStop(1, "rgba(" + star.color + ",0)");
         ctx.fillStyle = glow;
         ctx.beginPath();
         ctx.arc(x, y, 4.5, 0, Math.PI * 2);
         ctx.fill();
+    }
+
+    function updateShootingStar(delta) {
+        if (!CONFIG.shootingStars || prefersReducedMotion) return;
+
+        if (Math.random() < CONFIG.shootingStarChance * delta) createShootingStar();
+        if (!shootingStars.length) return;
+
+        for (let i = shootingStars.length - 1; i >= 0; i--) {
+            const star = shootingStars[i];
+            star.progress += star.speed * delta;
+            if (star.progress > 100) { shootingStars.splice(i, 1); continue; }
+            drawShootingStar(star);
+        }
     }
 
     function resize() {
@@ -201,7 +221,7 @@
         canvas.style.height = height + "px";
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         createStars();
-        shootingStar = null;
+        shootingStars = [];
     }
 
     window.addEventListener("mousemove", function (event) {

@@ -1944,6 +1944,23 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
     if (diffMinutes <= 30) return 'near';
     return 'future';
   }
+  // رویدادهای ساعتیِ سریع (دشبورد زمان) هیچ انتخاب‌گرِ تاریخ ندارند — فقط ساعت.
+  // اگر ساعتِ انتخاب‌شده از «الان» گذشته باشد (مثلاً ساعت ۱۰ صبح، کاربر ۹ صبح را
+  // انتخاب می‌کند)، قطعاً منظورش «فردا همین ساعت» است، نه «امروزِ گذشته» — وگرنه
+  // evaluateEventStatus بالا بلافاصله آن را missed/خط‌خورده نشان می‌دهد. این تابع
+  // تاریخِ درستِ رویداد را برمی‌گرداند (امروز یا فردا)، و در پیش‌نمایشِ اسلایدر هم
+  // برای نشان‌دادنِ برچسبِ «فردا» به همان شکل استفاده می‌شود — یک منبعِ واحد.
+  function resolveScheduledDashDate(hhmm) {
+    const now = new Date();
+    const [h, m] = String(hhmm).split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return todayDashIso();
+    const candidate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+    if (candidate <= now) candidate.setDate(candidate.getDate() + 1);
+    return isoFromDate(candidate);
+  }
+  function isScheduledForTomorrow(hhmm) {
+    return resolveScheduledDashDate(hhmm) !== todayDashIso();
+  }
   function hhmmDiffMinutes(a, b) {
     const [ah, am] = a.split(':').map(Number); const [bh, bm] = b.split(':').map(Number);
     return Math.abs((bh * 60 + bm) - (ah * 60 + am));
@@ -1960,10 +1977,16 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
   }
   function newLinkId(prefix) { return prefix + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 
+  function dashEventTimestamp(evt) {
+    const t = new Date(`${evt.date}T${evt.startTime}:00`).getTime();
+    return isNaN(t) ? Date.now() : t;
+  }
   function saveDashEvent(evt) {
     // پل به TODO: هر رویداد ساعتیِ روزانه هم‌زمان یک TODو «روزانه» متناظر می‌سازد —
-    // آرایه‌ها کاملاً جدا می‌مانند، فقط شناسه‌ها به هم لینک می‌شوند.
-    const linkedTodo = { id: newLinkId('td'), text: `${evt.startTime} — ${evt.title}`, done: false, type: 'daily', createdAt: Date.now() };
+    // آرایه‌ها کاملاً جدا می‌مانند، فقط شناسه‌ها به هم لینک می‌شوند. createdAt برابرِ
+    // خودِ لحظهٔ رویداد است (نه لحظهٔ ساخته‌شدنش) تا اگر رویداد برای فردا ثبت شده،
+    // TODوی لینک‌شده هم در پنل TODO درست به‌عنوانِ «فردا» دیده شود، نه «امروز».
+    const linkedTodo = { id: newLinkId('td'), text: `${evt.startTime} — ${evt.title}`, done: false, type: 'daily', createdAt: dashEventTimestamp(evt) };
     todosData.push(linkedTodo); saveTodos();
     if (todoPanel.classList.contains('active')) renderTodos();
     evt.linkedTodoId = linkedTodo.id;
@@ -2384,6 +2407,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     const progress = containerEl.querySelector('.ai-scrubber-progress');
     const timeInput = containerEl.querySelector('.ai-scrubber-time-input');
     const hintDisplay = containerEl.querySelector('.ai-scrubber-hint');
+    const tomorrowBadge = containerEl.querySelector('.ai-scrubber-tomorrow-badge');
     const rootStyle = containerEl.style;
 
     let currentMinutes = (defaultHours * 60) + defaultMinutes; // 0 تا 1440
@@ -2409,6 +2433,14 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       hintDisplay.textContent = t(hintKey);
       rootStyle.setProperty('--scrubber-color', color);
       rootStyle.setProperty('--scrubber-glow', glow);
+
+      // اگر ساعتِ انتخاب‌شده از الان گذشته، این رویداد برای «فردا» ثبت خواهد شد —
+      // نه امروزِ گذشته — پس همین‌جا هم صادقانه نشانش می‌دهیم، پیش از ذخیره.
+      if (tomorrowBadge) {
+        const willBeTomorrow = isScheduledForTomorrow(`${pad2(hrs)}:${pad2(mins)}`);
+        tomorrowBadge.textContent = willBeTomorrow ? t('scrubberTomorrowBadge') : '';
+        tomorrowBadge.classList.toggle('visible', willBeTomorrow);
+      }
     }
 
     function handleDrag(clientX) {
@@ -2462,7 +2494,8 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     const timeInput = document.createElement('input');
     timeInput.type = 'time'; timeInput.className = 'ai-scrubber-time-input'; timeInput.required = true;
     const hintSpan = document.createElement('span'); hintSpan.className = 'ai-scrubber-hint';
-    readout.appendChild(timeInput); readout.appendChild(hintSpan);
+    const tomorrowBadge = document.createElement('span'); tomorrowBadge.className = 'ai-scrubber-tomorrow-badge';
+    readout.appendChild(timeInput); readout.appendChild(hintSpan); readout.appendChild(tomorrowBadge);
     const track = document.createElement('div'); track.className = 'ai-scrubber-track';
     const progress = document.createElement('div'); progress.className = 'ai-scrubber-progress';
     const thumb = document.createElement('div'); thumb.className = 'ai-scrubber-thumb'; thumb.textContent = '☀️';
@@ -2519,7 +2552,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       const title = titleInput.value.trim(); if (!title) { titleInput.focus(); return; }
       const startTime = scrubber.getValue();
       const evt = {
-        id: newLinkId('evt'), title, date: todayDashIso(), startTime,
+        id: newLinkId('evt'), title, date: resolveScheduledDashDate(startTime), startTime,
         endTime: null, status: 'future', linkedTodoId: null, recurring: recurToggle.classList.contains('active')
       };
       saveDashEvent(evt); closeDashQuickAdd();
