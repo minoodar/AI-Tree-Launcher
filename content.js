@@ -1928,6 +1928,7 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
   function pad2(n) { return String(n).padStart(2, '0'); }
   function isoFromDate(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
   function todayDashIso() { return isoFromDate(new Date()); }
+  function tomorrowDashIso() { const d = new Date(); d.setDate(d.getDate() + 1); return isoFromDate(d); }
   // نمایشِ گرافیکیِ روز/شب کنار ساعتِ هر رویداد — بر اساسِ ساعتِ شروع (۰۶ تا ۱۸ = روز)
   function dayNightIcon(hhmm) {
     const hour = parseInt(String(hhmm).split(':')[0], 10);
@@ -1940,7 +1941,7 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
     const eventTime = new Date(`${evt.date}T${evt.startTime}:00`);
     if (isNaN(eventTime.getTime())) return 'future';
     const diffMinutes = (eventTime - new Date()) / 60000;
-    if (diffMinutes < 0) return 'missed';
+    if (diffMinutes < 0) return evt.recurring ? 'recurring-elapsed' : 'missed';
     if (diffMinutes <= 30) return 'near';
     return 'future';
   }
@@ -2195,6 +2196,7 @@ function buildDashEventCard(evt) {
     delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteDashEvent(evt.id); });
     card.appendChild(timeWrap); card.appendChild(title);
     if (evt.recurring) { const badge = document.createElement('span'); badge.className = 'ai-event-recur-badge'; badge.title = t('dashRecurringBadge'); badge.textContent = '★'; card.appendChild(badge); }
+    if (status === 'recurring-elapsed') { const chip = document.createElement('span'); chip.className = 'ai-event-recur-elapsed-chip'; chip.textContent = '↻ ' + t('scrubberTomorrowBadge'); card.appendChild(chip); }
     card.appendChild(delBtn);
     if (evt.linkedTodoId) { const meta = document.createElement('div'); meta.className = 'ai-event-meta'; meta.textContent = '↗ ' + t('dashLinkedTodo'); card.appendChild(meta); }
     return card;
@@ -2226,9 +2228,48 @@ function buildDashEventCard(evt) {
         }
       });
     }
+    renderTomorrowPreviewBox(container);
     renderDashTodoSummary();
     updateNextEventWidget();
     updateNowLine();
+  }
+
+  // «امروز-فقط» بودنِ داشبورد یعنی رویدادِ فردا در تایم‌لاینِ اصلی اصلاً دیده
+  // نمی‌شود — دقیقاً همان چیزی که کاربر گزارش کرد: نشانِ «فردا» فقط در پنلِ
+  // TODو دیده می‌شد، نه اینجا. این یک کادرِ فشردهٔ جدا (نه یک تایم‌لاینِ کامل
+  // برای فردا — همان سادگیِ «فقط امروز» حفظ می‌شود) که فقط رویدادهای فردا را
+  // پیش‌نمایش می‌دهد؛ کلیک روی آن، همان برگهٔ روزِ فردا را باز می‌کند (openDayEventsSheet).
+  function renderTomorrowPreviewBox(container) {
+    const tIso = tomorrowDashIso();
+    const tomorrowEvents = timeEventsData.filter(e => e.date === tIso).slice().sort((a, b) => a.startTime.localeCompare(b.startTime));
+    if (!tomorrowEvents.length) return;
+
+    const box = document.createElement('div'); box.className = 'ai-dash-tomorrow-box'; box.tabIndex = 0; box.setAttribute('role', 'button');
+    const header = document.createElement('div'); header.className = 'ai-dash-tomorrow-header';
+    const icon = document.createElement('span'); icon.className = 'ai-dash-tomorrow-icon'; icon.textContent = '↻';
+    const label = document.createElement('span'); label.className = 'ai-dash-tomorrow-label'; label.textContent = `${t('scrubberTomorrowBadge')} · ${tomorrowEvents.length}`;
+    header.append(icon, label);
+    box.appendChild(header);
+
+    const list = document.createElement('div'); list.className = 'ai-dash-tomorrow-list';
+    tomorrowEvents.slice(0, 4).forEach(evt => {
+      const row = document.createElement('div'); row.className = 'ai-dash-tomorrow-row';
+      const time = document.createElement('span'); time.className = 'ai-dash-tomorrow-time'; time.textContent = evt.startTime;
+      const title = document.createElement('span'); title.className = 'ai-dash-tomorrow-title'; title.textContent = evt.title;
+      row.append(time, title);
+      list.appendChild(row);
+    });
+    if (tomorrowEvents.length > 4) {
+      const more = document.createElement('div'); more.className = 'ai-dash-tomorrow-more'; more.textContent = `+${tomorrowEvents.length - 4}`;
+      list.appendChild(more);
+    }
+    box.appendChild(list);
+
+    const openTomorrow = () => { if (typeof openDayEventsSheet === 'function') openDayEventsSheet(tIso); };
+    box.addEventListener('click', openTomorrow);
+    box.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTomorrow(); } });
+
+    container.appendChild(box);
   }
 
   // فهرست کوتاهِ کارهای روزانه در کنار تقویم/داشبورد زمان. این نسخه مستقل از
@@ -2293,7 +2334,8 @@ function buildDashEventCard(evt) {
 const wrap = document.createElement('div'); wrap.className = 'ai-mark-dot-wrap';
 const dot = document.createElement('button'); dot.type = 'button';
 const isExpired = (status === 'missed' || evt.status === 'done');
-dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpired ? ' is-expired' : '');        dot.textContent = String(idx + 1);
+const isRecurringElapsed = status === 'recurring-elapsed';
+dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpired ? ' is-expired' : '') + (isRecurringElapsed ? ' is-recurring-elapsed' : '');        dot.textContent = String(idx + 1);
         dot.title = `${evt.startTime} — ${evt.title}`;
         dot.addEventListener('mousedown', (e) => e.stopPropagation());
         dot.addEventListener('click', (e) => {

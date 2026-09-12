@@ -591,8 +591,8 @@
         position: fixed; top: 22%; z-index: 2147483647;
         display: block !important; visibility: visible !important; opacity: 1 !important;
         pointer-events: auto !important;
-        width: min(280px, calc(100vw - 32px));
-        max-height: min(56vh, 430px);
+        width: min(300px, calc(100vw - 32px));
+        max-height: min(64vh, 520px);
         color: #EEF2FF;
         background: rgba(10, 14, 28, .7);
         border: 1px solid rgba(165, 180, 252, .28);
@@ -607,7 +607,7 @@
     #ai-void-todo-dock[data-side="left"] { left: 16px; }
     #ai-void-todo-dock:hover { box-shadow: 0 18px 48px rgba(0,0,0,.48), 0 0 0 1px rgba(165,180,252,.13); }
     #ai-void-todo-dock.is-collapsed { max-height: 42px; }
-    #ai-void-todo-dock.is-collapsed .ai-void-todo-list { display: none; }
+    #ai-void-todo-dock.is-collapsed .ai-void-agenda-body { display: none; }
     #ai-void-todo-dock.is-collapsed .ai-void-todo-head { border-bottom-color: transparent; }
     .ai-void-todo-head {
         display: flex; align-items: center; gap: 8px;
@@ -630,11 +630,65 @@
         background: transparent; color: #C7D2FE; cursor: pointer;
     }
     .ai-void-todo-side:hover { background: rgba(255,255,255,.09); }
-    .ai-void-todo-list {
-        display: grid; gap: 3px;
-        max-height: calc(min(56vh, 430px) - 42px);
-        padding: 7px; overflow: auto;
+    .ai-void-agenda-body {
+        display: flex; flex-direction: column; gap: 10px;
+        max-height: calc(min(64vh, 520px) - 42px);
+        padding: 9px 10px 10px; overflow: auto;
     }
+    /* سرِ بخش: تاریخ (میلادی + شمسی) و سن — دقیقاً همان منطقِ خودِ ساعت/تقویمِ
+       ویجتِ اصلی، اما مستقل محاسبه می‌شود چون پنلِ ساعتِ اصلی فقط وقتی باز است
+       به‌روزرسانی می‌شود، و این داک باید همیشه (حتی بسته) درست باشد. */
+    .ai-void-agenda-datehead {
+        display: flex; flex-direction: column; gap: 1px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .ai-void-agenda-date-primary { font-size: 12px; font-weight: 700; color: #F1F5FF; }
+    .ai-void-agenda-date-secondary { font-size: 10.5px; color: rgba(199,210,254,.65); }
+    .ai-void-agenda-age { font-size: 10px; color: rgba(251,191,36,.75); margin-top: 3px; font-weight: 600; }
+    .ai-void-agenda-section-title {
+        font-size: 9.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+        color: rgba(199,210,254,.55); margin-bottom: 5px;
+    }
+    .ai-void-agenda-events { display: grid; gap: 4px; }
+    .ai-void-todo-list { display: grid; gap: 3px; }
+    .ai-void-event-row {
+        display: flex; align-items: baseline; gap: 8px;
+        padding: 5px 7px; border-radius: 7px;
+        background: rgba(255,255,255,.03);
+        font-size: 11.5px;
+    }
+    .ai-void-event-time {
+        font-family: 'SF Mono', Consolas, monospace;
+        font-weight: 700; flex: 0 0 auto;
+        color: rgba(251,191,36,.85);
+    }
+    .ai-void-event-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: auto; text-align: start; color: #EEF2FF; }
+    .ai-void-event-row.is-near { background: rgba(251,191,36,.1); }
+    .ai-void-event-row.is-near .ai-void-event-time { text-shadow: 0 0 8px rgba(251,191,36,.65); }
+    .ai-void-event-row.is-missed .ai-void-event-time { text-decoration: line-through; opacity: .55; }
+    .ai-void-event-row.is-missed .ai-void-event-title { color: #FCA5A5; }
+    .ai-void-event-row.is-done { opacity: .5; }
+    .ai-void-event-row.is-done .ai-void-event-title { text-decoration: line-through; }
+    .ai-void-event-row.is-recurring-elapsed { opacity: .6; }
+    .ai-void-event-badge {
+        flex: 0 0 auto; font-size: 8.5px; font-weight: 700;
+        padding: 1px 6px; border-radius: 999px;
+        background: linear-gradient(135deg, #FDE68A, #FBBF24); color: #0F172A;
+    }
+    .ai-void-event-empty, .ai-void-todo-empty { padding: 10px 5px; color: rgba(224,231,255,.5); font-size: 11px; text-align: center; }
+    /* پیش‌نمایشِ فشردهٔ فردا — همان زبانِ بصریِ کادرِ داشبوردِ اصلی، در اندازهٔ داک */
+    .ai-void-tomorrow-box {
+        margin-top: 4px; padding: 6px 8px;
+        border: 1px dashed rgba(251,191,36,.28);
+        border-radius: 8px;
+        background: rgba(251,191,36,.04);
+        cursor: pointer;
+    }
+    .ai-void-tomorrow-box:hover { background: rgba(251,191,36,.08); }
+    .ai-void-tomorrow-head { font-size: 9.5px; font-weight: 700; color: rgba(251,191,36,.75); text-transform: uppercase; letter-spacing: .04em; }
+    .ai-void-tomorrow-row { display: flex; gap: 6px; font-size: 10.5px; color: rgba(255,255,255,.62); margin-top: 3px; }
+    .ai-void-tomorrow-row .ai-void-event-time { font-size: 10px; }
     .ai-void-todo-row {
         display: flex; align-items: flex-start; min-width: 0; gap: 8px;
         padding: 6px; border: 0; border-radius: 8px;
@@ -801,13 +855,23 @@
   <div id="ai-ntp-topsites"></div>
 </section>
 
-<aside id="ai-void-todo-dock" class="is-collapsed" data-side="right" aria-label="Daily tasks">
-  <div class="ai-void-todo-head" id="ai-void-todo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide tasks">
-    <span>✓</span><span class="ai-void-todo-title" id="ai-void-todo-title">Today's tasks</span><span class="ai-void-todo-count" id="ai-void-todo-count"></span>
+<aside id="ai-void-todo-dock" class="is-collapsed" data-side="right" aria-label="Today">
+  <div class="ai-void-todo-head" id="ai-void-todo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
+    <span>◐</span><span class="ai-void-todo-title" id="ai-void-todo-title">Today</span><span class="ai-void-todo-count" id="ai-void-todo-count"></span>
     <span class="ai-void-todo-chevron" id="ai-void-todo-chevron" aria-hidden="true">▾</span>
     <button type="button" class="ai-void-todo-side" id="ai-void-todo-side" title="Move to other side">↔</button>
   </div>
-  <div class="ai-void-todo-list" id="ai-void-todo-list"></div>
+  <div class="ai-void-agenda-body" id="ai-void-agenda-body">
+    <div class="ai-void-agenda-datehead" id="ai-void-agenda-datehead"></div>
+    <div class="ai-void-agenda-section">
+      <div class="ai-void-agenda-section-title" id="ai-void-agenda-events-title"></div>
+      <div class="ai-void-agenda-events" id="ai-void-agenda-events"></div>
+    </div>
+    <div class="ai-void-agenda-section">
+      <div class="ai-void-agenda-section-title" id="ai-void-agenda-tasks-title"></div>
+      <div class="ai-void-todo-list" id="ai-void-todo-list"></div>
+    </div>
+  </div>
 </aside>
 
 <div id="ai-void-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="ai-void-profile-title">

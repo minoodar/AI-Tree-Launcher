@@ -5537,6 +5537,22 @@ body.rtl .ai-note-history-menu,
 .ai-event-card.status-done { opacity: 0.5; }
 .ai-event-card.status-done .ai-event-title { text-decoration: line-through; }
 .ai-event-card.status-done .ai-event-dot { background: var(--text-muted); }
+/* رویدادِ تکرارشونده (⭐) بعد از گذشتِ ساعتش در همان روز: بازگشتِ فردا قطعی است،
+   پس دیگر «شکست‌خورده» نیست — نه قرمز، نه خط‌خورده؛ فقط کم‌رنگ + یک نشانِ آرامِ
+   «↻ فردا»، هم‌خانواده با نشانِ فردایِ اسکرابر برای زبانِ بصریِ یکسان. */
+.ai-event-card.status-recurring-elapsed { opacity: 0.55; }
+.ai-event-card.status-recurring-elapsed .ai-event-dot { background: var(--text-muted); }
+.ai-event-recur-elapsed-chip {
+  position: absolute; right: 24px; top: 22px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #0F172A;
+  background: linear-gradient(135deg, #FDE68A, #FBBF24);
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+  pointer-events: none;
+}
 .ai-event-title { font-size: 12px; font-weight: 600; color: #fff; direction: auto; text-align: start; }
 .ai-event-meta { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 3px; }
 .ai-event-recur-badge {
@@ -5554,6 +5570,54 @@ body.rtl .ai-note-history-menu,
 }
 .ai-event-del:hover { background: rgba(239,68,68,0.18); color: #fca5a5; }
 .ai-event-card.ai-event-group { border-style: dashed; background: rgba(255, 255, 255, 0.02); }
+
+/* کادرِ فشردهٔ پیش‌نمایشِ «فردا» — زیرِ لیستِ امروز، ظاهرِ کم‌رنگ‌تر و مجزا تا با
+   کارت‌های فعالِ امروز اشتباه گرفته نشود؛ کلیک روی آن برگهٔ روزِ فردا را باز می‌کند. */
+.ai-dash-tomorrow-box {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px dashed rgba(251, 191, 36, 0.25);
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.04);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.ai-dash-tomorrow-box:hover,
+.ai-dash-tomorrow-box:focus-visible {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.4);
+  outline: none;
+}
+.ai-dash-tomorrow-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: rgba(251, 191, 36, 0.75);
+}
+.ai-dash-tomorrow-icon { font-size: 11px; }
+.ai-dash-tomorrow-list { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+.ai-dash-tomorrow-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+}
+.ai-dash-tomorrow-time {
+  font-family: 'SF Mono', Consolas, monospace;
+  font-weight: 700;
+  color: rgba(251, 191, 36, 0.55);
+  flex: 0 0 auto;
+}
+.ai-dash-tomorrow-title {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  direction: auto; text-align: start;
+}
+.ai-dash-tomorrow-more { font-size: 10px; color: rgba(255,255,255,0.4); }
 
 .ai-dash-add-btn {
   flex: 0 0 auto;
@@ -5908,6 +5972,8 @@ body.rtl .ai-note-history-menu,
 .ai-mark-event-daily-row.status-missed .ai-mark-event-daily-title { color: #b91c1c; }
 .ai-mark-event-daily-row.status-done { opacity: 0.55; }
 .ai-mark-event-daily-row.status-done .ai-mark-event-daily-title { text-decoration: line-through; }
+.ai-mark-event-daily-row.status-recurring-elapsed { opacity: 0.6; }
+.ai-mark-event-daily-row.status-recurring-elapsed .ai-mark-event-daily-dot { background: #ca8a04; opacity: 0.6; }
 .ai-mark-event-daily-time {
   font-weight: 700;
   color: rgba(124, 90, 23, 0.85);
@@ -6012,6 +6078,13 @@ body.rtl .ai-note-history-menu,
   text-decoration: line-through !important;
   text-decoration-color: #EF4444 !important;
   text-decoration-thickness: 2px !important;
+}
+/* رویدادِ تکرارشوندهٔ گذشته: کم‌رنگ می‌شود، اما بدونِ خط‌قرمزِ «شکست» — چون
+   خودش فردا دوباره تازه می‌شود، نه اینکه از دست رفته باشد. */
+.ai-dash-dot.is-recurring-elapsed {
+  opacity: 0.55 !important;
+  filter: grayscale(0.35) !important;
+  box-shadow: none !important;
 }
 
 /* خط روی عنوان آیتم‌های منقضی‌شده داخل لیست رویدادها */
