@@ -163,7 +163,6 @@
       applyVisibility(lastHasData);
     });
   }
-
   try {
     chrome.storage.sync.get(['appLanguage'], (syncRes) => {
       const fromSync = syncRes && syncRes.appLanguage;

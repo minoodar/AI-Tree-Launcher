@@ -49,14 +49,30 @@
   function todayIso() { return isoFromDate(new Date()); }
   function tomorrowIso() { const d = new Date(); d.setDate(d.getDate() + 1); return isoFromDate(d); }
 
+  // Match content.js daily list:
+  // - type daily (not goals)
+  // - createdAt in the past/now → today (tomorrow is stored as createdAt > now)
+  // - still within the 24h TTL window
+  const TODO_DAILY_TTL_MS = 24 * 60 * 60 * 1000;
+  function todoCreatedAt(todo, now) {
+    const raw = todo && todo.createdAt;
+    const parsed = typeof raw === 'number' ? raw : Date.parse(raw);
+    return Number.isFinite(parsed) ? parsed : (now || Date.now());
+  }
   function isToday(todo, now) {
     now = now || Date.now();
     if (!todo) return false;
     if ((todo.type || 'daily') !== 'daily') return false;
-    const raw = todo.createdAt;
-    const parsed = typeof raw === 'number' ? raw : Date.parse(raw);
-    const created = Number.isFinite(parsed) ? parsed : now;
-    return created <= now;
+    const created = todoCreatedAt(todo, now);
+    if (created > now) return false; // scheduled for tomorrow
+    if (now - created >= TODO_DAILY_TTL_MS) return false; // expired daily
+    return true;
+  }
+  function isTomorrowTodo(todo, now) {
+    now = now || Date.now();
+    if (!todo) return false;
+    if ((todo.type || 'daily') !== 'daily') return false;
+    return todoCreatedAt(todo, now) > now;
   }
 
   function applyCollapsed() {
@@ -90,10 +106,30 @@
           currentYear = parseInt(jYearStr.replace(/\D/g, ''), 10);
         } catch (e) {}
       }
-      const age = currentYear - userBirthYear;
-      const ageEl = document.createElement('div'); ageEl.className = 'ai-void-agenda-age';
-      ageEl.textContent = label('ageLabel', '{age} years').replace('{age}', age);
-      dateHead.appendChild(ageEl);
+      const age = Math.max(0, currentYear - userBirthYear);
+      // Soft life-journey bar (mirrors clock panel concept, compact for the dock)
+      const wrap = document.createElement('div');
+      wrap.className = 'ai-void-agenda-journey';
+      const top = document.createElement('div');
+      top.className = 'ai-void-agenda-journey-top';
+      const origin = document.createElement('span');
+      origin.textContent = label('originLabel', 'Origin');
+      const present = document.createElement('span');
+      present.textContent = label('presentLabel', 'Now');
+      top.append(origin, present);
+      const track = document.createElement('div');
+      track.className = 'ai-void-agenda-journey-track';
+      const fill = document.createElement('div');
+      fill.className = 'ai-void-agenda-journey-fill';
+      // Visual progress: map age onto a gentle curve (cap ~90y for fill)
+      const pct = Math.max(4, Math.min(96, (age / 90) * 100));
+      fill.style.width = pct + '%';
+      track.appendChild(fill);
+      const cap = document.createElement('div');
+      cap.className = 'ai-void-agenda-journey-caption';
+      cap.textContent = label('journeyCaption', '{age} years on the path').replace('{age}', String(age));
+      wrap.append(top, track, cap);
+      dateHead.appendChild(wrap);
     }
   }
 
@@ -120,22 +156,10 @@
   // یک TODوی یتیم و بی‌معنی در پنلِ اصلی باقی نماند.
   function deleteEvent(id) {
     const evt = timeEvents.find(e => e.id === id);
-    if (evt) {
-      try {
-        if (typeof AITreeMemoryEngine !== 'undefined' && AITreeMemoryEngine.archiveEvent) {
-          AITreeMemoryEngine.archiveEvent(evt, 'deleted');
-        }
-      } catch (e) {}
-    }
     if (evt && evt.linkedTodoId) {
       const idx = todos.findIndex(td => td.id === evt.linkedTodoId);
       if (idx !== -1) {
-        const [linked] = todos.splice(idx, 1);
-        try {
-          if (linked && typeof AITreeMemoryEngine !== 'undefined' && AITreeMemoryEngine.archiveTodo) {
-            AITreeMemoryEngine.archiveTodo(linked, 'deleted');
-          }
-        } catch (e) {}
+        todos.splice(idx, 1);
         try { chrome.storage.sync.set({ aiTreeTodos: todos }); chrome.storage.local.set({ aiTreeTodos: todos }); } catch (e) {}
         renderTodos();
       }
@@ -265,15 +289,14 @@
   function acceptTodos(next, allowEmpty) {
     if (!Array.isArray(next)) return;
     if (!allowEmpty && next.length === 0 && todos.length > 0) return;
-    if (next.length === todos.length) {
-      let same = true;
-      for (let i = 0; i < next.length; i++) {
-        const a = next[i], b = todos[i];
-        if (!b || a.text !== b.text || !!a.done !== !!b.done) { same = false; break; }
-      }
-      if (same) return;
-    }
-    todos = next;
+    const sig = function (arr) {
+      return (arr || []).map(function (t) {
+        if (!t) return '';
+        return [t.id || '', t.text || '', t.done ? '1' : '0', t.type || 'daily', String(t.createdAt || '')].join('\x1f');
+      }).join('\x1e');
+    };
+    if (sig(next) === sig(todos)) return;
+    todos = next.slice();
     renderTodos();
   }
 
@@ -364,8 +387,12 @@
         chrome.storage.sync.get(['aiTreeTodos'], function (syncData) {
           const localTodos = Array.isArray(localData.aiTreeTodos) ? localData.aiTreeTodos : [];
           const syncTodos = Array.isArray(syncData.aiTreeTodos) ? syncData.aiTreeTodos : [];
-          const preferred = localTodos.length ? localTodos : syncTodos;
-          if (preferred.length) acceptTodos(preferred, false);
+          // Prefer the richer list; local is written alongside sync on every save
+          // but can lag if a prior write only hit one area.
+          let preferred = localTodos;
+          if (syncTodos.length > localTodos.length) preferred = syncTodos;
+          else if (syncTodos.length && !localTodos.length) preferred = syncTodos;
+          acceptTodos(preferred, true);
         });
       });
     } catch (e) {

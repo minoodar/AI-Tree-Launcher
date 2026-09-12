@@ -1,9 +1,5 @@
-// ============================================================================
-// AI Tree Launcher — void-tab.html NTP menu
-// ============================================================================
 (function () {
   'use strict';
-
   const menu = document.getElementById('ai-ntp-menu');
   const menuBtn = document.getElementById('ai-ntp-menu-btn');
   const topsitesEl = document.getElementById('ai-ntp-topsites');
@@ -45,29 +41,23 @@
     } catch (e) {}
   }
 
-  // Language may still be default 'en' until storage resolves — load then re-label
   function loadLanguageThenLabel() {
-    applyLabels(); // immediate fallback
+    applyLabels();
     try {
       chrome.storage.sync.get(['appLanguage'], (syncRes) => {
         const fromSync = syncRes && syncRes.appLanguage;
         chrome.storage.local.get(['appLanguage'], (localRes) => {
           const lang = fromSync || (localRes && localRes.appLanguage) || null;
-          if (lang && typeof currentLang !== 'undefined') {
-            try { currentLang = lang; } catch (e) {}
-          }
+          if (lang) { try { currentLang = lang; } catch (e) {} }
           applyLabels();
         });
       });
-    } catch (e) {
-      applyLabels();
-    }
+    } catch (e) { applyLabels(); }
   }
-
   loadLanguageThenLabel();
 
   try {
-    chrome.storage.onChanged.addListener((changes, area) => {
+    chrome.storage.onChanged.addListener((changes) => {
       if (changes.appLanguage) {
         try { currentLang = changes.appLanguage.newValue || 'en'; } catch (e) {}
         applyLabels();
