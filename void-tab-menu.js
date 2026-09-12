@@ -32,6 +32,8 @@
     if (typeof t === 'function') {
       document.getElementById('ai-ntp-menu-focus-label').textContent = t('ntpMenuFocus') || 'Focus Mode';
       document.getElementById('ai-ntp-menu-topsites-label').textContent = t('ntpMenuTopsites') || 'Frequent Links';
+      const echoLabel = document.getElementById('ai-ntp-menu-echo-label');
+      if (echoLabel) echoLabel.textContent = t('voidEchoTitle') || "Today's Echo";
       document.getElementById('ai-ntp-menu-settings-label').textContent = t('ntpMenuSettings') || 'Settings';
       document.getElementById('ai-ntp-menu-stdtab-label').textContent = t('ntpMenuStdTab') || 'Use Standard New Tab';
       if (typeof isRTL === 'function' && typeof currentLang !== 'undefined' && isRTL(currentLang)) {

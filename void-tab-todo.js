@@ -120,10 +120,22 @@
   // یک TODوی یتیم و بی‌معنی در پنلِ اصلی باقی نماند.
   function deleteEvent(id) {
     const evt = timeEvents.find(e => e.id === id);
+    if (evt) {
+      try {
+        if (typeof AITreeMemoryEngine !== 'undefined' && AITreeMemoryEngine.archiveEvent) {
+          AITreeMemoryEngine.archiveEvent(evt, 'deleted');
+        }
+      } catch (e) {}
+    }
     if (evt && evt.linkedTodoId) {
       const idx = todos.findIndex(td => td.id === evt.linkedTodoId);
       if (idx !== -1) {
-        todos.splice(idx, 1);
+        const [linked] = todos.splice(idx, 1);
+        try {
+          if (linked && typeof AITreeMemoryEngine !== 'undefined' && AITreeMemoryEngine.archiveTodo) {
+            AITreeMemoryEngine.archiveTodo(linked, 'deleted');
+          }
+        } catch (e) {}
         try { chrome.storage.sync.set({ aiTreeTodos: todos }); chrome.storage.local.set({ aiTreeTodos: todos }); } catch (e) {}
         renderTodos();
       }

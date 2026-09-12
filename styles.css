@@ -2166,7 +2166,7 @@ transition: left 0.22s var(--ease-bounce);
 .ai-form-btn-move-core:hover { background: rgba(251, 191, 36, 0.24); color: var(--c-amber); }
 .ai-form-btn-cancel:active, .ai-form-btn-save:active, .ai-form-btn-delete:active { transform: scale(0.96); }
 
-.ai-toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); border: 1px solid var(--c-emerald); color: #fff; padding: 12px 24px; border-radius: 30px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; font-weight: 600; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3); backdrop-filter: var(--glass-blur); z-index: 2147483647; opacity: 0; pointer-events: none; transition: all 0.3s var(--ease-bounce); }
+.ai-toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--glass-bg); border: 1px solid var(--c-emerald); color: #fff; padding: 12px 24px; border-radius: 30px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 14px; font-weight: 600; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3); backdrop-filter: var(--glass-blur); z-index: 2147483647; opacity: 0; pointer-events: none; transition: all 0.3s var(--ease-bounce); white-space: pre-line; text-align: center; line-height: 1.35; }
 .ai-toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* Edit Node Button */

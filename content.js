@@ -2445,8 +2445,45 @@ function buildDashEventCard(evt) {
     tomorrowEvents.slice(0, 4).forEach(evt => {
       const row = document.createElement('div'); row.className = 'ai-dash-tomorrow-row';
       const time = document.createElement('span'); time.className = 'ai-dash-tomorrow-time'; time.textContent = evt.startTime;
+      time.style.cursor = 'text';
+      time.title = langPick({
+        fa: 'برای ویرایش ساعت کلیک کنید', en: 'Click to edit time', ar: 'انقر لتعديل الوقت',
+        es: 'Haz clic para editar la hora', de: 'Klicken Sie, um die Uhrzeit zu bearbeiten',
+        fr: "Cliquez pour modifier l'heure", ja: 'クリックして時刻を編集', ru: 'Нажмите, чтобы изменить время'
+      });
+      time.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (time.querySelector('input')) return;
+        const currentVal = evt.startTime;
+        const input = document.createElement('input');
+        input.type = 'time'; input.value = currentVal; input.className = 'ai-dash-tomorrow-time-input';
+        Object.assign(input.style, { width: '78px', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.25)', borderRadius: '6px', color: 'inherit', padding: '1px 4px', fontSize: 'inherit', fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' });
+        time.textContent = ''; time.appendChild(input); input.focus();
+        let isCommitted = false;
+        const commit = () => {
+          if (isCommitted) return; isCommitted = true;
+          const newVal = input.value;
+          if (newVal && newVal !== currentVal) {
+            evt.startTime = newVal;
+            if (evt.linkedTodoId) {
+              const linked = todosData.find(td => td.id === evt.linkedTodoId);
+              if (linked) { linked.text = `${newVal} — ${evt.title}`; saveTodos(); if (todoPanel.classList.contains('active')) renderTodos(); }
+            }
+            saveTimeEvents(); refreshDashUI();
+          } else {
+            time.textContent = currentVal;
+          }
+        };
+        const revert = () => { if (isCommitted) return; isCommitted = true; time.textContent = currentVal; };
+        input.addEventListener('blur', commit);
+        input.addEventListener('keydown', (ev) => { ev.stopPropagation(); if (ev.key === 'Enter') { ev.preventDefault(); commit(); } else if (ev.key === 'Escape') { ev.preventDefault(); revert(); } });
+        input.addEventListener('click', (ev) => ev.stopPropagation());
+      });
       const title = document.createElement('span'); title.className = 'ai-dash-tomorrow-title'; title.textContent = evt.title;
-      row.append(time, title);
+      const delBtn = document.createElement('button');
+      delBtn.type = 'button'; delBtn.className = 'ai-dash-tomorrow-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
+      delBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteDashEvent(evt.id); });
+      row.append(time, title, delBtn);
       list.appendChild(row);
     });
     if (tomorrowEvents.length > 4) {
@@ -2455,9 +2492,14 @@ function buildDashEventCard(evt) {
     }
     box.appendChild(list);
 
-    const openTomorrow = () => { if (typeof openDayEventsSheet === 'function') openDayEventsSheet(tIso); };
+    // کلیک روی خودِ کادر (نه روی یک ردیفِ رویداد، نه روی زمان/دکمهٔ حذفِ داخلش)
+    // برگهٔ کاملِ روزِ فردا را باز می‌کند — برای افزودنِ رویدادِ جدید یا دیدنِ همه.
+    const openTomorrow = (e) => {
+      if (e.target.closest('.ai-dash-tomorrow-row')) return;
+      if (typeof openDayEventsSheet === 'function') openDayEventsSheet(tIso);
+    };
     box.addEventListener('click', openTomorrow);
-    box.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTomorrow(); } });
+    box.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTomorrow(e); } });
 
     container.appendChild(box);
   }
@@ -4082,16 +4124,22 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         if (removeIdx < 0) return;
         const [deletedTodo] = todosData.splice(removeIdx, 1);
         if (!deletedTodo) return;
+        // حذفِ TODو یعنی حذفِ خودِ رویدادِ ساعتیِ لینک‌شده هم — نه فقط قطعِ لینک؛
+        // چون از دیدِ کاربر این ردیفِ TODو خودِ همان رویداد است، نه چیزِ جداگانه.
+        // برای اینکه Undo هم درست کار کند، رویدادهای حذف‌شده را همراهِ خودِ TODو
+        // در payload آندو نگه می‌داریم تا در صورتِ Undo هر دو برگردند.
+        let removedLinkedEvents = [];
         if (deletedTodo.id && Array.isArray(timeEventsData)) {
-          timeEventsData.forEach((evt) => {
-            if (evt && evt.linkedTodoId === deletedTodo.id) evt.linkedTodoId = null;
-          });
-          try { saveTimeEvents(); } catch (err) {}
+          removedLinkedEvents = timeEventsData.filter((evt) => evt && evt.linkedTodoId === deletedTodo.id);
+          if (removedLinkedEvents.length) {
+            timeEventsData = timeEventsData.filter((evt) => !(evt && evt.linkedTodoId === deletedTodo.id));
+            try { saveTimeEvents(); refreshDashUI(); if (dayEventSheetOpenIso) renderMarkEventDailyList(dayEventSheetOpenIso); } catch (err) {}
+          }
         }
         saveTodos();
         renderTodos();
         showToastNotification(t('toastTodoDeleted'), true);
-        setUndoState('todo', { item: deletedTodo, index: removeIdx });
+        setUndoState('todo', { item: deletedTodo, index: removeIdx, linkedEvents: removedLinkedEvents });
       };
       list.appendChild(li);
 
@@ -5223,11 +5271,15 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
             restoreBookmark(linkToRestore, targetHub);
           }
         } else if (undoneType === 'todo') {
-          const { item, index } = pendingUndoState.data || {};
+          const { item, index, linkedEvents } = pendingUndoState.data || {};
           if (item) {
             const insertAt = Math.min(index ?? todosData.length, todosData.length);
             todosData.splice(insertAt, 0, item);
             saveTodos();
+            if (Array.isArray(linkedEvents) && linkedEvents.length) {
+              timeEventsData = timeEventsData.concat(linkedEvents);
+              try { saveTimeEvents(); refreshDashUI(); if (dayEventSheetOpenIso) renderMarkEventDailyList(dayEventSheetOpenIso); } catch (err) {}
+            }
             if ((item.type || 'daily') !== activeTodoTab) switchTodoTab(item.type || 'daily');
             else if (todoPanel.classList.contains('active')) renderTodos();
             showToastNotification(t('toastRestored'));
@@ -5903,14 +5955,15 @@ let hubAutoCollapsedByPanel = false;
   // Use the rendered box, not a requested CSS size, so padding, borders and the
   // final frame of a size transition cannot leave any part of the note off-screen.
   function centerExpandedNotepad() {
+    // Legacy name kept for call sites: after auto-grow, keep notepad beside the
+    // hub (not page-centered) so open/reopen with saved text stays stable.
     if (!quickNoteForm.classList.contains('active') || noteSplitSide) return;
-    const edgeMargin = 8;
-    const formW = quickNoteForm.offsetWidth;
-    const formH = quickNoteForm.offsetHeight;
-    const maxLeft = Math.max(edgeMargin, window.innerWidth - formW - edgeMargin);
-    const maxTop = Math.max(edgeMargin, window.innerHeight - formH - edgeMargin);
-    quickNoteForm.style.left = Math.max(edgeMargin, Math.min((window.innerWidth - formW) / 2, maxLeft)) + 'px';
-    quickNoteForm.style.top = Math.max(edgeMargin, Math.min((window.innerHeight - formH) / 2, maxTop)) + 'px';
+    if (typeof adjustNotepadPosition === 'function') {
+      const prevManual = noteManuallyPositioned;
+      noteManuallyPositioned = false;
+      adjustNotepadPosition();
+      noteManuallyPositioned = prevManual;
+    }
   }
 
   function resetNoteSizeToDefault() {
@@ -6073,23 +6126,22 @@ let hubAutoCollapsedByPanel = false;
       const actualFormH = didAutoResize
         ? targetFormH + Math.max(0, previousFormH - previousRequestedH)
         : quickNoteForm.offsetHeight;
-      const curLeft = didAutoResize
-        ? (window.innerWidth - actualFormW) / 2
-        : (parseFloat(quickNoteForm.style.left) || quickNoteForm.getBoundingClientRect().left);
-      const curTop = didAutoResize
-        ? (window.innerHeight - actualFormH) / 2
-        : (parseFloat(quickNoteForm.style.top) || quickNoteForm.getBoundingClientRect().top);
-      const clampedLeft = Math.max(edgeMargin, Math.min(curLeft, window.innerWidth - actualFormW - edgeMargin));
-      const clampedTop = Math.max(edgeMargin, Math.min(curTop, window.innerHeight - actualFormH - edgeMargin));
-      if (clampedLeft !== curLeft || didAutoResize) quickNoteForm.style.left = clampedLeft + 'px';
-      if (clampedTop !== curTop || didAutoResize) quickNoteForm.style.top = clampedTop + 'px';
+      // Keep current / hub-relative anchor; never seed page-center on auto-grow
+      const curLeft = parseFloat(quickNoteForm.style.left);
+      const curTop = parseFloat(quickNoteForm.style.top);
+      const box = quickNoteForm.getBoundingClientRect();
+      const baseLeft = Number.isFinite(curLeft) ? curLeft : box.left;
+      const baseTop = Number.isFinite(curTop) ? curTop : box.top;
+      const clampedLeft = Math.max(edgeMargin, Math.min(baseLeft, window.innerWidth - actualFormW - edgeMargin));
+      const clampedTop = Math.max(edgeMargin, Math.min(baseTop, window.innerHeight - actualFormH - edgeMargin));
+      if (clampedLeft !== baseLeft || didAutoResize) quickNoteForm.style.left = clampedLeft + 'px';
+      if (clampedTop !== baseTop || didAutoResize) quickNoteForm.style.top = clampedTop + 'px';
     }
 
     requestAnimationFrame(() => {
       quickNoteForm.style.transition = prevTrans;
       if (didAutoResize) {
-        // One pass after layout and one after the 300 ms size animation cover both
-        // freshly opened saved text and later transitions between growth stages.
+        // After auto-grow for long text, re-dock beside hub (not page center)
         centerExpandedNotepad();
         window.setTimeout(centerExpandedNotepad, 320);
       } else if (!noteManuallyPositioned) {
