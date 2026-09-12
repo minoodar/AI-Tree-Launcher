@@ -3960,8 +3960,14 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       copyQuoteText(buildRumiQuoteCopyText(), uiEls.clockQuoteCopy);
     });
   }
-  AITreeQuoteEngine.initReligion().then(renderDailyQuote);
-  AITreeQuoteEngine.initPoetry().then(renderRumiQuote);
+  if (typeof AITreeQuoteEngine !== 'undefined' && AITreeQuoteEngine) {
+    try {
+      AITreeQuoteEngine.initReligion().then(renderDailyQuote);
+      AITreeQuoteEngine.initPoetry().then(renderRumiQuote);
+    } catch (e) {
+      try { console.warn('[AI Tree] quote engine init failed:', e); } catch (err) {}
+    }
+  }
 
   // Both motivational drawers (religious verse / poetry couplet) keep their own open/closed
   // state independent of the panels that host them, so if the user leaves one expanded
@@ -5955,15 +5961,14 @@ let hubAutoCollapsedByPanel = false;
   // Use the rendered box, not a requested CSS size, so padding, borders and the
   // final frame of a size transition cannot leave any part of the note off-screen.
   function centerExpandedNotepad() {
-    // Legacy name kept for call sites: after auto-grow, keep notepad beside the
-    // hub (not page-centered) so open/reopen with saved text stays stable.
     if (!quickNoteForm.classList.contains('active') || noteSplitSide) return;
-    if (typeof adjustNotepadPosition === 'function') {
-      const prevManual = noteManuallyPositioned;
-      noteManuallyPositioned = false;
-      adjustNotepadPosition();
-      noteManuallyPositioned = prevManual;
-    }
+    const edgeMargin = 8;
+    const formW = quickNoteForm.offsetWidth;
+    const formH = quickNoteForm.offsetHeight;
+    const maxLeft = Math.max(edgeMargin, window.innerWidth - formW - edgeMargin);
+    const maxTop = Math.max(edgeMargin, window.innerHeight - formH - edgeMargin);
+    quickNoteForm.style.left = Math.max(edgeMargin, Math.min((window.innerWidth - formW) / 2, maxLeft)) + 'px';
+    quickNoteForm.style.top = Math.max(edgeMargin, Math.min((window.innerHeight - formH) / 2, maxTop)) + 'px';
   }
 
   function resetNoteSizeToDefault() {
@@ -6126,22 +6131,23 @@ let hubAutoCollapsedByPanel = false;
       const actualFormH = didAutoResize
         ? targetFormH + Math.max(0, previousFormH - previousRequestedH)
         : quickNoteForm.offsetHeight;
-      // Keep current / hub-relative anchor; never seed page-center on auto-grow
-      const curLeft = parseFloat(quickNoteForm.style.left);
-      const curTop = parseFloat(quickNoteForm.style.top);
-      const box = quickNoteForm.getBoundingClientRect();
-      const baseLeft = Number.isFinite(curLeft) ? curLeft : box.left;
-      const baseTop = Number.isFinite(curTop) ? curTop : box.top;
-      const clampedLeft = Math.max(edgeMargin, Math.min(baseLeft, window.innerWidth - actualFormW - edgeMargin));
-      const clampedTop = Math.max(edgeMargin, Math.min(baseTop, window.innerHeight - actualFormH - edgeMargin));
-      if (clampedLeft !== baseLeft || didAutoResize) quickNoteForm.style.left = clampedLeft + 'px';
-      if (clampedTop !== baseTop || didAutoResize) quickNoteForm.style.top = clampedTop + 'px';
+      const curLeft = didAutoResize
+        ? (window.innerWidth - actualFormW) / 2
+        : (parseFloat(quickNoteForm.style.left) || quickNoteForm.getBoundingClientRect().left);
+      const curTop = didAutoResize
+        ? (window.innerHeight - actualFormH) / 2
+        : (parseFloat(quickNoteForm.style.top) || quickNoteForm.getBoundingClientRect().top);
+      const clampedLeft = Math.max(edgeMargin, Math.min(curLeft, window.innerWidth - actualFormW - edgeMargin));
+      const clampedTop = Math.max(edgeMargin, Math.min(curTop, window.innerHeight - actualFormH - edgeMargin));
+      if (clampedLeft !== curLeft || didAutoResize) quickNoteForm.style.left = clampedLeft + 'px';
+      if (clampedTop !== curTop || didAutoResize) quickNoteForm.style.top = clampedTop + 'px';
     }
 
     requestAnimationFrame(() => {
       quickNoteForm.style.transition = prevTrans;
       if (didAutoResize) {
-        // After auto-grow for long text, re-dock beside hub (not page center)
+        // One pass after layout and one after the 300 ms size animation cover both
+        // freshly opened saved text and later transitions between growth stages.
         centerExpandedNotepad();
         window.setTimeout(centerExpandedNotepad, 320);
       } else if (!noteManuallyPositioned) {

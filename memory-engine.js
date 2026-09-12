@@ -1,5 +1,6 @@
-const AITreeMemoryEngine = (() => {
+(function (global) {
   'use strict';
+  if (global.AITreeMemoryEngine) return;
   const MEMORY_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
   const MEMORY_WARM_LIMIT = 50;
   const DB_NAME = 'aiTreeMemory';
@@ -7,7 +8,7 @@ const AITreeMemoryEngine = (() => {
   const STORE_ARCHIVE = 'archive';
   const STORE_ROLLUP = 'monthlyRollup';
   const WARM_KEY = 'aiTreeMemoryWarm';
-  let dbPromise = null, retentionTimer = null;
+  let dbPromise = null;
   function newMemId() { return 'mem_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
   function openDB() {
     if (dbPromise) return dbPromise;
@@ -92,6 +93,18 @@ const AITreeMemoryEngine = (() => {
       createdAt: typeof mark.createdAt === 'number' ? mark.createdAt : Date.now(), resolvedAt: Date.now(),
       resolution: resolution || 'deleted', type: mark.golden ? 'recurring' : 'daily', tags: [], pinned: !!mark.golden, occurrenceCount: 1 });
   }
-  return { MEMORY_RETENTION_MS, archive, archiveTodo, archiveEvent, archiveMarkedDay,
-    runRetention: () => Promise.resolve(), getWarmCache: () => Promise.resolve([]), getArchiveSince: () => Promise.resolve([]) };
-})();
+  global.AITreeMemoryEngine = {
+    MEMORY_RETENTION_MS, archive, archiveTodo, archiveEvent, archiveMarkedDay,
+    runRetention: function () { return Promise.resolve(); },
+    getWarmCache: function () {
+      return new Promise(function (resolve) {
+        try {
+          chrome.storage.local.get([WARM_KEY], function (res) {
+            resolve(Array.isArray(res[WARM_KEY]) ? res[WARM_KEY] : []);
+          });
+        } catch (e) { resolve([]); }
+      });
+    },
+    getArchiveSince: function () { return Promise.resolve([]); }
+  };
+})(typeof globalThis !== 'undefined' ? globalThis : window);

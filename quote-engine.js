@@ -103,3 +103,5 @@ const AITreeQuoteEngine = {
     return this.poetryFeature;
   }
 };
+
+try { (typeof globalThis !== "undefined" ? globalThis : window).AITreeQuoteEngine = AITreeQuoteEngine; } catch (e) {}
