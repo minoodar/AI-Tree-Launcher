@@ -52,50 +52,54 @@
         #starfield { animation: none; }
     }
 
-    /* ---- Top-right quickbar (minimal) ---- */
+    /* ---- Top-right chrome cluster: Menu · Gmail · Account (always visible) ---- */
     #ai-ntp-quickbar {
         position: fixed;
         top: 14px;
         right: 14px;
-        z-index: 50;
+        z-index: 51;
         display: flex;
-        gap: 6px;
-        padding: 6px;
+        align-items: center;
+        gap: 4px;
+        padding: 5px;
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        opacity: 0.28;
-        transition: opacity 0.25s ease, background 0.25s ease, border-color 0.25s ease, backdrop-filter 0.25s ease;
+        background: rgba(20, 22, 30, 0.62);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        opacity: 1;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
     #ai-ntp-quickbar:hover,
     #ai-ntp-quickbar:focus-within {
-        opacity: 1;
-        background: rgba(20, 22, 30, 0.55);
-        border-color: rgba(255, 255, 255, 0.12);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+        background: rgba(24, 28, 40, 0.78);
+        border-color: rgba(199, 210, 254, 0.22);
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.38);
     }
     #ai-ntp-quickbar a,
-    #ai-ntp-quickbar button {
-        width: 30px;
-        height: 30px;
+    #ai-ntp-quickbar > button,
+    #ai-ntp-menu-btn {
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: 8px;
         border: none;
         background: transparent;
-        color: #E5E7EB;
+        color: #F3F4F6;
         font-size: 15px;
         text-decoration: none;
         cursor: pointer;
         transition: background 0.15s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
     }
     #ai-ntp-quickbar a:hover,
-    #ai-ntp-quickbar button:hover {
-        background: rgba(255, 255, 255, 0.1);
-        transform: scale(1.14);
+    #ai-ntp-quickbar > button:hover,
+    #ai-ntp-menu-btn:hover,
+    #ai-ntp-menu.open #ai-ntp-menu-btn {
+        background: rgba(255, 255, 255, 0.12);
+        transform: scale(1.1);
     }
 
     /* ---- Center stage: search + shortcuts + topsites ---- */
@@ -499,48 +503,27 @@
         border-style: dashed;
     }
 
-    /* Menu top-left */
+    /* Menu lives inside the quickbar cluster */
     #ai-ntp-menu {
-        position: fixed;
-        top: 14px;
-        left: 14px;
-        z-index: 51;
-    }
-    #ai-ntp-menu-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        background: rgba(255, 255, 255, 0.03);
-        color: #E5E7EB;
-        font-size: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        opacity: 0.28;
-        transition: opacity 0.25s ease, background 0.2s ease;
-    }
-    #ai-ntp-menu-btn:hover,
-    #ai-ntp-menu.open #ai-ntp-menu-btn {
-        opacity: 1;
-        background: rgba(255, 255, 255, 0.1);
+        position: relative;
+        z-index: 2;
     }
     #ai-ntp-menu-panel {
         position: absolute;
-        top: 38px;
-        left: 0;
+        top: calc(100% + 8px);
+        right: 0;
+        left: auto;
         min-width: 220px;
-        background: rgba(20, 22, 30, 0.9);
+        background: rgba(20, 22, 30, 0.94);
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 12px;
         padding: 6px;
-        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
         opacity: 0;
         transform: translateY(-6px) scaleY(0.96);
-        transform-origin: top left;
+        transform-origin: top right;
         pointer-events: none;
         transition: opacity 0.16s ease, transform 0.16s ease;
     }
@@ -574,7 +557,6 @@
     }
     .ai-ntp-menu-item[data-on="1"] .ai-ntp-menu-check { opacity: 1; }
 
-    body.ai-focus-mode #ai-ntp-quickbar,
     body.ai-focus-mode #ai-ntp-topsites,
     body.ai-focus-mode #ai-void-apps,
     body.ai-focus-mode #ai-orbit-root {
@@ -582,129 +564,9 @@
         pointer-events: none !important;
         transition: opacity 0.3s ease;
     }
+    /* Chrome cluster (menu / Gmail / account) stays visible in Focus Mode */
     body.ai-focus-mode #ai-void-search {
         opacity: 0.35;
-    }
-
-
-    /* ---- Today's Echo (collapsible zen card) ---- */
-    #ai-void-echo {
-        width: 100%;
-        max-width: 360px;
-        border-radius: 16px;
-        background: rgba(8, 12, 28, 0.42);
-        border: 1px solid rgba(165, 180, 252, 0.12);
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        overflow: hidden;
-        transition: opacity 0.25s ease, max-height 0.28s cubic-bezier(.16,1,.3,1), box-shadow 0.2s ease;
-    }
-    #ai-void-echo[hidden] { display: none !important; }
-    #ai-void-echo.is-collapsed { max-height: 40px; }
-    #ai-void-echo:not(.is-collapsed) { max-height: 220px; }
-    #ai-void-echo.is-collapsed .ai-void-echo-content { display: none; }
-    .ai-void-echo-handle {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 9px 12px;
-        cursor: pointer;
-        user-select: none;
-        color: rgba(199, 210, 254, 0.85);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    }
-    #ai-void-echo.is-collapsed .ai-void-echo-handle { border-bottom-color: transparent; }
-    .ai-void-echo-handle:hover { background: rgba(255, 255, 255, 0.04); }
-    .ai-void-echo-icon {
-        width: 18px; height: 18px; flex: 0 0 auto;
-        display: inline-flex; align-items: center; justify-content: center;
-        color: rgba(167, 139, 250, 0.9);
-    }
-    .ai-void-echo-icon svg { width: 16px; height: 16px; display: block; }
-    .ai-void-echo-title {
-        flex: 1 1 auto;
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
-        color: rgba(199, 210, 254, 0.78);
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .ai-void-echo-count {
-        font-size: 10.5px;
-        font-weight: 700;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 6px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(167, 139, 250, 0.18);
-        color: #c4b5fd;
-        border: 1px solid rgba(167, 139, 250, 0.28);
-    }
-    .ai-void-echo-count[hidden] { display: none !important; }
-    .ai-void-echo-chevron {
-        font-size: 11px;
-        opacity: 0.65;
-        transition: transform 0.22s ease;
-        flex: 0 0 auto;
-    }
-    #ai-void-echo:not(.is-collapsed) .ai-void-echo-chevron { transform: rotate(180deg); }
-    .ai-void-echo-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 7px;
-        padding: 8px 12px 12px;
-    }
-    .ai-void-echo-body {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 7px;
-    }
-    .ai-void-echo-chip {
-        font-size: 12.5px;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 999px;
-        color: rgba(255, 255, 255, 0.92);
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-    .ai-void-echo-chip--done {
-        background: rgba(16, 185, 129, 0.14);
-        border-color: rgba(16, 185, 129, 0.28);
-        color: #6ee7b7;
-    }
-    .ai-void-echo-chip--event {
-        background: rgba(56, 189, 248, 0.12);
-        border-color: rgba(56, 189, 248, 0.26);
-        color: #7dd3fc;
-    }
-    .ai-void-echo-chip--cleared {
-        background: rgba(167, 139, 250, 0.12);
-        border-color: rgba(167, 139, 250, 0.24);
-        color: #c4b5fd;
-    }
-    .ai-void-echo-pattern {
-        font-size: 11px;
-        font-weight: 500;
-        color: rgba(199, 210, 254, 0.52);
-        text-align: center;
-        line-height: 1.35;
-        max-width: 100%;
-    }
-    .ai-void-echo-pattern[hidden] { display: none !important; }
-    body.ai-focus-mode #ai-void-echo {
-        opacity: 0 !important;
-        pointer-events: none !important;
     }
 
     /* Todo dock */
@@ -959,33 +821,32 @@
 <canvas id="starfield"></canvas>
 <div class="space-vignette"></div>
 
-<div id="ai-ntp-menu">
-  <button type="button" id="ai-ntp-menu-btn" title="Menu">☰</button>
-  <div id="ai-ntp-menu-panel" role="menu">
-    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-focus">
-      <span>🎯 <span id="ai-ntp-menu-focus-label">Focus Mode</span></span>
-      <span class="ai-ntp-menu-check">✓</span>
-    </button>
-    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-topsites" data-on="1">
-      <span>🔗 <span id="ai-ntp-menu-topsites-label">Frequent Links</span></span>
-      <span class="ai-ntp-menu-check">✓</span>
-    </button>
-    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-echo" data-on="1">
-      <span>◌ <span id="ai-ntp-menu-echo-label">Today's Echo</span></span>
-      <span class="ai-ntp-menu-check">✓</span>
-    </button>
-    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-settings">
-      <span>⚙️ <span id="ai-ntp-menu-settings-label">Settings</span></span>
-      <span class="ai-ntp-menu-check"></span>
-    </button>
-    <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-stdtab">
-      <span>🌐 <span id="ai-ntp-menu-stdtab-label">Use Standard New Tab</span></span>
-      <span class="ai-ntp-menu-check"></span>
-    </button>
+<div id="ai-ntp-quickbar" role="toolbar" aria-label="Page controls">
+  <div id="ai-ntp-menu">
+    <button type="button" id="ai-ntp-menu-btn" title="Menu" aria-haspopup="menu" aria-expanded="false">☰</button>
+    <div id="ai-ntp-menu-panel" role="menu">
+      <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-focus">
+        <span>🎯 <span id="ai-ntp-menu-focus-label">Focus Mode</span></span>
+        <span class="ai-ntp-menu-check">✓</span>
+      </button>
+      <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-topsites" data-on="1">
+        <span>🔗 <span id="ai-ntp-menu-topsites-label">Frequent Links</span></span>
+        <span class="ai-ntp-menu-check">✓</span>
+      </button>
+      <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-echo" data-on="1">
+        <span>◌ <span id="ai-ntp-menu-echo-label">Today's Echo</span></span>
+        <span class="ai-ntp-menu-check">✓</span>
+      </button>
+      <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-settings">
+        <span>⚙️ <span id="ai-ntp-menu-settings-label">Settings</span></span>
+        <span class="ai-ntp-menu-check"></span>
+      </button>
+      <button type="button" class="ai-ntp-menu-item" id="ai-ntp-menu-stdtab">
+        <span>🌐 <span id="ai-ntp-menu-stdtab-label">Use Standard New Tab</span></span>
+        <span class="ai-ntp-menu-check"></span>
+      </button>
+    </div>
   </div>
-</div>
-
-<div id="ai-ntp-quickbar" role="toolbar" aria-label="Quick links">
   <a href="https://mail.google.com/mail/u/0/" target="_blank" rel="noopener" title="Gmail">✉️</a>
   <a id="ai-ntp-account" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmail.google.com" target="_blank" rel="noopener" title="Switch account">👤</a>
 </div>
@@ -1013,25 +874,6 @@
 
   <div id="ai-void-apps" aria-label="Gmail and account shortcuts"></div>
   <div id="ai-ntp-topsites"></div>
-  <div id="ai-void-echo" class="is-collapsed" hidden aria-live="polite">
-    <div class="ai-void-echo-handle" id="ai-void-echo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
-      <span class="ai-void-echo-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-          <circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>
-          <path d="M7.5 12a4.5 4.5 0 0 1 9 0"/>
-          <path d="M4.5 12a7.5 7.5 0 0 1 15 0" opacity="0.65"/>
-          <path d="M2 12a10 10 0 0 1 20 0" opacity="0.35"/>
-        </svg>
-      </span>
-      <span class="ai-void-echo-title" id="ai-void-echo-title">Today's Echo</span>
-      <span class="ai-void-echo-count" id="ai-void-echo-count" hidden></span>
-      <span class="ai-void-echo-chevron" id="ai-void-echo-chevron" aria-hidden="true">▾</span>
-    </div>
-    <div class="ai-void-echo-content">
-      <div class="ai-void-echo-body" id="ai-void-echo-body"></div>
-      <div class="ai-void-echo-pattern" id="ai-void-echo-pattern" hidden></div>
-    </div>
-  </div>
 </section>
 
 <aside id="ai-void-todo-dock" class="is-collapsed" data-side="right" aria-label="Today">
@@ -1080,7 +922,6 @@
 <script src="i18n.js"></script>
 <script src="calendar-engine.js"></script>
 <script src="quote-engine.js"></script>
-<script src="memory-engine.js"></script>
 <script src="voice-engine.js"></script>
 <script src="toolbar-icons.js"></script>
 <script src="toolbar-dock.js"></script>
@@ -1088,7 +929,6 @@
 
 <script src="void-tab-menu.js"></script>
 <script src="void-tab-todo.js"></script>
-<script src="void-tab-memory.js"></script>
 
 </body>
 </html>
