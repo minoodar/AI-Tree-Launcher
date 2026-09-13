@@ -2096,14 +2096,29 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
       const idx = todosData.findIndex(td => td.id === evt.linkedTodoId);
       if (idx !== -1) { todosData.splice(idx, 1); saveTodos(); if (todoPanel.classList.contains('active')) renderTodos(); }
     }
+    // آرشیو در Memory Layer: فقط خودِ رویداد (نه TODوی لینک‌شده‌اش هم — چون آن
+    // فقط آینه‌ای خودکار از همین رویداد است، نه یک چیزِ معنادارِ جدا؛ آرشیوِ
+    // هردو یعنی شمارشِ دوتایی در ویجتِ Today's Echo).
+    if (evt && typeof AITreeMemoryEngine !== 'undefined') {
+      try {
+        AITreeMemoryEngine.archiveEvent(evt, 'deleted');
+        showToastNotification(t('toastEventDeleted') + ' · ' + t('toastSavedToMemory'));
+      } catch (e) {}
+    }
     timeEventsData = timeEventsData.filter(e => e.id !== id); saveTimeEvents(); refreshDashUI();
   }
   function toggleDashEventDone(id) {
     const evt = timeEventsData.find(e => e.id === id); if (!evt) return;
-    evt.status = (evt.status === 'done') ? 'future' : 'done';
+    const wasDone = evt.status === 'done';
+    evt.status = wasDone ? 'future' : 'done';
     if (evt.linkedTodoId) {
       const linkedTodo = todosData.find(td => td.id === evt.linkedTodoId);
       if (linkedTodo) { linkedTodo.done = (evt.status === 'done'); saveTodos(); if (todoPanel.classList.contains('active')) renderTodos(); }
+    }
+    // فقط لحظه‌ی تیک‌خوردن (نه برعکسش) به حافظه آرشیو می‌شود — برداشتنِ تیک یعنی
+    // «پشیمان شدم»، نه یک رخدادِ جدیدی که ارزشِ به‌خاطرسپردن داشته باشد.
+    if (!wasDone && evt.status === 'done' && typeof AITreeMemoryEngine !== 'undefined') {
+      try { AITreeMemoryEngine.archiveEvent(evt, 'completed'); } catch (e) {}
     }
     saveTimeEvents(); refreshDashUI();
   }
@@ -2123,6 +2138,8 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
     let changed = false;
     stale.forEach(evt => {
       if (evt.recurring) {
+        // این‌جا چیزی «حل» نشده — رویداد فقط برای روزِ جدید تازه می‌شود، پس آرشیو
+        // نمی‌شود (نه completed است، نه deleted؛ ادامه‌دارِ همان رویداد است).
         if (evt.linkedTodoId) {
           const idx = todosData.findIndex(td => td.id === evt.linkedTodoId);
           if (idx !== -1) todosData.splice(idx, 1);
@@ -2134,6 +2151,11 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
         evt.linkedTodoId = linkedTodo.id;
         changed = true;
       } else {
+        // اینجا واقعاً «حل نشده رها شده» — بدونِ اینکه کاربر حذفش کرده یا تیکش زده
+        // باشد، روزش گذشته. این خودش یک سیگنالِ معنادار است: resolution: 'expired'.
+        if (typeof AITreeMemoryEngine !== 'undefined') {
+          try { AITreeMemoryEngine.archiveEvent(evt, 'expired'); } catch (e) {}
+        }
         deleteIds.add(evt.id);
         if (evt.linkedTodoId) {
           const idx = todosData.findIndex(td => td.id === evt.linkedTodoId);
@@ -4144,6 +4166,17 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         }
         saveTodos();
         renderTodos();
+        if (typeof AITreeMemoryEngine !== 'undefined') {
+          try {
+            if (removedLinkedEvents.length) {
+              // خودِ رویداد(ها) آرشیو می‌شود، نه این TODوی خودکارِ آینه‌ای — تا در
+              // Today's Echo یک چیزِ واحد دوبار شمرده نشود.
+              removedLinkedEvents.forEach((evt) => AITreeMemoryEngine.archiveEvent(evt, 'deleted'));
+            } else {
+              AITreeMemoryEngine.archiveTodo(deletedTodo, deletedTodo.done ? 'completed' : 'deleted');
+            }
+          } catch (e) {}
+        }
         showToastNotification(t('toastTodoDeleted'), true);
         setUndoState('todo', { item: deletedTodo, index: removeIdx, linkedEvents: removedLinkedEvents });
       };

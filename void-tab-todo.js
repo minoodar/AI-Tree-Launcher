@@ -40,6 +40,7 @@
   let todos = [];
   let timeEvents = [];
   let userBirthYear = null;
+  let markedDays = [];
   let position = { side: 'right', top: 0.22 };
   let collapsed = true;
 
@@ -131,6 +132,57 @@
       wrap.append(top, track, cap);
       dateHead.appendChild(wrap);
     }
+    renderMarkedDayLine();
+  }
+
+  // ------------------------------------------------ خطِ عمرِ تقویم (مناسبت‌ها) —
+  // «مناسبت‌های علامت‌گذاری‌شده» (تولد، سالگرد، یادآوری‌های سالانه) دقیقاً با
+  // همان منطقِ خودِ افزونه (calendar-engine.js: daysUntilNext/isMarkedDayPast،
+  // که همین‌جا به‌صورتِ سراسری در دسترسند چون این فایل بعد از آن لود می‌شود) —
+  // نه یک فرمولِ حدسی. یک آیتمِ «امروز» با 🎉 برجسته می‌شود؛ در غیرِ این صورت
+  // نزدیک‌ترین موردِ پیشِ‌رو (در بازهٔ ۴۵ روزِ آینده، تا شلوغ/بی‌ربط نشود).
+  function renderMarkedDayLine() {
+    if (typeof daysUntilNext !== 'function' || typeof isMarkedDayPast !== 'function') return;
+    const kept = (markedDays || []).filter((m) => m && m.golden || !isMarkedDayPast(m.day, m.month, m.cal));
+    if (!kept.length) return;
+
+    const withDays = kept.map((m) => ({ m, days: daysUntilNext(m.day, m.month, m.cal) }));
+    const todays = withDays.filter((x) => x.days === 0);
+    const upcoming = withDays.filter((x) => x.days > 0).sort((a, b) => a.days - b.days);
+
+    function formatDate(m) {
+      const dd = String(m.day).padStart(2, '0');
+      const mm = String(m.month).padStart(2, '0');
+      const isJ = m.cal === 'j' || m.cal === 'jalali';
+      let currentLangSafe = 'en';
+      try { if (typeof currentLang !== 'undefined') currentLangSafe = currentLang; } catch (e) {}
+      if (isJ && currentLangSafe === 'fa' && typeof toPersianDigits === 'function') return toPersianDigits(`${dd}/${mm}`);
+      if (currentLangSafe === 'ar' && typeof toArabicDigits === 'function') return toArabicDigits(`${dd}/${mm}`);
+      return `${dd}/${mm}`;
+    }
+
+    const line = document.createElement('div');
+    line.className = 'ai-void-agenda-mark-line';
+
+    if (todays.length) {
+      line.classList.add('is-today');
+      line.textContent = '\u{1F389} ' + todays.map((x) => (x.m.golden ? '\u2605 ' : '') + x.m.label).join(', ');
+    } else if (upcoming.length && upcoming[0].days <= 45) {
+      const { m, days } = upcoming[0];
+      line.textContent = '\u{1F4CC} ' + (m.golden ? '\u2605 ' : '') + m.label + '  \u00b7  ' + formatDate(m);
+    } else {
+      return;
+    }
+    dateHead.appendChild(line);
+  }
+
+  function loadMarkedDays() {
+    try {
+      chrome.storage.sync.get(['aiTreeMarkedDays'], (res) => {
+        markedDays = Array.isArray(res.aiTreeMarkedDays) ? res.aiTreeMarkedDays : [];
+        renderDateHead();
+      });
+    } catch (e) {}
   }
 
   // ------------------------------------------------- رویدادهای ساعتی —
@@ -403,6 +455,7 @@
   loadFromStorage();
   loadTimeEvents();
   loadBirthYear();
+  loadMarkedDays();
   renderDateHead();
   renderEvents();
 
@@ -419,6 +472,10 @@
       }
       if (area === 'sync' && changes.userBirthYear) {
         userBirthYear = changes.userBirthYear.newValue ? parseInt(changes.userBirthYear.newValue, 10) : null;
+        renderDateHead();
+      }
+      if (area === 'sync' && changes.aiTreeMarkedDays) {
+        markedDays = Array.isArray(changes.aiTreeMarkedDays.newValue) ? changes.aiTreeMarkedDays.newValue : [];
         renderDateHead();
       }
     });
