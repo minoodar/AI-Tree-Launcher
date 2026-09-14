@@ -347,6 +347,10 @@ const i18nPopup = {
       const t = i18nPopup[currentLang] || i18nPopup.en;
       document.body.className = (currentLang === 'fa' || currentLang === 'ar') ? 'rtl' : '';
 
+      // بخش مناسبت‌های ایران فقط در زبان فارسی در تب Backup دیده می‌شود
+      const iranSec = document.getElementById('iran-holidays-section');
+      if (iranSec) iranSec.style.display = (currentLang === 'fa') ? 'block' : 'none';
+
       document.getElementById('tab-core').textContent = t.tabCore;
       document.getElementById('tab-backup').textContent = t.tabBackup;
       const vaultTab = document.getElementById('tab-vault');
