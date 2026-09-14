@@ -154,10 +154,16 @@
   }
 
   function init() {
+    // Seed defaults immediately so the panel is never blank while storage loads
+    apps = DEFAULTS.map((d) => Object.assign({}, d));
+    render();
     try {
       chrome.storage.local.get([STORAGE_KEY], (res) => {
-        apps = Array.isArray(res[STORAGE_KEY]) ? res[STORAGE_KEY] : DEFAULTS.map((d) => Object.assign({}, d));
-        render();
+        const stored = res[STORAGE_KEY];
+        if (Array.isArray(stored) && stored.length > 0) {
+          apps = stored;
+          render();
+        }
       });
       chrome.storage.onChanged.addListener((changes, area) => {
         if (area === 'local' && changes[STORAGE_KEY]) {
@@ -172,4 +178,33 @@
   }
 
   init();
+
+  const appsWrap = document.getElementById('ai-ntp-apps-wrap');
+  const appsBtn = document.getElementById('ai-ntp-apps-btn');
+  if (appsWrap && appsBtn) {
+    appsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const open = appsWrap.classList.toggle('open');
+      appsBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const mainMenu = document.getElementById('ai-ntp-menu');
+      if (mainMenu) {
+        mainMenu.classList.remove('open');
+        const mb = document.getElementById('ai-ntp-menu-btn');
+        if (mb) mb.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (!appsWrap.contains(e.target)) {
+        appsWrap.classList.remove('open');
+        appsBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && appsWrap.classList.contains('open')) {
+        appsWrap.classList.remove('open');
+        appsBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
 })();

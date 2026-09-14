@@ -66,13 +66,16 @@
         background: rgba(20, 22, 30, 0.62);
         border: 1px solid rgba(255, 255, 255, 0.14);
         opacity: 1;
+        overflow: visible;
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
     }
-    #ai-ntp-quickbar a,
+    /* Only direct chrome controls — NOT links inside the apps panel */
+    #ai-ntp-quickbar > a,
     #ai-ntp-quickbar > button,
-    #ai-ntp-menu-btn {
+    #ai-ntp-menu-btn,
+    #ai-ntp-apps-btn {
         width: 32px;
         height: 32px;
         display: flex;
@@ -87,10 +90,12 @@
         cursor: pointer;
         transition: background 0.15s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
     }
-    #ai-ntp-quickbar a:hover,
+    #ai-ntp-quickbar > a:hover,
     #ai-ntp-quickbar > button:hover,
     #ai-ntp-menu-btn:hover,
-    #ai-ntp-menu.open #ai-ntp-menu-btn {
+    #ai-ntp-menu.open #ai-ntp-menu-btn,
+    #ai-ntp-apps-btn:hover,
+    #ai-ntp-apps-wrap.open #ai-ntp-apps-btn {
         background: rgba(255, 255, 255, 0.12);
         transform: scale(1.1);
     }
@@ -99,8 +104,8 @@
     #ai-void-stage {
         position: fixed;
         left: 50%;
-        top: 42%;
-        transform: translate(-50%, -50%);
+        top: max(88px, 18vh);
+        transform: translateX(-50%);
         z-index: 40;
         width: min(640px, calc(100vw - 32px));
         display: flex;
@@ -262,30 +267,65 @@
         box-shadow: 0 0 8px color-mix(in srgb, var(--engine-accent, #a5b4fc) 60%, transparent);
     }
 
-    /* Gmail / account shortcuts under search — deliberately small and quiet,
-       same visual weight as the quickbar / search-engine brand mark, not a
-       loud app-launcher grid. Color lives in the glyph, not in a filled tile. */
+    /* Apps toggle ▦ in quickbar — Gmail / Drive / Calendar / Photos + custom */
+    #ai-ntp-apps-wrap { position: relative; z-index: 3; }
+    #ai-ntp-apps-btn {
+        width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 8px; border: none; background: transparent;
+        color: #F3F4F6; font-size: 15px; cursor: pointer;
+        transition: background 0.15s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
+    }
+    #ai-ntp-apps-btn:hover,
+    #ai-ntp-apps-wrap.open #ai-ntp-apps-btn {
+        background: rgba(255, 255, 255, 0.12);
+        transform: scale(1.1);
+    }
+    #ai-ntp-apps-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        min-width: 220px;
+        max-width: min(340px, calc(100vw - 24px));
+        background: rgba(20, 22, 30, 0.96);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        padding: 10px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transform-origin: top right;
+        pointer-events: none;
+        transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+        z-index: 2147483000;
+    }
+    #ai-ntp-apps-wrap.open #ai-ntp-apps-panel {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
     #ai-void-apps {
         width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 4px 6px;
-        padding: 2px 0 0;
-        opacity: 0.62;
-        transition: opacity .25s ease;
-    }
-    #ai-void-apps:hover,
-    #ai-void-apps:focus-within {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        padding: 0;
+        margin: 0;
         opacity: 1;
+        min-height: 0;
     }
     .ai-void-app {
-        width: 46px;
+        width: auto;
+        min-width: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 4px;
-        padding: 6px 2px 4px;
+        padding: 8px 4px 6px;
         border-radius: 12px;
         text-decoration: none;
         color: #E5E7EB;
@@ -293,6 +333,7 @@
         background: transparent;
         cursor: pointer;
         transition: background .15s ease, border-color .15s ease, transform .12s ease;
+        font: inherit;
     }
     .ai-void-app:hover {
         background: rgba(255, 255, 255, 0.05);
@@ -331,9 +372,10 @@
     .ai-void-app-icon.is-photos { color: #fdd663; }
     .ai-void-app-icon.is-custom { color: rgba(226, 232, 255, 0.82); }
     .ai-void-app-label {
-        font-size: 9.5px;
-        color: rgba(226, 232, 255, 0.6);
-        max-width: 50px;
+        font-size: 10px;
+        color: rgba(226, 232, 255, 0.7);
+        max-width: 100%;
+        width: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -401,12 +443,14 @@
         justify-content: center;
         gap: 6px;
         max-width: 560px;
+        min-height: 58px;
         opacity: 0.62;
-        transition: opacity 0.25s ease;
+        transition: none;
     }
     #ai-ntp-topsites:hover,
     #ai-ntp-topsites:focus-within {
         opacity: 1;
+        transition: opacity 0.2s ease;
     }
     #ai-ntp-topsites.hidden { display: none; }
     .ai-ts-tile {
@@ -548,8 +592,7 @@
     .ai-ntp-menu-item[data-on="1"] .ai-ntp-menu-check { opacity: 1; }
 
     body.ai-focus-mode #ai-ntp-topsites,
-    body.ai-focus-mode #ai-void-apps,
-    body.ai-focus-mode #ai-orbit-root {
+        body.ai-focus-mode #ai-orbit-root {
         opacity: 0 !important;
         pointer-events: none !important;
         transition: opacity 0.3s ease;
@@ -854,7 +897,7 @@
     }
 
     @media (max-width: 700px) {
-        #ai-void-stage { top: 36%; width: calc(100vw - 24px); gap: 14px; }
+        #ai-void-stage { top: max(64px, 12vh); width: calc(100vw - 24px); gap: 14px; }
         #ai-void-search-brand-name { font-size: 18px; }
         #ai-void-todo-dock { top: auto !important; bottom: 16px; width: min(320px, calc(100vw - 32px)); }
     }
@@ -896,7 +939,12 @@
       </button>
     </div>
   </div>
-  <a href="https://mail.google.com/mail/u/0/" target="_blank" rel="noopener" title="Gmail">✉️</a>
+  <div id="ai-ntp-apps-wrap">
+    <button type="button" id="ai-ntp-apps-btn" title="Apps" aria-haspopup="true" aria-expanded="false">▦</button>
+    <div id="ai-ntp-apps-panel" role="menu" aria-label="Apps">
+      <div id="ai-void-apps" aria-label="App shortcuts"></div>
+    </div>
+  </div>
   <a id="ai-ntp-account" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmail.google.com" target="_blank" rel="noopener" title="Switch account">👤</a>
 </div>
 
@@ -921,7 +969,6 @@
     <div id="ai-void-search-dots" role="tablist" aria-label="Search engines"></div>
   </div>
 
-  <div id="ai-void-apps" aria-label="Gmail and account shortcuts"></div>
   <div id="ai-ntp-topsites"></div>
   <div id="ai-void-echo" class="is-collapsed" hidden aria-live="polite">
     <div class="ai-void-echo-handle" id="ai-void-echo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">

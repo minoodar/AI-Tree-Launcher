@@ -69,6 +69,10 @@
     e.stopPropagation();
     const open = menu.classList.toggle('open');
     try { menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false'); } catch (err) {}
+    const appsWrap = document.getElementById('ai-ntp-apps-wrap');
+    const appsBtn = document.getElementById('ai-ntp-apps-btn');
+    if (appsWrap) appsWrap.classList.remove('open');
+    if (appsBtn) appsBtn.setAttribute('aria-expanded', 'false');
   });
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target)) {

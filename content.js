@@ -4197,6 +4197,13 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
 
   setInterval(() => { if (pruneExpiredDailyTodos() && todoPanel.classList.contains('active')) renderTodos(); }, 5 * 60 * 1000);
   setInterval(() => { if (pruneExpiredDashEvents()) renderTimeline(); }, 5 * 60 * 1000);
+  // rollup/فشرده‌سازیِ آرشیوِ قدیمی — خودِ تابع حداکثر یک‌بار در روز واقعاً اجرا
+  // می‌شود (RETENTION_LAST_RUN_KEY داخلِ memory-engine.js)، پس صدازدنش از هر
+  // تب/صفحه‌ای که این افزونه رویش فعال است بی‌خطر است.
+  if (typeof AITreeMemoryEngine !== 'undefined') {
+    try { AITreeMemoryEngine.runRetention(); } catch (e) {}
+    setInterval(() => { try { AITreeMemoryEngine.runRetention(); } catch (e) {} }, 6 * 60 * 60 * 1000);
+  }
 
   document.getElementById('ai-todo-add-btn').onclick = (e) => {
     e.stopPropagation(); const input = document.getElementById('ai-todo-input'); const text = input.value.trim();

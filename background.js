@@ -1,3 +1,11 @@
+// حیاتی: memory-engine.js باید همین‌جا (Service Worker) لود شود تا حالتِ
+// واقعیِ IndexedDB آن (buildRealEngine) فعال شود — چون تنها اینجا originِ
+// پایدار و یکتای خودِ افزونه وجود دارد (نه در content scriptهای رویِ هر
+// سایت). بدونِ این خط، AITreeMemoryEngine اینجا اصلاً تعریف نمی‌شود، پیامِ
+// content scriptها/void-tab.html هیچ شنونده‌ای پیدا نمی‌کند، و هر فراخوانی
+// بی‌صدا (بدونِ خطا) به null resolve می‌شود.
+importScripts('memory-engine.js');
+
 // AI Tree Launcher — background service worker (MV3)
 // 1) Open standalone notepad tab (with return-to-widget context)
 // 2) Refocus parent tab and close notepad tab

@@ -57,7 +57,7 @@
     });
   }
 
-  function applyEngineUI() {
+  function applyEngineUI(opts) {
     const eng = current();
     activeId = eng.id;
     brandName.textContent = eng.label;
@@ -67,16 +67,18 @@
     input.placeholder = 'Search with ' + eng.label + '\u2026';
     input.setAttribute('aria-label', 'Search with ' + eng.label);
     renderDots();
-    brand.classList.remove('ai-void-search-brand-pulse');
-    void brand.offsetWidth;
-    brand.classList.add('ai-void-search-brand-pulse');
+    if (opts && opts.pulse) {
+      brand.classList.remove('ai-void-search-brand-pulse');
+      void brand.offsetWidth;
+      brand.classList.add('ai-void-search-brand-pulse');
+    }
   }
 
   function setIndex(i, persist) {
     if (!engines.length) return;
     const n = engines.length;
     index = ((i % n) + n) % n;
-    applyEngineUI();
+    applyEngineUI({ pulse: true });
     if (persist !== false) {
       try { chrome.storage.local.set({ webSearchEngine: current().id }); } catch (e) {}
     }
