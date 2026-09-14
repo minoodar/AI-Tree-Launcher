@@ -122,7 +122,7 @@ AI Tree Launcher v36.33 是一款純 **Vanilla JS**、零依賴的擴充功能�
 
 O AI Tree Launcher v36.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
 
-#### 🌟 Características Principais
+#### 🌟 Características Principales
 * **🌌 Cofre Orbital:** Lançador flutuante com favoritos ilimitados em 4 hubs e grade de tags de 15 categorias.
 * **✨ Void Tab Estável e Eco de Hoje:** Uma nova guia completa, de renderização rápida e sem atrasos, apresentando um fundo bonito, menus completos do aplicativo e um cartão Zen resumindo sua atividade.
 * **🎙️ Estúdio Inteligente & Bloco de Notas:** Bloco de notas avançado com **ditado 100% offline** (modelo Whisper local). Abre de forma inteligente ao lado do widget sem oscilações.
@@ -388,4 +388,23 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 * **حمایت ریالی:** [پرداخت از طریق دونی‌تو](https://donito.me/u-b8wjr)
 
 </div>
+</details>
+
+<details>
+<summary><strong>⚖️ License, Attribution & AI-Assisted Development</strong></summary>
+
+<br>
+
+This project is an original concept initiated and directed by the project creator, who served as the **idea creator, product designer, and creative director**.
+
+Development was conducted with AI-assisted workflows:
+* **ChatGPT:** Creative direction, UI/UX ideation, visual concepts, and problem-solving.
+* **Google Gemini:** Initial core implementation.
+* **Claude:** Code development, refinement, debugging, and completion.
+* **Grok:** Parallel development, review, debugging, and final refinement.
+
+The project also incorporates or uses third-party technologies, including **Firecrawl AnyDoc** ([MIT License](https://github.com/firecrawl/anydoc)), **Google Translate**, and **Google Speech-to-Text**.
+
+All third-party software, services, trademarks, and copyrights remain subject to their respective licenses and terms. No ownership is claimed over third-party components or services.
+
 </details>
