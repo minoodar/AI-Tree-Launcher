@@ -389,3 +389,21 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 
 </div>
 </details>
+<details>
+<summary><strong>⚖️ License, Attribution & AI-Assisted Development</strong></summary>
+
+<br>
+
+This project is an original concept initiated and directed by the project creator, who served as the **idea creator, product designer, and creative director**.
+
+Development was conducted with AI-assisted workflows:
+* **ChatGPT:** Creative direction, UI/UX ideation, visual concepts, and problem-solving.
+* **Google Gemini:** Initial core implementation.
+* **Claude:** Code development, refinement, debugging, and completion.
+* **Grok:** Parallel development, review, debugging, and final refinement.
+
+The project also incorporates or uses third-party technologies, including **Firecrawl AnyDoc** ([MIT License](https://github.com/firecrawl/anydoc)), **Google Translate**, and **Google Speech-to-Text**.
+
+All third-party software, services, trademarks, and copyrights remain subject to their respective licenses and terms. No ownership is claimed over third-party components or services.
+
+</details>
