@@ -582,8 +582,14 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) { reject(err); }
     });
   }
+  let translateCooldownUntil = 0;
+
   async function runTranslate() {
     if (translateBusy) return;
+    if (Date.now() < translateCooldownUntil) {
+      showToast(t('toastTranslateRateLimited'));
+      return;
+    }
     const textVal = (els.textarea.value || '').trim();
     if (!textVal) { showToast(t('dockEmptyPrompt')); return; }
     if (textVal.length > 4500) { showToast(t('toastTranslateTooLong')); return; }
@@ -609,8 +615,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('[notepad] translate failed:', err);
       const errMsg = (err && err.message) || '';
       let toastMsg;
-      if (/rate_limited/.test(errMsg)) toastMsg = t('toastTranslateRateLimited');
-      else if (/network_offline/.test(errMsg)) toastMsg = t('toastTranslateOffline');
+      if (/rate_limited/.test(errMsg)) {
+        toastMsg = t('toastTranslateRateLimited');
+        translateCooldownUntil = Date.now() + 4000;
+      } else if (/network_offline/.test(errMsg)) toastMsg = t('toastTranslateOffline');
       else if (/network_error/.test(errMsg)) toastMsg = t('toastTranslateNetworkError');
       else toastMsg = t('toastTranslateFail');
       showToast(toastMsg);

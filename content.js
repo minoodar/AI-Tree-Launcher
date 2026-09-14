@@ -7872,8 +7872,17 @@ let hubAutoCollapsedByPanel = false;
     });
   }
 
+  // After a hard rate-limit, ignore further translate clicks briefly so the
+  // user cannot immediately re-flood the same endpoint that background.js
+  // just finished backing off against.
+  let noteTranslateCooldownUntil = 0;
+
   async function runNoteTranslate() {
     if (noteTranslateBusy) return;
+    if (Date.now() < noteTranslateCooldownUntil) {
+      showToastNotification(t('toastTranslateRateLimited'), true);
+      return;
+    }
     if (typeof abortNoteClosing === 'function') abortNoteClosing();
 
     // اگر کاربر بخشی از متن را انتخاب کرده باشد، فقط همان بخش ترجمه می‌شود —
@@ -7910,8 +7919,12 @@ let hubAutoCollapsedByPanel = false;
       console.warn('[AI Tree] translate failed:', err);
       const errMsg = (err && err.message) || '';
       let toastMsg;
-      if (/rate_limited/.test(errMsg)) toastMsg = t('toastTranslateRateLimited');
-      else if (/network_offline/.test(errMsg)) toastMsg = t('toastTranslateOffline');
+      if (/rate_limited/.test(errMsg)) {
+        toastMsg = t('toastTranslateRateLimited');
+        // ~4s client gate — background already retried with backoff; this only
+        // stops an immediate manual re-click from starting a new burst.
+        noteTranslateCooldownUntil = Date.now() + 4000;
+      } else if (/network_offline/.test(errMsg)) toastMsg = t('toastTranslateOffline');
       else if (/network_error/.test(errMsg)) toastMsg = t('toastTranslateNetworkError');
       else toastMsg = t('toastTranslateFail');
       showToastNotification(toastMsg, true);

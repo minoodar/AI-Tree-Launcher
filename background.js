@@ -60,7 +60,8 @@ const TRANSLATE_CACHE_MAX = 200;
 const TRANSLATE_CACHE_TTL_MS = 10 * 60 * 1000; // ۱۰ دقیقه
 
 function translateCacheKey(text, targetLang) {
-  return targetLang + '::' + text;
+  // Normalize whitespace so near-identical clipboard/selection variants share a cache hit
+  return targetLang + '::' + String(text || '').trim().replace(/\s+/g, ' ');
 }
 
 function translateCacheGet(key) {
@@ -86,10 +87,20 @@ function translateCacheSet(key, value) {
 // رایگانی است که translate.google.com خودش استفاده می‌کند و توسط گوگل بر
 // اساس IP مبدأ محدود به نرخ می‌شود (Rate Limit)، نه بر اساس این افزونه به‌تنهایی.
 // یعنی حتی با استفادهٔ معقول، ممکن است HTTP 429 برگردد (مثلاً وقتی IP شما با
-// کاربران زیاد دیگری در همان شبکه/ISP/VPN مشترک است). اینجا با یک backoff نمایی
-// کوتاه (حداکثر ۲ تلاش مجدد) این خطای گذرا را تا حد امکان جبران می‌کنیم؛ اگر
-// هدر Retry-After برگردد از همان استفاده می‌شود، وگرنه از تأخیر پیش‌فرض.
+// کاربران زیاد دیگری در همان شبکه/ISP/VPN مشترک است). اینجا با backoff نمایی
+// + jitter (حداکثر ۳ تلاش مجدد) این خطای گذرا را تا حد امکان جبران می‌کنیم؛ اگر
+// هدر Retry-After برگردد از همان استفاده می‌شود، وگرنه از تأخیر پیش‌فرض با
+// jitter تصادفی تا درخواست‌های همزمان هم‌فاز نشوند.
+function translateBackoffDelayMs(attempt, baseMs) {
+  // Exponential: base * 2^attempt, plus half-jitter, capped so Service Worker
+  // lifetime stays reasonable under repeated 429s.
+  const exp = Math.min(baseMs * Math.pow(2, attempt), 8000);
+  const jitter = Math.random() * exp;
+  return Math.round(exp * 0.5 + jitter * 0.5);
+}
+
 async function fetchTranslateWithRetry(url, maxRetries) {
+  if (maxRetries == null) maxRetries = 3;
   let attempt = 0;
   for (;;) {
     let res;
@@ -102,7 +113,7 @@ async function fetchTranslateWithRetry(url, maxRetries) {
       // نمی‌شد (فقط ۴۲۹ پوشش داده می‌شد) — همینجا هم مثل ۴۲۹ چند بار دوباره
       // تلاش می‌کنیم، چون اکثر این خطاها گذرا هستند.
       if (attempt < maxRetries) {
-        await new Promise((r) => setTimeout(r, 600 * Math.pow(2, attempt)));
+        await new Promise((r) => setTimeout(r, translateBackoffDelayMs(attempt, 600)));
         attempt += 1;
         continue;
       }
@@ -116,7 +127,14 @@ async function fetchTranslateWithRetry(url, maxRetries) {
     if (res.status === 429 && attempt < maxRetries) {
       const retryAfterHeader = res.headers.get('Retry-After');
       const retryAfterSec = retryAfterHeader ? parseInt(retryAfterHeader, 10) : NaN;
-      const delayMs = !isNaN(retryAfterSec) ? retryAfterSec * 1000 : 700 * Math.pow(2, attempt);
+      let delayMs;
+      if (!isNaN(retryAfterSec) && retryAfterSec >= 0) {
+        // Honor server hint, then add a small jitter so parallel tabs don't
+        // all retry on the same millisecond.
+        delayMs = retryAfterSec * 1000 + Math.floor(Math.random() * 250);
+      } else {
+        delayMs = translateBackoffDelayMs(attempt, 700);
+      }
       await new Promise((r) => setTimeout(r, delayMs));
       attempt += 1;
       continue;
@@ -306,7 +324,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       '&dt=t&dt=bd&q=' +
       encodeURIComponent(text);
 
-    fetchTranslateWithRetry(url, 2)
+    fetchTranslateWithRetry(url, 3)
       .then((res) => res.json())
       .then((data) => {
         let translatedText = '';
