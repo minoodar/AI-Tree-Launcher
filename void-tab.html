@@ -57,6 +57,7 @@
         position: fixed;
         top: 14px;
         right: 14px;
+        left: auto;
         z-index: 51;
         display: flex;
         align-items: center;
@@ -70,8 +71,10 @@
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+        transition: left 0.2s ease, right 0.2s ease;
     }
-    /* Only direct chrome controls — NOT links inside the apps panel */
+    #ai-ntp-quickbar[data-side="left"] { left: 14px; right: auto; }
+    #ai-ntp-quickbar[data-side="right"] { right: 14px; left: auto; }
     #ai-ntp-quickbar > a,
     #ai-ntp-quickbar > button,
     #ai-ntp-menu-btn,
@@ -267,19 +270,13 @@
         box-shadow: 0 0 8px color-mix(in srgb, var(--engine-accent, #a5b4fc) 60%, transparent);
     }
 
-    /* Apps toggle ▦ in quickbar — Gmail / Drive / Calendar / Photos + custom */
+    /* Apps ▦ inside quickbar (NOT under search) */
     #ai-ntp-apps-wrap { position: relative; z-index: 3; }
     #ai-ntp-apps-btn {
         width: 32px; height: 32px;
         display: flex; align-items: center; justify-content: center;
         border-radius: 8px; border: none; background: transparent;
         color: #F3F4F6; font-size: 15px; cursor: pointer;
-        transition: background 0.15s ease, transform .18s cubic-bezier(.34,1.56,.64,1);
-    }
-    #ai-ntp-apps-btn:hover,
-    #ai-ntp-apps-wrap.open #ai-ntp-apps-btn {
-        background: rgba(255, 255, 255, 0.12);
-        transform: scale(1.1);
     }
     #ai-ntp-apps-panel {
         position: absolute;
@@ -303,37 +300,26 @@
         z-index: 2147483000;
     }
     #ai-ntp-apps-wrap.open #ai-ntp-apps-panel {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-        pointer-events: auto;
+        opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
+    }
+    #ai-ntp-quickbar[data-side="left"] #ai-ntp-apps-panel {
+        left: 0; right: auto; transform-origin: top left;
     }
     #ai-void-apps {
         width: 100%;
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 6px;
-        padding: 0;
-        margin: 0;
-        opacity: 1;
-        min-height: 0;
+        padding: 0; margin: 0; opacity: 1; min-height: 0;
     }
     .ai-void-app {
-        width: auto;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        padding: 8px 4px 6px;
-        border-radius: 12px;
-        text-decoration: none;
-        color: #E5E7EB;
-        border: 1px solid transparent;
-        background: transparent;
-        cursor: pointer;
+        width: auto; min-width: 0;
+        display: flex; flex-direction: column; align-items: center;
+        gap: 4px; padding: 8px 4px 6px; border-radius: 12px;
+        text-decoration: none; color: #E5E7EB;
+        border: 1px solid transparent; background: transparent;
+        cursor: pointer; font: inherit;
         transition: background .15s ease, border-color .15s ease, transform .12s ease;
-        font: inherit;
     }
     .ai-void-app:hover {
         background: rgba(255, 255, 255, 0.05);
@@ -372,14 +358,9 @@
     .ai-void-app-icon.is-photos { color: #fdd663; }
     .ai-void-app-icon.is-custom { color: rgba(226, 232, 255, 0.82); }
     .ai-void-app-label {
-        font-size: 10px;
-        color: rgba(226, 232, 255, 0.7);
-        max-width: 100%;
-        width: 100%;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        text-align: center;
+        font-size: 10px; color: rgba(226, 232, 255, 0.7);
+        max-width: 100%; width: 100%;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center;
     }
     .ai-void-app-add {
         opacity: 0.55;
@@ -437,20 +418,11 @@
     /* Most visited — under shortcuts. Same quiet scale/behavior as #ai-void-apps
        so the two rows read as one calm system, not two different weights. */
     #ai-ntp-topsites {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 6px;
-        max-width: 560px;
-        min-height: 58px;
-        opacity: 0.62;
-        transition: none;
+        width: 100%; display: flex; flex-wrap: wrap; justify-content: center;
+        gap: 6px; max-width: 560px; min-height: 58px; opacity: 0.62; transition: none;
     }
-    #ai-ntp-topsites:hover,
-    #ai-ntp-topsites:focus-within {
-        opacity: 1;
-        transition: opacity 0.2s ease;
+    #ai-ntp-topsites:hover, #ai-ntp-topsites:focus-within {
+        opacity: 1; transition: opacity 0.2s ease;
     }
     #ai-ntp-topsites.hidden { display: none; }
     .ai-ts-tile {
@@ -547,6 +519,7 @@
         top: calc(100% + 8px);
         right: 0;
         left: auto;
+        transform-origin: top right;
         min-width: 220px;
         background: rgba(20, 22, 30, 0.94);
         backdrop-filter: blur(14px);
@@ -560,6 +533,9 @@
         transform-origin: top right;
         pointer-events: none;
         transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+    #ai-ntp-quickbar[data-side="left"] #ai-ntp-menu-panel {
+        left: 0; right: auto; transform-origin: top left;
     }
     #ai-ntp-menu.open #ai-ntp-menu-panel {
         opacity: 1;
@@ -899,7 +875,10 @@
     @media (max-width: 700px) {
         #ai-void-stage { top: max(64px, 12vh); width: calc(100vw - 24px); gap: 14px; }
         #ai-void-search-brand-name { font-size: 18px; }
-        #ai-void-todo-dock { top: auto !important; bottom: 16px; width: min(320px, calc(100vw - 32px)); }
+        #ai-void-todo-dock { top: auto !important; bottom: 16px; width: min(320px, calc(100vw - 32px)); left: 50% !important; right: auto !important; transform: translateX(-50%); }
+        #ai-ntp-quickbar, #ai-ntp-quickbar[data-side="left"], #ai-ntp-quickbar[data-side="right"] {
+            left: auto !important; right: 14px !important;
+        }
     }
     @media (prefers-reduced-motion: reduce) {
         .ai-void-search-brand-pulse { animation: none; }
@@ -970,6 +949,7 @@
   </div>
 
   <div id="ai-ntp-topsites"></div>
+
   <div id="ai-void-echo" class="is-collapsed" hidden aria-live="polite">
     <div class="ai-void-echo-handle" id="ai-void-echo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
       <span class="ai-void-echo-icon" aria-hidden="true">
@@ -991,7 +971,7 @@
   </div>
 </section>
 
-<aside id="ai-void-todo-dock" class="is-collapsed" data-side="right" aria-label="Today">
+<aside id="ai-void-todo-dock" class="is-collapsed" data-side="left" aria-label="Today">
   <div class="ai-void-todo-head" id="ai-void-todo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
     <span>◐</span><span class="ai-void-todo-title" id="ai-void-todo-title">Today</span><span class="ai-void-todo-count" id="ai-void-todo-count"></span>
     <span class="ai-void-todo-chevron" id="ai-void-todo-chevron" aria-hidden="true">▾</span>

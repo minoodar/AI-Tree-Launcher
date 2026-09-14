@@ -154,7 +154,6 @@
   }
 
   function init() {
-    // Seed defaults immediately so the panel is never blank while storage loads
     apps = DEFAULTS.map((d) => Object.assign({}, d));
     render();
     try {

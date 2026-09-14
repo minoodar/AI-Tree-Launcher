@@ -41,7 +41,7 @@
   let timeEvents = [];
   let userBirthYear = null;
   let markedDays = [];
-  let position = { side: 'right', top: 0.22 };
+  let position = { side: 'left', top: 0.22 };
   let collapsed = true;
 
   // ---------------------------------------------------------------- عمومی —
@@ -399,9 +399,20 @@
     });
   }
 
+  function isMobileLayout() {
+    try { return window.matchMedia('(max-width: 700px)').matches; } catch (e) { return window.innerWidth <= 700; }
+  }
+  function applyQuickbarOpposite() {
+    const qb = document.getElementById('ai-ntp-quickbar');
+    if (!qb) return;
+    if (isMobileLayout()) { qb.dataset.side = 'right'; return; }
+    const dockSide = position.side === 'left' ? 'left' : 'right';
+    qb.dataset.side = dockSide === 'right' ? 'left' : 'right';
+  }
   function applyPosition() {
     dock.dataset.side = position.side === 'left' ? 'left' : 'right';
     dock.style.top = (Math.max(0.04, Math.min(0.78, Number(position.top) || 0.22)) * 100) + 'vh';
+    applyQuickbarOpposite();
   }
   function savePosition() {
     try { chrome.storage.local.set({ voidTodoDock: position }); } catch (e) {}
@@ -555,4 +566,6 @@
   handle.addEventListener('pointercancel', endDrag);
 
   applyCollapsed();
+  applyQuickbarOpposite();
+  try { window.addEventListener('resize', applyQuickbarOpposite); } catch (e) {}
 })();

@@ -6000,16 +6000,27 @@ let hubAutoCollapsedByPanel = false;
 
   // Use the rendered box, not a requested CSS size, so padding, borders and the
   // final frame of a size transition cannot leave any part of the note off-screen.
-  function centerExpandedNotepad() {
+  // قبلاً هنگام رشد خودکار اندازه، دفترچه را به مرکز مانیتور می‌کشید —
+  // این جابه‌جایی ناخواسته حذف شد. فقط در صورت خروج از viewport، لبه را اصلاح می‌کنیم.
+  function clampNotepadInViewport() {
     if (!quickNoteForm.classList.contains('active') || noteSplitSide) return;
     const edgeMargin = 8;
     const formW = quickNoteForm.offsetWidth;
     const formH = quickNoteForm.offsetHeight;
+    if (!formW || !formH) return;
     const maxLeft = Math.max(edgeMargin, window.innerWidth - formW - edgeMargin);
     const maxTop = Math.max(edgeMargin, window.innerHeight - formH - edgeMargin);
-    quickNoteForm.style.left = Math.max(edgeMargin, Math.min((window.innerWidth - formW) / 2, maxLeft)) + 'px';
-    quickNoteForm.style.top = Math.max(edgeMargin, Math.min((window.innerHeight - formH) / 2, maxTop)) + 'px';
+    const curLeft = parseFloat(quickNoteForm.style.left);
+    const curTop = parseFloat(quickNoteForm.style.top);
+    const left = Number.isFinite(curLeft) ? curLeft : quickNoteForm.getBoundingClientRect().left;
+    const top = Number.isFinite(curTop) ? curTop : quickNoteForm.getBoundingClientRect().top;
+    const nextLeft = Math.max(edgeMargin, Math.min(left, maxLeft));
+    const nextTop = Math.max(edgeMargin, Math.min(top, maxTop));
+    if (nextLeft !== left) quickNoteForm.style.left = nextLeft + 'px';
+    if (nextTop !== top) quickNoteForm.style.top = nextTop + 'px';
   }
+  // نام قدیمی برای سازگاری با هر ارجاع باقی‌مانده
+  function centerExpandedNotepad() { clampNotepadInViewport(); }
 
   function resetNoteSizeToDefault() {
     noteUserResized = false;
@@ -6171,25 +6182,23 @@ let hubAutoCollapsedByPanel = false;
       const actualFormH = didAutoResize
         ? targetFormH + Math.max(0, previousFormH - previousRequestedH)
         : quickNoteForm.offsetHeight;
-      const curLeft = didAutoResize
-        ? (window.innerWidth - actualFormW) / 2
-        : (parseFloat(quickNoteForm.style.left) || quickNoteForm.getBoundingClientRect().left);
-      const curTop = didAutoResize
-        ? (window.innerHeight - actualFormH) / 2
-        : (parseFloat(quickNoteForm.style.top) || quickNoteForm.getBoundingClientRect().top);
-      const clampedLeft = Math.max(edgeMargin, Math.min(curLeft, window.innerWidth - actualFormW - edgeMargin));
-      const clampedTop = Math.max(edgeMargin, Math.min(curTop, window.innerHeight - actualFormH - edgeMargin));
-      if (clampedLeft !== curLeft || didAutoResize) quickNoteForm.style.left = clampedLeft + 'px';
-      if (clampedTop !== curTop || didAutoResize) quickNoteForm.style.top = clampedTop + 'px';
+      // همیشه موقعیت فعلی را نگه می‌داریم — فقط در صورت خروج از صفحه، clamp
+      const curLeft = parseFloat(quickNoteForm.style.left);
+      const curTop = parseFloat(quickNoteForm.style.top);
+      const leftBase = Number.isFinite(curLeft) ? curLeft : quickNoteForm.getBoundingClientRect().left;
+      const topBase = Number.isFinite(curTop) ? curTop : quickNoteForm.getBoundingClientRect().top;
+      const clampedLeft = Math.max(edgeMargin, Math.min(leftBase, window.innerWidth - actualFormW - edgeMargin));
+      const clampedTop = Math.max(edgeMargin, Math.min(topBase, window.innerHeight - actualFormH - edgeMargin));
+      if (clampedLeft !== leftBase || didAutoResize) quickNoteForm.style.left = clampedLeft + 'px';
+      if (clampedTop !== topBase || didAutoResize) quickNoteForm.style.top = clampedTop + 'px';
     }
 
     requestAnimationFrame(() => {
       quickNoteForm.style.transition = prevTrans;
       if (didAutoResize) {
-        // One pass after layout and one after the 300 ms size animation cover both
-        // freshly opened saved text and later transitions between growth stages.
-        centerExpandedNotepad();
-        window.setTimeout(centerExpandedNotepad, 320);
+        // فقط لبه را اصلاح کن؛ هرگز به مرکز مانیتور نکش
+        clampNotepadInViewport();
+        window.setTimeout(clampNotepadInViewport, 320);
       } else if (!noteManuallyPositioned) {
         adjustNotepadPosition();
       }
@@ -9272,10 +9281,11 @@ let hubAutoCollapsedByPanel = false;
           }
       }
       if (area === 'local') {
-        if (changes.showPublicHolidays || changes.holidayRegionMode || changes.holidayCustomCountry || changes.iranHolidaysOverride) {
+        if (changes.showPublicHolidays || changes.holidayRegionMode || changes.holidayCustomCountry) {
           if (changes.showPublicHolidays) showPublicHolidays = changes.showPublicHolidays.newValue !== undefined ? !!changes.showPublicHolidays.newValue : true;
           if (changes.holidayRegionMode) holidayRegionMode = changes.holidayRegionMode.newValue || 'auto';
           if (changes.holidayCustomCountry) holidayCustomCountry = changes.holidayCustomCountry.newValue || '';
+          // اگر همین الان (از popup) تغییر کرده، بلافاصله بازخوانی/پاکسازی کن
           loadRegionalHolidays();
         }
         if (changes.quoteReligionSource) {
