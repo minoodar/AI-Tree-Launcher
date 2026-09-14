@@ -686,8 +686,10 @@ const i18nPopup = {
           const a = document.createElement('a');
           a.href = url;
           a.download = filename;
+          a.style.display = 'none';
+          document.body.appendChild(a);
           a.click();
-          URL.revokeObjectURL(url);
+          setTimeout(() => { try { URL.revokeObjectURL(url); } catch (e) {} try { a.remove(); } catch (e) {} }, 1500);
           showToast((i18nPopup[currentLang] || i18nPopup.en).toastExported);
         });
       });
@@ -765,6 +767,169 @@ const i18nPopup = {
       };
       reader.readAsText(file);
     });
+
+
+    // ---- Iran holidays JSON (save / load / clear custom) ----
+    function downloadTextFile(filename, text, mime) {
+      try {
+        const blob = new Blob([text], { type: mime || 'application/json;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          try { URL.revokeObjectURL(url); } catch (e) {}
+          try { a.remove(); } catch (e) {}
+        }, 1500);
+        return true;
+      } catch (err) {
+        console.error('[AI Tree] download failed', err);
+        return false;
+      }
+    }
+
+    const iranExportBtn = document.getElementById('exportIranHolidaysBtn');
+    const iranImportBtn = document.getElementById('importIranHolidaysBtn');
+    const iranResetBtn = document.getElementById('resetIranHolidaysBtn');
+    const iranFileInput = document.getElementById('iranHolidaysFileInput');
+    const iranStatus = document.getElementById('iran-holidays-status');
+
+    function setIranStatus(msg) {
+      if (iranStatus) iranStatus.textContent = msg || '';
+    }
+
+    function updateIranResetButton(hasOverride) {
+      if (!iranResetBtn) return;
+      if (hasOverride) {
+        iranResetBtn.disabled = false;
+        iranResetBtn.style.opacity = '1';
+        iranResetBtn.style.color = '#cbd5e1';
+      } else {
+        iranResetBtn.disabled = true;
+        iranResetBtn.style.opacity = '0.55';
+        iranResetBtn.style.color = '#94a3b8';
+      }
+    }
+
+    function refreshIranHolidaysStatus() {
+      chrome.runtime.sendMessage({ action: 'getIranHolidays' }, (res) => {
+        if (chrome.runtime.lastError) {
+          setIranStatus('خطا در ارتباط با افزونه');
+          updateIranResetButton(false);
+          return;
+        }
+        if (!res || !res.success) {
+          setIranStatus('');
+          updateIranResetButton(false);
+          return;
+        }
+        const n = Array.isArray(res.data) ? res.data.length : 0;
+        const isCustom = res.source === 'iran-override';
+        const srcLabel = isCustom
+          ? 'فایل سفارشی شما'
+          : (res.source === 'iran-json' ? 'فایل اصلی افزونه' : 'فهرست داخلی');
+        setIranStatus(n + ' مناسبت · منبع: ' + srcLabel);
+        updateIranResetButton(isCustom);
+      });
+    }
+    refreshIranHolidaysStatus();
+
+    if (iranExportBtn) {
+      iranExportBtn.addEventListener('click', () => {
+        // 1) Try background
+        chrome.runtime.sendMessage({ action: 'getIranHolidays' }, (res) => {
+          let events = null;
+          let source = 'export';
+          if (!chrome.runtime.lastError && res && res.success && Array.isArray(res.data) && res.data.length) {
+            events = res.data;
+            source = res.source || 'export';
+            finishExport(events, source);
+            return;
+          }
+          // 2) Fallback: fetch packaged JSON directly from extension
+          fetch(chrome.runtime.getURL('iran-holidays.json'))
+            .then((r) => r.json())
+            .then((doc) => {
+              const list = (doc && (doc.events || doc.holidays)) || (Array.isArray(doc) ? doc : null);
+              if (!list || !list.length) throw new Error('empty');
+              finishExport(list, 'iran-json');
+            })
+            .catch(() => {
+              alert('نتوانست فهرست مناسبت‌ها را بخواند. مطمئن شوید iran-holidays.json کنار افزونه است و افزونه را Reload کرده‌اید.');
+            });
+        });
+
+        function finishExport(events, source) {
+          const doc = {
+            version: 1,
+            region: 'IR',
+            title: 'مناسبت‌ها و تعطیلات رسمی ایران',
+            updated: new Date().toISOString().slice(0, 10),
+            source: source,
+            events: events
+          };
+          const text = JSON.stringify(doc, null, 2);
+          const name = 'iran-holidays-' + doc.updated + '.json';
+          const ok = downloadTextFile(name, text, 'application/json;charset=utf-8');
+          if (ok) showToast('فایل «' + name + '» ذخیره شد');
+          else alert('دانلود ناموفق بود');
+        }
+      });
+    }
+
+    if (iranImportBtn && iranFileInput) {
+      iranImportBtn.addEventListener('click', () => iranFileInput.click());
+      iranFileInput.addEventListener('change', () => {
+        const file = iranFileInput.files && iranFileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result || ''));
+            const events = Array.isArray(parsed)
+              ? parsed
+              : (parsed.events || parsed.holidays || null);
+            if (!Array.isArray(events) || events.length === 0) {
+              alert('فایل معتبر نیست.\nباید یک آرایه باشد یا فیلد events داشته باشد.');
+              iranFileInput.value = '';
+              return;
+            }
+            chrome.runtime.sendMessage({ action: 'setIranHolidays', data: events }, (res) => {
+              if (chrome.runtime.lastError || !res || !res.success) {
+                alert('بارگذاری ناموفق. هر آیتم باید day، month و label داشته باشد.');
+                return;
+              }
+              showToast((res.count || events.length) + ' مناسبت بارگذاری شد');
+              refreshIranHolidaysStatus();
+              broadcastRefresh();
+            });
+          } catch (err) {
+            alert('خواندن JSON ناموفق بود — فایل را بررسی کنید.');
+          }
+          iranFileInput.value = '';
+        };
+        reader.readAsText(file, 'UTF-8');
+      });
+    }
+
+    if (iranResetBtn) {
+      iranResetBtn.addEventListener('click', () => {
+        if (iranResetBtn.disabled) return;
+        if (!confirm('فایل سفارشی حذف شود و دوباره از فهرست اصلی افزونه استفاده شود؟')) return;
+        chrome.runtime.sendMessage({ action: 'resetIranHolidays' }, (res) => {
+          if (chrome.runtime.lastError || !res || !res.success) {
+            alert('حذف تغییرات ناموفق بود');
+            return;
+          }
+          showToast('به فهرست اصلی افزونه برگشت');
+          refreshIranHolidaysStatus();
+          broadcastRefresh();
+        });
+      });
+    }
 
     function showToast(msg) {
       const toast = document.getElementById('toast');

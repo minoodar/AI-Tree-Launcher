@@ -9272,11 +9272,10 @@ let hubAutoCollapsedByPanel = false;
           }
       }
       if (area === 'local') {
-        if (changes.showPublicHolidays || changes.holidayRegionMode || changes.holidayCustomCountry) {
+        if (changes.showPublicHolidays || changes.holidayRegionMode || changes.holidayCustomCountry || changes.iranHolidaysOverride) {
           if (changes.showPublicHolidays) showPublicHolidays = changes.showPublicHolidays.newValue !== undefined ? !!changes.showPublicHolidays.newValue : true;
           if (changes.holidayRegionMode) holidayRegionMode = changes.holidayRegionMode.newValue || 'auto';
           if (changes.holidayCustomCountry) holidayCustomCountry = changes.holidayCustomCountry.newValue || '';
-          // اگر همین الان (از popup) تغییر کرده، بلافاصله بازخوانی/پاکسازی کن
           loadRegionalHolidays();
         }
         if (changes.quoteReligionSource) {

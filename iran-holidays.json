@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "region": "IR",
+  "title": "مناسبت‌ها و تعطیلات رسمی ایران",
+  "description": "فهرست آفلاین. برای اصلاح: خروجی بگیرید، ویرایش کنید، دوباره بارگذاری کنید.",
+  "updated": "2026-09-14",
+  "events": [
+    {
+      "id": "nowruz",
+      "label": "عید نوروز",
+      "day": 1,
+      "month": 1,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "nowruz-2",
+      "label": "عید نوروز",
+      "day": 2,
+      "month": 1,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "eid-fitr-2",
+      "label": "تعطیل به مناسبت عید سعید فطر",
+      "day": 2,
+      "month": 10,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "nowruz-3",
+      "label": "عید نوروز",
+      "day": 3,
+      "month": 1,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "nowruz-4",
+      "label": "عید نوروز",
+      "day": 4,
+      "month": 1,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "islamic-republic",
+      "label": "روز جمهوری اسلامی ایران",
+      "day": 12,
+      "month": 1,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "nature-day",
+      "label": "روز طبیعت و سیزده‌به‌در",
+      "day": 13,
+      "month": 1,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "imam-sadiq-martyrdom",
+      "label": "شهادت امام جعفر صادق (ع)",
+      "day": 25,
+      "month": 10,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "eid-adha",
+      "label": "عید سعید قربان",
+      "day": 10,
+      "month": 12,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "ghadir",
+      "label": "عید سعید غدیر خم",
+      "day": 18,
+      "month": 12,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "khomeini-death",
+      "label": "رحلت امام خمینی (ره)",
+      "day": 14,
+      "month": 3,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "khordad-15",
+      "label": "قیام خونین ۱۵ خرداد",
+      "day": 15,
+      "month": 3,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "tasu'a",
+      "label": "تاسوعای حسینی",
+      "day": 9,
+      "month": 1,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "ashura",
+      "label": "عاشورای حسینی",
+      "day": 10,
+      "month": 1,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "arbaeen",
+      "label": "اربعین حسینی",
+      "day": 20,
+      "month": 2,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "prophet-death-hasan-martyrdom",
+      "label": "رحلت پیامبر اکرم (ص) و شهادت امام حسن مجتبی (ع)",
+      "day": 28,
+      "month": 2,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "imam-reza-martyrdom",
+      "label": "شهادت امام رضا (ع)",
+      "day": 30,
+      "month": 2,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "mawlid-prophet",
+      "label": "ولادت حضرت رسول اکرم (ص)",
+      "day": 17,
+      "month": 3,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "mawlid-imam-sadiq",
+      "label": "ولادت امام جعفر صادق (ع)",
+      "day": 17,
+      "month": 3,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "fatima-martyrdom",
+      "label": "شهادت حضرت فاطمه زهرا (س)",
+      "day": 3,
+      "month": 6,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "imam-ali-birth",
+      "label": "ولادت حضرت علی (ع) و روز پدر",
+      "day": 13,
+      "month": 7,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "prophet-ascension",
+      "label": "مبعث حضرت رسول اکرم (ص)",
+      "day": 27,
+      "month": 7,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "imam-mahdi-birth",
+      "label": "ولادت حضرت قائم (عج) و نیمه شعبان",
+      "day": 15,
+      "month": 8,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "imam-ali-martyrdom",
+      "label": "شهادت حضرت علی (ع)",
+      "day": 21,
+      "month": 9,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "eid-fitr-1",
+      "label": "عید سعید فطر",
+      "day": 1,
+      "month": 10,
+      "cal": "h",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "oil-nationalization",
+      "label": "روز ملی شدن صنعت نفت ایران",
+      "day": 29,
+      "month": 12,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    },
+    {
+      "id": "revolution-victory",
+      "label": "پیروزی انقلاب اسلامی ایران",
+      "day": 22,
+      "month": 11,
+      "cal": "j",
+      "golden": false,
+      "isPublic": true
+    }
+  ]
+}

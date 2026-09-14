@@ -231,6 +231,22 @@
     </div>
     <div class="backup-hint" id="backup-hint">🟢 Export saves everything — bookmarks, todos, calendar events &amp; marks, settings, notepad &nbsp;·&nbsp; 🟠 Import restores it all from a file</div>
 
+    <!-- Iran calendar occasions -->
+    <div style="margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border);">
+      <div style="font-size: 12px; font-weight: 600; margin-bottom: 6px;" id="lbl-iran-holidays-title">🇮🇷 مناسبت‌های تقویم ایران</div>
+      <div class="backup-hint" id="iran-holidays-hint" style="margin-top:0; margin-bottom:10px;">
+        فایل JSON را <b>ذخیره</b> کنید، در صورت نیاز ویرایش کنید، سپس با <b>بارگذاری</b> جایگزین کنید.
+        دکمهٔ «حذف تغییرات» فقط وقتی فعال است که قبلاً فایلی بارگذاری کرده باشید.
+      </div>
+      <div style="display: flex; gap: 8px; flex-direction: column;">
+        <button type="button" id="exportIranHolidaysBtn" class="btn btn-export" style="flex: 1;">💾 ذخیرهٔ فایل مناسبت‌ها (JSON)</button>
+        <button type="button" id="importIranHolidaysBtn" class="btn btn-import" style="flex: 1;">📂 بارگذاری فایل مناسبت‌ها</button>
+        <button type="button" id="resetIranHolidaysBtn" class="btn" style="flex: 1; background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.35); opacity: 0.55;" disabled title="فقط پس از بارگذاری یک فایل سفارشی فعال می‌شود">🗑️ حذف تغییرات (بازگشت به فهرست اصلی)</button>
+        <input type="file" id="iranHolidaysFileInput" accept=".json,application/json" hidden>
+      </div>
+      <div id="iran-holidays-status" style="font-size: 11px; color: var(--text-muted); margin-top: 8px; line-height: 1.5;"></div>
+    </div>
+
     <!-- بخش Contact Us (انتقال یافته به Backup) -->
     <div style="margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border);">
       <details class="contact-details">

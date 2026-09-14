@@ -125,6 +125,69 @@ async function fetchTranslateWithRetry(url, maxRetries) {
   }
 }
 
+
+// ---- Iran holidays: packaged JSON + optional user override ----
+const IRAN_HOLIDAYS_STORAGE_KEY = 'iranHolidaysOverride';
+
+function normalizeIranHolidayEntry(raw, idx) {
+  if (!raw || typeof raw !== 'object') return null;
+  const day = parseInt(raw.day, 10);
+  const month = parseInt(raw.month, 10);
+  if (!day || !month || day < 1 || day > 31 || month < 1 || month > 12) return null;
+  let cal = String(raw.cal || 'j').toLowerCase();
+  if (cal === 'jalali' || cal === 'shamsi') cal = 'j';
+  if (cal === 'hijri' || cal === 'qamari' || cal === 'lunar') cal = 'h';
+  if (cal === 'gregorian') cal = 'g';
+  if (cal !== 'j' && cal !== 'h' && cal !== 'g') cal = 'j';
+  const label = String(raw.label || '').trim().slice(0, 120);
+  if (!label) return null;
+  const id = String(raw.id || ('ir-' + month + '-' + day + '-' + idx)).slice(0, 80);
+  return { id, label, day, month, cal, golden: !!raw.golden, isPublic: raw.isPublic !== false };
+}
+
+function normalizeIranHolidayList(list) {
+  if (!Array.isArray(list)) return null;
+  const out = [];
+  const seen = new Set();
+  list.forEach((item, i) => {
+    const n = normalizeIranHolidayEntry(item, i);
+    if (!n) return;
+    if (seen.has(n.id)) n.id = n.id + '-' + i;
+    seen.add(n.id);
+    out.push(n);
+  });
+  return out.length ? out : null;
+}
+
+function loadPackagedIranHolidays() {
+  return fetch(chrome.runtime.getURL('iran-holidays.json'))
+    .then((r) => { if (!r.ok) throw new Error('packaged json missing'); return r.json(); })
+    .then((doc) => {
+      const list = normalizeIranHolidayList(doc && (doc.events || doc.holidays || doc));
+      if (!list) throw new Error('invalid packaged json');
+      return list;
+    });
+}
+
+function getIranHolidaysList() {
+  return new Promise((resolve) => {
+    try {
+      chrome.storage.local.get([IRAN_HOLIDAYS_STORAGE_KEY], (res) => {
+        const override = normalizeIranHolidayList(res[IRAN_HOLIDAYS_STORAGE_KEY]);
+        if (override) {
+          resolve({ data: override, source: 'iran-override' });
+          return;
+        }
+        loadPackagedIranHolidays()
+          .then((list) => resolve({ data: list, source: 'iran-json' }))
+          .catch(() => resolve({ data: IRAN_HOLIDAYS, source: 'iran-static' }));
+      });
+    } catch (e) {
+      resolve({ data: IRAN_HOLIDAYS, source: 'iran-static' });
+    }
+  });
+}
+
 function holidaysCacheKeyFor(countryCode, year) {
   return `aiTreeHolidays_${countryCode}_${year}`;
 }
@@ -329,9 +392,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const year = message.year;
 
     if (countryCode === 'IR') {
-      // آفلاین و همزمان — بدون فچ، بدون تأخیر
-      sendResponse({ success: true, data: IRAN_HOLIDAYS, source: 'iran-static' });
-      return;
+      getIranHolidaysList().then((result) => {
+        sendResponse({ success: true, data: result.data, source: result.source });
+      }).catch(() => {
+        sendResponse({ success: true, data: IRAN_HOLIDAYS, source: 'iran-static' });
+      });
+      return true;
     }
 
     const cacheKey = holidaysCacheKeyFor(countryCode, year);
@@ -350,6 +416,36 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch((error) => sendResponse({ success: false, error: String((error && error.message) || error) }));
     });
 
+    return true;
+  }
+
+  if (message.action === 'getIranHolidays') {
+    getIranHolidaysList().then((result) => {
+      sendResponse({ success: true, data: result.data, source: result.source });
+    }).catch(() => {
+      sendResponse({ success: true, data: IRAN_HOLIDAYS, source: 'iran-static' });
+    });
+    return true;
+  }
+
+  if (message.action === 'setIranHolidays') {
+    const list = normalizeIranHolidayList(message.data || message.events);
+    if (!list) {
+      sendResponse({ success: false, error: 'invalid_list' });
+      return false;
+    }
+    chrome.storage.local.set({ [IRAN_HOLIDAYS_STORAGE_KEY]: list }, () => {
+      sendResponse({ success: true, count: list.length, source: 'iran-override' });
+    });
+    return true;
+  }
+
+  if (message.action === 'resetIranHolidays') {
+    chrome.storage.local.remove(IRAN_HOLIDAYS_STORAGE_KEY, () => {
+      getIranHolidaysList().then((result) => {
+        sendResponse({ success: true, data: result.data, source: result.source, reset: true });
+      });
+    });
     return true;
   }
 });
