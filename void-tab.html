@@ -666,12 +666,25 @@
        ویجتِ اصلی، اما مستقل محاسبه می‌شود چون پنلِ ساعتِ اصلی فقط وقتی باز است
        به‌روزرسانی می‌شود، و این داک باید همیشه (حتی بسته) درست باشد. */
     .ai-void-agenda-datehead {
-        display: flex; flex-direction: column; gap: 1px;
+        display: flex; flex-direction: column; gap: 3px;
         padding-bottom: 8px;
         border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .ai-void-agenda-date-primary { font-size: 12px; font-weight: 700; color: #F1F5FF; }
-    .ai-void-agenda-date-secondary { font-size: 10.5px; color: rgba(199,210,254,.65); }
+    .ai-void-agenda-date-primary { font-size: 12.5px; font-weight: 700; color: #F1F5FF; letter-spacing: .01em; }
+    .ai-void-agenda-date-secondary {
+        font-size: 13px;
+        font-weight: 700;
+        color: #C7D2FE;
+        letter-spacing: .01em;
+        text-shadow: 0 0 12px rgba(129, 140, 248, 0.35);
+    }
+    .ai-void-agenda-date-tertiary {
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(196, 181, 253, 0.78);
+        letter-spacing: .02em;
+        margin-top: 1px;
+    }
     .ai-void-agenda-age { font-size: 10px; color: rgba(251,191,36,.75); margin-top: 3px; font-weight: 600; }
     .ai-void-agenda-journey { margin-top: 6px; }
     .ai-void-agenda-journey-top {
@@ -777,12 +790,16 @@
     .ai-void-tomorrow-row .ai-void-event-time { font-size: 10px; }
     .ai-void-todo-row {
         display: flex; align-items: flex-start; min-width: 0; gap: 8px;
-        padding: 6px; border: 0; border-radius: 8px;
-        background: transparent; color: inherit;
+        padding: 6px 8px;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        background: rgba(255,255,255,.03);
+        color: inherit;
         font: 12px/1.35 system-ui, sans-serif;
         text-align: start; cursor: pointer;
+        transition: background .15s ease, border-color .15s ease, box-shadow .18s ease;
     }
-    .ai-void-todo-row:hover { background: rgba(255,255,255,.07); }
+    .ai-void-todo-row:hover { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.06); }
     .ai-void-todo-check {
         width: 16px; height: 16px; flex: 0 0 16px;
         margin-top: 1px;
@@ -800,6 +817,61 @@
         min-width: 0;
     }
     .ai-void-todo-empty { padding: 16px 5px; color: rgba(224,231,255,.5); font-size: 11px; text-align: center; }
+
+    .ai-void-agenda-section.is-goals {
+        margin-top: 2px;
+        padding-top: 6px;
+        border-top: 1px dashed rgba(167, 139, 250, 0.22);
+    }
+    .ai-void-agenda-section.is-goals .ai-void-agenda-section-title {
+        color: rgba(196, 181, 253, 0.85);
+    }
+    .ai-void-todo-row.is-goal {
+        background: linear-gradient(135deg, rgba(124, 106, 242, 0.12), rgba(251, 191, 36, 0.06));
+        border: 1px solid rgba(167, 139, 250, 0.32);
+        box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.08) inset, 0 0 14px rgba(124, 106, 242, 0.18);
+    }
+    .ai-void-todo-row.is-goal:hover {
+        background: linear-gradient(135deg, rgba(124, 106, 242, 0.18), rgba(251, 191, 36, 0.1));
+        border-color: rgba(196, 181, 253, 0.5);
+        box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.12) inset, 0 0 18px rgba(124, 106, 242, 0.32);
+    }
+    .ai-void-todo-row.is-goal .ai-void-todo-check {
+        border-color: rgba(167, 139, 250, 0.7);
+        border-radius: 50%;
+        box-shadow: 0 0 6px rgba(167, 139, 250, 0.35);
+    }
+    .ai-void-todo-row.is-goal.done .ai-void-todo-check {
+        background: #818CF8;
+        border-color: #818CF8;
+        box-shadow: 0 0 8px rgba(129, 140, 248, 0.45);
+    }
+    .ai-void-goal-badge {
+        flex: 0 0 auto;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: .04em;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(167,139,250,.35), rgba(251,191,36,.28));
+        color: #EDE9FE;
+        margin-inline-start: auto;
+        text-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
+    }
+    .ai-void-todo-row.is-tomorrow {
+        border-color: rgba(251, 191, 36, 0.22);
+        background: rgba(251, 191, 36, 0.05);
+    }
+    .ai-void-tomorrow-badge {
+        flex: 0 0 auto;
+        font-size: 8.5px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 999px;
+        background: rgba(251, 191, 36, 0.2);
+        color: #FDE68A;
+        margin-inline-start: auto;
+    }
 
     /* Gmail profile edit dialog */
     #ai-void-profile-dialog {
@@ -986,6 +1058,10 @@
     <div class="ai-void-agenda-section">
       <div class="ai-void-agenda-section-title" id="ai-void-agenda-tasks-title"></div>
       <div class="ai-void-todo-list" id="ai-void-todo-list"></div>
+    </div>
+    <div class="ai-void-agenda-section is-goals" id="ai-void-agenda-goals-section" hidden>
+      <div class="ai-void-agenda-section-title" id="ai-void-agenda-goals-title"></div>
+      <div class="ai-void-todo-list ai-void-goals-list" id="ai-void-goals-list"></div>
     </div>
   </div>
 </aside>

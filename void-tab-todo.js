@@ -28,9 +28,29 @@
   const eventsTitleEl = document.getElementById('ai-void-agenda-events-title');
   const eventsList = document.getElementById('ai-void-agenda-events');
   const tasksTitleEl = document.getElementById('ai-void-agenda-tasks-title');
+  let goalsSection = document.getElementById('ai-void-agenda-goals-section');
+  let goalsTitleEl = document.getElementById('ai-void-agenda-goals-title');
+  let goalsList = document.getElementById('ai-void-goals-list');
   if (!dock || !handle || !list || !count || !sideButton || !dateHead || !eventsList) return;
 
   document.body.appendChild(dock);
+
+  // اگر HTML قدیمی بدون بخش Goals باشد، همین‌جا می‌سازیم تا نمایش اهداف از کار نیفتد
+  if (!goalsSection || !goalsList) {
+    const body = document.getElementById('ai-void-agenda-body') || dock;
+    goalsSection = document.createElement('div');
+    goalsSection.className = 'ai-void-agenda-section is-goals';
+    goalsSection.id = 'ai-void-agenda-goals-section';
+    goalsSection.hidden = true;
+    goalsTitleEl = document.createElement('div');
+    goalsTitleEl.className = 'ai-void-agenda-section-title';
+    goalsTitleEl.id = 'ai-void-agenda-goals-title';
+    goalsList = document.createElement('div');
+    goalsList.className = 'ai-void-todo-list ai-void-goals-list';
+    goalsList.id = 'ai-void-goals-list';
+    goalsSection.append(goalsTitleEl, goalsList);
+    body.appendChild(goalsSection);
+  }
 
   function label(key, fallback) {
     try { if (typeof t === 'function') { const v = t(key); if (v) return v; } } catch (e) {}
@@ -99,6 +119,22 @@
       secondary.dir = 'rtl';
       dateHead.appendChild(secondary);
     } catch (e) {}
+    try {
+      const tertiary = document.createElement('div'); tertiary.className = 'ai-void-agenda-date-tertiary';
+      tertiary.textContent = now.toLocaleDateString('ar-SA-u-ca-islamic-umalqura', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+      tertiary.dir = 'rtl';
+      dateHead.appendChild(tertiary);
+    } catch (e) {
+      try {
+        const tertiary = document.createElement('div'); tertiary.className = 'ai-void-agenda-date-tertiary';
+        tertiary.textContent = now.toLocaleDateString('en-US-u-ca-islamic-umalqura', {
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
+        dateHead.appendChild(tertiary);
+      } catch (e2) {}
+    }
     if (userBirthYear && !isNaN(userBirthYear)) {
       let currentYear = now.getFullYear();
       if (userBirthYear < 1500) {
@@ -352,51 +388,110 @@
     renderTodos();
   }
 
+  function isGoal(todo) {
+    if (!todo) return false;
+    const ty = String(todo.type || '').toLowerCase();
+    return ty === 'goal' || ty === 'goals';
+  }
+
+  function buildTodoRow(todo, opts) {
+    opts = opts || {};
+    const isGoalRow = !!opts.isGoal;
+    const isTomorrow = !!opts.isTomorrow;
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'ai-void-todo-row'
+      + (isGoalRow ? ' is-goal' : '')
+      + (isTomorrow ? ' is-tomorrow' : '')
+      + (todo.done ? ' done' : '');
+    row.title = todo.text || '';
+    const check = document.createElement('span');
+    check.className = 'ai-void-todo-check';
+    check.textContent = todo.done ? '\u2713' : '';
+    const textEl = document.createElement('span');
+    textEl.className = 'ai-void-todo-text';
+    textEl.textContent = todo.text || '';
+    row.append(check, textEl);
+    if (isGoalRow) {
+      const badge = document.createElement('span');
+      badge.className = 'ai-void-goal-badge';
+      badge.textContent = '\u2728';
+      badge.title = label('todoTabGoals', 'Goals');
+      row.appendChild(badge);
+    } else if (isTomorrow) {
+      const badge = document.createElement('span');
+      badge.className = 'ai-void-tomorrow-badge';
+      badge.textContent = label('todoWhenTomorrow', 'Tomorrow');
+      row.appendChild(badge);
+    }
+    row.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (todo.sourceCheck && typeof todo.sourceCheck.click === 'function') {
+        todo.sourceCheck.click();
+        return;
+      }
+      todo.done = !todo.done;
+      try {
+        chrome.storage.sync.set({ aiTreeTodos: todos });
+        chrome.storage.local.set({ aiTreeTodos: todos });
+      } catch (err) {}
+      try {
+        window.__aiTreeTodosForVoid = todos;
+        window.dispatchEvent(new CustomEvent('ai-tree-todos-updated', { detail: todos }));
+      } catch (err) {}
+      renderTodos();
+    });
+    return row;
+  }
+
   function renderTodos() {
     if (tasksTitleEl) tasksTitleEl.textContent = label('voidAgendaTasksLabel', 'Tasks');
     const now = Date.now();
+    // کارهای امروز (daily با TTL فعال)
     const shown = todos.filter(function (t) { return isToday(t, now); });
-    const pending = shown.filter(function (t) { return !t.done; }).length;
-    count.textContent = shown.length ? (pending + '/' + shown.length) : '';
+    // کارهای فردا (daily با createdAt آینده)
+    const tomorrow = todos.filter(function (t) { return isTomorrowTodo(t, now); });
+    // اهداف — بدون محدودیت زمانی؛ همیشه در پنل Today
+    const goals = todos.filter(function (t) { return isGoal(t); });
+
+    const pendingDaily = shown.filter(function (t) { return !t.done; }).length;
+    const pendingTomorrow = tomorrow.filter(function (t) { return !t.done; }).length;
+    const pendingGoals = goals.filter(function (t) { return !t.done; }).length;
+    const totalOpen = pendingDaily + pendingTomorrow + pendingGoals;
+    const totalAll = shown.length + tomorrow.length + goals.length;
+    count.textContent = totalAll ? (totalOpen + '/' + totalAll) : '';
+
     list.innerHTML = '';
-    if (!shown.length) {
+    if (!shown.length && !tomorrow.length) {
       const empty = document.createElement('div');
       empty.className = 'ai-void-todo-empty';
       empty.textContent = label('todoNoDaily', 'No daily tasks');
       list.appendChild(empty);
-      return;
-    }
-    shown.forEach(function (todo) {
-      const row = document.createElement('button');
-      row.type = 'button';
-      row.className = 'ai-void-todo-row' + (todo.done ? ' done' : '');
-      row.title = todo.text || '';
-      const check = document.createElement('span');
-      check.className = 'ai-void-todo-check';
-      check.textContent = todo.done ? '\u2713' : '';
-      const text = document.createElement('span');
-      text.className = 'ai-void-todo-text';
-      text.textContent = todo.text || '';
-      row.append(check, text);
-      row.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (todo.sourceCheck && typeof todo.sourceCheck.click === 'function') {
-          todo.sourceCheck.click();
-          return;
-        }
-        todo.done = !todo.done;
-        try {
-          chrome.storage.sync.set({ aiTreeTodos: todos });
-          chrome.storage.local.set({ aiTreeTodos: todos });
-        } catch (err) {}
-        try {
-          window.__aiTreeTodosForVoid = todos;
-          window.dispatchEvent(new CustomEvent('ai-tree-todos-updated', { detail: todos }));
-        } catch (err) {}
-        renderTodos();
+    } else {
+      shown.forEach(function (todo) {
+        list.appendChild(buildTodoRow(todo, { isGoal: false }));
       });
-      list.appendChild(row);
-    });
+      tomorrow.forEach(function (todo) {
+        list.appendChild(buildTodoRow(todo, { isGoal: false, isTomorrow: true }));
+      });
+    }
+
+    // بخش اهداف — همیشه از storage کامل می‌آید، نه از DOM تب روزانه
+    if (goalsSection && goalsList) {
+      if (!goals.length) {
+        goalsSection.hidden = true;
+        goalsList.innerHTML = '';
+      } else {
+        goalsSection.hidden = false;
+        if (goalsTitleEl) goalsTitleEl.textContent = label('todoTabGoals', 'Goals');
+        goalsList.innerHTML = '';
+        goals.slice().sort(function (a, b) {
+          return (a.done === b.done) ? 0 : (a.done ? 1 : -1);
+        }).forEach(function (todo) {
+          goalsList.appendChild(buildTodoRow(todo, { isGoal: true }));
+        });
+      }
+    }
   }
 
   function isMobileLayout() {
@@ -450,10 +545,18 @@
         chrome.storage.sync.get(['aiTreeTodos'], function (syncData) {
           const localTodos = Array.isArray(localData.aiTreeTodos) ? localData.aiTreeTodos : [];
           const syncTodos = Array.isArray(syncData.aiTreeTodos) ? syncData.aiTreeTodos : [];
-          // Prefer the richer list; local is written alongside sync on every save
-          // but can lag if a prior write only hit one area.
+          // Prefer the richer list — not only by length, but by presence of goals
+          // (DOM-scraped fallbacks are daily-only and must not win over full storage).
+          function score(arr) {
+            let s = arr.length;
+            for (let i = 0; i < arr.length; i++) {
+              const ty = String((arr[i] && arr[i].type) || '').toLowerCase();
+              if (ty === 'goal' || ty === 'goals') s += 10;
+            }
+            return s;
+          }
           let preferred = localTodos;
-          if (syncTodos.length > localTodos.length) preferred = syncTodos;
+          if (score(syncTodos) > score(localTodos)) preferred = syncTodos;
           else if (syncTodos.length && !localTodos.length) preferred = syncTodos;
           acceptTodos(preferred, true);
         });
@@ -498,11 +601,16 @@
   setInterval(() => { renderEvents(); renderDateHead(); }, 60 * 1000);
 
   function poll() {
+    // منبع اصلی: آرایهٔ کامل (روزانه + فردا + اهداف) از content.js
     if (Array.isArray(window.__aiTreeTodosForVoid) && window.__aiTreeTodosForVoid.length) {
       acceptTodos(window.__aiTreeTodosForVoid, false);
+      return;
     }
+    // فقط وقتی هنوز هیچ todoای نداریم از DOM اسکرپ کن —
+    // و هرگز لیستی که فقط daily است را روی لیست کامل‌تر (با goal) ننویس
+    if (todos.length) return;
     const sources = [
-      { el: document.getElementById('ai-todo-list'), row: '.ai-todo-item', text: '.ai-todo-text', check: '.ai-todo-check' },
+      { el: document.getElementById('ai-todo-list'), row: '.ai-todo-item, .ai-goal-item', text: '.ai-todo-text, .ai-goal-text', check: '.ai-todo-check, .ai-goal-check' },
       { el: document.getElementById('ai-dash-todo-list'), row: '.ai-dash-todo-row', text: '.ai-dash-todo-text', check: '.ai-dash-todo-check' }
     ];
     for (let s = 0; s < sources.length; s++) {
@@ -517,15 +625,16 @@
         const checkEl = row.querySelector(src.check);
         const text = textEl ? textEl.textContent.trim() : '';
         if (!text) continue;
+        const isGoalRow = row.classList.contains('ai-goal-item');
         mapped.push({
           text: text,
           done: row.classList.contains('done'),
           sourceCheck: checkEl,
-          type: 'daily',
+          type: isGoalRow ? 'goal' : 'daily',
           createdAt: Date.now() - 1000
         });
       }
-      if (mapped.length && !todos.filter(isToday).length) {
+      if (mapped.length) {
         acceptTodos(mapped, false);
         break;
       }
