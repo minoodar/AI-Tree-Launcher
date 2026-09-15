@@ -380,7 +380,7 @@
     const sig = function (arr) {
       return (arr || []).map(function (t) {
         if (!t) return '';
-        return [t.id || '', t.text || '', t.done ? '1' : '0', t.type || 'daily', String(t.createdAt || '')].join('\x1f');
+        return [t.id || '', t.text || '', t.done ? '1' : '0', t.type || 'daily', String(t.createdAt || ''), String(typeof t.progress === 'number' ? t.progress : '')].join('\x1f');
       }).join('\x1e');
     };
     if (sig(next) === sig(todos)) return;
@@ -394,14 +394,31 @@
     return ty === 'goal' || ty === 'goals';
   }
 
+  function goalProgress(todo) {
+    if (!todo) return 0;
+    if (typeof todo.progress === 'number' && isFinite(todo.progress)) {
+      return Math.max(0, Math.min(100, Math.round(todo.progress)));
+    }
+    return todo.done ? 100 : 0;
+  }
+
+  function persistTodos() {
+    try {
+      chrome.storage.sync.set({ aiTreeTodos: todos });
+      chrome.storage.local.set({ aiTreeTodos: todos });
+    } catch (err) {}
+    try {
+      window.__aiTreeTodosForVoid = todos;
+      window.dispatchEvent(new CustomEvent('ai-tree-todos-updated', { detail: todos }));
+    } catch (err) {}
+  }
+
   function buildTodoRow(todo, opts) {
     opts = opts || {};
-    const isGoalRow = !!opts.isGoal;
     const isTomorrow = !!opts.isTomorrow;
     const row = document.createElement('button');
     row.type = 'button';
     row.className = 'ai-void-todo-row'
-      + (isGoalRow ? ' is-goal' : '')
       + (isTomorrow ? ' is-tomorrow' : '')
       + (todo.done ? ' done' : '');
     row.title = todo.text || '';
@@ -412,13 +429,7 @@
     textEl.className = 'ai-void-todo-text';
     textEl.textContent = todo.text || '';
     row.append(check, textEl);
-    if (isGoalRow) {
-      const badge = document.createElement('span');
-      badge.className = 'ai-void-goal-badge';
-      badge.textContent = '\u2728';
-      badge.title = label('todoTabGoals', 'Goals');
-      row.appendChild(badge);
-    } else if (isTomorrow) {
+    if (isTomorrow) {
       const badge = document.createElement('span');
       badge.className = 'ai-void-tomorrow-badge';
       badge.textContent = label('todoWhenTomorrow', 'Tomorrow');
@@ -431,32 +442,116 @@
         return;
       }
       todo.done = !todo.done;
-      try {
-        chrome.storage.sync.set({ aiTreeTodos: todos });
-        chrome.storage.local.set({ aiTreeTodos: todos });
-      } catch (err) {}
-      try {
-        window.__aiTreeTodosForVoid = todos;
-        window.dispatchEvent(new CustomEvent('ai-tree-todos-updated', { detail: todos }));
-      } catch (err) {}
+      persistTodos();
       renderTodos();
     });
     return row;
   }
 
+  function buildGoalCard(todo) {
+    const pct = goalProgress(todo);
+    const card = document.createElement('div');
+    card.className = 'ai-void-goal-card' + (pct >= 100 ? ' is-complete' : '');
+    card.dataset.goalId = todo.id || '';
+
+    const head = document.createElement('div');
+    head.className = 'ai-void-goal-head';
+
+    const spark = document.createElement('span');
+    spark.className = 'ai-void-goal-spark';
+    spark.textContent = '\u2728';
+    spark.setAttribute('aria-hidden', 'true');
+
+    const labelEl = document.createElement('div');
+    labelEl.className = 'ai-void-goal-label';
+    labelEl.textContent = todo.text || '';
+
+    const pctEl = document.createElement('span');
+    pctEl.className = 'ai-void-goal-pct' + (pct >= 70 ? ' is-high' : '');
+    pctEl.textContent = pct + '%';
+
+    head.append(spark, labelEl, pctEl);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'ai-void-goal-slider-wrap';
+
+    const track = document.createElement('div');
+    track.className = 'ai-void-goal-slider-track';
+    const veil = document.createElement('div');
+    veil.className = 'ai-void-goal-slider-veil';
+    veil.style.width = (100 - pct) + '%';
+    track.appendChild(veil);
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.className = 'ai-void-goal-slider';
+    slider.min = '0';
+    slider.max = '100';
+    slider.step = '1';
+    slider.value = String(pct);
+    slider.setAttribute('aria-label', (todo.text || 'Goal') + ' progress');
+    slider.setAttribute('aria-valuemin', '0');
+    slider.setAttribute('aria-valuemax', '100');
+    slider.setAttribute('aria-valuenow', String(pct));
+
+    function applyVisual(val) {
+      const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0)));
+      veil.style.width = (100 - v) + '%';
+      pctEl.textContent = v + '%';
+      pctEl.classList.toggle('is-high', v >= 70);
+      card.classList.toggle('is-complete', v >= 100);
+      slider.setAttribute('aria-valuenow', String(v));
+      // Thumb glow scales with progress
+      const glow = 6 + (v / 100) * 16;
+      const gold = (v / 100) * 0.75;
+      slider.style.setProperty('--thumb-glow', glow + 'px');
+      slider.style.setProperty('--thumb-gold', gold);
+    }
+
+    function commit(val) {
+      const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0)));
+      todo.progress = v;
+      todo.done = v >= 100;
+      applyVisual(v);
+      persistTodos();
+    }
+
+    slider.addEventListener('input', function () {
+      applyVisual(slider.value);
+    });
+    slider.addEventListener('change', function () {
+      commit(slider.value);
+    });
+    // Prevent dock drag / collapse when adjusting the lever
+    slider.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    slider.addEventListener('click', function (e) { e.stopPropagation(); });
+
+    wrap.append(track, slider);
+
+    const ends = document.createElement('div');
+    ends.className = 'ai-void-goal-ends';
+    const dim = document.createElement('span');
+    dim.textContent = label('goalDimLabel', 'Dim');
+    const light = document.createElement('span');
+    light.className = 'end-light';
+    light.textContent = label('goalLightLabel', 'Radiant');
+    ends.append(dim, light);
+
+    card.append(head, wrap, ends);
+    applyVisual(pct);
+    return card;
+  }
+
   function renderTodos() {
     if (tasksTitleEl) tasksTitleEl.textContent = label('voidAgendaTasksLabel', 'Tasks');
     const now = Date.now();
-    // کارهای امروز (daily با TTL فعال)
     const shown = todos.filter(function (t) { return isToday(t, now); });
-    // کارهای فردا (daily با createdAt آینده)
     const tomorrow = todos.filter(function (t) { return isTomorrowTodo(t, now); });
-    // اهداف — بدون محدودیت زمانی؛ همیشه در پنل Today
     const goals = todos.filter(function (t) { return isGoal(t); });
 
     const pendingDaily = shown.filter(function (t) { return !t.done; }).length;
     const pendingTomorrow = tomorrow.filter(function (t) { return !t.done; }).length;
-    const pendingGoals = goals.filter(function (t) { return !t.done; }).length;
+    const pendingGoals = goals.filter(function (t) { return goalProgress(t) < 100; }).length;
     const totalOpen = pendingDaily + pendingTomorrow + pendingGoals;
     const totalAll = shown.length + tomorrow.length + goals.length;
     count.textContent = totalAll ? (totalOpen + '/' + totalAll) : '';
@@ -476,7 +571,6 @@
       });
     }
 
-    // بخش اهداف — همیشه از storage کامل می‌آید، نه از DOM تب روزانه
     if (goalsSection && goalsList) {
       if (!goals.length) {
         goalsSection.hidden = true;
@@ -486,9 +580,9 @@
         if (goalsTitleEl) goalsTitleEl.textContent = label('todoTabGoals', 'Goals');
         goalsList.innerHTML = '';
         goals.slice().sort(function (a, b) {
-          return (a.done === b.done) ? 0 : (a.done ? 1 : -1);
+          return goalProgress(b) - goalProgress(a);
         }).forEach(function (todo) {
-          goalsList.appendChild(buildTodoRow(todo, { isGoal: true }));
+          goalsList.appendChild(buildGoalCard(todo));
         });
       }
     }

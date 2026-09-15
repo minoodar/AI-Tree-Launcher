@@ -826,37 +826,195 @@
     .ai-void-agenda-section.is-goals .ai-void-agenda-section-title {
         color: rgba(196, 181, 253, 0.85);
     }
-    .ai-void-todo-row.is-goal {
-        background: linear-gradient(135deg, rgba(124, 106, 242, 0.12), rgba(251, 191, 36, 0.06));
-        border: 1px solid rgba(167, 139, 250, 0.32);
-        box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.08) inset, 0 0 14px rgba(124, 106, 242, 0.18);
+
+    /* ── Goal progress card ── */
+    .ai-void-goal-card {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 9px 10px 10px;
+        border-radius: 11px;
+        border: 1px solid rgba(167, 139, 250, 0.28);
+        background:
+          linear-gradient(155deg, rgba(15, 12, 41, 0.55), rgba(48, 43, 99, 0.22) 45%, rgba(251, 191, 36, 0.06));
+        box-shadow:
+          0 0 0 1px rgba(167, 139, 250, 0.06) inset,
+          0 6px 18px rgba(0, 0, 0, 0.22);
+        transition: border-color .2s ease, box-shadow .25s ease;
     }
-    .ai-void-todo-row.is-goal:hover {
-        background: linear-gradient(135deg, rgba(124, 106, 242, 0.18), rgba(251, 191, 36, 0.1));
-        border-color: rgba(196, 181, 253, 0.5);
-        box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.12) inset, 0 0 18px rgba(124, 106, 242, 0.32);
+    .ai-void-goal-card:hover {
+        border-color: rgba(196, 181, 253, 0.45);
+        box-shadow:
+          0 0 0 1px rgba(167, 139, 250, 0.1) inset,
+          0 8px 22px rgba(0, 0, 0, 0.28),
+          0 0 20px rgba(124, 106, 242, 0.12);
     }
-    .ai-void-todo-row.is-goal .ai-void-todo-check {
-        border-color: rgba(167, 139, 250, 0.7);
-        border-radius: 50%;
-        box-shadow: 0 0 6px rgba(167, 139, 250, 0.35);
+    .ai-void-goal-card.is-complete {
+        border-color: rgba(251, 191, 36, 0.45);
+        box-shadow:
+          0 0 0 1px rgba(251, 191, 36, 0.12) inset,
+          0 0 22px rgba(251, 191, 36, 0.18);
     }
-    .ai-void-todo-row.is-goal.done .ai-void-todo-check {
-        background: #818CF8;
-        border-color: #818CF8;
-        box-shadow: 0 0 8px rgba(129, 140, 248, 0.45);
+    .ai-void-goal-head {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        min-width: 0;
     }
-    .ai-void-goal-badge {
+    .ai-void-goal-spark {
         flex: 0 0 auto;
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: .04em;
-        padding: 1px 7px;
+        font-size: 12px;
+        line-height: 1.3;
+        filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.45));
+    }
+    .ai-void-goal-label {
+        flex: 1 1 auto;
+        min-width: 0;
+        font: 600 12px/1.35 system-ui, sans-serif;
+        color: #F1F5FF;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        white-space: pre-wrap;
+    }
+    .ai-void-goal-card.is-complete .ai-void-goal-label {
+        color: #FDE68A;
+        text-shadow: 0 0 12px rgba(251, 191, 36, 0.35);
+    }
+    .ai-void-goal-pct {
+        flex: 0 0 auto;
+        font: 800 11px/1 system-ui, sans-serif;
+        letter-spacing: .03em;
+        padding: 3px 7px;
         border-radius: 999px;
-        background: linear-gradient(135deg, rgba(167,139,250,.35), rgba(251,191,36,.28));
         color: #EDE9FE;
-        margin-inline-start: auto;
-        text-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
+        background: rgba(15, 12, 41, 0.65);
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        min-width: 2.6em;
+        text-align: center;
+        transition: color .2s ease, border-color .2s ease, box-shadow .25s ease, background .2s ease;
+    }
+    .ai-void-goal-pct.is-high {
+        color: #0F172A;
+        background: linear-gradient(135deg, #FBBF24, #FDE68A);
+        border-color: rgba(251, 191, 36, 0.7);
+        box-shadow: 0 0 12px rgba(251, 191, 36, 0.45);
+    }
+
+    /* Spectrum track: darkness → violet → gold radiance */
+    .ai-void-goal-slider-wrap {
+        position: relative;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        touch-action: none;
+    }
+    .ai-void-goal-slider-track {
+        position: absolute;
+        left: 0; right: 0;
+        height: 8px;
+        border-radius: 999px;
+        background: linear-gradient(90deg,
+          #0B0A1A 0%,
+          #1E1B4B 18%,
+          #4338CA 42%,
+          #A78BFA 62%,
+          #FBBF24 82%,
+          #FEF3C7 100%);
+        box-shadow:
+          inset 0 1px 2px rgba(0,0,0,.45),
+          0 0 8px rgba(124, 106, 242, 0.15);
+        overflow: hidden;
+    }
+    /* Dim veil covering the unreached portion (right side) */
+    .ai-void-goal-slider-veil {
+        position: absolute;
+        top: 0; bottom: 0; right: 0;
+        background: rgba(8, 7, 18, 0.72);
+        border-radius: 0 999px 999px 0;
+        pointer-events: none;
+        transition: width .05s linear;
+    }
+    .ai-void-goal-slider {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 18px;
+        margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+        cursor: pointer;
+    }
+    .ai-void-goal-slider:focus {
+        outline: none;
+    }
+    .ai-void-goal-slider:focus-visible::-webkit-slider-thumb {
+        box-shadow:
+          0 0 0 3px rgba(251, 191, 36, 0.35),
+          0 0 16px rgba(251, 191, 36, 0.65);
+    }
+    .ai-void-goal-slider::-webkit-slider-runnable-track {
+        height: 8px;
+        background: transparent;
+        border: none;
+    }
+    .ai-void-goal-slider::-moz-range-track {
+        height: 8px;
+        background: transparent;
+        border: none;
+    }
+    .ai-void-goal-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        margin-top: -4px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        background: radial-gradient(circle at 35% 30%, #FEF3C7, #FBBF24 55%, #B45309);
+        box-shadow:
+          0 0 0 1px rgba(15, 12, 41, 0.5),
+          0 2px 6px rgba(0,0,0,.4),
+          0 0 10px rgba(251, 191, 36, 0.35);
+        transition: box-shadow .15s ease, transform .12s ease;
+        cursor: grab;
+    }
+    .ai-void-goal-slider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        background: radial-gradient(circle at 35% 30%, #FEF3C7, #FBBF24 55%, #B45309);
+        box-shadow:
+          0 0 0 1px rgba(15, 12, 41, 0.5),
+          0 2px 6px rgba(0,0,0,.4),
+          0 0 10px rgba(251, 191, 36, 0.35);
+        cursor: grab;
+    }
+    .ai-void-goal-slider:active::-webkit-slider-thumb {
+        cursor: grabbing;
+        transform: scale(1.12);
+        box-shadow:
+          0 0 0 2px rgba(251, 191, 36, 0.35),
+          0 2px 8px rgba(0,0,0,.45),
+          0 0 18px rgba(251, 191, 36, 0.7);
+    }
+    .ai-void-goal-slider:active::-moz-range-thumb {
+        cursor: grabbing;
+        transform: scale(1.12);
+    }
+    .ai-void-goal-ends {
+        display: flex;
+        justify-content: space-between;
+        margin-top: -2px;
+        font-size: 8.5px;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+        color: rgba(199, 210, 254, 0.35);
+        user-select: none;
+    }
+    .ai-void-goal-ends .end-light {
+        color: rgba(253, 230, 138, 0.55);
     }
     .ai-void-todo-row.is-tomorrow {
         border-color: rgba(251, 191, 36, 0.22);
