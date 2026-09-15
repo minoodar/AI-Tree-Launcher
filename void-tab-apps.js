@@ -12,12 +12,16 @@
   if (!row) return;
 
   const STORAGE_KEY = 'voidApps';
+  // چهار خط‌آیکونِ ژنریک (نه لوگوی رسمیِ گوگل) که فقط وقتی favicon بارگذاری
+  // نشد به‌کار می‌روند؛ هم‌خانواده با آیکونِ ذره‌بینِ سرچ (stroke=currentColor)
+  // تا رگهٔ رنگِ برندِ .is-mail/.is-drive/.is-cal/.is-photos روشون بنشیند.
+  const SVG_ATTRS = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
   const TYPE_META = {
-    mail: { cls: 'is-mail', glyph: '✉️' },
-    drive: { cls: 'is-drive', glyph: '📁' },
-    cal: { cls: 'is-cal', glyph: '📅' },
-    photos: { cls: 'is-photos', glyph: '🖼️' },
-    custom: { cls: 'is-custom', glyph: '' }
+    mail: { cls: 'is-mail', svg: `<svg ${SVG_ATTRS}><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 7l9 6 9-6"></path></svg>` },
+    drive: { cls: 'is-drive', svg: `<svg ${SVG_ATTRS}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>` },
+    cal: { cls: 'is-cal', svg: `<svg ${SVG_ATTRS}><rect x="3" y="5" width="18" height="16" rx="2"></rect><line x1="3" y1="10" x2="21" y2="10"></line><line x1="8" y1="3" x2="8" y2="7"></line><line x1="16" y1="3" x2="16" y2="7"></line></svg>` },
+    photos: { cls: 'is-photos', svg: `<svg ${SVG_ATTRS}><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="M21 15l-5-5-4 4-2-2-5 5"></path></svg>` },
+    custom: { cls: 'is-custom', svg: '' }
   };
 
   const DEFAULTS = [
@@ -43,6 +47,16 @@
     } catch (e) { return ''; }
   }
 
+  // آیکونِ لوکالِ chrome._favicon فقط از تاریخچهٔ بازدیدِ خودِ کاربر می‌خونه —
+  // اگر کسی Gmail/Drive/... را قبلاً در همین مرورگر باز نکرده باشه، بدونِ
+  // خطا یک آیکونِ خاکستریِ پیش‌فرض برمی‌گردونه (نه ارورِ img که بشه fallback
+  // زد). برای همین چهار اپِ پیش‌فرض از سرویسِ عمومیِ favicon گوگل استفاده
+  // می‌کنیم که مستقل از تاریخچهٔ محلیه و همیشه آیکونِ واقعی/رسمی رو می‌ده.
+  function officialFaviconUrl(domain) {
+    return 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(domain);
+  }
+  const TYPE_DOMAIN = { mail: 'mail.google.com', drive: 'drive.google.com', cal: 'calendar.google.com', photos: 'photos.google.com' };
+
   function save() {
     try { chrome.storage.local.set({ [STORAGE_KEY]: apps }); } catch (e) {}
   }
@@ -60,20 +74,23 @@
     a.rel = 'noopener';
     a.title = app.label || app.url;
 
+    // همیشه اول تلاش برای آیکونِ واقعیِ favicon (نشانِ رسمیِ Gmail/Drive/...
+    // را خودِ مرورگر می‌آورد، نه یک ایموجیِ تقریبی). فقط اگر favicon بارگذاری
+    // نشد (مثلاً بدونِ اینترنت)، به گلیفِ پیش‌فرض یا حرفِ اول برمی‌گردیم.
     const icon = document.createElement('span');
     icon.className = 'ai-void-app-icon ' + meta.cls;
-    if (app.type === 'custom') {
-      const img = document.createElement('img');
-      img.src = faviconUrl(app.url);
-      img.alt = '';
-      img.onerror = () => {
-        img.remove();
+    const img = document.createElement('img');
+    img.src = app.type === 'custom' ? faviconUrl(app.url) : officialFaviconUrl(TYPE_DOMAIN[app.type] || app.url);
+    img.alt = '';
+    img.onerror = () => {
+      img.remove();
+      if (app.type === 'custom') {
         icon.textContent = (app.label || '?').trim().charAt(0).toUpperCase() || '★';
-      };
-      icon.appendChild(img);
-    } else {
-      icon.textContent = meta.glyph;
-    }
+      } else {
+        icon.innerHTML = meta.svg;
+      }
+    };
+    icon.appendChild(img);
 
     const editBtn = document.createElement('button');
     editBtn.type = 'button';

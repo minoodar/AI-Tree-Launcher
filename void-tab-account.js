@@ -14,7 +14,7 @@
   const DEFAULT_TITLE = 'Google account';
 
   function applyGuestState() {
-    btn.textContent = '\uD83D\uDC64'; // 👤
+    btn.textContent = '\u25C9'; // ◉ — با همون خانوادهٔ آیکونِ خطی/تک‌رنگِ بقیهٔ دکمه‌ها هم‌شکل است
     btn.title = DEFAULT_TITLE;
     btn.removeAttribute('aria-label');
   }
