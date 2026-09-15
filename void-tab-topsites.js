@@ -18,7 +18,10 @@
 
   const PINNED_KEY = 'voidPinnedLinks';
   const HIDDEN_KEY = 'voidHiddenAutoLinks';
-  const MAX_TILES = 10;
+  // ۱۶ = ۱۵ لینکِ واقعی (سنجاق‌شده + خودکار) + ۱ کاشیِ «افزودن».
+  // با عرضِ کاشی ۵۸px و فاصلهٔ ۶px، در max-width فعلیِ #ai-ntp-topsites
+  // (۵۶۰px) هر ردیف ۸ کاشی جا می‌گیرد → ۱۶ کاشی یعنی دقیقاً دو ردیفِ ۸تایی.
+  const MAX_TILES = 16;
 
   let pinned = [];
   let hiddenAuto = [];
