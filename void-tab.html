@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <!-- به مرورگر می‌گه این سند تیره‌ست — روی برخی نسخه‌های Chromium حتی خودِ
-     پسِ‌زمینهٔ پیش‌فرضِ UA (قبل از اجرای هر CSS/JSای) رو هم تیره می‌کنه، نه
-     فقط کنترل‌های فرم رو. ارزون و بی‌خطره، پس همیشه می‌ذاریمش. -->
+     پسِ‌زمینهٔ پیش‌فرضِ UA (قبل از اجرای هر CSS/JSای) رو هم تیره می‌کنه. -->
 <meta name="color-scheme" content="dark">
-<!-- زودترین چیزِ ممکن در <head>: پس‌زمینهٔ تیره را همون لحظهٔ اول ست
-     می‌کند تا اگر مرورگر پیش از اجرای اسکریپتِ زیر یک فریم پینت کرد،
-     سفیدِ پیش‌فرضِ UA دیده نشه، بلکه همون تیرگیِ فضاست. -->
+<!-- زودترین چیزِ ممکن در <head>: پس‌زمینهٔ تیره را همون لحظهٔ اول ست می‌کند
+     تا اگر مرورگر پیش از اجرای اسکریپتِ زیر یک فریم پینت کرد، سفیدِ
+     پیش‌فرضِ UA دیده نشه. -->
 <style>html, body { background: #000; }</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Void Tab</title>
@@ -66,7 +65,7 @@
         top: 14px;
         right: 14px;
         left: auto;
-        z-index: 51;
+        z-index: 800;
         display: flex;
         align-items: center;
         gap: 4px;
@@ -109,6 +108,15 @@
     #ai-ntp-apps-wrap.open #ai-ntp-apps-btn {
         background: rgba(255, 255, 255, 0.12);
         transform: scale(1.1);
+    }
+    /* رنگِ کهربایی/نارنجیِ سیارهٔ حلقه‌دار — تنها آیکونِ رنگی توی کوییک‌بار،
+       عمداً برای جلبِ توجه، هم‌راستا با پالتِ کهربایی‌ای که جاهای دیگهٔ صفحه
+       (رویدادهای امروز، Goals و...) هم استفاده می‌کنن. */
+    #ai-ntp-apps-btn { color: rgba(251, 191, 36, 0.92); }
+    #ai-ntp-apps-btn:hover,
+    #ai-ntp-apps-wrap.open #ai-ntp-apps-btn {
+        color: #FBBF24;
+        background: rgba(251, 191, 36, 0.14);
     }
 
     /* ---- Center stage: search + shortcuts + topsites ---- */
@@ -305,7 +313,7 @@
         transform-origin: top right;
         pointer-events: none;
         transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
-        z-index: 2147483000;
+        z-index: 810;
     }
     #ai-ntp-apps-wrap.open #ai-ntp-apps-panel {
         opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto;
@@ -621,9 +629,12 @@
     .ai-void-echo-pattern[hidden] { display: none !important; }
     body.ai-focus-mode #ai-void-echo { opacity: 0 !important; pointer-events: none !important; }
 
-    /* Todo dock */
+    /* Todo dock — z-index رو حالا حتی از خودِ استیجِ اصلی (۴۰) هم پایین‌تر
+       گذاشتیم (۳۰): طبقِ خواستِ کاربر، وقتی داک باز/گسترده می‌شه و با سرچ/
+       Echo/Goals هم‌پوشانی پیدا می‌کنه، باید *زیرِ* اون‌ها بمونه، نه روشون -
+       کوییک‌بار (۸۰۰) و دیالوگِ ویرایش (۹۹۹۹۹۹) هنوز از همه بالاترن. */
     #ai-void-todo-dock {
-        position: fixed; top: 22%; z-index: 2147483647;
+        position: fixed; top: 22%; z-index: 30;
         display: block !important; visibility: visible !important; opacity: 1 !important;
         pointer-events: auto !important;
         width: min(300px, calc(100vw - 32px));
@@ -681,12 +692,9 @@
         max-height: calc(min(64vh, 520px) - 42px);
         padding: 9px 10px 10px; overflow: auto;
         /* اسکرول‌بارِ نازک و هم‌رنگِ تمِ دارک به‌جای اسکرول‌بارِ خاکستریِ
-           پیش‌فرضِ مرورگر؛ فقط موقعِ هاور/اسکرول پررنگ می‌شه، بقیهٔ وقت خیلی
-           کم‌رنگه — کمترین حواس‌پرتیِ بصری، بدونِ حذفِ کاملِ قابلیتِ اسکرول. */
+           پیش‌فرضِ مرورگر؛ فقط موقعِ هاور/اسکرول پررنگ می‌شه. */
         scrollbar-width: thin;
         scrollbar-color: rgba(165, 180, 252, .3) transparent;
-        /* محوشدنِ لبهٔ بالا/پایینِ محتوا وقتی قابلِ اسکرول‌ه — نشونهٔ ظریفی که
-           محتوای بیشتری هست، به‌جای یک خطِ برشِ ناگهانی. */
         -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
         mask-image: linear-gradient(to bottom, transparent 0, #000 10px, #000 calc(100% - 10px), transparent 100%);
     }
@@ -859,11 +867,17 @@
     }
     .ai-void-todo-empty { padding: 16px 5px; color: rgba(224,231,255,.5); font-size: 11px; text-align: center; }
 
+    /* دیگه بخشِ داخلیِ داک نیست — یه کارتِ مستقلِ شیشه‌ای، هم‌خانواده با
+       ظاهرِ #ai-void-echo (همون رادیوس/بوردر/بلور)، زیرِ Today's Echo. */
     .ai-void-agenda-section.is-goals {
-        margin-top: 2px;
-        padding-top: 6px;
-        border-top: 1px dashed rgba(167, 139, 250, 0.22);
+        width: 100%; max-width: 360px; border-radius: 16px;
+        margin-top: 0; padding: 10px 12px 12px;
+        border: 1px solid rgba(167, 139, 250, 0.18);
+        background: rgba(8, 12, 28, 0.42);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
+    .ai-void-agenda-section.is-goals[hidden] { display: none !important; }
     .ai-void-agenda-section.is-goals .ai-void-agenda-section-title {
         color: rgba(196, 181, 253, 0.85);
     }
@@ -1076,7 +1090,7 @@
     #ai-void-profile-dialog {
         position: fixed;
         inset: 0;
-        z-index: 2147483646;
+        z-index: 999999;
         display: none;
         place-items: center;
         background: rgba(0,0,0,0.45);
@@ -1144,7 +1158,23 @@
     }
 
     @media (max-width: 700px) {
-        #ai-void-stage { top: max(64px, 12vh); width: calc(100vw - 24px); gap: 14px; }
+        /* روی موبایل، وقتی همه‌چیز (سرچ + Frequent Links + Echo + Goals)
+           زیرِ هم می‌شینه، ممکنه رویِ‌همرفته از ارتفاعِ صفحه بلندتر بشه. چون
+           html/body عمداً overflow:hidden هستن (برای جلوگیری از اسکرولِ کلِ
+           صفحه روی starfield) و این استیج position:fixed هست (پس اسکرولِ
+           سند رو دنبال نمی‌کنه)، بدونِ این قانون هر بخشی که از ویوپورت رد
+           بشه (مثلِ Goals، چون آخرین آیتمه) کاملاً غیرِقابل‌دسترسی می‌موند —
+           نه پنهان به‌خاطرِ منطقِ برنامه، فقط بیرون از دیدِ صفحه. */
+        #ai-void-stage {
+            top: max(64px, 12vh); width: calc(100vw - 24px); gap: 14px;
+            max-height: calc(100vh - max(64px, 12vh) - 24px);
+            overflow-y: auto; overscroll-behavior: contain;
+            scrollbar-width: thin; scrollbar-color: rgba(165, 180, 252, .3) transparent;
+            padding-bottom: 12px;
+        }
+        #ai-void-stage::-webkit-scrollbar { width: 6px; }
+        #ai-void-stage::-webkit-scrollbar-track { background: transparent; }
+        #ai-void-stage::-webkit-scrollbar-thumb { background: rgba(165, 180, 252, .28); border-radius: 999px; }
         #ai-void-search-brand-name { font-size: 18px; }
         #ai-void-todo-dock { top: auto !important; bottom: 16px; width: min(320px, calc(100vw - 32px)); left: 50% !important; right: auto !important; transform: translateX(-50%); }
         #ai-ntp-quickbar, #ai-ntp-quickbar[data-side="left"], #ai-ntp-quickbar[data-side="right"] {
@@ -1195,10 +1225,9 @@
   </div>
   <div id="ai-ntp-apps-wrap">
     <button type="button" id="ai-ntp-apps-btn" title="Apps" aria-haspopup="true" aria-expanded="false">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="16" height="16">
-        <circle cx="5" cy="5" r="2.1"></circle><circle cx="12" cy="5" r="2.1"></circle><circle cx="19" cy="5" r="2.1"></circle>
-        <circle cx="5" cy="12" r="2.1"></circle><circle cx="12" cy="12" r="2.1"></circle><circle cx="19" cy="12" r="2.1"></circle>
-        <circle cx="5" cy="19" r="2.1"></circle><circle cx="12" cy="19" r="2.1"></circle><circle cx="19" cy="19" r="2.1"></circle>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" width="17" height="17">
+        <circle cx="12" cy="12" r="4.1" fill="currentColor" stroke="none"></circle>
+        <ellipse cx="12" cy="12" rx="9.6" ry="3.1" transform="rotate(-20 12 12)"></ellipse>
       </svg>
     </button>
     <div id="ai-ntp-apps-panel" role="menu" aria-label="Apps">
@@ -1250,6 +1279,18 @@
       <div class="ai-void-echo-pattern" id="ai-void-echo-pattern" hidden></div>
     </div>
   </div>
+
+  <!-- بخشِ Goals این‌جا زندگی می‌کنه (نه دیگه داخلِ داکِ Today) چون به‌نظرِ
+       کاربر با روحِ «Today's Echo» هم‌خوان‌تره. مستقلاً hidden/visible
+       می‌شه (بر اساسِ تعدادِ Goals) — به هیچ‌وجه به روشن/خاموش‌بودنِ خودِ
+       Echo (که بر اساسِ فعالیتِ امروزه) وابسته نیست، وگرنه با نبودِ فعالیتِ
+       امروز Goalsِ فعال هم قایم می‌شدن. id/class‌ها عمداً دست‌نخورده‌ن تا
+       void-tab-todo.js بدونِ هیچ تغییری همین‌جا پیداشون کنه و رندر کنه.
+  -->
+  <div class="ai-void-agenda-section is-goals" id="ai-void-agenda-goals-section" hidden>
+    <div class="ai-void-agenda-section-title" id="ai-void-agenda-goals-title"></div>
+    <div class="ai-void-todo-list ai-void-goals-list" id="ai-void-goals-list"></div>
+  </div>
 </section>
 
 <aside id="ai-void-todo-dock" class="is-collapsed" data-side="left" aria-label="Today">
@@ -1267,10 +1308,6 @@
     <div class="ai-void-agenda-section">
       <div class="ai-void-agenda-section-title" id="ai-void-agenda-tasks-title"></div>
       <div class="ai-void-todo-list" id="ai-void-todo-list"></div>
-    </div>
-    <div class="ai-void-agenda-section is-goals" id="ai-void-agenda-goals-section" hidden>
-      <div class="ai-void-agenda-section-title" id="ai-void-agenda-goals-title"></div>
-      <div class="ai-void-todo-list ai-void-goals-list" id="ai-void-goals-list"></div>
     </div>
   </div>
 </aside>

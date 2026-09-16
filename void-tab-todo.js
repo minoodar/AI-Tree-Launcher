@@ -35,9 +35,12 @@
 
   document.body.appendChild(dock);
 
-  // اگر HTML قدیمی بدون بخش Goals باشد، همین‌جا می‌سازیم تا نمایش اهداف از کار نیفتد
+  // اگر HTML قدیمی بدون بخش Goals باشد، همین‌جا می‌سازیم تا نمایش اهداف از کار نیفتد.
+  // محلِ پیش‌فرضِ ساخت: کنارِ Today's Echo (نه داخلِ داکِ Today) — چون این
+  // بخش دیگه به‌جای داک، زیرِ Echo زندگی می‌کنه.
   if (!goalsSection || !goalsList) {
-    const body = document.getElementById('ai-void-agenda-body') || dock;
+    const echoEl = document.getElementById('ai-void-echo');
+    const fallbackParent = (echoEl && echoEl.parentNode) || document.getElementById('ai-void-agenda-body') || dock;
     goalsSection = document.createElement('div');
     goalsSection.className = 'ai-void-agenda-section is-goals';
     goalsSection.id = 'ai-void-agenda-goals-section';
@@ -49,7 +52,8 @@
     goalsList.className = 'ai-void-todo-list ai-void-goals-list';
     goalsList.id = 'ai-void-goals-list';
     goalsSection.append(goalsTitleEl, goalsList);
-    body.appendChild(goalsSection);
+    if (echoEl && echoEl.nextSibling) fallbackParent.insertBefore(goalsSection, echoEl.nextSibling);
+    else fallbackParent.appendChild(goalsSection);
   }
 
   function label(key, fallback) {
@@ -57,14 +61,15 @@
     return fallback;
   }
 
-  const VISIBLE_KEY = 'voidTodoDockVisible';
   let todos = [];
   let timeEvents = [];
   let userBirthYear = null;
   let markedDays = [];
+  const VISIBLE_KEY = 'voidTodoDockVisible';
   let position = { side: 'left', top: 0.22 };
   let collapsed = true;
   let dockVisible = true;
+  let hasGoals = false;
 
   // ---------------------------------------------------------------- عمومی —
   function pad2(n) { return String(n).padStart(2, '0'); }
@@ -109,10 +114,15 @@
   }
 
   // نمایش/پنهان‌کردنِ کاملِ داک (نه فقط جمع‌شدن) — از منوی سه‌تایی کنترل
-  // می‌شه، دقیقاً هم‌الگو با «Frequent Links» و «Today's Echo».
+  // می‌شه. Goals دیگه داخلِ داک نیست (کنارِ Today's Echo‌ست)، ولی هم‌زمان
+  // با Today پنهان/آشکار می‌شه — عمداً یه آیتمِ جدا براش توی منو نذاشتم تا
+  // منو شلوغ نشه؛ یه دکمهٔ «Today» هم داک و هم Goals رو با هم کنترل می‌کنه.
+  // Goals علاوه‌براین وقتی چیزی برای نشون‌دادن نداره (hasGoals=false) هم
+  // مخفیه — این دو شرط با هم AND می‌شن.
   function applyDockVisibility() {
     dock.hidden = !dockVisible;
     dock.setAttribute('aria-hidden', dockVisible ? 'false' : 'true');
+    if (goalsSection) goalsSection.hidden = !dockVisible || !hasGoals;
   }
   function wireMenu() {
     const btn = document.getElementById('ai-ntp-menu-todo');
@@ -601,11 +611,10 @@
     }
 
     if (goalsSection && goalsList) {
-      if (!goals.length) {
-        goalsSection.hidden = true;
+      hasGoals = goals.length > 0;
+      if (!hasGoals) {
         goalsList.innerHTML = '';
       } else {
-        goalsSection.hidden = false;
         if (goalsTitleEl) goalsTitleEl.textContent = label('todoTabGoals', 'Goals');
         goalsList.innerHTML = '';
         goals.slice().sort(function (a, b) {
@@ -614,6 +623,9 @@
           goalsList.appendChild(buildGoalCard(todo));
         });
       }
+      // hidden واقعیِ Goals از applyDockVisibility میاد — چون هم به تعدادِ
+      // Goals (hasGoals) و هم به روشن/خاموش‌بودنِ Today (dockVisible) بستگی داره.
+      applyDockVisibility();
     }
   }
 
