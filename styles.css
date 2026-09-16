@@ -1878,7 +1878,65 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-life-now { left: calc(var(--life-progress) - 4px); background: #e0f2fe; box-shadow: 0 0 0 3px rgba(103,232,249,.13), 0 0 10px rgba(103,232,249,.75); animation: presentPulse 2.8s ease-in-out infinite; transition: left .7s cubic-bezier(.19,1,.22,1); }
 .ai-life-copy { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: rgba(186,230,253,.50); font-size: 7px; font-weight: 700; letter-spacing: .3px; direction: ltr; }
 #ai-life-caption { color: rgba(224,242,254,.88); font-size: 9px; font-weight: 600; letter-spacing: 0; direction: rtl; }
-.ai-clock-age { display: none !important; }
+.ai-clock-age {
+  display: none; margin-top: 6px; text-align: center; font-size: 11px; font-weight: 650;
+  color: rgba(224, 242, 254, 0.92); letter-spacing: 0.2px; line-height: 1.45;
+  text-shadow: 0 0 8px rgba(125, 211, 252, 0.35);
+}
+.ai-family-paper-toggle {
+  display: none; width: 100%; margin-top: 8px; padding: 5px 10px;
+  border: 1px dashed rgba(186, 230, 253, 0.22); border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03); color: rgba(186, 230, 253, 0.75);
+  font-size: 10px; font-weight: 700; font-family: inherit; cursor: pointer;
+  align-items: center; justify-content: center; gap: 6px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.ai-family-paper-toggle:hover {
+  background: rgba(255, 255, 255, 0.07); color: #E0F2FE;
+  border-color: rgba(186, 230, 253, 0.4);
+}
+.ai-family-paper-toggle.is-open {
+  border-style: solid; border-color: rgba(52, 211, 153, 0.35);
+  background: rgba(16, 185, 129, 0.08);
+}
+.ai-family-paper-toggle-chevron {
+  display: inline-block; font-size: 9px; transition: transform 0.22s ease;
+}
+.ai-family-paper-toggle.is-open .ai-family-paper-toggle-chevron { transform: rotate(180deg); }
+.ai-family-paper {
+  margin-top: 6px; display: flex; flex-direction: column; gap: 5px;
+  max-height: 0; overflow: hidden; opacity: 0; padding: 0 2px;
+  transform-origin: top center;
+  transition: max-height 0.28s ease, opacity 0.22s ease, padding 0.22s ease;
+}
+.ai-family-paper.is-open {
+  max-height: 200px; opacity: 1; overflow-y: auto; padding: 6px 2px 2px;
+  animation: familyPaperUnfold 0.28s ease;
+}
+@keyframes familyPaperUnfold {
+  from { opacity: 0; transform: translateY(-6px) scaleY(0.92); }
+  to { opacity: 1; transform: translateY(0) scaleY(1); }
+}
+.ai-family-age-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 7px 9px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  border: 1px solid rgba(186, 230, 253, 0.12);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
+  font-size: 10.5px; line-height: 1.35;
+}
+.ai-family-age-row.is-primary {
+  border-color: rgba(52, 211, 153, 0.4);
+  background: linear-gradient(180deg, rgba(16,185,129,0.14), rgba(16,185,129,0.06));
+}
+.ai-family-age-name { font-weight: 700; color: #E2E8F0; grid-column: 1; }
+.ai-family-age-years {
+  font-weight: 700; color: #67E8F9; grid-column: 2; text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+.ai-family-age-birth {
+  grid-column: 1 / -1; font-size: 9.5px; color: rgba(186, 230, 253, 0.65); font-weight: 600;
+}
 
 /* Rumi couplet drawer under the clock/calendar panel — same sun/moon pull-tab as the Quran quote,
    but bilingual (fa shows Persian only, en shows the English translation only) and rendered as a

@@ -51,7 +51,12 @@
   let activeTodoTab = 'daily';
   let addForTomorrow = false;
   const TODO_DAILY_TTL_MS = 24 * 60 * 60 * 1000;
-  let userBirthYear = null; 
+  let userBirthYear = null;
+  let userBirthMonth = null;
+  let userBirthDay = null;
+  let familyAges = [];
+  let familyAgesExpanded = false;
+
   let markedDays = []; // مناسبت‌های نشانه‌گذاری‌شده: [{ id, label, day, month }]
   // رویدادهای ساعتی/روزانهٔ داشبورد زمان — کاملاً مستقل از سیستم TODO؛ ارتباط اختیاری با
   // یک TODO فقط از طریق linkedTodoId برقرار می‌شود (بدون ادغام دو آرایه در هم).
@@ -522,6 +527,11 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
         <span id="ai-life-caption"></span>
         <span id="ai-life-now-label">اکنون</span>
       </div>
+      <button type="button" class="ai-family-paper-toggle" id="ai-family-ages-toggle" style="display:none;" aria-expanded="false">
+        <span class="ai-family-paper-toggle-label" id="ai-family-ages-toggle-label"></span>
+        <span class="ai-family-paper-toggle-chevron">▾</span>
+      </button>
+      <div class="ai-family-paper" id="ai-family-ages-list" style="display:none;" hidden></div>
     </div>
     <div class="ai-clock-age" id="ai-age" style="display: none;"></div>
 
@@ -1254,19 +1264,165 @@ updateSeasonalTracker();
       if (clockKicker) clockKicker.textContent = t('presentLabel');
       if (journeyStart) journeyStart.textContent = t('originLabel');
       if (journeyNow) journeyNow.textContent = t('nowLabel');
-      if (userBirthYear && !isNaN(userBirthYear)) {
-          let currentYear = now.getFullYear(); 
-          if (userBirthYear < 1500) { const jYearStr = new Intl.DateTimeFormat('en-US-u-ca-persian', {year: 'numeric'}).format(now); currentYear = parseInt(jYearStr.replace(/\D/g, ''), 10); }
-         const age = currentYear - userBirthYear;
-         ageEl.textContent = t('ageLabel').replace('{age}', age); ageEl.style.display = 'block';
+
+      const familyToggle = document.getElementById('ai-family-ages-toggle');
+      const familyListEl = document.getElementById('ai-family-ages-list');
+      const familyToggleLabel = document.getElementById('ai-family-ages-toggle-label');
+
+      function computePreciseAge(year, month, day) {
+        const y = parseInt(year, 10);
+        if (!y || isNaN(y)) return { age: 0, birthLabel: '' };
+        const isJalali = y < 1500;
+        let m = parseInt(month, 10);
+        let d = parseInt(day, 10);
+        const hasFullDate = !!(month && day && m >= 1 && m <= 12 && d >= 1 && d <= 31);
+        if (!m || m < 1 || m > 12) m = 1;
+        if (!d || d < 1 || d > 31) d = 1;
+        let gY, gM, gD;
+        try {
+          if (isJalali && typeof jalaaliToGregorian === 'function') {
+            const g = jalaaliToGregorian(y, m, d); gY = g.gy; gM = g.gm; gD = g.gd;
+          } else { gY = y; gM = m; gD = d; }
+        } catch (e) { gY = isJalali ? y + 621 : y; gM = m; gD = d; }
+        const nowD = new Date();
+        let age;
+        if (hasFullDate) {
+          age = nowD.getFullYear() - gY;
+          const had = (nowD.getMonth() + 1 > gM) || (nowD.getMonth() + 1 === gM && nowD.getDate() >= gD);
+          if (!had) age -= 1;
+        } else if (isJalali) {
+          try {
+            const jYearStr = new Intl.DateTimeFormat('en-US-u-ca-persian', { year: 'numeric' }).format(nowD);
+            age = parseInt(jYearStr.replace(/\D/g, ''), 10) - y;
+          } catch (e) { age = nowD.getFullYear() - gY; }
+        } else { age = nowD.getFullYear() - gY; }
+        age = Math.max(0, age);
+        let birthLabel = '';
+        try {
+          if (hasFullDate) {
+            const gDate = new Date(gY, gM - 1, gD);
+            const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+            let jStr = '';
+            if (typeof gregorianToJalaali === 'function') {
+              const j = gregorianToJalaali(gY, gM, gD);
+              const jMonths = currentLang === 'fa'
+                ? ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند']
+                : ['Farvardin','Ordibehesht','Khordad','Tir','Mordad','Shahrivar','Mehr','Aban','Azar','Dey','Bahman','Esfand'];
+              jStr = localizeDigits(String(j.jd)) + ' ' + jMonths[Math.max(0, j.jm - 1)] + ' ' + localizeDigits(String(j.jy));
+            }
+            birthLabel = isJalali ? (jStr ? jStr + ' · ' + gStr : gStr) : (gStr + (jStr ? ' · ' + jStr : ''));
+          } else if (isJalali) {
+            birthLabel = localizeDigits(String(y)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
+            try { const g = jalaaliToGregorian(y, 1, 1); if (g) birthLabel += ' · ≈' + g.gy + ' CE'; } catch (e) {}
+          } else {
+            birthLabel = String(y) + ' CE';
+            try { const j = gregorianToJalaali(y, 1, 1); if (j) birthLabel += ' · ≈' + localizeDigits(String(j.jy)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali'); } catch (e) {}
+          }
+        } catch (e) {}
+        return { age: age, birthLabel: birthLabel };
+      }
+      function getPrimaryBirth() {
+        if (Array.isArray(familyAges) && familyAges.length) {
+          const p = familyAges.find(m => m.primary) || familyAges[0];
+          if (p && p.year) return p;
+        }
+        if (userBirthYear && !isNaN(userBirthYear)) {
+          return { name: '', year: userBirthYear, month: userBirthMonth, day: userBirthDay, primary: true };
+        }
+        return null;
+      }
+      function familyToggleText(n, expanded) {
+        const packs = {
+          en: { open: n + ' more family member' + (n > 1 ? 's' : ''), close: 'Hide family' },
+          fa: { open: n + ' عضو دیگر خانواده', close: 'بستن فهرست خانواده' },
+          ar: { open: n + ' أفراد آخرون', close: 'إخفاء العائلة' },
+          es: { open: n + ' más', close: 'Ocultar' },
+          de: { open: n + ' weitere', close: 'Ausblenden' },
+          fr: { open: n + ' autres', close: 'Masquer' },
+          ja: { open: '他 ' + n + ' 人', close: '閉じる' },
+          ru: { open: 'Ещё ' + n, close: 'Скрыть' },
+          tr: { open: n + ' kişi daha', close: 'Gizle' },
+          'zh-Hans': { open: '另外 ' + n + ' 人', close: '收起' },
+          'zh-Hant': { open: '另外 ' + n + ' 人', close: '收合' },
+          'pt-BR': { open: n + ' a mais', close: 'Ocultar' }
+        };
+        const pack = packs[currentLang] || packs.en;
+        return expanded ? pack.close : pack.open;
+      }
+      function yearsWord() {
+        const packs = { en:' yrs', fa:' سال', ar:' سنة', es:' años', de:' J.', fr:' ans', ja:'歳', ru:' лет', tr:' yaş', 'zh-Hans':' 岁', 'zh-Hant':' 歲', 'pt-BR':' anos' };
+        return packs[currentLang] || packs.en;
+      }
+      function meFallback() {
+        const packs = { en:'Me', fa:'من', ar:'أنا', es:'Yo', de:'Ich', fr:'Moi', ja:'自分', ru:'Я', tr:'Ben', 'zh-Hans':'我', 'zh-Hant':'我', 'pt-BR':'Eu' };
+        return packs[currentLang] || packs.en;
+      }
+      function renderFamilyAgesPanel() {
+        if (!familyToggle || !familyListEl) return;
+        const others = (familyAges || []).filter(m => m && m.year && !m.primary);
+        const total = (familyAges || []).filter(m => m && m.year).length;
+        if (total <= 1 || !others.length) {
+          familyToggle.style.display = 'none';
+          familyListEl.style.display = 'none'; familyListEl.hidden = true;
+          familyToggle.setAttribute('aria-expanded', 'false');
+          familyListEl.classList.remove('is-open');
+          return;
+        }
+        familyToggle.style.display = '';
+        if (familyToggleLabel) familyToggleLabel.textContent = familyToggleText(others.length, familyAgesExpanded);
+        familyToggle.setAttribute('aria-expanded', familyAgesExpanded ? 'true' : 'false');
+        familyToggle.classList.toggle('is-open', familyAgesExpanded);
+        if (!familyAgesExpanded) {
+          familyListEl.style.display = 'none'; familyListEl.hidden = true;
+          familyListEl.classList.remove('is-open'); familyListEl.innerHTML = '';
+          return;
+        }
+        familyListEl.hidden = false; familyListEl.style.display = '';
+        familyListEl.classList.add('is-open'); familyListEl.innerHTML = '';
+        const ordered = (familyAges || []).filter(m => m && m.year).slice().sort((a, b) => (b.primary ? 1 : 0) - (a.primary ? 1 : 0));
+        ordered.forEach((m) => {
+          const info = computePreciseAge(m.year, m.month, m.day);
+          const row = document.createElement('div');
+          row.className = 'ai-family-age-row' + (m.primary ? ' is-primary' : '');
+          const nameEl = document.createElement('span'); nameEl.className = 'ai-family-age-name';
+          nameEl.textContent = m.name || (m.primary ? meFallback() : '—');
+          const ageSpan = document.createElement('span'); ageSpan.className = 'ai-family-age-years';
+          ageSpan.textContent = localizeDigits(String(info.age)) + yearsWord();
+          const birthSpan = document.createElement('span'); birthSpan.className = 'ai-family-age-birth';
+          birthSpan.textContent = info.birthLabel || '';
+          row.appendChild(nameEl); row.appendChild(ageSpan);
+          if (info.birthLabel) row.appendChild(birthSpan);
+          familyListEl.appendChild(row);
+        });
+      }
+      if (familyToggle && !familyToggle.dataset.wired) {
+        familyToggle.dataset.wired = '1';
+        familyToggle.addEventListener('click', (e) => {
+          e.preventDefault(); e.stopPropagation();
+          familyAgesExpanded = !familyAgesExpanded;
+          renderFamilyAgesPanel();
+        });
+      }
+      const primary = getPrimaryBirth();
+      if (primary && primary.year) {
+         const ageInfo = computePreciseAge(primary.year, primary.month, primary.day);
+         const age = ageInfo.age;
+         const namePrefix = primary.name ? (primary.name + ' · ') : '';
+         ageEl.textContent = namePrefix + t('ageLabel').replace('{age}', localizeDigits(String(age)));
+         if (ageInfo.birthLabel) ageEl.textContent += ' · ' + ageInfo.birthLabel;
+         ageEl.style.setProperty('display', 'block', 'important');
          if (journeyEl && journeyCaption) {
              const progress = Math.max(7, Math.min(93, (age / 100) * 100));
-             journeyEl.style.setProperty('--life-progress', `${progress}%`);
-             journeyCaption.textContent = t('journeyCaption').replace('{age}', age);
+             journeyEl.style.setProperty('--life-progress', progress + '%');
+             journeyCaption.textContent = t('journeyCaption').replace('{age}', localizeDigits(String(age)));
              journeyEl.style.display = 'block';
          }
+         renderFamilyAgesPanel();
       } else {
-         ageEl.textContent = ''; ageEl.style.display = 'none'; if (journeyEl) journeyEl.style.display = 'none';
+         ageEl.textContent = ''; ageEl.style.display = 'none'; ageEl.style.removeProperty('display');
+         if (journeyEl) journeyEl.style.display = 'none';
+         if (familyToggle) familyToggle.style.display = 'none';
+         if (familyListEl) { familyListEl.style.display = 'none'; familyListEl.hidden = true; }
       }
       // داشبورد زمان: خطِ «اکنون» هر ثانیه (سبک، فقط جابه‌جاییِ یک خط)، اما وضعیتِ کارت‌ها
       // (near/missed) و ویجتِ «رویداد بعدی» فقط هر دقیقه یک‌بار بازمحاسبه می‌شوند — تا با
@@ -9278,6 +9434,20 @@ let hubAutoCollapsedByPanel = false;
           let langChanged = false;
           if (changes.appLanguage) { currentLang = changes.appLanguage.newValue || 'en'; langChanged = true; }
           if (changes.userBirthYear) { userBirthYear = changes.userBirthYear.newValue ? parseInt(changes.userBirthYear.newValue, 10) : null; if(clockPanel.classList.contains('active')) updateClockAge(); }
+          if (changes.userBirthMonth) { userBirthMonth = changes.userBirthMonth.newValue ? parseInt(changes.userBirthMonth.newValue, 10) : null; if(clockPanel.classList.contains('active')) updateClockAge(); }
+          if (changes.userBirthDay) { userBirthDay = changes.userBirthDay.newValue ? parseInt(changes.userBirthDay.newValue, 10) : null; if(clockPanel.classList.contains('active')) updateClockAge(); }
+          if (changes.aiTreeFamilyAges) {
+            const list = Array.isArray(changes.aiTreeFamilyAges.newValue) ? changes.aiTreeFamilyAges.newValue : [];
+            familyAges = list.filter(m => m && m.year).map(m => ({
+              id: m.id || ('fa_' + Math.random().toString(36).slice(2, 8)),
+              name: String(m.name || '').slice(0, 24), year: parseInt(m.year, 10),
+              month: m.month ? parseInt(m.month, 10) : null, day: m.day ? parseInt(m.day, 10) : null, primary: !!m.primary
+            }));
+            if (familyAges.length && !familyAges.some(m => m.primary)) familyAges[0].primary = true;
+            const prim = familyAges.find(m => m.primary) || familyAges[0];
+            if (prim) { userBirthYear = prim.year; userBirthMonth = prim.month; userBirthDay = prim.day; }
+            if (clockPanel.classList.contains('active')) updateClockAge();
+          }
           if (changes.aiTreeTodos) { todosData = changes.aiTreeTodos.newValue || []; migrateTodos(); pruneExpiredDailyTodos(); if(todoPanel.classList.contains('active')) renderTodos(); }
           if (changes.aiTreeMarkedDays) { markedDays = changes.aiTreeMarkedDays.newValue || []; if (clockPanel.classList.contains('active')) renderMarkedDays(); }
           if (changes.lastDeletedLink) {
@@ -9362,7 +9532,7 @@ let hubAutoCollapsedByPanel = false;
 
   async function loadDataAndRender() {
     const [syncData, localData] = await Promise.all([
-      storageGet('sync', ['orbitX', 'orbitY', 'linksData', 'coreAIConfig', 'lastDeletedLink', 'userBirthYear', 'nodeSpacing', 'aiTreeTodos', 'appLanguage', 'aiTreeMarkedDays', 'clockCustomX', 'clockCustomY', 'coreSlots5Migrated']),
+      storageGet('sync', ['orbitX', 'orbitY', 'linksData', 'coreAIConfig', 'lastDeletedLink', 'userBirthYear', 'userBirthMonth', 'userBirthDay', 'aiTreeFamilyAges', 'nodeSpacing', 'aiTreeTodos', 'appLanguage', 'aiTreeMarkedDays', 'clockCustomX', 'clockCustomY', 'coreSlots5Migrated']),
       storageGet('local', ['linksData', 'linksData2', 'linksData3', 'linksData4', 'activeNoteAIIndex', 'aiTreeTimeEvents'])
     ]);
 
@@ -9414,6 +9584,20 @@ let hubAutoCollapsedByPanel = false;
 
     if(syncData.lastDeletedLink) setUndoState('storage', null);
     if(syncData.userBirthYear) userBirthYear = parseInt(syncData.userBirthYear, 10);
+    if(syncData.userBirthMonth) userBirthMonth = parseInt(syncData.userBirthMonth, 10);
+    if(syncData.userBirthDay) userBirthDay = parseInt(syncData.userBirthDay, 10);
+    if (Array.isArray(syncData.aiTreeFamilyAges) && syncData.aiTreeFamilyAges.length) {
+      familyAges = syncData.aiTreeFamilyAges.filter(m => m && m.year).map(m => ({
+        id: m.id || ('fa_' + Math.random().toString(36).slice(2, 8)),
+        name: String(m.name || '').slice(0, 24), year: parseInt(m.year, 10),
+        month: m.month ? parseInt(m.month, 10) : null, day: m.day ? parseInt(m.day, 10) : null, primary: !!m.primary
+      }));
+      if (familyAges.length && !familyAges.some(m => m.primary)) familyAges[0].primary = true;
+      const prim = familyAges.find(m => m.primary) || familyAges[0];
+      if (prim) { userBirthYear = prim.year; userBirthMonth = prim.month; userBirthDay = prim.day; }
+    } else if (userBirthYear) {
+      familyAges = [{ id: 'legacy', name: '', year: userBirthYear, month: userBirthMonth, day: userBirthDay, primary: true }];
+    }
     if(syncData.aiTreeTodos) {
       todosData = syncData.aiTreeTodos;
       migrateTodos(); pruneExpiredDailyTodos();

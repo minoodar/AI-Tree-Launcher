@@ -753,6 +753,37 @@
     .ai-void-agenda-journey-caption {
         font-size: 9.5px; color: rgba(199,210,254,.55); margin-top: 3px; text-align: center;
     }
+    .ai-void-agenda-birth {
+        font-size: 9px; color: rgba(186,230,253,.65); margin-top: 4px; text-align: center;
+        letter-spacing: 0.2px; line-height: 1.35;
+    }
+    .ai-void-agenda-family-toggle {
+        display: block; width: 100%; margin-top: 6px; padding: 4px 8px;
+        border: 1px dashed rgba(165,180,252,.25); border-radius: 7px;
+        background: rgba(255,255,255,0.03); color: rgba(199,210,254,.7);
+        font-size: 9.5px; font-weight: 700; font-family: inherit; cursor: pointer;
+        text-align: center;
+    }
+    .ai-void-agenda-family-toggle.is-open {
+        border-style: solid; border-color: rgba(52,211,153,.35);
+        background: rgba(16,185,129,.08);
+    }
+    .ai-void-agenda-family {
+        margin-top: 5px; display: flex; flex-direction: column; gap: 3px;
+        padding: 4px 0 0;
+        animation: voidFamilyOpen 0.22s ease;
+    }
+    @keyframes voidFamilyOpen {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .ai-void-agenda-family-row {
+        font-size: 9.5px; color: rgba(199,210,254,.75); text-align: center; font-weight: 600;
+        padding: 3px 6px; border-radius: 6px; background: rgba(255,255,255,0.03);
+    }
+    .ai-void-agenda-family-row.is-primary {
+        color: #A7F3D0; background: rgba(16,185,129,.1);
+    }
     .ai-void-agenda-mark-line {
         font-size: 10.5px; color: rgba(199,210,254,.7);
         margin-top: 5px; direction: auto; text-align: start;

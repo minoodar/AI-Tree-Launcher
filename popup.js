@@ -3,12 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
 const i18nPopup = {
       en: {
         tabCore: "⚙️ Core", tabBackup: "🛡️ Backup", tabVault: "✨ Vault",
-        lblLanguage: "App Language:", lblBirth: "Birth Year (for Clock Age):",
+        lblLanguage: "App Language:", lblBirth: "Family ages",
         btnSave: "Save Settings", btnExport: "📤 Export Backup (JSON)", btnImport: "📥 Import Backup (Restore)",
         toastSaved: "Settings saved successfully!", toastExported: "JSON file downloaded!", toastImported: "Data imported successfully!", toastRestored: "Data restored successfully!",
         invalidFile: "Invalid file format.", errRead: "Error reading JSON file.",
         btnHide: "Hide", btnShow: "Show (Reset)",
-        backupHint: "🟢 Export saves everything — bookmarks, todos, calendar events & marks, settings, notepad &nbsp;·&nbsp; 🟠 Import restores it all from a file",
+        backupHint: "🟢 Export saves everything — bookmarks, todos, calendar, settings, notepad, family ages &nbsp;·&nbsp; 🟠 Import restores it all from a file",
         contactTitle: "✉︎ Contact Us", contactEmail: "Email:",
         holidaysTitle: "Official Public Holidays", holidaysEnable: "Show official holidays on the calendar",
         holidayAuto: "Auto — follow app language", holidayIran: "Iran (offline, curated list)", holidayCustom: "Other country (enter code)",
@@ -31,12 +31,12 @@ const i18nPopup = {
       },
       fa: {
         tabCore: "⚙️ هسته", tabBackup: "🛡️ پشتیبان", tabVault: "✨ گنجینه",
-        lblLanguage: "زبان افزونه:", lblBirth: "سال تولد (محاسبه سن):",
+        lblLanguage: "زبان افزونه:", lblBirth: "عمرشمار خانواده",
         btnSave: "ذخیره تنظیمات", btnExport: "📤 دریافت بکاپ (JSON)", btnImport: "📥 بازیابی از بکاپ",
         toastSaved: "تنظیمات با موفقیت ذخیره شد!", toastExported: "فایل خروجی دانلود شد!", toastImported: "اطلاعات فایل با موفقیت وارد شد!", toastRestored: "بکاپ با موفقیت بازیابی شد!",
         invalidFile: "فایل نامعتبر است.", errRead: "خطا در خواندن فایل JSON.",
         btnHide: "پنهان کردن", btnShow: "نمایش مجدد (ریست)",
-        backupHint: "🟢 دریافت بکاپ، همه‌چیز را ذخیره می‌کند — بوک‌مارک‌ها، کارها، رویدادها و مناسبت‌های تقویم، تنظیمات، دفترچه &nbsp;·&nbsp; 🟠 بازیابی، همه را از فایل برمی‌گرداند",
+        backupHint: "🟢 دریافت بکاپ، همه‌چیز را ذخیره می‌کند — بوک‌مارک‌ها، کارها، تقویم، تنظیمات، دفترچه، عمرشمار خانواده &nbsp;·&nbsp; 🟠 بازیابی، همه را از فایل برمی‌گرداند",
         contactTitle: "✉︎ ارتباط با ما", contactEmail: "ایمیل:",
         holidaysTitle: "تعطیلات رسمی", holidaysEnable: "نمایش تعطیلات رسمی روی تقویم",
         holidayAuto: "خودکار — بر اساس زبان افزونه", holidayIran: "ایران (آفلاین، فهرست دقیق)", holidayCustom: "کشور دیگر (کد را وارد کنید)",
@@ -59,7 +59,7 @@ const i18nPopup = {
       },
       ar: {
         tabCore: "⚙️ النواة", tabBackup: "🛡️ النسخ الاحتياطي", tabVault: "✨ الخزنة",
-        lblLanguage: "لغة الإضافة:", lblBirth: "سنة الميلاد (لحساب العمر):",
+        lblLanguage: "لغة الإضافة:", lblBirth: "أعمار العائلة",
         btnSave: "حفظ الإعدادات", btnExport: "📤 تصدير نسخة احتياطية (JSON)", btnImport: "📥 استيراد نسخة احتياطية (استعادة)",
         toastSaved: "تم حفظ الإعدادات بنجاح!", toastExported: "تم تنزيل ملف JSON!", toastImported: "تم استيراد البيانات بنجاح!", toastRestored: "تمت استعادة البيانات بنجاح!",
         invalidFile: "تنسيق الملف غير صالح.", errRead: "خطأ في قراءة ملف JSON.",
@@ -87,7 +87,7 @@ const i18nPopup = {
       },
       es: {
         tabCore: "⚙️ Principal", tabBackup: "🛡️ Respaldo", tabVault: "✨ Bóveda",
-        lblLanguage: "Idioma de la app:", lblBirth: "Año de nacimiento (para la edad del reloj):",
+        lblLanguage: "Idioma de la app:", lblBirth: "Edades de la familia",
         btnSave: "Guardar ajustes", btnExport: "📤 Exportar respaldo (JSON)", btnImport: "📥 Importar respaldo (Restaurar)",
         toastSaved: "¡Ajustes guardados correctamente!", toastExported: "¡Archivo JSON descargado!", toastImported: "¡Datos importados correctamente!", toastRestored: "¡Datos restaurados correctamente!",
         invalidFile: "Formato de archivo no válido.", errRead: "Error al leer el archivo JSON.",
@@ -115,7 +115,7 @@ const i18nPopup = {
       },
       de: {
         tabCore: "⚙️ Allgemein", tabBackup: "🛡️ Sicherung", tabVault: "✨ Schatzkammer",
-        lblLanguage: "App-Sprache:", lblBirth: "Geburtsjahr (für das Alter der Uhr):",
+        lblLanguage: "App-Sprache:", lblBirth: "Familienalter",
         btnSave: "Einstellungen speichern", btnExport: "📤 Sicherung exportieren (JSON)", btnImport: "📥 Sicherung importieren (Wiederherstellen)",
         toastSaved: "Einstellungen erfolgreich gespeichert!", toastExported: "JSON-Datei heruntergeladen!", toastImported: "Daten erfolgreich importiert!", toastRestored: "Daten erfolgreich wiederhergestellt!",
         invalidFile: "Ungültiges Dateiformat.", errRead: "Fehler beim Lesen der JSON-Datei.",
@@ -143,7 +143,7 @@ const i18nPopup = {
       },
       fr: {
         tabCore: "⚙️ Général", tabBackup: "🛡️ Sauvegarde", tabVault: "✨ Coffre",
-        lblLanguage: "Langue de l'application :", lblBirth: "Année de naissance (pour l'âge de l'horloge) :",
+        lblLanguage: "Langue de l'application :", lblBirth: "Âges de la famille",
         btnSave: "Enregistrer les paramètres", btnExport: "📤 Exporter la sauvegarde (JSON)", btnImport: "📥 Importer une sauvegarde (Restaurer)",
         toastSaved: "Paramètres enregistrés avec succès !", toastExported: "Fichier JSON téléchargé !", toastImported: "Données importées avec succès !", toastRestored: "Données restaurées avec succès !",
         invalidFile: "Format de fichier invalide.", errRead: "Erreur lors de la lecture du fichier JSON.",
@@ -171,7 +171,7 @@ const i18nPopup = {
       },
       ja: {
         tabCore: "⚙️ 全般", tabBackup: "🛡️ バックアップ", tabVault: "✨ ヴォールト",
-        lblLanguage: "アプリの言語:", lblBirth: "生年（時計の年齢表示用）:",
+        lblLanguage: "アプリの言語:", lblBirth: "家族の年齢",
         btnSave: "設定を保存", btnExport: "📤 バックアップを書き出す（JSON）", btnImport: "📥 バックアップを読み込む（復元）",
         toastSaved: "設定を保存しました！", toastExported: "JSONファイルをダウンロードしました！", toastImported: "データを読み込みました！", toastRestored: "データを復元しました！",
         invalidFile: "無効なファイル形式です。", errRead: "JSONファイルの読み込みに失敗しました。",
@@ -199,7 +199,7 @@ const i18nPopup = {
       },
       ru: {
         tabCore: "⚙️ Основное", tabBackup: "🛡️ Резервная копия", tabVault: "✨ Хранилище",
-        lblLanguage: "Язык приложения:", lblBirth: "Год рождения (для возраста на часах):",
+        lblLanguage: "Язык приложения:", lblBirth: "Возраст семьи",
         btnSave: "Сохранить настройки", btnExport: "📤 Экспорт резервной копии (JSON)", btnImport: "📥 Импорт резервной копии (восстановление)",
         toastSaved: "Настройки успешно сохранены!", toastExported: "Файл JSON скачан!", toastImported: "Данные успешно импортированы!", toastRestored: "Данные успешно восстановлены!",
         invalidFile: "Неверный формат файла.", errRead: "Ошибка при чтении файла JSON.",
@@ -227,7 +227,7 @@ const i18nPopup = {
       },
       tr: {
         tabCore: "⚙️ Genel", tabBackup: "🛡️ Yedekleme", tabVault: "✨ Hazine",
-        lblLanguage: "Uygulama Dili:", lblBirth: "Doğum Yılı (saat yaşı için):",
+        lblLanguage: "Uygulama Dili:", lblBirth: "Aile yaşları",
         btnSave: "Ayarları Kaydet", btnExport: "📤 Yedeği Dışa Aktar (JSON)", btnImport: "📥 Yedeği İçe Aktar (Geri Yükle)",
         toastSaved: "Ayarlar başarıyla kaydedildi!", toastExported: "JSON dosyası indirildi!", toastImported: "Veriler başarıyla içe aktarıldı!", toastRestored: "Veriler başarıyla geri yüklendi!",
         invalidFile: "Geçersiz dosya biçimi.", errRead: "JSON dosyası okunurken hata oluştu.",
@@ -255,7 +255,7 @@ const i18nPopup = {
       },
       'zh-Hans': {
         tabCore: "⚙️ 核心", tabBackup: "🛡️ 备份", tabVault: "✨ 宝藏",
-        lblLanguage: "应用语言：", lblBirth: "出生年份（用于时钟年龄）：",
+        lblLanguage: "应用语言：", lblBirth: "家庭年龄",
         btnSave: "保存设置", btnExport: "📤 导出备份 (JSON)", btnImport: "📥 导入备份（恢复）",
         toastSaved: "设置已成功保存！", toastExported: "JSON 文件已下载！", toastImported: "数据已成功导入！", toastRestored: "备份已成功恢复！",
         invalidFile: "文件格式无效。", errRead: "读取 JSON 文件时出错。",
@@ -283,7 +283,7 @@ const i18nPopup = {
       },
       'zh-Hant': {
         tabCore: "⚙️ 核心", tabBackup: "🛡️ 備份", tabVault: "✨ 寶藏",
-        lblLanguage: "應用程式語言：", lblBirth: "出生年份（用於時鐘年齡）：",
+        lblLanguage: "應用程式語言：", lblBirth: "家庭年齡",
         btnSave: "儲存設定", btnExport: "📤 匯出備份 (JSON)", btnImport: "📥 匯入備份（還原）",
         toastSaved: "設定已成功儲存！", toastExported: "JSON 檔案已下載！", toastImported: "資料已成功匯入！", toastRestored: "備份已成功還原！",
         invalidFile: "檔案格式無效。", errRead: "讀取 JSON 檔案時發生錯誤。",
@@ -311,7 +311,7 @@ const i18nPopup = {
       },
       'pt-BR': {
         tabCore: "⚙️ Principal", tabBackup: "🛡️ Backup", tabVault: "✨ Tesouro",
-        lblLanguage: "Idioma do aplicativo:", lblBirth: "Ano de nascimento (para a idade no relógio):",
+        lblLanguage: "Idioma do aplicativo:", lblBirth: "Idades da família",
         btnSave: "Salvar Configurações", btnExport: "📤 Exportar Backup (JSON)", btnImport: "📥 Importar Backup (Restaurar)",
         toastSaved: "Configurações salvas com sucesso!", toastExported: "Arquivo JSON baixado!", toastImported: "Dados importados com sucesso!", toastRestored: "Backup restaurado com sucesso!",
         invalidFile: "Formato de arquivo inválido.", errRead: "Erro ao ler o arquivo JSON.",
@@ -357,7 +357,13 @@ const i18nPopup = {
       if (vaultTab) vaultTab.textContent = t.tabVault;
       document.getElementById('lbl-language').textContent = t.lblLanguage;
       document.getElementById('lbl-birth').textContent = t.lblBirth;
-      document.getElementById('userBirthYear').placeholder = currentLang === 'fa' ? "مثال: 1375 یا 1990" : currentLang === 'ar' ? "مثال: 1990 أو 1375" : currentLang === 'es' ? "p. ej., 1990 o 1375" : currentLang === 'de' ? "z. B. 1990 oder 1375" : currentLang === 'fr' ? "p. ex. 1990 ou 1375" : currentLang === 'ja' ? "例：1990 または 1375" : currentLang === 'ru' ? "напр., 1990 или 1375" : currentLang === 'tr' ? "örn. 1990 veya 1375" : (currentLang === 'zh-Hans' || currentLang === 'zh-Hant') ? "例如：1990" : currentLang === 'pt-BR' ? "ex.: 1990" : "e.g., 1990 or 1375";
+      const hint = document.getElementById('birth-date-hint');
+      if (hint) hint.textContent = familyUiText('hint');
+      const addBtn = document.getElementById('family-age-add-btn');
+      if (addBtn) addBtn.textContent = familyUiText('add');
+      const autoHint = document.getElementById('family-ages-autosave-hint');
+      if (autoHint) autoHint.textContent = familyUiText('autoSave');
+      if (typeof renderFamilyAgesList === 'function') renderFamilyAgesList();
       document.getElementById('saveSettingsBtn').textContent = t.btnSave;
       if (document.getElementById('lbl-create-void-tab')) document.getElementById('lbl-create-void-tab').textContent = t.lblCreateVoidTab;
       if (document.getElementById('lbl-restore-home')) document.getElementById('lbl-restore-home').textContent = t.lblRestoreHome;
@@ -427,8 +433,204 @@ const i18nPopup = {
       });
     });
 
+
     const userBirthYearInput = document.getElementById('userBirthYear');
+    const familyAgesListEl = document.getElementById('family-ages-list');
+    const familyAgeAddBtn = document.getElementById('family-age-add-btn');
+    const familyCollapseBtn = document.getElementById('family-ages-collapse-btn');
+    const familyAgesPanel = document.getElementById('family-ages-panel');
+    const FAMILY_MAX = 12;
+    let familyAges = [];
+    let familyAutoSaveTimer = null;
+
+    function newFamilyId() {
+      return 'fa_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    }
+    function normalizeFamilyMember(raw) {
+      if (!raw || typeof raw !== 'object') return null;
+      const year = parseInt(raw.year != null ? raw.year : raw.y, 10);
+      if (!year || year < 1 || year > 2200) return null;
+      let month = parseInt(raw.month != null ? raw.month : raw.m, 10);
+      let day = parseInt(raw.day != null ? raw.day : raw.d, 10);
+      if (!month || month < 1 || month > 12) month = null;
+      if (!day || day < 1 || day > 31) day = null;
+      return {
+        id: String(raw.id || newFamilyId()).slice(0, 40),
+        name: String(raw.name || raw.label || '').trim().slice(0, 24),
+        year: year, month: month, day: day, primary: !!raw.primary
+      };
+    }
+    function normalizeFamilyList(list) {
+      if (!Array.isArray(list)) return [];
+      const out = [];
+      const seen = new Set();
+      list.forEach((item, i) => {
+        const n = normalizeFamilyMember(item);
+        if (!n) return;
+        if (seen.has(n.id)) n.id = n.id + '_' + i;
+        seen.add(n.id);
+        out.push(n);
+      });
+      if (out.length && out.filter(m => m.primary).length !== 1) {
+        out.forEach((m, i) => { m.primary = (i === 0); });
+      }
+      return out.slice(0, FAMILY_MAX);
+    }
+    function primaryMember() {
+      return familyAges.find(m => m.primary) || familyAges[0] || null;
+    }
+    function syncLegacyBirthYear() {
+      const p = primaryMember();
+      if (userBirthYearInput) userBirthYearInput.value = p ? String(p.year) : '';
+    }
+    function familyUiText(key) {
+      const packs = {
+        en: { namePh:'Name (e.g. Me, Dad)', yearPh:'Year', monthPh:'M', dayPh:'D', primary:'Primary (default display)', del:'Remove', add:'+ Add person', empty:'No one yet — add yourself or family members.', hint:'Year < 1500 = Jalali · else Gregorian. Mark one person as primary.', meDefault:'Me', autoSave:'Changes save automatically.', saved:'Saved' },
+        fa: { namePh:'نام (مثلاً من، پدر)', yearPh:'سال', monthPh:'ماه', dayPh:'روز', primary:'اصلی (نمایش پیش‌فرض)', del:'حذف', add:'+ افزودن فرد', empty:'هنوز کسی اضافه نشده — خودتان یا اعضای خانواده را وارد کنید.', hint:'سال < ۱۵۰۰ = شمسی · وگرنه میلادی. یک نفر را به‌عنوان اصلی انتخاب کنید.', meDefault:'من', autoSave:'تغییرات به‌صورت خودکار ذخیره می‌شوند.', saved:'ذخیره شد' },
+        ar: { namePh:'الاسم', yearPh:'سنة', monthPh:'شهر', dayPh:'يوم', primary:'أساسي', del:'حذف', add:'+ إضافة شخص', empty:'لم يُضف أحد بعد.', hint:'السنة < 1500 = شمسي · وإلا ميلادي.', meDefault:'أنا', autoSave:'يتم الحفظ تلقائيًا.', saved:'تم الحفظ' },
+        es: { namePh:'Nombre', yearPh:'Año', monthPh:'M', dayPh:'D', primary:'Principal', del:'Eliminar', add:'+ Añadir persona', empty:'Nadie aún.', hint:'Año < 1500 = Jalali · si no, gregoriano.', meDefault:'Yo', autoSave:'Los cambios se guardan solos.', saved:'Guardado' },
+        de: { namePh:'Name', yearPh:'Jahr', monthPh:'M', dayPh:'T', primary:'Primär', del:'Entfernen', add:'+ Person hinzufügen', empty:'Noch niemand.', hint:'Jahr < 1500 = Jalali · sonst gregorianisch.', meDefault:'Ich', autoSave:'Änderungen werden automatisch gespeichert.', saved:'Gespeichert' },
+        fr: { namePh:'Nom', yearPh:'Année', monthPh:'M', dayPh:'J', primary:'Principal', del:'Supprimer', add:'+ Ajouter', empty:'Personne pour l\'instant.', hint:'Année < 1500 = jalali · sinon grégorien.', meDefault:'Moi', autoSave:'Enregistrement automatique.', saved:'Enregistré' },
+        ja: { namePh:'名前', yearPh:'年', monthPh:'月', dayPh:'日', primary:'メイン', del:'削除', add:'+ 追加', empty:'まだ誰もいません。', hint:'年 < 1500 = ジャラーリー · それ以外はグレゴリオ暦。', meDefault:'自分', autoSave:'変更は自動保存されます。', saved:'保存しました' },
+        ru: { namePh:'Имя', yearPh:'Год', monthPh:'М', dayPh:'Д', primary:'Основной', del:'Удалить', add:'+ Добавить', empty:'Пока никого.', hint:'Год < 1500 = джалали · иначе григорианский.', meDefault:'Я', autoSave:'Изменения сохраняются автоматически.', saved:'Сохранено' },
+        tr: { namePh:'Ad', yearPh:'Yıl', monthPh:'A', dayPh:'G', primary:'Birincil', del:'Kaldır', add:'+ Ekle', empty:'Henüz kimse yok.', hint:'Yıl < 1500 = Celali · aksi halde Gregoryen.', meDefault:'Ben', autoSave:'Değişiklikler otomatik kaydedilir.', saved:'Kaydedildi' },
+        'zh-Hans': { namePh:'姓名', yearPh:'年', monthPh:'月', dayPh:'日', primary:'主要', del:'删除', add:'+ 添加', empty:'还没有人。', hint:'年份 < 1500 = 波斯历 · 否则为公历。', meDefault:'我', autoSave:'更改会自动保存。', saved:'已保存' },
+        'zh-Hant': { namePh:'姓名', yearPh:'年', monthPh:'月', dayPh:'日', primary:'主要', del:'刪除', add:'+ 新增', empty:'尚無任何人。', hint:'年份 < 1500 = 波斯曆 · 否則為公曆。', meDefault:'我', autoSave:'變更會自動儲存。', saved:'已儲存' },
+        'pt-BR': { namePh:'Nome', yearPh:'Ano', monthPh:'M', dayPh:'D', primary:'Principal', del:'Remover', add:'+ Adicionar', empty:'Ninguém ainda.', hint:'Ano < 1500 = Jalali · senão gregoriano.', meDefault:'Eu', autoSave:'Alterações salvas automaticamente.', saved:'Salvo' }
+      };
+      const pack = packs[currentLang] || packs.en;
+      return pack[key] || packs.en[key] || key;
+    }
+    function collectFamilyFromDom() {
+      if (!familyAgesListEl) return;
+      familyAgesListEl.querySelectorAll('.family-age-row').forEach((row) => {
+        const id = row.dataset.id;
+        const m = familyAges.find(x => x.id === id);
+        if (!m) return;
+        const nameIn = row.querySelector('.family-age-row-top input[type="text"]');
+        const dateIns = row.querySelectorAll('.family-age-row-dates input');
+        if (nameIn) m.name = (nameIn.value || '').trim().slice(0, 24);
+        if (dateIns[0] && dateIns[0].value) {
+          const y = parseInt(dateIns[0].value, 10);
+          if (y >= 1 && y <= 2200) m.year = y;
+        }
+        if (dateIns[1]) {
+          const mo = parseInt(dateIns[1].value, 10);
+          m.month = (mo >= 1 && mo <= 12) ? mo : null;
+        }
+        if (dateIns[2]) {
+          const d = parseInt(dateIns[2].value, 10);
+          m.day = (d >= 1 && d <= 31) ? d : null;
+        }
+        const prim = row.querySelector('input[type="radio"]');
+        if (prim) m.primary = !!prim.checked;
+      });
+      familyAges = normalizeFamilyList(familyAges.filter(m => m.year));
+      if (familyAges.length && !familyAges.some(m => m.primary)) familyAges[0].primary = true;
+      syncLegacyBirthYear();
+    }
+    function saveFamilyAgesNow(showFlash) {
+      collectFamilyFromDom();
+      const prim = primaryMember();
+      chrome.storage.sync.set({
+        userBirthYear: prim ? prim.year : '',
+        userBirthMonth: (prim && prim.month) ? prim.month : '',
+        userBirthDay: (prim && prim.day) ? prim.day : '',
+        aiTreeFamilyAges: familyAges
+      }, () => {
+        if (showFlash) {
+          const autoHint = document.getElementById('family-ages-autosave-hint');
+          if (autoHint) {
+            autoHint.textContent = familyUiText('saved');
+            autoHint.style.color = '#6EE7B7';
+            setTimeout(() => { autoHint.textContent = familyUiText('autoSave'); autoHint.style.color = ''; }, 1200);
+          }
+        }
+        if (typeof broadcastRefresh === 'function') broadcastRefresh();
+      });
+    }
+    function scheduleFamilyAutoSave() {
+      if (familyAutoSaveTimer) clearTimeout(familyAutoSaveTimer);
+      familyAutoSaveTimer = setTimeout(() => saveFamilyAgesNow(true), 450);
+    }
+    function renderFamilyAgesList() {
+      if (!familyAgesListEl) return;
+      familyAgesListEl.innerHTML = '';
+      if (!familyAges.length) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'font-size:11px;color:var(--text-muted);padding:4px 2px;';
+        empty.textContent = familyUiText('empty');
+        familyAgesListEl.appendChild(empty);
+        return;
+      }
+      familyAges.forEach((member) => {
+        const row = document.createElement('div');
+        row.className = 'family-age-row' + (member.primary ? ' is-primary' : '');
+        row.dataset.id = member.id;
+        const top = document.createElement('div');
+        top.className = 'family-age-row-top';
+        const nameIn = document.createElement('input');
+        nameIn.type = 'text'; nameIn.maxLength = 24;
+        nameIn.placeholder = familyUiText('namePh');
+        nameIn.value = member.name || ''; nameIn.dir = 'auto';
+        nameIn.addEventListener('input', () => { member.name = (nameIn.value || '').trim().slice(0, 24); scheduleFamilyAutoSave(); });
+        top.appendChild(nameIn);
+        const dates = document.createElement('div');
+        dates.className = 'family-age-row-dates';
+        function numInput(ph, val, min, max, onChange) {
+          const inp = document.createElement('input');
+          inp.type = 'number'; inp.placeholder = ph; inp.min = String(min); inp.max = String(max);
+          if (val != null && val !== '') inp.value = String(val);
+          const go = () => { const n = parseInt(inp.value, 10); onChange((n >= min && n <= max) ? n : null); scheduleFamilyAutoSave(); };
+          inp.addEventListener('input', go); inp.addEventListener('change', go);
+          return inp;
+        }
+        dates.appendChild(numInput(familyUiText('yearPh'), member.year, 1, 2200, (n) => { if (n) member.year = n; }));
+        dates.appendChild(numInput(familyUiText('monthPh'), member.month, 1, 12, (n) => { member.month = n; }));
+        dates.appendChild(numInput(familyUiText('dayPh'), member.day, 1, 31, (n) => { member.day = n; }));
+        const actions = document.createElement('div');
+        actions.className = 'family-age-row-actions';
+        const primLabel = document.createElement('label');
+        primLabel.className = 'family-age-primary-label';
+        const primCb = document.createElement('input');
+        primCb.type = 'radio'; primCb.name = 'family-primary'; primCb.checked = !!member.primary;
+        primCb.addEventListener('change', () => {
+          if (!primCb.checked) return;
+          familyAges.forEach(m => { m.primary = (m.id === member.id); });
+          syncLegacyBirthYear(); renderFamilyAgesList(); scheduleFamilyAutoSave();
+        });
+        primLabel.appendChild(primCb);
+        primLabel.appendChild(document.createTextNode(' ' + familyUiText('primary')));
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button'; delBtn.className = 'family-age-del'; delBtn.textContent = familyUiText('del');
+        delBtn.addEventListener('click', () => {
+          familyAges = familyAges.filter(m => m.id !== member.id);
+          if (familyAges.length && !familyAges.some(m => m.primary)) familyAges[0].primary = true;
+          syncLegacyBirthYear(); renderFamilyAgesList(); scheduleFamilyAutoSave();
+        });
+        actions.appendChild(primLabel); actions.appendChild(delBtn);
+        row.appendChild(top); row.appendChild(dates); row.appendChild(actions);
+        familyAgesListEl.appendChild(row);
+      });
+    }
+    if (familyCollapseBtn && familyAgesPanel) {
+      familyCollapseBtn.addEventListener('click', () => {
+        const open = familyCollapseBtn.getAttribute('aria-expanded') === 'true';
+        const next = !open;
+        familyCollapseBtn.setAttribute('aria-expanded', next ? 'true' : 'false');
+        familyAgesPanel.hidden = !next;
+        familyAgesPanel.style.display = next ? '' : 'none';
+      });
+    }
+    if (familyAgeAddBtn) {
+      familyAgeAddBtn.addEventListener('click', () => {
+        if (familyAges.length >= FAMILY_MAX) return;
+        familyAges.push({ id: newFamilyId(), name: '', year: new Date().getFullYear() - 30, month: null, day: null, primary: familyAges.length === 0 });
+        renderFamilyAgesList(); scheduleFamilyAutoSave();
+      });
+    }
     const langSelect = document.getElementById('appLanguage');
+
     const holidaysEnabledCb = document.getElementById('holidaysEnabledCb');
     const holidayRegionSelect = document.getElementById('holidayRegionSelect');
     const holidayCustomCountry = document.getElementById('holidayCustomCountry');
@@ -455,10 +657,18 @@ const i18nPopup = {
       });
     }
 
-    chrome.storage.sync.get(['userBirthYear', 'appLanguage'], (data) => {
+    chrome.storage.sync.get(['userBirthYear', 'userBirthMonth', 'userBirthDay', 'aiTreeFamilyAges', 'appLanguage'], (data) => {
       if (data.appLanguage) { currentLang = data.appLanguage; langSelect.value = currentLang; }
-      if (data.userBirthYear) userBirthYearInput.value = data.userBirthYear;
-      applyTranslation();
+      let list = normalizeFamilyList(data.aiTreeFamilyAges);
+      if (!list.length && data.userBirthYear) {
+        const y = parseInt(data.userBirthYear, 10);
+        if (y) {
+          list = [{ id: newFamilyId(), name: familyUiText('meDefault'), year: y,
+            month: data.userBirthMonth ? parseInt(data.userBirthMonth, 10) : null,
+            day: data.userBirthDay ? parseInt(data.userBirthDay, 10) : null, primary: true }];
+        }
+      }
+      familyAges = list; syncLegacyBirthYear(); applyTranslation(); renderFamilyAgesList();
     });
 
     chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry', 'quoteReligionSource', 'quotePoetrySource', 'voiceRecognitionLang'], (data) => {
@@ -527,7 +737,10 @@ const i18nPopup = {
     document.getElementById('saveSettingsBtn').addEventListener('click', () => {
       const newData = {
         appLanguage: langSelect.value,
-        userBirthYear: userBirthYearInput.value
+        userBirthYear: (function () { collectFamilyFromDom(); const prim = primaryMember(); return prim ? prim.year : ''; })(),
+        userBirthMonth: (function () { const prim = primaryMember(); return (prim && prim.month) ? prim.month : ''; })(),
+        userBirthDay: (function () { const prim = primaryMember(); return (prim && prim.day) ? prim.day : ''; })(),
+        aiTreeFamilyAges: familyAges
       };
       chrome.storage.sync.set(newData, () => {
         const localData = {
@@ -662,7 +875,7 @@ const i18nPopup = {
       ],
       sync: [
         'aiTreeTodos', 'aiTreeMarkedDays',
-        'appLanguage', 'userBirthYear', 'nodeSpacing',
+        'appLanguage', 'userBirthYear', 'userBirthMonth', 'userBirthDay', 'aiTreeFamilyAges', 'nodeSpacing',
         'clockCustomX', 'clockCustomY', 'orbitX', 'orbitY',
         'coreAIConfig'
       ]

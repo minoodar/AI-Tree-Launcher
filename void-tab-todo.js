@@ -64,6 +64,11 @@
   let todos = [];
   let timeEvents = [];
   let userBirthYear = null;
+  let userBirthMonth = null;
+  let userBirthDay = null;
+  let familyAges = [];
+  let voidFamilyExpanded = false;
+
   let markedDays = [];
   const VISIBLE_KEY = 'voidTodoDockVisible';
   let position = { side: 'left', top: 0.22 };
@@ -146,6 +151,79 @@
   }
 
   // -------------------------------------------------------- سرِ تاریخ/سن —
+
+  function computeVoidAge(year, month, day) {
+    const y = parseInt(year, 10);
+    if (!y || isNaN(y)) return 0;
+    const isJalali = y < 1500;
+    let m = parseInt(month, 10);
+    let d = parseInt(day, 10);
+    const hasFull = !!(month && day && m >= 1 && m <= 12 && d >= 1 && d <= 31);
+    if (!m || m < 1 || m > 12) m = 1;
+    if (!d || d < 1 || d > 31) d = 1;
+    let gY, gM, gD;
+    try {
+      if (isJalali && typeof jalaaliToGregorian === 'function') {
+        const g = jalaaliToGregorian(y, m, d); gY = g.gy; gM = g.gm; gD = g.gd;
+      } else { gY = y; gM = m; gD = d; }
+    } catch (e) { gY = isJalali ? y + 621 : y; gM = m; gD = d; }
+    const now = new Date();
+    let age;
+    if (hasFull) {
+      age = now.getFullYear() - gY;
+      const had = (now.getMonth() + 1 > gM) || (now.getMonth() + 1 === gM && now.getDate() >= gD);
+      if (!had) age -= 1;
+    } else if (isJalali) {
+      try {
+        const jYearStr = new Intl.DateTimeFormat('en-US-u-ca-persian', { year: 'numeric' }).format(now);
+        age = parseInt(jYearStr.replace(/\D/g, ''), 10) - y;
+      } catch (e) { age = now.getFullYear() - gY; }
+    } else { age = now.getFullYear() - gY; }
+    return Math.max(0, age);
+  }
+  function formatVoidBirthLabel(year, month, day) {
+    const y = parseInt(year, 10);
+    if (!y || isNaN(y)) return '';
+    const isJalali = y < 1500;
+    let m = parseInt(month, 10);
+    let d = parseInt(day, 10);
+    const hasFull = !!(month && day && m >= 1 && m <= 12 && d >= 1 && d <= 31);
+    if (!m || m < 1 || m > 12) m = 1;
+    if (!d || d < 1 || d > 31) d = 1;
+    try {
+      let gY, gM, gD;
+      if (isJalali && typeof jalaaliToGregorian === 'function') {
+        const g = jalaaliToGregorian(y, m, d); gY = g.gy; gM = g.gm; gD = g.gd;
+      } else { gY = y; gM = m; gD = d; }
+      if (hasFull) {
+        const gDate = new Date(gY, gM - 1, gD);
+        const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+        let jStr = '';
+        if (typeof gregorianToJalaali === 'function') {
+          const j = gregorianToJalaali(gY, gM, gD);
+          jStr = j.jy + '/' + String(j.jm).padStart(2, '0') + '/' + String(j.jd).padStart(2, '0');
+        }
+        return isJalali ? ((jStr ? jStr + ' · ' : '') + gStr) : (gStr + (jStr ? ' · ' + jStr : ''));
+      }
+      if (isJalali) {
+        let s = y + ' Jalali';
+        try { const g = jalaaliToGregorian(y, 1, 1); if (g) s += ' · ≈' + g.gy + ' CE'; } catch (e) {}
+        return s;
+      }
+      let s = y + ' CE';
+      try { const j = gregorianToJalaali(y, 1, 1); if (j) s += ' · ≈' + j.jy + ' Jalali'; } catch (e) {}
+      return s;
+    } catch (e) { return ''; }
+  }
+  function getVoidPrimary() {
+    if (Array.isArray(familyAges) && familyAges.length) {
+      const p = familyAges.find(m => m.primary) || familyAges[0];
+      if (p && p.year) return p;
+    }
+    if (userBirthYear) return { name: '', year: userBirthYear, month: userBirthMonth, day: userBirthDay, primary: true };
+    return null;
+  }
+
   function renderDateHead() {
     const now = new Date();
     dateHead.innerHTML = '';
@@ -174,16 +252,10 @@
         dateHead.appendChild(tertiary);
       } catch (e2) {}
     }
-    if (userBirthYear && !isNaN(userBirthYear)) {
-      let currentYear = now.getFullYear();
-      if (userBirthYear < 1500) {
-        try {
-          const jYearStr = new Intl.DateTimeFormat('en-US-u-ca-persian', { year: 'numeric' }).format(now);
-          currentYear = parseInt(jYearStr.replace(/\D/g, ''), 10);
-        } catch (e) {}
-      }
-      const age = Math.max(0, currentYear - userBirthYear);
-      // Soft life-journey bar (mirrors clock panel concept, compact for the dock)
+    const primaryBirth = getVoidPrimary();
+    if (primaryBirth && primaryBirth.year) {
+      const age = computeVoidAge(primaryBirth.year, primaryBirth.month, primaryBirth.day);
+      const birthLbl = formatVoidBirthLabel(primaryBirth.year, primaryBirth.month, primaryBirth.day);
       const wrap = document.createElement('div');
       wrap.className = 'ai-void-agenda-journey';
       const top = document.createElement('div');
@@ -197,14 +269,59 @@
       track.className = 'ai-void-agenda-journey-track';
       const fill = document.createElement('div');
       fill.className = 'ai-void-agenda-journey-fill';
-      // Visual progress: map age onto a gentle curve (cap ~90y for fill)
       const pct = Math.max(4, Math.min(96, (age / 90) * 100));
       fill.style.width = pct + '%';
       track.appendChild(fill);
       const cap = document.createElement('div');
       cap.className = 'ai-void-agenda-journey-caption';
-      cap.textContent = label('journeyCaption', '{age} years on the path').replace('{age}', String(age));
+      const nameBit = primaryBirth.name ? (primaryBirth.name + ' · ') : '';
+      cap.textContent = nameBit + label('journeyCaption', '{age} years on the path').replace('{age}', String(age));
       wrap.append(top, track, cap);
+      if (birthLbl) {
+        const birthLine = document.createElement('div');
+        birthLine.className = 'ai-void-agenda-birth';
+        birthLine.textContent = birthLbl;
+        wrap.appendChild(birthLine);
+      }
+      // Collapsible family roster — primary only until toggle opens
+      const others = (familyAges || []).filter(m => m && m.year && !m.primary);
+      if (others.length) {
+        const tog = document.createElement('button');
+        tog.type = 'button';
+        tog.className = 'ai-void-agenda-family-toggle' + (voidFamilyExpanded ? ' is-open' : '');
+        tog.setAttribute('aria-expanded', voidFamilyExpanded ? 'true' : 'false');
+        const n = others.length;
+        const openTxt = (typeof currentLang !== 'undefined' && currentLang === 'fa')
+          ? (n + ' عضو دیگر خانواده')
+          : (n + ' more');
+        const closeTxt = (typeof currentLang !== 'undefined' && currentLang === 'fa')
+          ? 'بستن'
+          : 'Hide';
+        tog.textContent = (voidFamilyExpanded ? closeTxt : openTxt) + ' ▾';
+        tog.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          voidFamilyExpanded = !voidFamilyExpanded;
+          renderDateHead();
+        });
+        wrap.appendChild(tog);
+        if (voidFamilyExpanded) {
+          const fam = document.createElement('div');
+          fam.className = 'ai-void-agenda-family is-open';
+          const ordered = (familyAges || []).filter(m => m && m.year).slice()
+            .sort((a, b) => (b.primary ? 1 : 0) - (a.primary ? 1 : 0));
+          ordered.forEach((m) => {
+            const a = computeVoidAge(m.year, m.month, m.day);
+            const row = document.createElement('div');
+            row.className = 'ai-void-agenda-family-row' + (m.primary ? ' is-primary' : '');
+            row.textContent = (m.name || (m.primary ? 'Me' : '—')) + ' · ' + a + ' yrs';
+            const bl = formatVoidBirthLabel(m.year, m.month, m.day);
+            if (bl) row.title = bl;
+            fam.appendChild(row);
+          });
+          wrap.appendChild(fam);
+        }
+      }
       dateHead.appendChild(wrap);
     }
     renderMarkedDayLine();
@@ -405,8 +522,24 @@
 
   function loadBirthYear() {
     try {
-      chrome.storage.sync.get(['userBirthYear'], (res) => {
+      chrome.storage.sync.get(['userBirthYear', 'userBirthMonth', 'userBirthDay', 'aiTreeFamilyAges'], (res) => {
         userBirthYear = res.userBirthYear ? parseInt(res.userBirthYear, 10) : null;
+        userBirthMonth = res.userBirthMonth ? parseInt(res.userBirthMonth, 10) : null;
+        userBirthDay = res.userBirthDay ? parseInt(res.userBirthDay, 10) : null;
+        if (Array.isArray(res.aiTreeFamilyAges) && res.aiTreeFamilyAges.length) {
+          familyAges = res.aiTreeFamilyAges.filter(m => m && m.year).map(m => ({
+            id: m.id, name: String(m.name || '').slice(0, 24),
+            year: parseInt(m.year, 10),
+            month: m.month ? parseInt(m.month, 10) : null,
+            day: m.day ? parseInt(m.day, 10) : null,
+            primary: !!m.primary
+          }));
+          if (familyAges.length && !familyAges.some(m => m.primary)) familyAges[0].primary = true;
+          const prim = familyAges.find(m => m.primary) || familyAges[0];
+          if (prim) { userBirthYear = prim.year; userBirthMonth = prim.month; userBirthDay = prim.day; }
+        } else if (userBirthYear) {
+          familyAges = [{ id: 'legacy', name: '', year: userBirthYear, month: userBirthMonth, day: userBirthDay, primary: true }];
+        } else { familyAges = []; }
         renderDateHead();
       });
     } catch (e) { renderDateHead(); }
@@ -724,8 +857,23 @@
         timeEvents = Array.isArray(changes.aiTreeTimeEvents.newValue) ? changes.aiTreeTimeEvents.newValue : [];
         renderEvents();
       }
-      if (area === 'sync' && changes.userBirthYear) {
-        userBirthYear = changes.userBirthYear.newValue ? parseInt(changes.userBirthYear.newValue, 10) : null;
+      if (area === 'sync' && (changes.userBirthYear || changes.userBirthMonth || changes.userBirthDay || changes.aiTreeFamilyAges)) {
+        if (changes.userBirthYear) userBirthYear = changes.userBirthYear.newValue ? parseInt(changes.userBirthYear.newValue, 10) : null;
+        if (changes.userBirthMonth) userBirthMonth = changes.userBirthMonth.newValue ? parseInt(changes.userBirthMonth.newValue, 10) : null;
+        if (changes.userBirthDay) userBirthDay = changes.userBirthDay.newValue ? parseInt(changes.userBirthDay.newValue, 10) : null;
+        if (changes.aiTreeFamilyAges) {
+          const list = Array.isArray(changes.aiTreeFamilyAges.newValue) ? changes.aiTreeFamilyAges.newValue : [];
+          familyAges = list.filter(m => m && m.year).map(m => ({
+            id: m.id, name: String(m.name || '').slice(0, 24),
+            year: parseInt(m.year, 10),
+            month: m.month ? parseInt(m.month, 10) : null,
+            day: m.day ? parseInt(m.day, 10) : null,
+            primary: !!m.primary
+          }));
+          if (familyAges.length && !familyAges.some(m => m.primary)) familyAges[0].primary = true;
+          const prim = familyAges.find(m => m.primary) || familyAges[0];
+          if (prim) { userBirthYear = prim.year; userBirthMonth = prim.month; userBirthDay = prim.day; }
+        }
         renderDateHead();
       }
       if (area === 'sync' && changes.aiTreeMarkedDays) {

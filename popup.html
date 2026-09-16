@@ -142,6 +142,48 @@
     }
     .vault-live-hint.show { opacity: 1; }
 
+    .family-ages-section { margin-top: 4px; }
+    .family-ages-collapse-btn {
+      width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22); color: var(--text); font-size: 13px; font-weight: 700;
+      font-family: inherit; cursor: pointer; text-align: start;
+    }
+    .family-ages-collapse-btn:hover { background: rgba(0,0,0,0.32); }
+    .family-ages-collapse-btn[aria-expanded="true"] {
+      border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);
+    }
+    .family-ages-collapse-chevron { font-size: 11px; transition: transform 0.2s ease; opacity: 0.75; flex-shrink: 0; }
+    .family-ages-collapse-btn[aria-expanded="true"] .family-ages-collapse-chevron { transform: rotate(180deg); }
+    .family-ages-panel {
+      margin-top: 8px; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+      background: rgba(0,0,0,0.18); animation: familyPanelIn 0.18s ease;
+    }
+    @keyframes familyPanelIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .family-age-row {
+      background: rgba(0,0,0,0.28); border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .family-age-row.is-primary {
+      border-color: rgba(16, 185, 129, 0.45); box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.12);
+    }
+    .family-age-row-top { display: flex; gap: 6px; align-items: center; }
+    .family-age-row-top input[type="text"] { flex: 1.4; min-width: 0; padding: 7px 8px; font-size: 12px; }
+    .family-age-row-dates { display: flex; gap: 6px; }
+    .family-age-row-dates input { flex: 1; min-width: 0; padding: 7px 6px; font-size: 12px; }
+    .family-age-row-actions { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+    .family-age-primary-label { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); cursor: pointer; margin: 0; }
+    .family-age-primary-label input { width: auto; margin: 0; }
+    .family-age-del {
+      background: rgba(239, 68, 68, 0.14); color: #FCA5A5;
+      border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 6px;
+      padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit;
+    }
+    .family-age-del:hover { background: rgba(239, 68, 68, 0.28); }
+
     .btn-save-sticky {
       position: sticky;
       top: 0;
@@ -201,9 +243,18 @@
       </select>
     </div>
 
-    <div class="form-group">
-      <label id="lbl-birth">Birth Year (for Clock Age):</label>
-      <input type="number" id="userBirthYear" placeholder="e.g., 1990 or 1375">
+    <div class="form-group family-ages-section">
+      <button type="button" id="family-ages-collapse-btn" class="family-ages-collapse-btn" aria-expanded="false">
+        <span id="lbl-birth">Family ages</span>
+        <span class="family-ages-collapse-chevron" aria-hidden="true">▾</span>
+      </button>
+      <div id="family-ages-panel" class="family-ages-panel" hidden>
+        <div id="birth-date-hint" style="font-size:11px; color: var(--text-muted); margin-bottom:8px; line-height:1.5;"></div>
+        <div id="family-ages-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <button type="button" id="family-age-add-btn" class="btn btn-secondary" style="margin-top:8px; width:100%; font-size:12px;">+ Add person</button>
+        <div id="family-ages-autosave-hint" style="font-size:10px; color: var(--text-muted); margin-top:6px; opacity:0.85;"></div>
+      </div>
+      <input type="hidden" id="userBirthYear" value="">
     </div>
 
     <div class="form-group" style="margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border);">
