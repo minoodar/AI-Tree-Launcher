@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<!-- زودترین چیزِ ممکن در <head>: پس‌زمینهٔ تیره را همون لحظهٔ اول ست
+     می‌کند تا اگر مرورگر پیش از اجرای اسکریپتِ زیر یک فریم پینت کرد،
+     سفیدِ پیش‌فرضِ UA دیده نشه، بلکه همون تیرگیِ فضاست. -->
+<style>html, body { background: #000; }</style>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Void Tab</title>
 
-<!-- باید همیشه اولین چیز در <head> بماند -->
+<!-- باید همیشه اولین اسکریپت در <head> بماند -->
 <script src="void-tab-router.js"></script>
 
 <style>
