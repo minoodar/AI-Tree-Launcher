@@ -1,7 +1,7 @@
-# 🌌 AI Tree Launcher (V36.33)
+# 🌌 AI Tree Launcher (V37.33)
 
 <div align="center">
-  
+
 ![Manifest V3](https://img.shields.io/badge/Chrome_Extension-Manifest_V3-10B981?style=for-the-badge&logo=googlechrome)
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
@@ -22,15 +22,16 @@
 <br>
 
 ### 🚀 The Ultimate Orbital Workspace
-*The Void Tab is now complete and stable! Enjoy a lag-free, fast-rendering background, full app menus, and "Today's Echo" reflecting your daily activity without any clutter.*
+*The Void Tab is now complete and stable! Enjoy interactive 100% goal progress bars, smart family age tracking, a lag-free background, full app menus, and "Today's Echo" reflecting your daily activity without any clutter.*
 
-AI Tree Launcher v36.33 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
+AI Tree Launcher v37.33 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
 
 #### 🌟 Core Features
+* **👨‍👩‍👧‍👦 Family Age Tracker:** Track family members' ages with exact day and month precision, featuring smart auto-detection for both Solar Hijri (Jalali) and Gregorian calendars.
+* **🎯 Void Tab & 100% Goal Progress Bars:** Enhanced Void Tab featuring visual progress bars up to 100% for personal goals, full app menus, customizable search, and a collapsible "Today's Echo" Zen card.
 * **🌌 Orbital Vault:** Draggable, floating launcher with unlimited bookmarks across 4 hubs and a searchable 15-category tag grid.
-* **✨ Stable Void Tab & Today's Echo:** A complete, fast-rendering, and lag-free new tab featuring a beautiful background, full app menus, customizable search, and a collapsible "Today's Echo" Zen card summarizing your daily activity.
-* **🎙️ Smart Studio & Notepad:** Advanced notepad featuring **100% offline dictation** (local Whisper model) and optimized translation. It smartly opens directly adjacent to the launcher widget with zero display flickering.
-* **📅 Time, Task & Advanced Calendar:** Triple calendar (Gregorian, Jalali, Hijri) and an optimized To-Do list. The Iranian (Jalali) calendar now supports full offline event editing and backups, with its backup UI intelligently hidden in non-Persian languages to keep menus clutter-free.
+* **🎙️ Smart Studio & Notepad:** Advanced notepad featuring **100% offline dictation** (local Whisper model) and optimized translation. Opens directly adjacent to the launcher widget with zero display flickering.
+* **📅 Time, Task & Advanced Calendar:** Triple calendar (Gregorian, Jalali, Hijri) and an optimized To-Do list. Offline event editing and smart language-aware UI controls.
 * **🧠 Unified Search & AI Tools:** Combined web and bookmark search engine, comprehensive prompt library, and built-in calculator.
 * **🕊️ Global Wisdom Engine:** Daily localized poetry and insights from global spiritual traditions.
 * **🛡️ Secure & Reliable:** Chrome sync, 1-click full JSON backup/restore, auto-snapshots, and privacy-aware auto-hiding.
@@ -54,18 +55,19 @@ As an independent AI developer based in war-torn Iran, maintaining and expanding
 <br>
 
 ### 🚀 终极轨道工作区
-*Void Tab 现已完善且稳定！享受无延迟、快速渲染的背景、完整的应用程序菜单以及反映您日常活动的“今日回声”。*
+*Void Tab 现已完善且稳定！享受高达 100% 的目标进度条、智能家庭成员年龄计算、无延迟的背景以及“今日回声”。*
 
-AI Tree Launcher v36.33 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
+AI Tree Launcher v37.33 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
 
 #### 🌟 核心功能
+* **👨‍👩‍👧‍👦 家庭成员年龄追踪器：** 精确记录家庭成员的月和日，智能自动识别公历与波斯历（Solar Hijri）。
+* **🎯 Void Tab 与 100% 目标进度条：** Void Tab 页面现已支持高达 100% 的可视化目标进度条、完整应用菜单、自定义搜索和“今日回声” Zen 卡片。
 * **🌌 轨道金库：** 可拖拽的悬浮启动器，包含 4 个中心、无限书签和 15 个分类标签网格。
-* **✨ 稳定的 Void Tab 与 今日回声：** 完整、快速渲染且无延迟的新标签页，包含精美背景、完整的应用程序菜单、可自定义搜索以及总结每日活动的 Zen 卡片。
-* **🎙️ 智能工作室和记事本：** 高级记事本，通过本地 Whisper 模型提供 **100% 离线语音输入**。智能地在小部件旁边打开，无屏幕闪烁。
-* **📅 时间、任务与高级日历：** 三重日历和支持标题编辑的待办事项列表。伊朗 (Jalali) 日历现支持离线事件编辑和备份，其备份界面在非波斯语下会自动隐藏，以保持菜单清爽。
+* **🎙️ 智能工作室和记事本：** 高级记事本，通过本地 Whisper 模型提供 **100% 离线语音输入**。无屏幕闪烁。
+* **📅 时间、任务与高级日历：** 三重日历和支持编辑的待办事项列表。
 * **🧠 统一搜索和 AI 工具：** 综合网络和书签搜索引擎、全面的提示词库和内置计算器。
 * **🕊️ 全球智慧引擎：** 每日推送来自全球精神传统的诗歌和感悟。
-* **🛡️ 安全可靠：** Chrome 同步、一键 JSON 备份/恢复以及登录页隐私自动隐藏。
+* **🛡️ 安全可靠：** Chrome 同步、一键 JSON 备份/恢复以及隐私自动隐藏。
 * **🌍 12 种语言：** 完全本地化支持。
 
 #### 💻 安装指南 (开发者模式)
@@ -74,7 +76,7 @@ AI Tree Launcher v36.33 是一款纯 **Vanilla JS**、零依赖的扩展程序�
 3. 点击 **加载已解压的扩展程序 (Load unpacked)** 并选择项目文件夹。
 
 #### 💖 支持与贡献
-作为一名身处饱受战争蹂躏的伊朗的独立 AI 开发者，维护这个开源项目很大程度上依赖于社区的支持。您的捐款将帮助保持代码开源和项目的持续发展。
+作为一名身处饱受战争蹂躏的伊朗的独立 AI 开发者，维护这个开源项目很大程度上依赖于社区的支持。
 * **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 * **伊朗里亚尔 (IRR):** [通过 Donito 捐赠](https://donito.me/u-b8wjr)
 
@@ -86,17 +88,18 @@ AI Tree Launcher v36.33 是一款纯 **Vanilla JS**、零依赖的扩展程序�
 <br>
 
 ### 🚀 終極軌道工作區
-*Void Tab 現已完善且穩定！享受無延遲、快速渲染的背景、完整的應用程式選單以及反映您日常活動的「今日回聲」。*
+*Void Tab 現已完善且穩定！享受高達 100% 的目標進度條、智能家庭成員年齡計算、無延遲的背景以及「今日回聲」。*
 
-AI Tree Launcher v36.33 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
+AI Tree Launcher v37.33 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
 
 #### 🌟 核心功能
+* **👨‍👩‍👧‍👦 家庭成員年齡追蹤器：** 精確記錄家庭成員的月和日，智能自動識別公曆與波斯曆（Solar Hijri）。
+* **🎯 Void Tab 與 100% 目標進度條：** Void Tab 頁面現已支援高達 100% 的視覺化目標進度條、完整應用選單、自訂搜尋和「今日回聲」 Zen 卡片。
 * **🌌 軌道金庫：** 可拖曳的懸浮啟動器，包含 4 個中心、無限書籤和 15 個分類標籤網格。
-* **✨ 穩定的 Void Tab 與 今日回聲：** 完整、快速渲染且無延遲的新分頁，包含精美背景、完整的應用程式選單以及總結每日活動的 Zen 卡片。
-* **🎙️ 智能工作室和記事本：** 高級記事本，透過本地 Whisper 模型提供 **100% 離線語音輸入**。智能地在小工具旁邊開啟，無螢幕閃爍。
-* **📅 時間、任務與高級日曆：** 三重日曆和支援標題編輯的待辦事項列表。伊朗 (Jalali) 日曆現支援離線事件編輯和備份，其備份介面在非波斯語下會自動隱藏，以保持選單清爽。
+* **🎙️ 智能工作室和記事本：** 高級記事本，透過本地 Whisper 模型提供 **100% 離線語音輸入**。無螢幕閃爍。
+* **📅 時間、任務與高級日曆：** 三重日曆和支援編輯的待辦事項列表。
 * **🧠 統一搜尋和 AI 工具：** 綜合網路和書籤搜尋引擎、全面的提示詞庫和內建計算機。
-* **🕊️ 全球智慧引擎：** 每日推播來自全球精神傳統的詩歌和感悟。
+* **🕊️ 全球智慧引擎：** 每日推播來自傳統與靈性文化的詩歌和感悟。
 * **🛡️ 安全可靠：** Chrome 同步、一鍵 JSON 備份/還原以及隱私自動隱藏。
 * **🌍 12 種語言：** 完全在地化支援。
 
@@ -118,15 +121,16 @@ AI Tree Launcher v36.33 是一款純 **Vanilla JS**、零依賴的擴充功能�
 <br>
 
 ### 🚀 O Espaço de Trabalho Orbital Definitivo
-*A Void Tab agora está completa e estável! Desfrute de um fundo sem atrasos e de renderização rápida, menus completos do aplicativo e o "Eco de Hoje" refletindo sua atividade diária.*
+*A Void Tab agora está completa e estável! Aproveite as barras de progresso de metas de até 100%, rastreador de idade da família e o "Eco de Hoje".*
 
-O AI Tree Launcher v36.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
+O AI Tree Launcher v37.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
 
-#### 🌟 Características Principales
+#### 🌟 Características Principais
+* **👨‍👩‍👧‍👦 Contador de Idade da Família:** Registro preciso de dia e mês com detecção inteligente de calendários solar (Jalali) e gregoriano.
+* **🎯 Void Tab & Barras de Progresso de 100%:** Exibição visual de progresso para metas na página Void Tab até 100%, menus de aplicativos e cartão Zen "Eco de Hoje".
 * **🌌 Cofre Orbital:** Lançador flutuante com favoritos ilimitados em 4 hubs e grade de tags de 15 categorias.
-* **✨ Void Tab Estável e Eco de Hoje:** Uma nova guia completa, de renderização rápida e sem atrasos, apresentando um fundo bonito, menus completos do aplicativo e um cartão Zen resumindo sua atividade.
-* **🎙️ Estúdio Inteligente & Bloco de Notas:** Bloco de notas avançado com **ditado 100% offline** (modelo Whisper local). Abre de forma inteligente ao lado do widget sem oscilações.
-* **📅 Tempo, Tarefas e Calendário Avançado:** Calendário triplo e lista de tarefas. O calendário iraniano (Jalali) agora suporta edição e backup offline de eventos, com sua interface de backup inteligentemente oculta em idiomas diferentes do persa para manter os menus limpos.
+* **🎙️ Estúdio Inteligente & Bloco de Notas:** Bloco de notas avançado com **ditado 100% offline** (modelo Whisper local).
+* **📅 Tempo, Tarefas e Calendário Avançado:** Calendário triplo e lista de tarefas otimizada.
 * **🧠 Busca Unificada e Ferramentas de IA:** Mecanismo de busca combinado, biblioteca de prompts e calculadora.
 * **🕊️ Motor de Sabedoria Global:** Poesia e reflexões diárias de tradições espirituais.
 * **🛡️ Seguro e Confiável:** Sincronização do Chrome, backup JSON com 1 clique e ocultação automática.
@@ -150,15 +154,16 @@ Como um desenvolvedor independente de IA baseado no Irã afetado pela guerra, ma
 <br>
 
 ### 🚀 Nihai Yörünge Çalışma Alanı
-*Void Tab artık eksiksiz ve kararlı! Gecikmesiz, hızlı işlenen bir arka planın, tam uygulama menülerinin ve günlük aktivitenizi yansıtan "Bugünün Yankısı"nın keyfini çıkarın.*
+*Void Tab artık eksiksiz ve kararlı! %100'e kadar hedef ilerleme çubukları, akıllı aile yaş sayacı ve "Bugünün Yankısı"nın keyfini çıkarın.*
 
-AI Tree Launcher v36.33, tarayıcınızı yüzen bir üretkenlik ekosistemine dönüştüren, saf **Vanilla JS** ile yazılmış eklentidir.
+AI Tree Launcher v37.33, tarayıcınızı yüzen bir üretkenlik ekosistemine dönüştüren, saf **Vanilla JS** ile yazılmış eklentidir.
 
 #### 🌟 Temel Özellikler
+* **👨‍👩‍👧‍👦 Aile Üyeleri Yaş Sayacı:** Hicri Şemsi (Celali) ve Miladi takvimleri akıllıca algılayan, gün ve ay bazında hassas yaş takibi.
+* **🎯 Void Tab ve %100 Hedef İlerleme Çubukları:** Void Tab sayfasında kişisel hedefler için %100'e kadar görsel ilerleme çubuğu gösterimi.
 * **🌌 Yörünge Kasası:** 4 merkezde sınırsız yer imi ve aranabilir 15 kategorili etiket ızgarası.
-* **✨ Kararlı Void Tab ve Bugünün Yankısı:** Güzel bir arka plan, tam uygulama menüleri ve aktivitenizi özetleyen bir Zen kartı içeren, hızlı işlenen ve gecikmesiz eksiksiz bir yeni sekme.
-* **🎙️ Akıllı Stüdyo ve Not Defteri:** Yerel bir Whisper modeli aracılığıyla **%100 çevrimdışı sesle yazdırma**. Ekran titremesi olmadan doğrudan pencere aracının yanında akıllıca açılıyor.
-* **📅 Zaman, Görev ve Gelişmiş Takvim:** Üçlü takvim ve To-Do listesi. İran (Celali) takvimi artık çevrimdışı etkinlik düzenlemeyi ve yedeklemeyi destekliyor; yedekleme arayüzü, menüleri temiz tutmak için Farsça dışındaki dillerde akıllıca gizlenmiştir.
+* **🎙️ Akıllı Stüdyo ve Not Defteri:** Yerel Whisper modeli aracılığıyla **%100 çevrimdışı sesle yazdırma**.
+* **📅 Zaman, Görev ve Gelişmiş Takvim:** Üçlü takvim ve To-Do listesi.
 * **🧠 Birleşik Arama ve Yapay Zeka Araçları:** Birleşik web arama motoru, prompt kütüphanesi ve dahili hesap makinesi.
 * **🕊️ Küresel Bilgelik Motoru:** Küresel manevi geleneklerden günlük şiirler.
 * **🛡️ Güvenli ve Güvenilir:** Chrome senkronizasyonu, tek tıklamayla JSON yedekleme ve otomatik gizleme.
@@ -182,13 +187,14 @@ Savaşın yıktığı İran'da yaşayan bağımsız bir yapay zeka geliştiricis
 <br>
 
 ### 🚀 El Espacio de Trabajo Orbital Definitivo
-*¡La Void Tab ahora está completa y estable! Disfruta de un fondo sin retrasos y de renderizado rápido, menús completos de la aplicación y el "Eco de Hoy" que refleja tu actividad diaria.*
+*¡La Void Tab ahora está completa y estable! Disfruta de barras de progreso de objetivos de hasta el 100%, contador de edad familiar inteligente y "Eco de Hoy".*
 
 #### 🌟 Características Principales
+* **👨‍👩‍👧‍👦 Contador de Edad Familiar:** Registro preciso de día y mes con detección automática e inteligente de calendarios solar (Jalali) y gregoriano.
+* **🎯 Void Tab y Barras de Progreso al 100%:** Visualización interactiva del progreso de objetivos hasta el 100% en la Void Tab.
 * **🌌 Bóveda Orbital:** Lanzador flotante con marcadores ilimitados y cuadrícula de etiquetas de 15 categorías.
-* **✨ Void Tab Estable y Eco de Hoy:** Una nueva pestaña completa, de renderizado rápido y sin retrasos, con un hermoso fondo, menús completos y una tarjeta Zen que resume tu actividad.
-* **🎙️ Estudio Inteligente y Bloc de Notas:** Bloc de notas avanzado con **dictado 100% offline**. Se abre inteligentemente junto al widget sin parpadeos.
-* **📅 Tiempo, Tareas y Calendario Avanzado:** Calendario triple y lista de tareas. El calendario iraní (Jalali) ahora admite la edición y copia de seguridad de eventos sin conexión, con su interfaz de copia de seguridad oculta de forma inteligente en idiomas distintos al persa para mantener los menús limpios.
+* **🎙️ Estudio Inteligente y Bloc de Notas:** Bloc de notas avanzado con **dictado 100% offline**.
+* **📅 Tiempo, Tareas y Calendario Avanzado:** Calendario triple y lista de tareas.
 * **🧠 Búsqueda Unificada y Herramientas IA:** Búsqueda combinada, biblioteca de prompts y calculadora.
 * **🕊️ Motor de Sabiduría:** Poesía diaria y reflexiones de tradiciones globales.
 * **🛡️ Seguro y Fiable:** Sincronización, copias de seguridad JSON, y ocultación automática.
@@ -200,7 +206,7 @@ Savaşın yıktığı İran'da yaşayan bağımsız bir yapay zeka geliştiricis
 3. Haz clic en **Cargar extensión sin empaquetar** y selecciona la carpeta.
 
 #### 💖 Apoyo y Contribuciones
-Como desarrollador independiente de IA radicado en un Irán afectado por la guerra, tu contribución es fundamental para mantener este proyecto vivo.
+Como desarrollador independiente de IA radicado en un Irán afectado por la guerra, tu contribución es fundamental.
 * **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 * **Rial Iraní (IRR):** [Donar vía Donito](https://donito.me/u-b8wjr)
 
@@ -212,13 +218,14 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 <br>
 
 ### 🚀 Der Ultimative Orbitale Workspace
-*Der Void Tab ist jetzt vollständig und stabil! Genießen Sie einen verzögerungsfreien, schnell rendernden Hintergrund, vollständige App-Menüs und das "Echo von Heute", das Ihre täglichen Aktivitäten widerspiegelt.*
+*Der Void Tab ist jetzt vollständig und stabil! Genießen Sie Ziel-Fortschrittsbalken bis zu 100 %, intelligente Familienaltersverfolgung und das "Echo von Heute".*
 
 #### 🌟 Hauptmerkmale
+* **👨‍👩‍👧‍👦 Familienmitglieder-Altersrechner:** Präzise Erfassung von Tag und Monat mit intelligenter Erkennung von Sonnen- (Jalali) und Gregorianischem Kalender.
+* **🎯 Void Tab & 100% Ziel-Fortschrittsbalken:** Interaktive Fortschrittsbalken bis zu 100 % für persönliche Ziele auf der Void-Tab-Seite.
 * **🌌 Orbitaler Tresor:** Schwebender Launcher mit unbegrenzten Lesezeichen und 15-Kategorien-Tag-System.
-* **✨ Stabiler Void Tab & Echo von Heute:** Ein vollständiger, schnell rendernder und verzögerungsfreier neuer Tab mit schönem Hintergrund, vollständigen App-Menüs und einer Zen-Karte, die Ihre Aktivitäten zusammenfasst.
-* **🎙️ Smart Studio & Notizbuch:** Erweitertes Notizbuch mit **100 % Offline-Sprachdiktat**. Es öffnet sich nun intelligent direkt neben dem Widget ohne Bildschirmflackern.
-* **📅 Zeit, Aufgaben & Erweiterter Kalender:** Dreifach-Kalender und To-Do-Liste. Der iranische (Jalali) Kalender unterstützt jetzt Offline-Bearbeitung und Backups von Ereignissen. Das Backup-UI wird bei nicht-persischen Sprachen intelligent ausgeblendet, um die Menüs übersichtlich zu halten.
+* **🎙️ Smart Studio & Notizbuch:** Erweitertes Notizbuch mit **100 % Offline-Sprachdiktat**.
+* **📅 Zeit, Aufgaben & Erweiterter Kalender:** Dreifach-Kalender und To-Do-Liste.
 * **🧠 Einheitliche Suche & KI-Tools:** Kombinierte Web- und Lesezeichensuche, Prompt-Bibliothek und Taschenrechner.
 * **🕊️ Global Wisdom Engine:** Tägliche Poesie und Weisheiten.
 * **🛡️ Sicher & Zuverlässig:** Chrome-Sync, JSON-Backups und Auto-Hide.
@@ -230,7 +237,7 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 3. Klicke auf **Entpackte Erweiterung laden** und wähle den Projektordner.
 
 #### 💖 Unterstützung & Beitrag
-Als unabhängiger KI-Entwickler im vom Krieg gezeichneten Iran hilft Ihr Beitrag, das Projekt am Leben zu erhalten.
+Als unabhängiger KI-Entwickler hilft Ihr Beitrag, das Projekt am Leben zu erhalten.
 * **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 * **Iranischer Rial (IRR):** [Spenden via Donito](https://donito.me/u-b8wjr)
 
@@ -242,13 +249,14 @@ Als unabhängiger KI-Entwickler im vom Krieg gezeichneten Iran hilft Ihr Beitrag
 <br>
 
 ### 🚀 L'Espace de Travail Orbital Ultime
-*Le Void Tab est désormais complet et stable ! Profitez d'un arrière-plan sans décalage et à rendu rapide, de menus d'application complets et de « L'Écho d'Aujourd'hui » reflétant votre activité.*
+*Le Void Tab est désormais complet et stable ! Profitez de barres de progression d'objectifs jusqu'à 100%, d'un suivi d'âge familial intelligent et de « L'Écho d'Aujourd'hui ».*
 
 #### 🌟 Fonctionnalités Clés
+* **👨‍👩‍👧‍👦 Compteur d'Âge Familial :** Saisie précise du jour et du mois avec détection automatique intelligente des calendriers solaire (Jalali) et grégorien.
+* **🎯 Void Tab & Barres de Progression 100% :** Affichage visuel de la progression des objectifs jusqu'à 100% sur la page Void Tab.
 * **🌌 Coffre Orbital :** Lanceur flottant avec favoris illimités et recherche par tags.
-* **✨ Void Tab Stable & Écho d'Aujourd'hui :** Un nouvel onglet complet, à rendu rapide et sans décalage, avec un bel arrière-plan, des menus complets et une carte Zen résumant votre activité.
-* **🎙️ Studio Intelligent & Bloc-notes :** Bloc-notes avancé avec **dictée 100% hors ligne**. S'ouvre intelligemment à côté du widget sans scintillement.
-* **📅 Temps, Tâches & Calendrier Avancé :** Triple calendrier et liste de tâches. Le calendrier iranien (Jalali) prend désormais en charge l'édition et la sauvegarde d'événements hors ligne, son interface de sauvegarde étant intelligemment masquée dans les langues autres que le persan pour éviter l'encombrement.
+* **🎙️ Studio Intelligent & Bloc-notes :** Bloc-notes avancé avec **dictée 100% hors ligne**.
+* **📅 Temps, Tâches & Calendrier Avancé :** Triple calendrier et liste de tâches.
 * **🧠 Recherche Unifiée & Outils IA :** Recherche combinée, bibliothèque de prompts et calculatrice.
 * **🕊️ Moteur de Sagesse :** Poésie et réflexions quotidiennes.
 * **🛡️ Sécurisé & Fiable :** Synchronisation, sauvegardes JSON, et masquage automatique.
@@ -260,7 +268,7 @@ Als unabhängiger KI-Entwickler im vom Krieg gezeichneten Iran hilft Ihr Beitrag
 3. Cliquez sur **Charger l'extension non empaquetée** et sélectionnez le dossier.
 
 #### 💖 Soutien et Contribution
-En tant que développeur IA indépendant basé en Iran, le maintien de ce projet dépend grandement du soutien de la communauté.
+En tant que développeur IA indépendant basé en Iran, le maintien de ce projet dépend du soutien de la communauté.
 * **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 * **Rial Iranien (IRR):** [Faire un don via Donito](https://donito.me/u-b8wjr)
 
@@ -272,13 +280,14 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 <br>
 
 ### 🚀 究極のオービタル・ワークスペース
-*Void Tabが完全かつ安定しました！ラグのない高速レンダリングの背景、完全なアプリメニュー、そして日常の活動を反映する「今日のエコー」をお楽しみください。*
+*Void Tabが完全かつ安定しました！最大100%の目標進捗バー、スマートな家族の年齢計算、そして「今日のエコー」をお楽しみください。*
 
 #### 🌟 主な機能
+* **👨‍👩‍👧‍👦 家族の年齢トラッカー:** 太陽暦（ジャラリー）とグレゴリオ暦を自動判別し、月・日単位で正確に年齢をカウント。
+* **🎯 Void Tab & 100%目標進捗バー:** Void Tab ページで個人目標の進捗状況を最大100%までプログレスバーで視覚表示。
 * **🌌 オービタル・ボールト:** 無制限のリンクと15カテゴリのタグ検索を備えたフローティングランチャー。
-* **✨ 安定したVoid Tab & 今日のエコー:** 美しい背景、完全なアプリメニュー、活動を要約するZenカードを備えた、高速レンダリングでラグのない完全な新しいタブ。
-* **🎙️ スマートスタジオ & メモ帳:** **100%オフラインの音声入力**を備えた高度なメモ帳。画面のちらつきなしにウィジェットの隣に開きます。
-* **📅 時間、タスク、高度なカレンダー:** トリプルカレンダーとTo-Doリスト。イラン（ジャラリー）カレンダーは、オフラインでのイベント編集とバックアップをサポートするようになりました。メニューをすっきりさせるため、バックアップUIはペルシャ語以外の言語ではインテリジェントに非表示になります。
+* **🎙️ スマートスタジオ & メモ帳:** **100%オフラインの音声入力**を備えた高度なメモ帳。
+* **📅 時間、タスク、高度なカレンダー:** トリプルカレンダーとTo-Doリスト。
 * **🧠 統合検索 & AIツール:** Web統合検索、プロンプト・ライブラリ、電卓。
 * **🕊️ グローバル・ウィズダム:** 世界の詩や伝統的な知恵を毎日配信。
 * **🛡️ セキュリティ & バックアップ:** 同期、JSONバックアップ、自動非表示。
@@ -302,13 +311,14 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 <br>
 
 ### 🚀 Ультимативное Орбитальное Пространство
-*Вкладка Void Tab теперь полностью готова и стабильна! Наслаждайтесь фоном без задержек с быстрым рендерингом, полными меню приложения и «Эхом сегодня», отражающим вашу активность.*
+*Вкладка Void Tab теперь полностью готова и стабильна! Наслаждайтесь полосами прогресса целей до 100%, умным счетчиком возраста семьи и «Эхом сегодня».*
 
 #### 🌟 Ключевые особенности
+* **👨‍👩‍👧‍👦 Счетчик возраста членов семьи:** Точный ввод дня и месяца с автоматическим определением солнечного (джалали) и григорианского календарей.
+* **🎯 Void Tab и полосы прогресса целей до 100%:** Визуальное отображение прогресса целей до 100% на странице Void Tab.
 * **🌌 Орбитальное хранилище:** Плавающий лаунчер с неограниченным числом закладок и 15 категориями тегов.
-* **✨ Стабильная Void Tab и Эхо сегодня:** Полная новая вкладка с быстрым рендерингом и без задержек, с красивым фоном, полными меню приложения и дзен-карточкой, суммирующей вашу активность.
-* **🎙️ Smart Studio и Блокнот:** Продвинутый блокнот со **100% офлайн голосовым вводом**. Интеллектуально открывается рядом с виджетом без мерцания.
-* **📅 Время, Задачи и Расширенный календарь:** Тройной календарь и список задач. Иранский (джалали) календарь теперь поддерживает офлайн-редактирование и резервное копирование событий; интерфейс резервного копирования разумно скрыт для неперсидских языков, чтобы не загромождать меню.
+* **🎙️ Smart Studio и Блокнот:** Продвинутый блокнот со **100% офлайн голосовым вводом**.
+* **📅 Время, Задачи и Расширенный календарь:** Тройной календарь и список задач.
 * **🧠 Единый Поиск и ИИ-инструменты:** Объединенный поиск, библиотека промптов и калькулятор.
 * **🕊️ Движок Мудрости:** Ежедневная поэзия и мудрости со всего мира.
 * **🛡️ Безопасность:** Синхронизация, JSON-бэкапы и автоматическое скрытие.
@@ -333,13 +343,14 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 <div dir="rtl">
 
 ### 🚀 مساحة العمل المدارية المطلقة
-*أصبحت علامة التبويب Void Tab الآن مكتملة ومستقرة! استمتع بخلفية سريعة العرض بدون تقطيع، وقوائم تطبيق كاملة، و"صدى اليوم" الذي يعكس نشاطك اليومي.*
+*أصبحت علامة التبويب Void Tab الآن مكتملة ومستقرة! استمتع بأشرطة تقدم الأهداف حتى 100%، وحاسبة أعمار أفراد العائلة الذكية، و"صدى اليوم".*
 
 #### 🌟 أبرز الميزات الأساسية
+* **👨‍👩‍👧‍👦 عداد أعمار أفراد العائلة:** تسجيل دقيق لليوم والشهر مع التعرف الذكي والتلقائي على التقويمين الهجري الشمسي (الجلالي) والميلادي.
+* **🎯 علامة Void Tab وأشرطة تقدم الأهداف 100%:** عرض تفاعلي وشريطي لنسبة تقدم الأهداف الشخصية حتى 100% في صفحة Void Tab.
 * **🌌 قبو الإشارات المداري:** مشغل عائم قابل للسحب يحتوي على عدد غير محدود من الروابط، ونظام تصنيف بـ 15 فئة.
-* **✨ علامة التبويب Void Tab المستقرة وصدى اليوم:** علامة تبويب جديدة مكتملة وسريعة العرض بدون تقطيع، تتميز بخلفية جميلة وقوائم تطبيق كاملة وبطاقة Zen تلخص نشاطك.
-* **🎙️ الاستوديو الذكي والمفكرة:** مفكرة متقدمة تدعم **الإملاء الصوتي دون اتصال بالإنترنت بنسبة 100%**. تفتح بذكاء بجوار الأداة العائمة دون أي وميض.
-* **📅 الوقت، المهام والتقويم المتقدم:** تقويم ثلاثي وقائمة مهام. يدعم التقويم الإيراني (الجلالي) الآن التعديل والنسخ الاحتياطي للأحداث دون اتصال بالإنترنت، مع إخفاء واجهة النسخ الاحتياطي بذكاء في اللغات غير الفارسية للحفاظ على القوائم مرتبة.
+* **🎙️ الاستوديو الذكي والمفكرة:** مفكرة متقدمة تدعم **الإملاء الصوتي دون اتصال بالإنترنت بنسبة 100%**.
+* **📅 الوقت، المهام والتقويم المتقدم:** تقويم ثلاثي وقائمة مهام.
 * **🧠 بحث موحد وأدوات ذكية:** محرك بحث يدمج بين الويب والإشارات المرجعية، ومكتبة قوالب نصوص، وحاسبة مدمجة.
 * **🕊️ محرك الحكمة العالمي:** رسائل تأمل يومية وشعر من مختلف الثقافات.
 * **🛡️ الأمان والموثوقية:** مزامنة سحابية، نسخ احتياطي كامل (JSON)، وإخفاء تلقائي.
@@ -365,13 +376,14 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 <div dir="rtl">
 
 ### 🚀 پیشرفته‌ترین فضای کاری مداری
-*«تب Void اکنون کامل و پایدار است! از یک پس‌زمینه جذاب با رندر سریع و بدون لگ، منوهای کامل برنامه و «پژواک امروز» برای انعکاس فعالیت‌های روزانه‌تان لذت ببرید.»*
+*«تب Void اکنون کامل و پایدار است! از نوارهای پیشرفت اهداف تا ۱۰۰ درصد، سن‌شمار هوشمند اعضای خانواده با تشخیص میلادی و شمسی، پس‌زمینه جذاب و «پژواک امروز» لذت ببرید.»*
 
 #### 🌟 ویژگی‌های کلیدی
+* **👨‍👩‍👧‍👦 سن‌شمار کلیه اعضای خانواده:** امکان ثبت دقیق روز و ماه برای کلیه اعضای خانواده همراه با تشخیص هوشمند و خودکار تقویم شمسی و میلادی.
+* **🎯 Void Tab پایدار و نوار پیشرفت ۱۰۰٪ اهداف:** ارائه نوارهای پیشرفت (Progress Bar) تعاملی تا ۱۰۰ درصد برای اهداف در صفحه Void Tab به همراه منوهای کامل برنامه و کارت جمع‌شونده «پژواک امروز».
 * **🌌 گاوصندوق مداری بوک‌مارک‌ها:** لانچر شناور با ظرفیت لینک نامحدود در ۴ هاب و سیستم تگ‌گذاری و جستجوی ۱۵ گانه.
-* **✨ Void Tab پایدار و پژواک امروز:** یک تب جدید کامل، با رندر سریع و بدون لگ که شامل پس‌زمینه جذاب، منوهای کامل برنامه و کارت جمع‌شونده Zen با عنوان «پژواک امروز» برای نمایش خلاصه فعالیت‌های روزانه است.
-* **🎙️ استودیوی هوشمند و دفترچه یادداشت:** دفترچه پیشرفته با پشتیبانی از **تایپ صوتی کاملاً آفلاین** (مدل Whisper). اکنون دفترچه به‌طور هوشمندانه در کنار ویجت باز می‌شود و مشکل پرش تصویر کاملاً برطرف شده است.
-* **📅 مدیریت زمان، وظایف و تقویم پیشرفته:** تقویم سه‌گانه و لیست پیشرفته کارها با امکان ویرایش. رویدادهای تقویم ایرانی (جلالی) اکنون کاملاً قابل ویرایش و بکاپ‌گیری آفلاین هستند؛ به منظور جلوگیری از شلوغی منوها، گزینه بکاپ‌گیری این تقویم به صورت هوشمندانه تنها در زمان انتخاب زبان فارسی نمایش داده می‌شود.
+* **🎙️ استودیوی هوشمند و دفترچه یادداشت:** دفترچه پیشرفته با پشتیبانی از **تایپ صوتی کاملاً آفلاین** (مدل Whisper) بدون پرش تصویر.
+* **📅 مدیریت زمان، وظایف و تقویم پیشرفته:** تقویم سه‌گانه و لیست پیشرفته کارها با امکان ویرایش آفلاین و پشتیبانی هوشمند زبان.
 * **🧠 جستجوی یکپارچه و ابزارهای AI:** موتور جستجوی تلفیقی (جستجو در وب و بوک‌مارک‌ها)، کتابخانه پرامپت‌ها و ماشین‌حساب داخلی.
 * **🕊️ موتور گنجینه جهانی:** نمایش دوزبانه اشعار و پیام‌های روزانه از ادبیات و سنت‌های معنوی جهان.
 * **🛡️ امنیت و پایداری:** همگام‌سازی ابری Chrome، بکاپ‌گیری کامل JSON با یک کلیک و پنهان‌سازی خودکار در صفحات حساس لاگین.
