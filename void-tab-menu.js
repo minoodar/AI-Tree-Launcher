@@ -35,6 +35,7 @@
       set('ai-ntp-menu-focus-label', 'ntpMenuFocus', 'Focus Mode');
       set('ai-ntp-menu-topsites-label', 'ntpMenuTopsites', 'Frequent Links');
       set('ai-ntp-menu-echo-label', 'voidEchoTitle', "Today's Echo");
+      set('ai-ntp-menu-todo-label', 'ntpMenuTodo', 'Today Task');
       set('ai-ntp-menu-settings-label', 'ntpMenuSettings', 'Settings');
       set('ai-ntp-menu-stdtab-label', 'ntpMenuStdTab', 'Use Standard New Tab');
       applyDir();

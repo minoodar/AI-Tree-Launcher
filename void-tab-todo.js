@@ -57,12 +57,14 @@
     return fallback;
   }
 
+  const VISIBLE_KEY = 'voidTodoDockVisible';
   let todos = [];
   let timeEvents = [];
   let userBirthYear = null;
   let markedDays = [];
   let position = { side: 'left', top: 0.22 };
   let collapsed = true;
+  let dockVisible = true;
 
   // ---------------------------------------------------------------- عمومی —
   function pad2(n) { return String(n).padStart(2, '0'); }
@@ -104,6 +106,33 @@
     collapsed = !!next;
     applyCollapsed();
     try { chrome.storage.local.set({ voidTodoCollapsed: collapsed }); } catch (e) {}
+  }
+
+  // نمایش/پنهان‌کردنِ کاملِ داک (نه فقط جمع‌شدن) — از منوی سه‌تایی کنترل
+  // می‌شه، دقیقاً هم‌الگو با «Frequent Links» و «Today's Echo».
+  function applyDockVisibility() {
+    dock.hidden = !dockVisible;
+    dock.setAttribute('aria-hidden', dockVisible ? 'false' : 'true');
+  }
+  function wireMenu() {
+    const btn = document.getElementById('ai-ntp-menu-todo');
+    if (!btn) return;
+    const sync = () => {
+      btn.setAttribute('data-on', dockVisible ? '1' : '0');
+      const labelEl = document.getElementById('ai-ntp-menu-todo-label');
+      if (labelEl && !labelEl.textContent) labelEl.textContent = label('ntpMenuTodo', 'Today Task');
+    };
+    sync();
+    if (btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dockVisible = !dockVisible;
+      applyDockVisibility();
+      try { chrome.storage.local.set({ [VISIBLE_KEY]: dockVisible }); } catch (err) {}
+      sync();
+    });
   }
 
   // -------------------------------------------------------- سرِ تاریخ/سن —
@@ -629,13 +658,16 @@
 
   function loadFromStorage() {
     try {
-      chrome.storage.local.get(['aiTreeTodos', 'voidTodoDock', 'voidTodoCollapsed'], function (localData) {
+      chrome.storage.local.get(['aiTreeTodos', 'voidTodoDock', 'voidTodoCollapsed', VISIBLE_KEY], function (localData) {
         if (localData.voidTodoDock && typeof localData.voidTodoDock === 'object') {
           position = Object.assign({}, position, localData.voidTodoDock);
         }
         if (typeof localData.voidTodoCollapsed === 'boolean') collapsed = localData.voidTodoCollapsed;
+        if (typeof localData[VISIBLE_KEY] === 'boolean') dockVisible = localData[VISIBLE_KEY];
         applyPosition();
         applyCollapsed();
+        applyDockVisibility();
+        wireMenu();
         chrome.storage.sync.get(['aiTreeTodos'], function (syncData) {
           const localTodos = Array.isArray(localData.aiTreeTodos) ? localData.aiTreeTodos : [];
           const syncTodos = Array.isArray(syncData.aiTreeTodos) ? syncData.aiTreeTodos : [];
@@ -658,6 +690,8 @@
     } catch (e) {
       applyPosition();
       applyCollapsed();
+      applyDockVisibility();
+      wireMenu();
     }
   }
   loadFromStorage();
@@ -685,6 +719,11 @@
       if (area === 'sync' && changes.aiTreeMarkedDays) {
         markedDays = Array.isArray(changes.aiTreeMarkedDays.newValue) ? changes.aiTreeMarkedDays.newValue : [];
         renderDateHead();
+      }
+      if (area === 'local' && changes[VISIBLE_KEY]) {
+        dockVisible = changes[VISIBLE_KEY].newValue !== false;
+        applyDockVisibility();
+        wireMenu();
       }
     });
   } catch (e) {}
