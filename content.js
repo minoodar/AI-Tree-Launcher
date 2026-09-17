@@ -1304,12 +1304,10 @@ updateSeasonalTracker();
         try {
           if (hasFullDate) {
             const gDate = new Date(gY, gM - 1, gD);
-            // Full English month name: "15 September 1978"
             const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
             gregorianLine = gStr;
             if (typeof gregorianToJalaali === 'function') {
               const j = gregorianToJalaali(gY, gM, gD);
-              // Always Persian month names for the seed line: "24 شهریور 1367"
               jalaliLine = String(j.jd) + ' ' + J_MONTHS_FA[Math.max(0, j.jm - 1)] + ' ' + String(j.jy);
             }
             birthLabel = jalaliLine && gregorianLine
@@ -1428,7 +1426,6 @@ updateSeasonalTracker();
              const nameBit = primary.name ? (primary.name + ' · ') : '';
              journeyCaption.textContent = nameBit + t('journeyCaption').replace('{age}', localizeDigits(String(age)));
              journeyEl.style.display = 'block';
-             // Dual-line birth under the life bar (primary only)
              let birthEl = document.getElementById('ai-life-birth');
              if (!birthEl) {
                birthEl = document.createElement('div');
