@@ -181,9 +181,12 @@
     } else { age = now.getFullYear() - gY; }
     return Math.max(0, age);
   }
-  function formatVoidBirthLabel(year, month, day) {
+  const VOID_JALALI_MONTHS_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+
+  /** Returns { jalali, gregorian, plain } for dual-line birth display under the life bar. */
+  function formatVoidBirthLines(year, month, day) {
     const y = parseInt(year, 10);
-    if (!y || isNaN(y)) return '';
+    if (!y || isNaN(y)) return { jalali: '', gregorian: '', plain: '' };
     const isJalali = y < 1500;
     let m = parseInt(month, 10);
     let d = parseInt(day, 10);
@@ -197,23 +200,30 @@
       } else { gY = y; gM = m; gD = d; }
       if (hasFull) {
         const gDate = new Date(gY, gM - 1, gD);
-        const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+        const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
         let jStr = '';
         if (typeof gregorianToJalaali === 'function') {
           const j = gregorianToJalaali(gY, gM, gD);
-          jStr = j.jy + '/' + String(j.jm).padStart(2, '0') + '/' + String(j.jd).padStart(2, '0');
+          jStr = j.jd + ' ' + VOID_JALALI_MONTHS_FA[Math.max(0, j.jm - 1)] + ' ' + j.jy;
+        } else if (isJalali) {
+          jStr = d + ' ' + VOID_JALALI_MONTHS_FA[Math.max(0, m - 1)] + ' ' + y;
         }
-        return isJalali ? ((jStr ? jStr + ' · ' : '') + gStr) : (gStr + (jStr ? ' · ' + jStr : ''));
+        const plain = (jStr ? jStr + ' · ' : '') + gStr;
+        return { jalali: jStr, gregorian: gStr, plain: plain };
       }
       if (isJalali) {
-        let s = y + ' Jalali';
+        let s = y + ' شمسی';
         try { const g = jalaaliToGregorian(y, 1, 1); if (g) s += ' · ≈' + g.gy + ' CE'; } catch (e) {}
-        return s;
+        return { jalali: s, gregorian: '', plain: s };
       }
       let s = y + ' CE';
-      try { const j = gregorianToJalaali(y, 1, 1); if (j) s += ' · ≈' + j.jy + ' Jalali'; } catch (e) {}
-      return s;
-    } catch (e) { return ''; }
+      try { const j = gregorianToJalaali(y, 1, 1); if (j) s += ' · ≈' + j.jy + ' شمسی'; } catch (e) {}
+      return { jalali: '', gregorian: s, plain: s };
+    } catch (e) { return { jalali: '', gregorian: '', plain: '' }; }
+  }
+
+  function formatVoidBirthLabel(year, month, day) {
+    return formatVoidBirthLines(year, month, day).plain;
   }
   function getVoidPrimary() {
     if (Array.isArray(familyAges) && familyAges.length) {
@@ -255,7 +265,6 @@
     const primaryBirth = getVoidPrimary();
     if (primaryBirth && primaryBirth.year) {
       const age = computeVoidAge(primaryBirth.year, primaryBirth.month, primaryBirth.day);
-      const birthLbl = formatVoidBirthLabel(primaryBirth.year, primaryBirth.month, primaryBirth.day);
       const wrap = document.createElement('div');
       wrap.className = 'ai-void-agenda-journey';
       const top = document.createElement('div');
@@ -277,11 +286,26 @@
       const nameBit = primaryBirth.name ? (primaryBirth.name + ' · ') : '';
       cap.textContent = nameBit + label('journeyCaption', '{age} years on the path').replace('{age}', String(age));
       wrap.append(top, track, cap);
-      if (birthLbl) {
-        const birthLine = document.createElement('div');
-        birthLine.className = 'ai-void-agenda-birth';
-        birthLine.textContent = birthLbl;
-        wrap.appendChild(birthLine);
+      const birthLines = formatVoidBirthLines(primaryBirth.year, primaryBirth.month, primaryBirth.day);
+      if (birthLines.jalali || birthLines.gregorian || birthLines.plain) {
+        const birthWrap = document.createElement('div');
+        birthWrap.className = 'ai-void-agenda-birth';
+        if (birthLines.jalali) {
+          const jLine = document.createElement('div');
+          jLine.className = 'ai-void-agenda-birth-j';
+          jLine.textContent = '🌱 ' + birthLines.jalali;
+          birthWrap.appendChild(jLine);
+        }
+        if (birthLines.gregorian) {
+          const gLine = document.createElement('div');
+          gLine.className = 'ai-void-agenda-birth-g';
+          gLine.textContent = '✦ ' + birthLines.gregorian;
+          birthWrap.appendChild(gLine);
+        }
+        if (!birthLines.jalali && !birthLines.gregorian && birthLines.plain) {
+          birthWrap.textContent = birthLines.plain;
+        }
+        wrap.appendChild(birthWrap);
       }
       // Collapsible family roster — primary only until toggle opens
       const others = (familyAges || []).filter(m => m && m.year && !m.primary);
@@ -966,299 +990,6 @@
   }
   handle.addEventListener('pointerup', endDrag);
   handle.addEventListener('pointercancel', endDrag);
-
-
-  // ============================================================
-  // Daily report — email (mailto) + copy + download .txt
-  // Privacy-first: no server. Opens the user's mail client with a
-  // pre-filled body, copies text, or saves a local .txt file.
-  // ============================================================
-  const REPORT_EMAIL_KEY = 'voidReportEmail';
-  const reportBar = document.getElementById('ai-void-report-bar');
-  const reportEmailInput = document.getElementById('ai-void-report-email');
-  const reportSendBtn = document.getElementById('ai-void-report-send');
-  const reportCopyBtn = document.getElementById('ai-void-report-copy');
-  const reportTxtBtn = document.getElementById('ai-void-report-txt');
-  const reportHint = document.getElementById('ai-void-report-hint');
-  let reportHintTimer = null;
-
-  function showReportHint(msg, isError) {
-    if (!reportHint) return;
-    reportHint.textContent = msg || '';
-    reportHint.classList.toggle('is-error', !!isError);
-    reportHint.classList.add('is-visible');
-    clearTimeout(reportHintTimer);
-    reportHintTimer = setTimeout(() => {
-      reportHint.classList.remove('is-visible');
-    }, 3200);
-  }
-
-  function statusLabel(status) {
-    const map = {
-      done: '✓',
-      missed: '✗',
-      near: '⚡',
-      'recurring-elapsed': '↻',
-      future: '·'
-    };
-    return map[status] || '·';
-  }
-
-  function statusWord(status) {
-    if (status === 'done') return 'done';
-    if (status === 'missed') return 'missed';
-    if (status === 'near') return 'soon';
-    if (status === 'recurring-elapsed') return 'repeats';
-    return '';
-  }
-
-  function buildDailyReport() {
-    const now = new Date();
-    const iso = todayIso();
-    const tIso = tomorrowIso();
-    const dateLine = now.toLocaleDateString(undefined, {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    });
-    const lines = [];
-    lines.push('AI Tree — Daily Report');
-    lines.push(dateLine);
-    lines.push('='.repeat(Math.min(40, dateLine.length + 8)));
-    lines.push('');
-
-    const todaysEvents = timeEvents
-      .filter((e) => e && e.date === iso)
-      .slice()
-      .sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || '')));
-    lines.push(label('voidAgendaEventsLabel', "Today's schedule"));
-    if (!todaysEvents.length) {
-      lines.push('  — ' + label('dashNoEvents', 'No events'));
-    } else {
-      todaysEvents.forEach((evt) => {
-        const st = evaluateStatus(evt);
-        const mark = statusLabel(st);
-        const extra = statusWord(st);
-        const rec = evt.recurring ? ' ★' : '';
-        const end = evt.endTime ? ('–' + evt.endTime) : '';
-        lines.push('  ' + mark + ' ' + (evt.startTime || '--:--') + end + '  ' + (evt.title || '') + rec + (extra ? '  [' + extra + ']' : ''));
-      });
-    }
-    lines.push('');
-
-    const tomorrowEvents = timeEvents
-      .filter((e) => e && e.date === tIso)
-      .slice()
-      .sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || '')));
-    if (tomorrowEvents.length) {
-      lines.push(label('scrubberTomorrowBadge', 'Tomorrow') + ' — ' + label('voidAgendaEventsLabel', "Today's schedule"));
-      tomorrowEvents.forEach((evt) => {
-        const rec = evt.recurring ? ' ★' : '';
-        const end = evt.endTime ? ('–' + evt.endTime) : '';
-        lines.push('  · ' + (evt.startTime || '--:--') + end + '  ' + (evt.title || '') + rec);
-      });
-      lines.push('');
-    }
-
-    const todayTasks = todos.filter((t) => isToday(t, now));
-    const tomorrowTasks = todos.filter((t) => isTomorrowTodo(t, now));
-    const goals = todos.filter((t) => isGoal(t));
-
-    lines.push(label('voidAgendaTasksLabel', 'Tasks') + ' — ' + label('todoWhenToday', 'Today'));
-    if (!todayTasks.length) {
-      lines.push('  — ' + label('todoNoDaily', 'No daily tasks'));
-    } else {
-      todayTasks.forEach((t) => {
-        lines.push('  ' + (t.done ? '[x]' : '[ ]') + ' ' + (t.text || ''));
-      });
-    }
-    lines.push('');
-
-    if (tomorrowTasks.length) {
-      lines.push(label('voidAgendaTasksLabel', 'Tasks') + ' — ' + label('todoWhenTomorrow', 'Tomorrow'));
-      tomorrowTasks.forEach((t) => {
-        lines.push('  ' + (t.done ? '[x]' : '[ ]') + ' ' + (t.text || ''));
-      });
-      lines.push('');
-    }
-
-    if (goals.length) {
-      lines.push(label('todoTabGoals', 'Goals'));
-      goals
-        .slice()
-        .sort((a, b) => goalProgress(b) - goalProgress(a))
-        .forEach((g) => {
-          const pct = goalProgress(g);
-          const barLen = 10;
-          const filled = Math.round((pct / 100) * barLen);
-          const bar = '█'.repeat(filled) + '░'.repeat(barLen - filled);
-          lines.push('  ' + bar + ' ' + pct + '%  ' + (g.text || ''));
-        });
-      lines.push('');
-    }
-
-    const openTasks = todayTasks.filter((t) => !t.done).length + tomorrowTasks.filter((t) => !t.done).length;
-    const openGoals = goals.filter((g) => goalProgress(g) < 100).length;
-    const openEvents = todaysEvents.filter((e) => {
-      const s = evaluateStatus(e);
-      return s !== 'done' && s !== 'missed' && s !== 'recurring-elapsed';
-    }).length;
-    lines.push('-'.repeat(28));
-    lines.push(
-      label('voidReportSummary', 'Open: {tasks} tasks · {events} events · {goals} goals')
-        .replace('{tasks}', String(openTasks))
-        .replace('{events}', String(openEvents))
-        .replace('{goals}', String(openGoals))
-    );
-    lines.push('');
-    lines.push('— AI Tree Launcher');
-
-    return lines.join('\n');
-  }
-
-  function isValidEmail(v) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || '').trim());
-  }
-
-  function saveReportEmail(email) {
-    try { chrome.storage.local.set({ [REPORT_EMAIL_KEY]: email }); } catch (e) {}
-  }
-
-  function loadReportEmail() {
-    try {
-      chrome.storage.local.get([REPORT_EMAIL_KEY], (res) => {
-        if (reportEmailInput && res && typeof res[REPORT_EMAIL_KEY] === 'string' && res[REPORT_EMAIL_KEY]) {
-          reportEmailInput.value = res[REPORT_EMAIL_KEY];
-        }
-      });
-    } catch (e) {}
-  }
-
-  function copyText(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text);
-    }
-    return new Promise((resolve, reject) => {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.cssText = 'position:fixed;left:-9999px;top:0';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        ta.remove();
-        resolve();
-      } catch (err) { reject(err); }
-    });
-  }
-
-  function downloadReportTxt() {
-    const body = buildDailyReport();
-    const filename = 'AITree_Daily_' + todayIso() + '.txt';
-    try {
-      const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        try { URL.revokeObjectURL(url); } catch (e) {}
-        try { a.remove(); } catch (e) {}
-      }, 1500);
-      showReportHint(label('voidReportTxtSaved', 'Saved as {file}').replace('{file}', filename));
-    } catch (err) {
-      showReportHint(label('voidReportTxtFail', 'Could not save .txt file'), true);
-    }
-  }
-
-  function sendReportEmail() {
-    const email = (reportEmailInput && reportEmailInput.value || '').trim();
-    if (!isValidEmail(email)) {
-      showReportHint(label('voidReportNeedEmail', 'Enter a valid email address'), true);
-      if (reportEmailInput) reportEmailInput.focus();
-      return;
-    }
-    saveReportEmail(email);
-    const body = buildDailyReport();
-    const subject = label('voidReportSubject', 'AI Tree — Daily report ({date})')
-      .replace('{date}', todayIso());
-
-    const encodedBody = encodeURIComponent(body);
-    const encodedSubject = encodeURIComponent(subject);
-    const mailtoBase = 'mailto:' + encodeURIComponent(email) + '?subject=' + encodedSubject + '&body=';
-    const fullUrl = mailtoBase + encodedBody;
-
-    if (fullUrl.length <= 1800) {
-      window.location.href = fullUrl;
-      showReportHint(label('voidReportOpenedMail', 'Opening your email client…'));
-      return;
-    }
-
-    copyText(body).then(() => {
-      const short = label(
-        'voidReportBodyCopied',
-        'The full daily report was copied to your clipboard.\n\nPaste it here (Ctrl/Cmd+V).\n\n— AI Tree Launcher'
-      );
-      window.location.href = mailtoBase + encodeURIComponent(short);
-      showReportHint(label('voidReportCopiedLong', 'Report copied — paste into the email'));
-    }).catch(() => {
-      showReportHint(label('voidReportCopyFail', 'Could not copy report'), true);
-    });
-  }
-
-  function copyReportOnly() {
-    const body = buildDailyReport();
-    copyText(body).then(() => {
-      showReportHint(label('voidReportCopied', 'Report copied to clipboard'));
-    }).catch(() => {
-      showReportHint(label('voidReportCopyFail', 'Could not copy report'), true);
-    });
-  }
-
-  function applyReportLabels() {
-    if (reportEmailInput) {
-      reportEmailInput.placeholder = label('voidReportEmailPh', 'you@email.com');
-      reportEmailInput.setAttribute('aria-label', label('voidReportEmailAria', 'Email for daily report'));
-    }
-    if (reportSendBtn) {
-      reportSendBtn.title = label('voidReportSendTitle', 'Email today’s report');
-      reportSendBtn.setAttribute('aria-label', label('voidReportSendTitle', 'Email today’s report'));
-    }
-    if (reportCopyBtn) {
-      reportCopyBtn.title = label('voidReportCopyTitle', 'Copy report');
-      reportCopyBtn.setAttribute('aria-label', label('voidReportCopyTitle', 'Copy report'));
-    }
-    if (reportTxtBtn) {
-      reportTxtBtn.title = label('voidReportTxtTitle', 'Download as .txt');
-      reportTxtBtn.setAttribute('aria-label', label('voidReportTxtTitle', 'Download as .txt'));
-    }
-  }
-
-  if (reportSendBtn) reportSendBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); sendReportEmail(); });
-  if (reportCopyBtn) reportCopyBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); copyReportOnly(); });
-  if (reportTxtBtn) reportTxtBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); downloadReportTxt(); });
-  if (reportEmailInput) {
-    reportEmailInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); sendReportEmail(); }
-    });
-    reportEmailInput.addEventListener('change', () => {
-      const v = reportEmailInput.value.trim();
-      if (isValidEmail(v)) saveReportEmail(v);
-    });
-    reportEmailInput.addEventListener('pointerdown', (e) => e.stopPropagation());
-  }
-  if (reportBar) {
-    reportBar.addEventListener('pointerdown', (e) => e.stopPropagation());
-  }
-
-  loadReportEmail();
-  applyReportLabels();
-  try {
-    chrome.storage.onChanged.addListener((changes) => {
-      if (changes.appLanguage) applyReportLabels();
-    });
-  } catch (e) {}
 
   applyCollapsed();
   applyQuickbarOpposite();

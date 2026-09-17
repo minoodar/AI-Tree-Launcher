@@ -1298,28 +1298,37 @@ updateSeasonalTracker();
         } else { age = nowD.getFullYear() - gY; }
         age = Math.max(0, age);
         let birthLabel = '';
+        let jalaliLine = '';
+        let gregorianLine = '';
+        const J_MONTHS_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
         try {
           if (hasFullDate) {
             const gDate = new Date(gY, gM - 1, gD);
-            const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
-            let jStr = '';
+            // Full English month name: "15 September 1978"
+            const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+            gregorianLine = gStr;
             if (typeof gregorianToJalaali === 'function') {
               const j = gregorianToJalaali(gY, gM, gD);
-              const jMonths = currentLang === 'fa'
-                ? ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند']
-                : ['Farvardin','Ordibehesht','Khordad','Tir','Mordad','Shahrivar','Mehr','Aban','Azar','Dey','Bahman','Esfand'];
-              jStr = localizeDigits(String(j.jd)) + ' ' + jMonths[Math.max(0, j.jm - 1)] + ' ' + localizeDigits(String(j.jy));
+              // Always Persian month names for the seed line: "24 شهریور 1367"
+              jalaliLine = String(j.jd) + ' ' + J_MONTHS_FA[Math.max(0, j.jm - 1)] + ' ' + String(j.jy);
             }
-            birthLabel = isJalali ? (jStr ? jStr + ' · ' + gStr : gStr) : (gStr + (jStr ? ' · ' + jStr : ''));
+            birthLabel = jalaliLine && gregorianLine
+              ? (jalaliLine + ' · ' + gregorianLine)
+              : (jalaliLine || gregorianLine);
           } else if (isJalali) {
-            birthLabel = localizeDigits(String(y)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
-            try { const g = jalaaliToGregorian(y, 1, 1); if (g) birthLabel += ' · ≈' + g.gy + ' CE'; } catch (e) {}
+            jalaliLine = localizeDigits(String(y)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
+            try { const g = jalaaliToGregorian(y, 1, 1); if (g) gregorianLine = '≈' + g.gy + ' CE'; } catch (e) {}
+            birthLabel = jalaliLine + (gregorianLine ? ' · ' + gregorianLine : '');
           } else {
-            birthLabel = String(y) + ' CE';
-            try { const j = gregorianToJalaali(y, 1, 1); if (j) birthLabel += ' · ≈' + localizeDigits(String(j.jy)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali'); } catch (e) {}
+            gregorianLine = String(y) + ' CE';
+            try {
+              const j = gregorianToJalaali(y, 1, 1);
+              if (j) jalaliLine = '≈' + localizeDigits(String(j.jy)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
+            } catch (e) {}
+            birthLabel = gregorianLine + (jalaliLine ? ' · ' + jalaliLine : '');
           }
         } catch (e) {}
-        return { age: age, birthLabel: birthLabel };
+        return { age: age, birthLabel: birthLabel, jalaliLine: jalaliLine, gregorianLine: gregorianLine };
       }
       function getPrimaryBirth() {
         if (Array.isArray(familyAges) && familyAges.length) {
@@ -1407,20 +1416,47 @@ updateSeasonalTracker();
       if (primary && primary.year) {
          const ageInfo = computePreciseAge(primary.year, primary.month, primary.day);
          const age = ageInfo.age;
-         const namePrefix = primary.name ? (primary.name + ' · ') : '';
-         ageEl.textContent = namePrefix + t('ageLabel').replace('{age}', localizeDigits(String(age)));
-         if (ageInfo.birthLabel) ageEl.textContent += ' · ' + ageInfo.birthLabel;
-         ageEl.style.setProperty('display', 'block', 'important');
+         // Age is shown on the life-bar caption — hide the redundant #ai-age line
+         if (ageEl) {
+           ageEl.textContent = '';
+           ageEl.style.display = 'none';
+           ageEl.style.removeProperty('display');
+         }
          if (journeyEl && journeyCaption) {
              const progress = Math.max(7, Math.min(93, (age / 100) * 100));
              journeyEl.style.setProperty('--life-progress', progress + '%');
-             journeyCaption.textContent = t('journeyCaption').replace('{age}', localizeDigits(String(age)));
+             const nameBit = primary.name ? (primary.name + ' · ') : '';
+             journeyCaption.textContent = nameBit + t('journeyCaption').replace('{age}', localizeDigits(String(age)));
              journeyEl.style.display = 'block';
+             // Dual-line birth under the life bar (primary only)
+             let birthEl = document.getElementById('ai-life-birth');
+             if (!birthEl) {
+               birthEl = document.createElement('div');
+               birthEl.id = 'ai-life-birth';
+               birthEl.className = 'ai-life-birth';
+               journeyEl.insertAdjacentElement('afterend', birthEl);
+             }
+             birthEl.innerHTML = '';
+             if (ageInfo.jalaliLine) {
+               const j = document.createElement('div');
+               j.className = 'ai-life-birth-j';
+               j.textContent = '🌱 ' + ageInfo.jalaliLine;
+               birthEl.appendChild(j);
+             }
+             if (ageInfo.gregorianLine) {
+               const g = document.createElement('div');
+               g.className = 'ai-life-birth-g';
+               g.textContent = '✦ ' + ageInfo.gregorianLine;
+               birthEl.appendChild(g);
+             }
+             birthEl.style.display = (ageInfo.jalaliLine || ageInfo.gregorianLine) ? 'flex' : 'none';
          }
          renderFamilyAgesPanel();
       } else {
-         ageEl.textContent = ''; ageEl.style.display = 'none'; ageEl.style.removeProperty('display');
+         if (ageEl) { ageEl.textContent = ''; ageEl.style.display = 'none'; ageEl.style.removeProperty('display'); }
          if (journeyEl) journeyEl.style.display = 'none';
+         const birthEl = document.getElementById('ai-life-birth');
+         if (birthEl) birthEl.style.display = 'none';
          if (familyToggle) familyToggle.style.display = 'none';
          if (familyListEl) { familyListEl.style.display = 'none'; familyListEl.hidden = true; }
       }

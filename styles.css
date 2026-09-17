@@ -1878,6 +1878,28 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
 .ai-life-now { left: calc(var(--life-progress) - 4px); background: #e0f2fe; box-shadow: 0 0 0 3px rgba(103,232,249,.13), 0 0 10px rgba(103,232,249,.75); animation: presentPulse 2.8s ease-in-out infinite; transition: left .7s cubic-bezier(.19,1,.22,1); }
 .ai-life-copy { display: flex; justify-content: space-between; align-items: center; gap: 6px; color: rgba(186,230,253,.50); font-size: 7px; font-weight: 700; letter-spacing: .3px; direction: ltr; }
 #ai-life-caption { color: rgba(224,242,254,.88); font-size: 9px; font-weight: 600; letter-spacing: 0; direction: rtl; }
+.ai-life-birth {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 6px;
+  text-align: center;
+  line-height: 1.4;
+}
+.ai-life-birth-j {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(167, 243, 208, 0.92);
+  direction: rtl;
+}
+.ai-life-birth-g {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(186, 230, 253, 0.8);
+  direction: ltr;
+}
 .ai-clock-age {
   display: none; margin-top: 6px; text-align: center; font-size: 11px; font-weight: 650;
   color: rgba(224, 242, 254, 0.92); letter-spacing: 0.2px; line-height: 1.45;
