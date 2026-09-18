@@ -1193,6 +1193,14 @@
 
 
     /* ---- Void Dissolve: scatter to stars + singularity toggle ---- */
+
+    /* Dissolved menus keep their layout slot so siblings (Goals under Echo) do not jump up */
+    .ai-void-is-dissolved {
+        visibility: hidden !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+        /* keep display & dimensions — do NOT use [hidden]/display:none */
+    }
     #ai-void-dissolve-layer {
         position: fixed; inset: 0; pointer-events: none; z-index: 9998;
         overflow: hidden;

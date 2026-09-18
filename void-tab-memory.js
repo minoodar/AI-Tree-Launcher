@@ -72,9 +72,22 @@
   }
   function applyVisibility(hasData) {
     lastHasData = hasData;
+    const dissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('echo'));
     const show = visiblePref && hasData;
-    root.hidden = !show;
-    root.setAttribute('aria-hidden', show ? 'false' : 'true');
+    if (dissolved) {
+      // Keep layout slot under stage so Goals does not jump up
+      root.hidden = false;
+      root.classList.add('ai-void-is-dissolved');
+      root.setAttribute('aria-hidden', 'true');
+    } else if (!show) {
+      root.classList.remove('ai-void-is-dissolved');
+      root.hidden = true;
+      root.setAttribute('aria-hidden', 'true');
+    } else {
+      root.classList.remove('ai-void-is-dissolved');
+      root.hidden = false;
+      root.setAttribute('aria-hidden', 'false');
+    }
   }
   function chip(cls, text) {
     const span = document.createElement('span');

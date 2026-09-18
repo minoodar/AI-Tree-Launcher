@@ -132,16 +132,25 @@
     const todoDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('todo'));
     const goalsDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('goals'));
     if (todoDissolved) {
+      // Today dock is side panel — full hide is fine (nothing stacked under it in flow)
       dock.hidden = true;
+      dock.classList.remove('ai-void-is-dissolved');
     } else {
       dock.hidden = !dockVisible;
+      if (dockVisible) dock.classList.remove('ai-void-is-dissolved');
     }
-    dock.setAttribute('aria-hidden', dock.hidden ? 'true' : 'false');
+    dock.setAttribute('aria-hidden', (dock.hidden || dock.classList.contains('ai-void-is-dissolved')) ? 'true' : 'false');
     if (goalsSection) {
       if (goalsDissolved) {
+        // Keep layout slot so position stays under Echo
+        goalsSection.hidden = false;
+        goalsSection.classList.add('ai-void-is-dissolved');
+      } else if (!goalsVisible || !hasGoals) {
+        goalsSection.classList.remove('ai-void-is-dissolved');
         goalsSection.hidden = true;
       } else {
-        goalsSection.hidden = !goalsVisible || !hasGoals;
+        goalsSection.classList.remove('ai-void-is-dissolved');
+        goalsSection.hidden = false;
       }
     }
   }

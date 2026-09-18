@@ -80,6 +80,69 @@
     }
   }
 
+  // Minimum center-to-center gap so stacked singularities never overlap
+  const SINGULARITY_GAP = 36;
+  const STACK_ORDER = { echo: 0, goals: 1, todo: 2 };
+
+  function applyOrbPosition(entry) {
+    if (!entry || !entry.singularity || !entry.anchor) return;
+    const x = Math.max(12, Math.min(window.innerWidth - 44, entry.anchor.x - 18));
+    const y = Math.max(12, Math.min(window.innerHeight - 44, entry.anchor.y - 18));
+    entry.singularity.style.left = x + 'px';
+    entry.singularity.style.top = y + 'px';
+  }
+
+  /**
+   * Singularity stays frozen at each menu's own center of gravity.
+   * No shifting to dodge siblings — only separate two orbs if both are
+   * dissolved and would occupy the exact same point.
+   */
+  function reflowSingularities() {
+    const active = Object.keys(registry)
+      .map((id) => registry[id])
+      .filter((e) => e && e.singularity && e.anchor);
+    if (!active.length) return;
+
+    // Restore frozen preferred position first (no drift)
+    active.forEach((e) => {
+      if (e.anchor.preferredY != null) e.anchor.y = e.anchor.preferredY;
+      if (e.anchor.preferredX != null) e.anchor.x = e.anchor.preferredX;
+    });
+
+    // If two dissolved orbs share nearly the same point, nudge the lower one
+    // by a small gap only — never chase visible panels around the page.
+    const sorted = active.slice().sort((a, b) => {
+      const oa = STACK_ORDER[a.id] != null ? STACK_ORDER[a.id] : 50;
+      const ob = STACK_ORDER[b.id] != null ? STACK_ORDER[b.id] : 50;
+      if (oa !== ob) return oa - ob;
+      return (a.anchor.y || 0) - (b.anchor.y || 0);
+    });
+    for (let i = 1; i < sorted.length; i++) {
+      const prev = sorted[i - 1];
+      const cur = sorted[i];
+      const dx = (cur.anchor.x || 0) - (prev.anchor.x || 0);
+      const dy = (cur.anchor.y || 0) - (prev.anchor.y || 0);
+      if (Math.hypot(dx, dy) < SINGULARITY_GAP) {
+        cur.anchor.y = (prev.anchor.y || 0) + SINGULARITY_GAP;
+        // preferredY stays original center-of-gravity for when the other is restored
+      }
+    }
+
+    active.forEach((e) => {
+      if (savedState[e.id] && savedState[e.id].dissolved) {
+        savedState[e.id].x = e.anchor.x;
+        savedState[e.id].y = e.anchor.y;
+      }
+      applyOrbPosition(e);
+    });
+    persist();
+  }
+
+  function reflowAfterLayout() {
+    // Positions are frozen at dissolve time — only a light pass for dual-orb gap
+    requestAnimationFrame(reflowSingularities);
+  }
+
   function placeSingularity(entry, rect) {
     removeSingularity(entry);
     const orb = document.createElement('button');
@@ -96,8 +159,14 @@
       ? entry.anchor.y
       : (rect.top + Math.min(28, rect.height / 2));
 
-    orb.style.left = Math.max(12, Math.min(window.innerWidth - 44, x - 18)) + 'px';
-    orb.style.top = Math.max(12, Math.min(window.innerHeight - 44, y - 18)) + 'px';
+    if (!entry.anchor) {
+      entry.anchor = { x: x, y: y, preferredX: x, preferredY: y };
+    } else {
+      entry.anchor.x = x;
+      entry.anchor.y = y;
+      if (entry.anchor.preferredX == null) entry.anchor.preferredX = x;
+      if (entry.anchor.preferredY == null) entry.anchor.preferredY = y;
+    }
 
     const core = document.createElement('span');
     core.className = 'ai-void-singularity-core';
@@ -115,13 +184,13 @@
       e.stopPropagation();
       restore(entry.id);
     });
-    // playful hover drift bubbles
     orb.addEventListener('pointerenter', () => orb.classList.add('is-awake'));
     orb.addEventListener('pointerleave', () => orb.classList.remove('is-awake'));
 
     document.body.appendChild(orb);
     entry.singularity = orb;
-    // stagger-in
+    applyOrbPosition(entry);
+    reflowSingularities();
     requestAnimationFrame(() => orb.classList.add('is-visible'));
   }
 
@@ -136,21 +205,23 @@
     opts = opts || {};
     const entry = registry[id];
     if (!entry || !entry.el || entry.dissolving) return;
-    if (entry.el.hidden && entry.singularity) return;
+    if (entry.singularity || entry.el.classList.contains('ai-void-is-dissolved')) return;
 
     entry.dissolving = true;
     const rect = entry.el.getBoundingClientRect();
-    entry.anchor = {
-      x: rect.left + rect.width / 2,
-      y: rect.top + Math.min(32, rect.height * 0.2)
-    };
+    // Frozen center of gravity of THIS menu at the moment of dissolve — no later shift
+    const ax = rect.left + rect.width / 2;
+    const ay = rect.top + rect.height / 2;
+    entry.anchor = { x: ax, y: ay, preferredX: ax, preferredY: ay };
 
     entry.el.classList.add('ai-void-is-dissolving');
     particleBurst(rect, false);
 
     const finish = () => {
       entry.el.classList.remove('ai-void-is-dissolving');
-      entry.el.hidden = true;
+      // Keep layout space so siblings (e.g. Goals under Echo) do not jump up
+      entry.el.hidden = false;
+      entry.el.classList.add('ai-void-is-dissolved');
       entry.el.setAttribute('aria-hidden', 'true');
       entry.dissolving = false;
       placeSingularity(entry, rect);
@@ -163,6 +234,7 @@
       if (typeof entry.onHide === 'function') {
         try { entry.onHide(); } catch (e) {}
       }
+      reflowAfterLayout();
     };
 
     if (reducedMotion) finish();
@@ -192,11 +264,13 @@
     const finish = () => {
       removeSingularity(entry);
       entry.el.hidden = false;
+      entry.el.classList.remove('ai-void-is-dissolved');
       entry.el.setAttribute('aria-hidden', 'false');
       entry.el.classList.add('ai-void-is-reforming');
       entry.dissolving = false;
       delete savedState[id];
       persist();
+      reflowSingularities();
       if (typeof entry.onShow === 'function') {
         try { entry.onShow(); } catch (e) {}
       }
@@ -248,11 +322,11 @@
     // Apply persisted dissolve after state loads
     const applySaved = () => {
       if (savedState[id] && savedState[id].dissolved) {
-        entry.anchor = {
-          x: savedState[id].x || 40,
-          y: savedState[id].y || 80
-        };
-        entry.el.hidden = true;
+        const sx = savedState[id].x || 40;
+        const sy = savedState[id].y || 80;
+        entry.anchor = { x: sx, y: sy, preferredX: sx, preferredY: sy };
+        entry.el.hidden = false;
+        entry.el.classList.add('ai-void-is-dissolved');
         entry.el.setAttribute('aria-hidden', 'true');
         placeSingularity(entry, {
           left: entry.anchor.x - 20,
@@ -269,16 +343,9 @@
     else loadState(applySaved);
   }
 
-  // Reposition singularities on resize
+  // Reposition singularities on resize (and keep stack gaps)
   window.addEventListener('resize', () => {
-    Object.keys(registry).forEach((id) => {
-      const entry = registry[id];
-      if (!entry.singularity || !entry.anchor) return;
-      const x = Math.max(12, Math.min(window.innerWidth - 44, entry.anchor.x - 18));
-      const y = Math.max(12, Math.min(window.innerHeight - 44, entry.anchor.y - 18));
-      entry.singularity.style.left = x + 'px';
-      entry.singularity.style.top = y + 'px';
-    });
+    reflowSingularities();
   }, { passive: true });
 
   loadState();
