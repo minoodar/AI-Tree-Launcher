@@ -1298,35 +1298,28 @@ updateSeasonalTracker();
         } else { age = nowD.getFullYear() - gY; }
         age = Math.max(0, age);
         let birthLabel = '';
-        let jalaliLine = '';
-        let gregorianLine = '';
-        const J_MONTHS_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
         try {
           if (hasFullDate) {
             const gDate = new Date(gY, gM - 1, gD);
-            const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
-            gregorianLine = gStr;
+            const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
+            let jStr = '';
             if (typeof gregorianToJalaali === 'function') {
               const j = gregorianToJalaali(gY, gM, gD);
-              jalaliLine = String(j.jd) + ' ' + J_MONTHS_FA[Math.max(0, j.jm - 1)] + ' ' + String(j.jy);
+              const jMonths = currentLang === 'fa'
+                ? ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند']
+                : ['Farvardin','Ordibehesht','Khordad','Tir','Mordad','Shahrivar','Mehr','Aban','Azar','Dey','Bahman','Esfand'];
+              jStr = localizeDigits(String(j.jd)) + ' ' + jMonths[Math.max(0, j.jm - 1)] + ' ' + localizeDigits(String(j.jy));
             }
-            birthLabel = jalaliLine && gregorianLine
-              ? (jalaliLine + ' · ' + gregorianLine)
-              : (jalaliLine || gregorianLine);
+            birthLabel = isJalali ? (jStr ? jStr + ' · ' + gStr : gStr) : (gStr + (jStr ? ' · ' + jStr : ''));
           } else if (isJalali) {
-            jalaliLine = localizeDigits(String(y)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
-            try { const g = jalaaliToGregorian(y, 1, 1); if (g) gregorianLine = '≈' + g.gy + ' CE'; } catch (e) {}
-            birthLabel = jalaliLine + (gregorianLine ? ' · ' + gregorianLine : '');
+            birthLabel = localizeDigits(String(y)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
+            try { const g = jalaaliToGregorian(y, 1, 1); if (g) birthLabel += ' · ≈' + g.gy + ' CE'; } catch (e) {}
           } else {
-            gregorianLine = String(y) + ' CE';
-            try {
-              const j = gregorianToJalaali(y, 1, 1);
-              if (j) jalaliLine = '≈' + localizeDigits(String(j.jy)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
-            } catch (e) {}
-            birthLabel = gregorianLine + (jalaliLine ? ' · ' + jalaliLine : '');
+            birthLabel = String(y) + ' CE';
+            try { const j = gregorianToJalaali(y, 1, 1); if (j) birthLabel += ' · ≈' + localizeDigits(String(j.jy)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali'); } catch (e) {}
           }
         } catch (e) {}
-        return { age: age, birthLabel: birthLabel, jalaliLine: jalaliLine, gregorianLine: gregorianLine };
+        return { age: age, birthLabel: birthLabel };
       }
       function getPrimaryBirth() {
         if (Array.isArray(familyAges) && familyAges.length) {
@@ -1414,46 +1407,20 @@ updateSeasonalTracker();
       if (primary && primary.year) {
          const ageInfo = computePreciseAge(primary.year, primary.month, primary.day);
          const age = ageInfo.age;
-         // Age is shown on the life-bar caption — hide the redundant #ai-age line
-         if (ageEl) {
-           ageEl.textContent = '';
-           ageEl.style.display = 'none';
-           ageEl.style.removeProperty('display');
-         }
+         const namePrefix = primary.name ? (primary.name + ' · ') : '';
+         ageEl.textContent = namePrefix + t('ageLabel').replace('{age}', localizeDigits(String(age)));
+         if (ageInfo.birthLabel) ageEl.textContent += ' · ' + ageInfo.birthLabel;
+         ageEl.style.setProperty('display', 'block', 'important');
          if (journeyEl && journeyCaption) {
              const progress = Math.max(7, Math.min(93, (age / 100) * 100));
              journeyEl.style.setProperty('--life-progress', progress + '%');
-             const nameBit = primary.name ? (primary.name + ' · ') : '';
-             journeyCaption.textContent = nameBit + t('journeyCaption').replace('{age}', localizeDigits(String(age)));
+             journeyCaption.textContent = t('journeyCaption').replace('{age}', localizeDigits(String(age)));
              journeyEl.style.display = 'block';
-             let birthEl = document.getElementById('ai-life-birth');
-             if (!birthEl) {
-               birthEl = document.createElement('div');
-               birthEl.id = 'ai-life-birth';
-               birthEl.className = 'ai-life-birth';
-               journeyEl.insertAdjacentElement('afterend', birthEl);
-             }
-             birthEl.innerHTML = '';
-             if (ageInfo.jalaliLine) {
-               const j = document.createElement('div');
-               j.className = 'ai-life-birth-j';
-               j.textContent = '🌱 ' + ageInfo.jalaliLine;
-               birthEl.appendChild(j);
-             }
-             if (ageInfo.gregorianLine) {
-               const g = document.createElement('div');
-               g.className = 'ai-life-birth-g';
-               g.textContent = '✦ ' + ageInfo.gregorianLine;
-               birthEl.appendChild(g);
-             }
-             birthEl.style.display = (ageInfo.jalaliLine || ageInfo.gregorianLine) ? 'flex' : 'none';
          }
          renderFamilyAgesPanel();
       } else {
-         if (ageEl) { ageEl.textContent = ''; ageEl.style.display = 'none'; ageEl.style.removeProperty('display'); }
+         ageEl.textContent = ''; ageEl.style.display = 'none'; ageEl.style.removeProperty('display');
          if (journeyEl) journeyEl.style.display = 'none';
-         const birthEl = document.getElementById('ai-life-birth');
-         if (birthEl) birthEl.style.display = 'none';
          if (familyToggle) familyToggle.style.display = 'none';
          if (familyListEl) { familyListEl.style.display = 'none'; familyListEl.hidden = true; }
       }
@@ -7600,27 +7567,19 @@ let hubAutoCollapsedByPanel = false;
   }
 
   function clearNoteWithUndo({ focus = true, notify = true } = {}) {
+    // Smart Clear / Close (one button, two intents — without splitting the control):
+    //   • Text present  → CLEAR only. Keep notepad open so the user can pick/search
+    //     a new prompt or keep typing. Do NOT start the close countdown (that was
+    //     the bug: countdown ran even while the user stayed inside the panel).
+    //   • Already empty → CLOSE. User pressed the same key a second time; treat as
+    //     "I'm done" and collapse the notepad.
     const hadText = !!(noteTextarea && noteTextarea.value.trim() !== '');
     endNoteEditSession();
-    // If currently split/docked, undock immediately — Clear/Close means "done with this
-    // note", not "stay pinned to the edge". Drop the split state/classes first so the
-    // size reset just below (which split-docked's CSS !important rules would otherwise
-    // block) can actually take the panel back to its normal floating size. Non-split
-    // states are untouched — they fall through to the same behavior as before.
-    if (noteSplitSide) {
-      noteSplitSide = null;
-      quickNoteForm.classList.remove(
-        'split-docked', 'split-left', 'split-right', 'split-top', 'split-bottom',
-        'split-preview-left', 'split-preview-right', 'split-preview-top', 'split-preview-bottom'
-      );
-      if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
-    }
-    // Explicit Clear/Close: permanently discard notepad undo/redo memory.
-    // User intent is "done with this note" — no silent restore from old history.
+
+    // Shared cleanup of text / undo / draft (both intents clear residual state)
     if (notepadUndo) {
       try { notepadUndo.clear(); } catch (err) {}
     }
-    // Drop any legacy single-shot text undo so the global toggle won't revive text either.
     if (pendingUndoState && pendingUndoState.type === 'text') {
       pendingUndoState = { type: null, data: null, hub: 1 };
     }
@@ -7632,20 +7591,44 @@ let hubAutoCollapsedByPanel = false;
     } catch (e) {}
     if (noteTextarea) {
       noteTextarea.value = '';
-      if (focus && quickNoteForm.classList.contains('active')) noteTextarea.focus();
+    }
+    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
+    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
+
+    if (hadText) {
+      // --- CLEAR only: stay open, cancel any pending close, refocus editor ---
+      if (typeof abortNoteClosing === 'function') abortNoteClosing();
+      // Keep pin state as-is (if they had pinned while drafting, leave it pinned)
+      if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
+      else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
+      adjustNotepadPosition();
+      resetToggleTimeout();
+      if (focus && quickNoteForm.classList.contains('active') && noteTextarea) {
+        try { noteTextarea.focus(); } catch (e) {}
+      }
+      if (notify) showToastNotification(t('toastNoteClearedOnly') || t('toastCleared'));
+      return true;
+    }
+
+    // --- CLOSE: empty panel → undock + collapse countdown ---
+    if (noteSplitSide) {
+      noteSplitSide = null;
+      quickNoteForm.classList.remove(
+        'split-docked', 'split-left', 'split-right', 'split-top', 'split-bottom',
+        'split-preview-left', 'split-preview-right', 'split-preview-top', 'split-preview-bottom'
+      );
+      if (typeof syncNoteSplitBtn === 'function') syncNoteSplitBtn();
     }
     if (typeof resetNoteSizeToDefault === 'function') resetNoteSizeToDefault();
     else { quickNoteForm.style.width = ''; quickNoteForm.style.height = ''; }
     noteManuallyPositioned = false;
-    if (typeof updateNoteTokenMeter === 'function') updateNoteTokenMeter();
     adjustNotepadPosition();
     resetToggleTimeout();
-    if (typeof syncUndoToggleVisual === 'function') syncUndoToggleVisual();
-    if (notify && hadText) showToastNotification(t('toastCleared'));
     isNotePinned = false;
     if (typeof stopNotepadIdleTimer === 'function') stopNotepadIdleTimer();
     if (typeof startCollapseCountdown === 'function') startCollapseCountdown();
-    return hadText;
+    if (notify) showToastNotification(t('toastNoteClosed') || t('toastCleared'));
+    return false;
   }
   // --- Inline translate via background service worker (CSP-safe) ---
   let noteTranslateBusy = false;
