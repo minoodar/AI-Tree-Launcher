@@ -27,6 +27,7 @@
 AI Tree Launcher v37.33 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
 
 #### 🌟 Core Features
+* **✨ Constellation & Celestial Guide:** Interactive stargazing module and constellation learning embedded directly into the orbital ecosystem.
 * **👨‍👩‍👧‍👦 Family Age Tracker:** Track family members' ages with exact day and month precision, featuring smart auto-detection for both Solar Hijri (Jalali) and Gregorian calendars.
 * **🎯 Void Tab & 100% Goal Progress Bars:** Enhanced Void Tab featuring visual progress bars up to 100% for personal goals, full app menus, customizable search, and a collapsible "Today's Echo" Zen card.
 * **🌌 Orbital Vault:** Draggable, floating launcher with unlimited bookmarks across 4 hubs and a searchable 15-category tag grid.
@@ -60,6 +61,7 @@ As an independent AI developer based in war-torn Iran, maintaining and expanding
 AI Tree Launcher v37.33 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
 
 #### 🌟 核心功能
+* **✨ 星座与天体指南：** 嵌入轨道生态系统的交互式观星与星座学习模块。
 * **👨‍👩‍👧‍👦 家庭成员年龄追踪器：** 精确记录家庭成员的月和日，智能自动识别公历与波斯历（Solar Hijri）。
 * **🎯 Void Tab 与 100% 目标进度条：** Void Tab 页面现已支持高达 100% 的可视化目标进度条、完整应用菜单、自定义搜索和“今日回声” Zen 卡片。
 * **🌌 轨道金库：** 可拖拽的悬浮启动器，包含 4 个中心、无限书签和 15 个分类标签网格。
@@ -93,6 +95,7 @@ AI Tree Launcher v37.33 是一款纯 **Vanilla JS**、零依赖的扩展程序�
 AI Tree Launcher v37.33 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
 
 #### 🌟 核心功能
+* **✨ 星座與天體指南：** 嵌入軌道生態系統的互動式觀星與星座學習模組。
 * **👨‍👩‍👧‍👦 家庭成員年齡追蹤器：** 精確記錄家庭成員的月和日，智能自動識別公曆與波斯曆（Solar Hijri）。
 * **🎯 Void Tab 與 100% 目標進度條：** Void Tab 頁面現已支援高達 100% 的視覺化目標進度條、完整應用選單、自訂搜尋和「今日回聲」 Zen 卡片。
 * **🌌 軌道金庫：** 可拖曳的懸浮啟動器，包含 4 個中心、無限書籤和 15 個分類標籤網格。
@@ -126,6 +129,7 @@ AI Tree Launcher v37.33 是一款純 **Vanilla JS**、零依賴的擴充功能�
 O AI Tree Launcher v37.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
 
 #### 🌟 Características Principais
+* **✨ Guia de Constelações e Astronomia:** Módulo interativo de aprendizagem de constelações e navegação celestial integrado ao ecossistema orbital.
 * **👨‍👩‍👧‍👦 Contador de Idade da Família:** Registro preciso de dia e mês com detecção inteligente de calendários solar (Jalali) e gregoriano.
 * **🎯 Void Tab & Barras de Progresso de 100%:** Exibição visual de progresso para metas na página Void Tab até 100%, menus de aplicativos e cartão Zen "Eco de Hoje".
 * **🌌 Cofre Orbital:** Lançador flutuante com favoritos ilimitados em 4 hubs e grade de tags de 15 categorias.
@@ -159,6 +163,7 @@ Como um desenvolvedor independente de IA baseado no Irã afetado pela guerra, ma
 AI Tree Launcher v37.33, tarayıcınızı yüzen bir üretkenlik ekosistemine dönüştüren, saf **Vanilla JS** ile yazılmış eklentidir.
 
 #### 🌟 Temel Özellikler
+* **✨ Takımyıldız ve Gökyüzü Rehberi:** Yörünge ekosistemine entegre edilmiş etkileşimli takımyıldız öğrenme ve gökyüzü keşif modülü.
 * **👨‍👩‍👧‍👦 Aile Üyeleri Yaş Sayacı:** Hicri Şemsi (Celali) ve Miladi takvimleri akıllıca algılayan, gün ve ay bazında hassas yaş takibi.
 * **🎯 Void Tab ve %100 Hedef İlerleme Çubukları:** Void Tab sayfasında kişisel hedefler için %100'e kadar görsel ilerleme çubuğu gösterimi.
 * **🌌 Yörünge Kasası:** 4 merkezde sınırsız yer imi ve aranabilir 15 kategorili etiket ızgarası.
@@ -190,6 +195,7 @@ Savaşın yıktığı İran'da yaşayan bağımsız bir yapay zeka geliştiricis
 *¡La Void Tab ahora está completa y estable! Disfruta de barras de progreso de objetivos de hasta el 100%, contador de edad familiar inteligente y "Eco de Hoy".*
 
 #### 🌟 Características Principales
+* **✨ Guía de Constelaciones y Astronomía:** Módulo interactivo de aprendizaje de constelaciones integrado directamente en el ecosistema orbital.
 * **👨‍👩‍👧‍👦 Contador de Edad Familiar:** Registro preciso de día y mes con detección automática e inteligente de calendarios solar (Jalali) y gregoriano.
 * **🎯 Void Tab y Barras de Progreso al 100%:** Visualización interactiva del progreso de objetivos hasta el 100% en la Void Tab.
 * **🌌 Bóveda Orbital:** Lanzador flotante con marcadores ilimitados y cuadrícula de etiquetas de 15 categorías.
@@ -221,6 +227,7 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 *Der Void Tab ist jetzt vollständig und stabil! Genießen Sie Ziel-Fortschrittsbalken bis zu 100 %, intelligente Familienaltersverfolgung und das "Echo von Heute".*
 
 #### 🌟 Hauptmerkmale
+* **✨ Sternbilder & Astronomie-Guide:** Interaktives Modul zum Erlernen von Sternbildern und Himmelsbeobachtung im orbitalen Ökosystem.
 * **👨‍👩‍👧‍👦 Familienmitglieder-Altersrechner:** Präzise Erfassung von Tag und Monat mit intelligenter Erkennung von Sonnen- (Jalali) und Gregorianischem Kalender.
 * **🎯 Void Tab & 100% Ziel-Fortschrittsbalken:** Interaktive Fortschrittsbalken bis zu 100 % für persönliche Ziele auf der Void-Tab-Seite.
 * **🌌 Orbitaler Tresor:** Schwebender Launcher mit unbegrenzten Lesezeichen und 15-Kategorien-Tag-System.
@@ -252,6 +259,7 @@ Als unabhängiger KI-Entwickler hilft Ihr Beitrag, das Projekt am Leben zu erhal
 *Le Void Tab est désormais complet et stable ! Profitez de barres de progression d'objectifs jusqu'à 100%, d'un suivi d'âge familial intelligent et de « L'Écho d'Aujourd'hui ».*
 
 #### 🌟 Fonctionnalités Clés
+* **✨ Guide des Constellations et Astronomie :** Module interactif d'apprentissage des constellations et d'observation céleste intégré à l'écosystème orbital.
 * **👨‍👩‍👧‍👦 Compteur d'Âge Familial :** Saisie précise du jour et du mois avec détection automatique intelligente des calendriers solaire (Jalali) et grégorien.
 * **🎯 Void Tab & Barres de Progression 100% :** Affichage visuel de la progression des objectifs jusqu'à 100% sur la page Void Tab.
 * **🌌 Coffre Orbital :** Lanceur flottant avec favoris illimités et recherche par tags.
@@ -280,9 +288,10 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 <br>
 
 ### 🚀 究極のオービタル・ワークスペース
-*Void Tabが完全かつ安定しました！最大100%の目標進捗バー、スマートな家族の年齢計算、そして「今日のエコー」をお楽しみください。*
+*Void Tabが完全かつ安定しました！最大100%の目標進捗バー、スマートな家族の年齢計算、 scandal「今日のエコー」をお楽しみください。*
 
 #### 🌟 主な機能
+* **✨ 星座＆天体ガイド：** オービタル生態系に直接統合されたインタラクティブな星座学習・天体観測モジュール。
 * **👨‍👩‍👧‍👦 家族の年齢トラッカー:** 太陽暦（ジャラリー）とグレゴリオ暦を自動判別し、月・日単位で正確に年齢をカウント。
 * **🎯 Void Tab & 100%目標進捗バー:** Void Tab ページで個人目標の進捗状況を最大100%までプログレスバーで視覚表示。
 * **🌌 オービタル・ボールト:** 無制限のリンクと15カテゴリのタグ検索を備えたフローティングランチャー。
@@ -314,6 +323,7 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 *Вкладка Void Tab теперь полностью готова и стабильна! Наслаждайтесь полосами прогресса целей до 100%, умным счетчиком возраста семьи и «Эхом сегодня».*
 
 #### 🌟 Ключевые особенности
+* **✨ Гид по созвездиям и астрономии:** Интерактивный модуль изучения созвездий и звездного неба, встроенный в орбитальную экосистему.
 * **👨‍👩‍👧‍👦 Счетчик возраста членов семьи:** Точный ввод дня и месяца с автоматическим определением солнечного (джалали) и григорианского календарей.
 * **🎯 Void Tab и полосы прогресса целей до 100%:** Визуальное отображение прогресса целей до 100% на странице Void Tab.
 * **🌌 Орбитальное хранилище:** Плавающий лаунчер с неограниченным числом закладок и 15 категориями тегов.
@@ -346,6 +356,7 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 *أصبحت علامة التبويب Void Tab الآن مكتملة ومستقرة! استمتع بأشرطة تقدم الأهداف حتى 100%، وحاسبة أعمار أفراد العائلة الذكية، و"صدى اليوم".*
 
 #### 🌟 أبرز الميزات الأساسية
+* **✨ دليل الكوكبات والنجوم:** وحدة تفاعلية لتعلم الكوكبات الفلكية واستكشاف السماء مدمجة في النظام المداري.
 * **👨‍👩‍👧‍👦 عداد أعمار أفراد العائلة:** تسجيل دقيق لليوم والشهر مع التعرف الذكي والتلقائي على التقويمين الهجري الشمسي (الجلالي) والميلادي.
 * **🎯 علامة Void Tab وأشرطة تقدم الأهداف 100%:** عرض تفاعلي وشريطي لنسبة تقدم الأهداف الشخصية حتى 100% في صفحة Void Tab.
 * **🌌 قبو الإشارات المداري:** مشغل عائم قابل للسحب يحتوي على عدد غير محدود من الروابط، ونظام تصنيف بـ 15 فئة.
@@ -379,6 +390,7 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 *«تب Void اکنون کامل و پایدار است! از نوارهای پیشرفت اهداف تا ۱۰۰ درصد، سن‌شمار هوشمند اعضای خانواده با تشخیص میلادی و شمسی، پس‌زمینه جذاب و «پژواک امروز» لذت ببرید.»*
 
 #### 🌟 ویژگی‌های کلیدی
+* **✨ آموزش و راهنمای صور فلکی:** ماژول تعاملی ستاره‌شناسی و یادگیری صور فلکی یکپارچه‌شده در فضای کاری مداری.
 * **👨‍👩‍👧‍👦 سن‌شمار کلیه اعضای خانواده:** امکان ثبت دقیق روز و ماه برای کلیه اعضای خانواده همراه با تشخیص هوشمند و خودکار تقویم شمسی و میلادی.
 * **🎯 Void Tab پایدار و نوار پیشرفت ۱۰۰٪ اهداف:** ارائه نوارهای پیشرفت (Progress Bar) تعاملی تا ۱۰۰ درصد برای اهداف در صفحه Void Tab به همراه منوهای کامل برنامه و کارت جمع‌شونده «پژواک امروز».
 * **🌌 گاوصندوق مداری بوک‌مارک‌ها:** لانچر شناور با ظرفیت لینک نامحدود در ۴ هاب و سیستم تگ‌گذاری و جستجوی ۱۵ گانه.
