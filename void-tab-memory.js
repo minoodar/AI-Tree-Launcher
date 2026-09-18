@@ -161,7 +161,10 @@
     const btn = document.getElementById('ai-ntp-menu-echo');
     if (!btn) return;
     const sync = () => {
-      btn.setAttribute('data-on', visiblePref ? '1' : '0');
+      const on = window.VoidDissolve
+        ? !VoidDissolve.isDissolved('echo') && visiblePref
+        : visiblePref;
+      btn.setAttribute('data-on', on ? '1' : '0');
       const labelEl = document.getElementById('ai-ntp-menu-echo-label');
       if (labelEl) labelEl.textContent = label('voidEchoTitle', "Today's Echo");
       const dissolveBtn = document.getElementById('ai-void-echo-dissolve');
@@ -176,10 +179,24 @@
     btn.dataset.wired = '1';
     btn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
-      visiblePref = !visiblePref;
-      if (visiblePref && window.VoidDissolve && VoidDissolve.isDissolved('echo')) {
-        try { VoidDissolve.restore('echo'); } catch (err) {}
+      // Same path as ◎ — dissolve into stars / restore from singularity
+      if (window.VoidDissolve) {
+        if (VoidDissolve.isDissolved('echo') || !visiblePref) {
+          if (VoidDissolve.isDissolved('echo')) {
+            try { VoidDissolve.restore('echo'); } catch (err) {}
+          } else {
+            visiblePref = true;
+            try { chrome.storage.local.set({ [VISIBLE_KEY]: true }); } catch (err) {}
+            applyVisibility(lastHasData);
+          }
+        } else {
+          try { VoidDissolve.dissolve('echo'); } catch (err) {}
+        }
+        setTimeout(sync, 50);
+        setTimeout(sync, 800);
+        return;
       }
+      visiblePref = !visiblePref;
       try { chrome.storage.local.set({ [VISIBLE_KEY]: visiblePref }); } catch (err) {}
       sync();
       applyVisibility(lastHasData);

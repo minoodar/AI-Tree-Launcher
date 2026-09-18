@@ -158,7 +158,10 @@
     const btn = document.getElementById('ai-ntp-menu-todo');
     if (!btn) return;
     const sync = () => {
-      btn.setAttribute('data-on', dockVisible ? '1' : '0');
+      const on = window.VoidDissolve
+        ? !VoidDissolve.isDissolved('todo') && dockVisible
+        : dockVisible;
+      btn.setAttribute('data-on', on ? '1' : '0');
       const labelEl = document.getElementById('ai-ntp-menu-todo-label');
       if (labelEl && !labelEl.textContent) labelEl.textContent = label('ntpMenuTodo', 'Today Task');
     };
@@ -168,14 +171,44 @@
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      // Unified with ◎ dissolve: hide → stars / constellation; show → restore
+      if (window.VoidDissolve) {
+        const todoGone = VoidDissolve.isDissolved('todo') || !dockVisible;
+        if (todoGone) {
+          if (VoidDissolve.isDissolved('todo')) {
+            try { VoidDissolve.restore('todo'); } catch (err) {}
+          } else {
+            dockVisible = true;
+            applyDockVisibility();
+          }
+          if (VoidDissolve.isDissolved('goals')) {
+            try { VoidDissolve.restore('goals'); } catch (err) {}
+          } else if (hasGoals) {
+            goalsVisible = true;
+            applyDockVisibility();
+          }
+        } else {
+          try { VoidDissolve.dissolve('todo'); } catch (err) {}
+          // Goals travels with Today from the menu so the triad can form
+          if (hasGoals && goalsSection && !VoidDissolve.isDissolved('goals')) {
+            const goalsHiddenHard = goalsSection.hidden && !goalsSection.classList.contains('ai-void-is-dissolved');
+            if (!goalsHiddenHard) {
+              try { VoidDissolve.dissolve('goals'); } catch (err) {}
+            }
+          }
+        }
+        try {
+          chrome.storage.local.set({
+            [VISIBLE_KEY]: !VoidDissolve.isDissolved('todo'),
+            voidGoalsVisible: !VoidDissolve.isDissolved('goals')
+          });
+        } catch (err) {}
+        setTimeout(sync, 50);
+        setTimeout(sync, 800);
+        return;
+      }
       dockVisible = !dockVisible;
       goalsVisible = dockVisible;
-      if (dockVisible && window.VoidDissolve && VoidDissolve.isDissolved('todo')) {
-        try { VoidDissolve.restore('todo'); } catch (err) {}
-      }
-      if (goalsVisible && window.VoidDissolve && VoidDissolve.isDissolved('goals')) {
-        try { VoidDissolve.restore('goals'); } catch (err) {}
-      }
       applyDockVisibility();
       try {
         chrome.storage.local.set({
@@ -207,9 +240,7 @@
           dockVisible = false;
           try { chrome.storage.local.set({ [VISIBLE_KEY]: false }); } catch (e) {}
           const btn = document.getElementById('ai-ntp-menu-todo');
-          // Menu stays checked if goals still visible
-          if (btn && !goalsVisible) btn.setAttribute('data-on', '0');
-          else if (btn && goalsVisible) btn.setAttribute('data-on', '1');
+          if (btn) btn.setAttribute('data-on', '0');
         },
         onShow: function () {
           dockVisible = true;
