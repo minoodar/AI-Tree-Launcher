@@ -164,6 +164,12 @@
       btn.setAttribute('data-on', visiblePref ? '1' : '0');
       const labelEl = document.getElementById('ai-ntp-menu-echo-label');
       if (labelEl) labelEl.textContent = label('voidEchoTitle', "Today's Echo");
+      const dissolveBtn = document.getElementById('ai-void-echo-dissolve');
+      if (dissolveBtn) {
+        const dt = label('voidDissolveBtn', 'Dissolve into stars');
+        dissolveBtn.title = dt;
+        dissolveBtn.setAttribute('aria-label', dt);
+      }
     };
     sync();
     if (btn.dataset.wired === '1') return;

@@ -1331,6 +1331,13 @@
       reportTxtBtn.title = label('voidReportTxtTitle', 'Download as .txt');
       reportTxtBtn.setAttribute('aria-label', label('voidReportTxtTitle', 'Download as .txt'));
     }
+    const dissolveTitle = label('voidDissolveBtn', 'Dissolve into stars');
+    ['ai-void-todo-dissolve', 'ai-void-goals-dissolve'].forEach((id) => {
+      const btn = document.getElementById(id);
+      if (!btn) return;
+      btn.title = dissolveTitle;
+      btn.setAttribute('aria-label', dissolveTitle);
+    });
   }
 
   if (reportSendBtn) reportSendBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); sendReportEmail(); });
