@@ -158,11 +158,42 @@
     btn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
       visiblePref = !visiblePref;
+      if (visiblePref && window.VoidDissolve && VoidDissolve.isDissolved('echo')) {
+        try { VoidDissolve.restore('echo'); } catch (err) {}
+      }
       try { chrome.storage.local.set({ [VISIBLE_KEY]: visiblePref }); } catch (err) {}
       sync();
       applyVisibility(lastHasData);
     });
   }
+
+  function wireEchoDissolve() {
+    const trigger = document.getElementById('ai-void-echo-dissolve');
+    if (!window.VoidDissolve || !root) return;
+    if (trigger) {
+      trigger.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
+    }
+    VoidDissolve.register('echo', {
+      el: root,
+      label: (typeof label === 'function' ? label('voidEchoTitle', "Today's Echo") : "Today's Echo"),
+      trigger: trigger || null,
+      onHide: function () {
+        visiblePref = false;
+        try { chrome.storage.local.set({ [VISIBLE_KEY]: false }); } catch (e) {}
+        const btn = document.getElementById('ai-ntp-menu-echo');
+        if (btn) btn.setAttribute('data-on', '0');
+      },
+      onShow: function () {
+        visiblePref = true;
+        try { chrome.storage.local.set({ [VISIBLE_KEY]: true }); } catch (e) {}
+        applyVisibility(lastHasData);
+        const btn = document.getElementById('ai-ntp-menu-echo');
+        if (btn) btn.setAttribute('data-on', '1');
+      }
+    });
+  }
+  try { wireEchoDissolve(); } catch (e) {}
+
   try {
     chrome.storage.sync.get(['appLanguage'], (syncRes) => {
       const fromSync = syncRes && syncRes.appLanguage;

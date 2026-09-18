@@ -435,10 +435,10 @@
        so the two rows read as one calm system, not two different weights. */
     #ai-ntp-topsites {
         width: 100%; display: flex; flex-wrap: wrap; justify-content: center;
-        gap: 6px; max-width: 560px; min-height: 58px; opacity: 0.62; transition: none;
+        gap: 8px; max-width: 600px; min-height: 64px; opacity: 0.72; transition: opacity 0.25s ease;
     }
     #ai-ntp-topsites:hover, #ai-ntp-topsites:focus-within {
-        opacity: 1; transition: opacity 0.2s ease;
+        opacity: 1;
     }
     #ai-ntp-topsites.hidden { display: none; }
     .ai-ts-tile {
@@ -450,9 +450,15 @@
         text-decoration: none;
         padding: 6px 2px 4px;
         border-radius: 12px;
-        transition: background 0.15s ease;
+        transition: background 0.2s ease, transform 0.22s cubic-bezier(.34,1.45,.64,1);
+        will-change: transform;
     }
-    .ai-ts-tile:hover { background: rgba(255, 255, 255, 0.05); }
+    .ai-ts-tile:hover,
+    .ai-ts-tile-wrap:hover .ai-ts-tile,
+    .ai-ts-tile-wrap:focus-within .ai-ts-tile {
+        background: rgba(255, 255, 255, 0.08);
+        transform: scale(1.14);
+    }
     .ai-ts-icon {
         width: 32px;
         height: 32px;
@@ -463,47 +469,86 @@
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
+        transition:
+            transform .22s cubic-bezier(.34,1.56,.64,1),
+            box-shadow .22s ease,
+            border-color .22s ease,
+            background .22s ease;
     }
     .ai-ts-tile:hover .ai-ts-icon,
     .ai-ts-tile-wrap:hover .ai-ts-icon,
     .ai-ts-tile-wrap:focus-within .ai-ts-icon {
-        transform: scale(1.16);
+        transform: scale(1.22);
+        border-color: rgba(165, 180, 252, 0.45);
+        background: rgba(129, 140, 248, 0.16);
+        box-shadow:
+            0 0 0 1px rgba(165, 180, 252, 0.2),
+            0 0 16px rgba(99, 102, 241, 0.45),
+            0 4px 12px rgba(0, 0, 0, 0.25);
     }
     .ai-ts-icon img { width: 16px; height: 16px; }
     .ai-ts-label {
         font-size: 9.5px;
-        color: rgba(226, 232, 255, 0.7);
-        max-width: 58px;
+        font-weight: 600;
+        color: rgba(226, 232, 255, 0.62);
+        max-width: 64px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         text-align: center;
+        letter-spacing: 0.01em;
+        transition:
+            color 0.2s ease,
+            text-shadow 0.2s ease,
+            font-size 0.2s ease,
+            opacity 0.2s ease;
     }
-    .ai-ts-tile-wrap { position: relative; }
+    .ai-ts-tile:hover .ai-ts-label,
+    .ai-ts-tile-wrap:hover .ai-ts-label,
+    .ai-ts-tile-wrap:focus-within .ai-ts-label {
+        color: #F8FAFC;
+        font-size: 10.5px;
+        max-width: 72px;
+        text-shadow:
+            0 0 8px rgba(199, 210, 254, 0.95),
+            0 0 16px rgba(129, 140, 248, 0.65),
+            0 1px 2px rgba(0, 0, 0, 0.45);
+    }
+    .ai-ts-tile-wrap {
+        position: relative;
+        /* room above icon so edit/remove stay visible while tile zooms */
+        padding-top: 14px;
+        margin-top: -4px;
+    }
     .ai-ts-controls {
         position: absolute;
-        top: 2px;
-        inset-inline-end: 2px;
+        top: 0;
+        left: 50%;
+        right: auto;
+        inset-inline-end: auto;
         display: flex;
-        gap: 2px;
+        gap: 3px;
         opacity: 0;
-        transform: translateY(-2px);
-        transition: opacity .15s ease, transform .15s ease;
+        transform: translate(-50%, -4px);
+        z-index: 5;
+        pointer-events: none;
+        transition: opacity .18s ease, transform .18s cubic-bezier(.34,1.4,.64,1);
     }
     .ai-ts-tile-wrap:hover .ai-ts-controls,
     .ai-ts-tile-wrap:focus-within .ai-ts-controls {
         opacity: 1;
-        transform: translateY(0);
+        transform: translate(-50%, -10px);
+        pointer-events: auto;
     }
     .ai-ts-ctrl-btn {
         width: 18px;
         height: 18px;
-        border: 0;
+        border: 1px solid rgba(165, 180, 252, 0.28);
         border-radius: 6px;
-        background: rgba(10, 14, 28, 0.8);
+        background: rgba(10, 14, 28, 0.92);
         color: #E5E7EB;
         font-size: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
         line-height: 1;
         cursor: pointer;
         display: grid;
@@ -918,6 +963,17 @@
 
     /* دیگه بخشِ داخلیِ داک نیست — یه کارتِ مستقلِ شیشه‌ای، هم‌خانواده با
        ظاهرِ #ai-void-echo (همون رادیوس/بوردر/بلور)، زیرِ Today's Echo. */
+
+    .ai-void-goals-head {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+    .ai-void-goals-head .ai-void-agenda-section-title {
+        flex: 1 1 auto;
+        margin-bottom: 0;
+    }
     .ai-void-agenda-section.is-goals {
         width: 100%; max-width: 360px; border-radius: 16px;
         margin-top: 0; padding: 10px 12px 12px;
@@ -1136,7 +1192,146 @@
     }
 
 
-    /* ---- Daily report bar (email / copy / txt) under Today dock ---- */
+    /* ---- Void Dissolve: scatter to stars + singularity toggle ---- */
+    #ai-void-dissolve-layer {
+        position: fixed; inset: 0; pointer-events: none; z-index: 9998;
+        overflow: hidden;
+    }
+    .ai-void-dust {
+        position: fixed;
+        width: var(--sz, 3px); height: var(--sz, 3px);
+        margin: calc(var(--sz, 3px) / -2) 0 0 calc(var(--sz, 3px) / -2);
+        border-radius: 50%;
+        background: hsl(var(--hue, 220), 90%, 78%);
+        box-shadow: 0 0 8px hsl(var(--hue, 220), 100%, 70%);
+        animation: voidDustOut 0.72s cubic-bezier(.2,.7,.2,1) forwards;
+        pointer-events: none;
+        z-index: 9999;
+    }
+    .ai-void-dust.is-inward {
+        animation-name: voidDustIn;
+        animation-duration: 0.55s;
+    }
+    @keyframes voidDustOut {
+        0% { opacity: 1; transform: translate(0,0) scale(1); }
+        100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); }
+    }
+    @keyframes voidDustIn {
+        0% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2); }
+        100% { opacity: 1; transform: translate(0,0) scale(1); }
+    }
+    .ai-void-is-dissolving {
+        animation: voidPanelOut 0.7s cubic-bezier(.4,0,.2,1) forwards !important;
+        pointer-events: none !important;
+    }
+    .ai-void-is-reforming {
+        animation: voidPanelIn 0.55s cubic-bezier(.2,.8,.2,1) forwards !important;
+    }
+    @keyframes voidPanelOut {
+        0% { opacity: 1; filter: blur(0); transform: scale(1); }
+        55% { opacity: 0.35; filter: blur(4px); transform: scale(0.92); }
+        100% { opacity: 0; filter: blur(10px); transform: scale(0.78); }
+    }
+    @keyframes voidPanelIn {
+        0% { opacity: 0; filter: blur(8px); transform: scale(0.88); }
+        100% { opacity: 1; filter: blur(0); transform: scale(1); }
+    }
+    .ai-void-singularity {
+        position: fixed;
+        width: 36px; height: 36px;
+        border: none; padding: 0;
+        border-radius: 50%;
+        background: transparent;
+        cursor: pointer;
+        z-index: 40;
+        opacity: 0;
+        transform: scale(0.4);
+        transition: opacity 0.35s ease, transform 0.35s cubic-bezier(.2,.9,.2,1);
+        pointer-events: auto;
+    }
+    .ai-void-singularity.is-visible {
+        opacity: 1;
+        transform: scale(1);
+    }
+    .ai-void-singularity.is-collapsing {
+        opacity: 0;
+        transform: scale(1.6);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .ai-void-singularity-glow {
+        position: absolute; inset: -6px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(129,140,248,0.35) 0%, transparent 70%);
+        animation: voidSingPulse 2.8s ease-in-out infinite;
+        pointer-events: none;
+    }
+    .ai-void-singularity-ring {
+        position: absolute; inset: 2px;
+        border-radius: 50%;
+        border: 1px solid rgba(167, 139, 250, 0.45);
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.35), inset 0 0 8px rgba(15, 10, 30, 0.8);
+        animation: voidSingSpin 12s linear infinite;
+        pointer-events: none;
+    }
+    .ai-void-singularity-core {
+        position: absolute; inset: 8px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #2e1065 0%, #0a0614 55%, #000 100%);
+        box-shadow: inset 0 0 6px rgba(0,0,0,0.9), 0 0 10px rgba(76, 29, 149, 0.5);
+        pointer-events: none;
+    }
+    .ai-void-singularity-glyph {
+        position: absolute; inset: 0;
+        display: grid; place-items: center;
+        font-size: 11px;
+        color: rgba(196, 181, 253, 0.85);
+        text-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
+        pointer-events: none;
+    }
+    .ai-void-singularity.is-awake {
+        transform: scale(1.12);
+    }
+    .ai-void-singularity.is-awake .ai-void-singularity-glow {
+        background: radial-gradient(circle, rgba(167,139,250,0.5) 0%, transparent 70%);
+    }
+    .ai-void-singularity.is-awake .ai-void-singularity-ring {
+        border-color: rgba(196, 181, 253, 0.7);
+        animation-duration: 6s;
+    }
+    @keyframes voidSingPulse {
+        0%, 100% { opacity: 0.55; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.08); }
+    }
+    @keyframes voidSingSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    .ai-void-dissolve-btn {
+        flex: 0 0 auto;
+        width: 22px; height: 22px;
+        margin-inline-start: 2px;
+        padding: 0;
+        border: none;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.25);
+        color: rgba(196, 181, 253, 0.75);
+        font-size: 11px;
+        line-height: 1;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+        transition: background .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
+    }
+    .ai-void-dissolve-btn:hover {
+        background: rgba(76, 29, 149, 0.45);
+        color: #E9D5FF;
+        box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+        transform: scale(1.08);
+    }
+    .ai-void-dissolve-btn:active { transform: scale(0.92); }
+
+
+    /* ---- Daily report bar under Today dock ---- */
     .ai-void-report-bar {
         margin-top: 4px;
         padding-top: 8px;
@@ -1402,6 +1597,7 @@
       <span class="ai-void-echo-title" id="ai-void-echo-title">Today's Echo</span>
       <span class="ai-void-echo-count" id="ai-void-echo-count" hidden></span>
       <span class="ai-void-echo-chevron" id="ai-void-echo-chevron" aria-hidden="true">▾</span>
+      <button type="button" class="ai-void-dissolve-btn" id="ai-void-echo-dissolve" title="Dissolve into stars">◎</button>
     </div>
     <div class="ai-void-echo-content">
       <div class="ai-void-echo-body" id="ai-void-echo-body"></div>
@@ -1417,7 +1613,10 @@
        void-tab-todo.js بدونِ هیچ تغییری همین‌جا پیداشون کنه و رندر کنه.
   -->
   <div class="ai-void-agenda-section is-goals" id="ai-void-agenda-goals-section" hidden>
-    <div class="ai-void-agenda-section-title" id="ai-void-agenda-goals-title"></div>
+    <div class="ai-void-goals-head">
+      <div class="ai-void-agenda-section-title" id="ai-void-agenda-goals-title"></div>
+      <button type="button" class="ai-void-dissolve-btn" id="ai-void-goals-dissolve" title="Dissolve into stars">◎</button>
+    </div>
     <div class="ai-void-todo-list ai-void-goals-list" id="ai-void-goals-list"></div>
   </div>
 </section>
@@ -1426,6 +1625,7 @@
   <div class="ai-void-todo-head" id="ai-void-todo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
     <span>◐</span><span class="ai-void-todo-title" id="ai-void-todo-title">Today</span><span class="ai-void-todo-count" id="ai-void-todo-count"></span>
     <span class="ai-void-todo-chevron" id="ai-void-todo-chevron" aria-hidden="true">▾</span>
+    <button type="button" class="ai-void-dissolve-btn" id="ai-void-todo-dissolve" title="Dissolve into stars">◎</button>
     <button type="button" class="ai-void-todo-side" id="ai-void-todo-side" title="Move to other side">↔</button>
   </div>
   <div class="ai-void-agenda-body" id="ai-void-agenda-body">
@@ -1483,6 +1683,7 @@
 <script src="toolbar-dock.js"></script>
 <script src="content.js"></script>
 
+<script src="void-dissolve.js"></script>
 <script src="void-tab-menu.js"></script>
 <script src="void-tab-todo.js"></script>
 <script src="void-tab-memory.js"></script>

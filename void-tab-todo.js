@@ -124,10 +124,26 @@
   // منو شلوغ نشه؛ یه دکمهٔ «Today» هم داک و هم Goals رو با هم کنترل می‌کنه.
   // Goals علاوه‌براین وقتی چیزی برای نشون‌دادن نداره (hasGoals=false) هم
   // مخفیه — این دو شرط با هم AND می‌شن.
+  // Goals visibility is independent of Today dock (separate dissolve + own flag).
+  // Menu "Today" still toggles both for convenience; dissolve buttons act separately.
+  let goalsVisible = true;
+
   function applyDockVisibility() {
-    dock.hidden = !dockVisible;
-    dock.setAttribute('aria-hidden', dockVisible ? 'false' : 'true');
-    if (goalsSection) goalsSection.hidden = !dockVisible || !hasGoals;
+    const todoDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('todo'));
+    const goalsDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('goals'));
+    if (todoDissolved) {
+      dock.hidden = true;
+    } else {
+      dock.hidden = !dockVisible;
+    }
+    dock.setAttribute('aria-hidden', dock.hidden ? 'true' : 'false');
+    if (goalsSection) {
+      if (goalsDissolved) {
+        goalsSection.hidden = true;
+      } else {
+        goalsSection.hidden = !goalsVisible || !hasGoals;
+      }
+    }
   }
   function wireMenu() {
     const btn = document.getElementById('ai-ntp-menu-todo');
@@ -144,11 +160,84 @@
       e.preventDefault();
       e.stopPropagation();
       dockVisible = !dockVisible;
+      goalsVisible = dockVisible;
+      if (dockVisible && window.VoidDissolve && VoidDissolve.isDissolved('todo')) {
+        try { VoidDissolve.restore('todo'); } catch (err) {}
+      }
+      if (goalsVisible && window.VoidDissolve && VoidDissolve.isDissolved('goals')) {
+        try { VoidDissolve.restore('goals'); } catch (err) {}
+      }
       applyDockVisibility();
-      try { chrome.storage.local.set({ [VISIBLE_KEY]: dockVisible }); } catch (err) {}
+      try {
+        chrome.storage.local.set({
+          [VISIBLE_KEY]: dockVisible,
+          voidGoalsVisible: goalsVisible
+        });
+      } catch (err) {}
       sync();
     });
   }
+
+  // Dissolve into stars — Today and Goals each have their own singularity
+  function wireDissolve() {
+    if (!window.VoidDissolve) return;
+
+    const todoTrigger = document.getElementById('ai-void-todo-dissolve');
+    if (dock) {
+      if (todoTrigger) {
+        todoTrigger.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      }
+      VoidDissolve.register('todo', {
+        el: dock,
+        label: (typeof label === 'function' ? label('ntpMenuTodo', 'Today') : 'Today'),
+        trigger: todoTrigger || null,
+        onHide: function () {
+          dockVisible = false;
+          try { chrome.storage.local.set({ [VISIBLE_KEY]: false }); } catch (e) {}
+          const btn = document.getElementById('ai-ntp-menu-todo');
+          // Menu stays checked if goals still visible
+          if (btn && !goalsVisible) btn.setAttribute('data-on', '0');
+          else if (btn && goalsVisible) btn.setAttribute('data-on', '1');
+        },
+        onShow: function () {
+          dockVisible = true;
+          try { chrome.storage.local.set({ [VISIBLE_KEY]: true }); } catch (e) {}
+          applyDockVisibility();
+          const btn = document.getElementById('ai-ntp-menu-todo');
+          if (btn) btn.setAttribute('data-on', '1');
+        }
+      });
+    }
+
+    const goalsTrigger = document.getElementById('ai-void-goals-dissolve');
+    if (goalsSection) {
+      if (goalsTrigger) {
+        goalsTrigger.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      }
+      VoidDissolve.register('goals', {
+        el: goalsSection,
+        label: (typeof label === 'function' ? label('todoTabGoals', 'Goals') : 'Goals'),
+        trigger: goalsTrigger || null,
+        onHide: function () {
+          goalsVisible = false;
+          try { chrome.storage.local.set({ voidGoalsVisible: false }); } catch (e) {}
+        },
+        onShow: function () {
+          goalsVisible = true;
+          try { chrome.storage.local.set({ voidGoalsVisible: true }); } catch (e) {}
+          applyDockVisibility();
+        }
+      });
+    }
+  }
+  try { wireDissolve(); } catch (e) {}
+
 
   // -------------------------------------------------------- سرِ تاریخ/سن —
 
@@ -183,7 +272,6 @@
   }
   const VOID_JALALI_MONTHS_FA = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 
-  /** Returns { jalali, gregorian, plain } for dual-line birth display under the life bar. */
   function formatVoidBirthLines(year, month, day) {
     const y = parseInt(year, 10);
     if (!y || isNaN(y)) return { jalali: '', gregorian: '', plain: '' };
@@ -208,8 +296,7 @@
         } else if (isJalali) {
           jStr = d + ' ' + VOID_JALALI_MONTHS_FA[Math.max(0, m - 1)] + ' ' + y;
         }
-        const plain = (jStr ? jStr + ' · ' : '') + gStr;
-        return { jalali: jStr, gregorian: gStr, plain: plain };
+        return { jalali: jStr, gregorian: gStr, plain: (jStr ? jStr + ' · ' : '') + gStr };
       }
       if (isJalali) {
         let s = y + ' شمسی';
@@ -806,8 +893,15 @@
   }
 
   let dragMoved = false;
+  function isDockChromeControl(target) {
+    if (!target) return false;
+    const dissolveBtn = document.getElementById('ai-void-todo-dissolve');
+    if (sideButton && (target === sideButton || sideButton.contains(target))) return true;
+    if (dissolveBtn && (target === dissolveBtn || dissolveBtn.contains(target))) return true;
+    return false;
+  }
   handle.addEventListener('click', function (event) {
-    if (event.target === sideButton || sideButton.contains(event.target)) return;
+    if (isDockChromeControl(event.target)) return;
     if (dragMoved) { dragMoved = false; return; }
     setCollapsed(!collapsed);
   });
@@ -827,12 +921,14 @@
 
   function loadFromStorage() {
     try {
-      chrome.storage.local.get(['aiTreeTodos', 'voidTodoDock', 'voidTodoCollapsed', VISIBLE_KEY], function (localData) {
+      chrome.storage.local.get(['aiTreeTodos', 'voidTodoDock', 'voidTodoCollapsed', VISIBLE_KEY, 'voidGoalsVisible'], function (localData) {
         if (localData.voidTodoDock && typeof localData.voidTodoDock === 'object') {
           position = Object.assign({}, position, localData.voidTodoDock);
         }
         if (typeof localData.voidTodoCollapsed === 'boolean') collapsed = localData.voidTodoCollapsed;
         if (typeof localData[VISIBLE_KEY] === 'boolean') dockVisible = localData[VISIBLE_KEY];
+        if (typeof localData.voidGoalsVisible === 'boolean') goalsVisible = localData.voidGoalsVisible;
+        else goalsVisible = dockVisible;
         applyPosition();
         applyCollapsed();
         applyDockVisibility();
@@ -969,7 +1065,7 @@
 
   let dragging = null;
   handle.addEventListener('pointerdown', function (event) {
-    if (event.target === sideButton || sideButton.contains(event.target)) return;
+    if (isDockChromeControl(event.target)) return;
     dragMoved = false;
     dragging = { y: event.clientY, top: dock.getBoundingClientRect().top };
     handle.setPointerCapture(event.pointerId);
@@ -994,8 +1090,6 @@
 
   // ============================================================
   // Daily report — email (mailto) + copy + download .txt
-  // Privacy-first: no server. Opens the user's mail client with a
-  // pre-filled body, copies text, or saves a local .txt file.
   // ============================================================
   const REPORT_EMAIL_KEY = 'voidReportEmail';
   const reportBar = document.getElementById('ai-void-report-bar');
@@ -1012,22 +1106,13 @@
     reportHint.classList.toggle('is-error', !!isError);
     reportHint.classList.add('is-visible');
     clearTimeout(reportHintTimer);
-    reportHintTimer = setTimeout(() => {
-      reportHint.classList.remove('is-visible');
-    }, 3200);
+    reportHintTimer = setTimeout(() => { reportHint.classList.remove('is-visible'); }, 3200);
   }
 
   function statusLabel(status) {
-    const map = {
-      done: '✓',
-      missed: '✗',
-      near: '⚡',
-      'recurring-elapsed': '↻',
-      future: '·'
-    };
+    const map = { done: '✓', missed: '✗', near: '⚡', 'recurring-elapsed': '↻', future: '·' };
     return map[status] || '·';
   }
-
   function statusWord(status) {
     if (status === 'done') return 'done';
     if (status === 'missed') return 'missed';
@@ -1106,16 +1191,13 @@
 
     if (goals.length) {
       lines.push(label('todoTabGoals', 'Goals'));
-      goals
-        .slice()
-        .sort((a, b) => goalProgress(b) - goalProgress(a))
-        .forEach((g) => {
-          const pct = goalProgress(g);
-          const barLen = 10;
-          const filled = Math.round((pct / 100) * barLen);
-          const bar = '█'.repeat(filled) + '░'.repeat(barLen - filled);
-          lines.push('  ' + bar + ' ' + pct + '%  ' + (g.text || ''));
-        });
+      goals.slice().sort((a, b) => goalProgress(b) - goalProgress(a)).forEach((g) => {
+        const pct = goalProgress(g);
+        const barLen = 10;
+        const filled = Math.round((pct / 100) * barLen);
+        const bar = '█'.repeat(filled) + '░'.repeat(barLen - filled);
+        lines.push('  ' + bar + ' ' + pct + '%  ' + (g.text || ''));
+      });
       lines.push('');
     }
 
@@ -1134,18 +1216,15 @@
     );
     lines.push('');
     lines.push('— AI Tree Launcher');
-
     return lines.join('\n');
   }
 
   function isValidEmail(v) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || '').trim());
   }
-
   function saveReportEmail(email) {
     try { chrome.storage.local.set({ [REPORT_EMAIL_KEY]: email }); } catch (e) {}
   }
-
   function loadReportEmail() {
     try {
       chrome.storage.local.get([REPORT_EMAIL_KEY], (res) => {
@@ -1155,11 +1234,8 @@
       });
     } catch (e) {}
   }
-
   function copyText(text) {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      return navigator.clipboard.writeText(text);
-    }
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
     return new Promise((resolve, reject) => {
       try {
         const ta = document.createElement('textarea');
@@ -1173,7 +1249,6 @@
       } catch (err) { reject(err); }
     });
   }
-
   function downloadReportTxt() {
     const body = buildDailyReport();
     const filename = 'AITree_Daily_' + todayIso() + '.txt';
@@ -1195,7 +1270,6 @@
       showReportHint(label('voidReportTxtFail', 'Could not save .txt file'), true);
     }
   }
-
   function sendReportEmail() {
     const email = (reportEmailInput && reportEmailInput.value || '').trim();
     if (!isValidEmail(email)) {
@@ -1205,32 +1279,24 @@
     }
     saveReportEmail(email);
     const body = buildDailyReport();
-    const subject = label('voidReportSubject', 'AI Tree — Daily report ({date})')
-      .replace('{date}', todayIso());
-
+    const subject = label('voidReportSubject', 'AI Tree — Daily report ({date})').replace('{date}', todayIso());
     const encodedBody = encodeURIComponent(body);
     const encodedSubject = encodeURIComponent(subject);
     const mailtoBase = 'mailto:' + encodeURIComponent(email) + '?subject=' + encodedSubject + '&body=';
     const fullUrl = mailtoBase + encodedBody;
-
     if (fullUrl.length <= 1800) {
       window.location.href = fullUrl;
       showReportHint(label('voidReportOpenedMail', 'Opening your email client…'));
       return;
     }
-
     copyText(body).then(() => {
-      const short = label(
-        'voidReportBodyCopied',
-        'The full daily report was copied to your clipboard.\n\nPaste it here (Ctrl/Cmd+V).\n\n— AI Tree Launcher'
-      );
+      const short = label('voidReportBodyCopied', 'The full daily report was copied to your clipboard.\n\nPaste it here (Ctrl/Cmd+V).\n\n— AI Tree Launcher');
       window.location.href = mailtoBase + encodeURIComponent(short);
       showReportHint(label('voidReportCopiedLong', 'Report copied — paste into the email'));
     }).catch(() => {
       showReportHint(label('voidReportCopyFail', 'Could not copy report'), true);
     });
   }
-
   function copyReportOnly() {
     const body = buildDailyReport();
     copyText(body).then(() => {
@@ -1239,7 +1305,6 @@
       showReportHint(label('voidReportCopyFail', 'Could not copy report'), true);
     });
   }
-
   function applyReportLabels() {
     if (reportEmailInput) {
       reportEmailInput.placeholder = label('voidReportEmailPh', 'you@email.com');
@@ -1272,9 +1337,7 @@
     });
     reportEmailInput.addEventListener('pointerdown', (e) => e.stopPropagation());
   }
-  if (reportBar) {
-    reportBar.addEventListener('pointerdown', (e) => e.stopPropagation());
-  }
+  if (reportBar) reportBar.addEventListener('pointerdown', (e) => e.stopPropagation());
 
   loadReportEmail();
   applyReportLabels();
