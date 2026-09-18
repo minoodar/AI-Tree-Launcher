@@ -1147,9 +1147,46 @@
 
   function labelText(entry) {
     try {
-      if (typeof t === 'function') return t('voidDissolveRestore', 'Restore {name}').replace('{name}', entry.label);
+      if (typeof t === 'function') {
+        const raw = t('voidDissolveRestore');
+        if (raw) return String(raw).replace('{name}', entry.label);
+      }
     } catch (e) {}
     return 'Restore ' + entry.label;
+  }
+
+  function zodiacName(z) {
+    if (!z) return '';
+    try {
+      if (typeof t === 'function') {
+        const k = 'zodiacName_' + z.id;
+        const v = t(k);
+        if (v && v !== k) return v;
+      }
+    } catch (e) {}
+    return z.name || z.id;
+  }
+
+  function zodiacCaption(z) {
+    if (!z) return '';
+    try {
+      if (typeof t === 'function') {
+        const k = 'zodiacCaption_' + z.id;
+        const v = t(k);
+        if (v && v !== k) return v;
+      }
+    } catch (e) {}
+    return z.caption || '';
+  }
+
+  function refreshConstellationCaption() {
+    if (!constellationLayer || !activeConstellation) return;
+    const z = ZODIAC.find((c) => c.id === activeConstellation.id);
+    if (!z) return;
+    const nameEl = constellationLayer.querySelector('.ai-void-constellation-name');
+    const blurbEl = constellationLayer.querySelector('.ai-void-constellation-blurb');
+    if (nameEl) nameEl.textContent = zodiacName(z);
+    if (blurbEl) blurbEl.textContent = zodiacCaption(z);
   }
 
   function rand(a, b) { return a + Math.random() * (b - a); }
@@ -1337,10 +1374,10 @@
     cap.className = 'ai-void-constellation-caption';
     const title = document.createElement('div');
     title.className = 'ai-void-constellation-name';
-    title.textContent = z.name || z.id;
+    title.textContent = zodiacName(z);
     const blurb = document.createElement('div');
     blurb.className = 'ai-void-constellation-blurb';
-    blurb.textContent = z.caption || '';
+    blurb.textContent = zodiacCaption(z);
     cap.append(title, blurb);
     // Place caption under figure bounds
     let maxY = cy;
@@ -1651,10 +1688,10 @@
     cap.className = 'ai-void-constellation-caption';
     const title = document.createElement('div');
     title.className = 'ai-void-constellation-name';
-    title.textContent = z.name || z.id;
+    title.textContent = zodiacName(z);
     const blurb = document.createElement('div');
     blurb.className = 'ai-void-constellation-blurb';
-    blurb.textContent = z.caption || '';
+    blurb.textContent = zodiacCaption(z);
     cap.append(title, blurb);
     let maxY = cy;
     Object.keys(pos).forEach((k) => { if (pos[k].y > maxY) maxY = pos[k].y; });
@@ -1680,6 +1717,28 @@
   }, { passive: true });
 
   loadState();
+
+  try {
+    chrome.storage.onChanged.addListener((changes) => {
+      if (changes.appLanguage) {
+        try {
+          if (typeof currentLang !== 'undefined') {
+            currentLang = changes.appLanguage.newValue || 'en';
+          }
+        } catch (e) {}
+        refreshConstellationCaption();
+        // Update singularity tooltips
+        Object.keys(registry).forEach((id) => {
+          const e = registry[id];
+          if (e && e.singularity) {
+            const txt = labelText(e);
+            e.singularity.title = txt;
+            e.singularity.setAttribute('aria-label', txt);
+          }
+        });
+      }
+    });
+  } catch (e) {}
 
   window.VoidDissolve = {
     register: register,
