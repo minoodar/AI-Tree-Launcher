@@ -1296,6 +1296,88 @@
         text-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
         pointer-events: none;
     }
+
+    /* Themed singularities */
+    .ai-void-singularity.theme-today .ai-void-singularity-glow {
+        background: radial-gradient(circle, rgba(125, 211, 252, 0.45) 0%, transparent 70%);
+    }
+    .ai-void-singularity.theme-today .ai-void-singularity-ring {
+        border-color: rgba(56, 189, 248, 0.55);
+        box-shadow: 0 0 14px rgba(14, 165, 233, 0.4), inset 0 0 8px rgba(8, 20, 40, 0.85);
+    }
+    .ai-void-singularity.theme-today .ai-void-singularity-core {
+        background: radial-gradient(circle at 35% 30%, #0369a1 0%, #0c1222 55%, #000 100%);
+    }
+    .ai-void-singularity.theme-today .ai-void-singularity-glyph { color: rgba(125, 211, 252, 0.95); text-shadow: 0 0 10px rgba(56, 189, 248, 0.9); }
+
+    .ai-void-singularity.theme-goals .ai-void-singularity-glow {
+        background: radial-gradient(circle, rgba(251, 191, 36, 0.42) 0%, transparent 70%);
+    }
+    .ai-void-singularity.theme-goals .ai-void-singularity-ring {
+        border-color: rgba(251, 191, 36, 0.55);
+        box-shadow: 0 0 14px rgba(245, 158, 11, 0.4), inset 0 0 8px rgba(30, 18, 4, 0.85);
+    }
+    .ai-void-singularity.theme-goals .ai-void-singularity-core {
+        background: radial-gradient(circle at 35% 30%, #b45309 0%, #1c1208 55%, #000 100%);
+    }
+    .ai-void-singularity.theme-goals .ai-void-singularity-glyph { color: rgba(253, 230, 138, 0.95); text-shadow: 0 0 10px rgba(251, 191, 36, 0.85); }
+
+    .ai-void-singularity.theme-echo .ai-void-singularity-glow {
+        background: radial-gradient(circle, rgba(226, 232, 240, 0.4) 0%, transparent 70%);
+    }
+    .ai-void-singularity.theme-echo .ai-void-singularity-ring {
+        border-color: rgba(203, 213, 225, 0.5);
+        box-shadow: 0 0 14px rgba(148, 163, 184, 0.35), inset 0 0 8px rgba(15, 15, 25, 0.85);
+    }
+    .ai-void-singularity.theme-echo .ai-void-singularity-core {
+        background: radial-gradient(circle at 35% 30%, #64748b 0%, #0f1218 55%, #000 100%);
+    }
+    .ai-void-singularity.theme-echo .ai-void-singularity-glyph { color: rgba(241, 245, 249, 0.92); text-shadow: 0 0 10px rgba(203, 213, 225, 0.75); }
+
+    .ai-void-constellation {
+        position: fixed; inset: 0; pointer-events: none; z-index: 38;
+        opacity: 0; transition: opacity 0.6s ease;
+    }
+    .ai-void-constellation.is-visible { opacity: 1; }
+    .ai-void-constellation-edge {
+        stroke: rgba(199, 210, 254, 0.32);
+        stroke-width: 1.15;
+        stroke-linecap: round;
+        filter: drop-shadow(0 0 3px rgba(129, 140, 248, 0.35));
+    }
+    .ai-void-helper-star {
+        position: fixed;
+        border-radius: 50%;
+        background: radial-gradient(circle, #f8fafc 0%, #a5b4fc 45%, transparent 70%);
+        box-shadow: 0 0 8px rgba(199, 210, 254, 0.55);
+        pointer-events: none;
+        z-index: 39;
+    }
+    .ai-void-constellation-caption {
+        position: fixed;
+        transform: translateX(-50%);
+        text-align: center;
+        pointer-events: none;
+        z-index: 39;
+        max-width: 280px;
+    }
+    .ai-void-constellation-name {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(248, 250, 252, 0.92);
+        text-shadow: 0 0 12px rgba(165, 180, 252, 0.55), 0 1px 2px rgba(0,0,0,0.5);
+    }
+    .ai-void-constellation-blurb {
+        margin-top: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.35;
+        color: rgba(199, 210, 254, 0.72);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    }
+
     .ai-void-singularity.is-awake {
         transform: scale(1.12);
     }
