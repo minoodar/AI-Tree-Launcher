@@ -1,4 +1,4 @@
-# 🌌 AI Tree Launcher (V37.33)
+# 🌌 AI Tree Launcher (V38.33)
 
 <div align="center">
 
@@ -24,9 +24,10 @@
 ### 🚀 The Ultimate Orbital Workspace
 *The Void Tab is now complete and stable! Enjoy interactive 100% goal progress bars, smart family age tracking, a lag-free background, full app menus, and "Today's Echo" reflecting your daily activity without any clutter.*
 
-AI Tree Launcher v37.33 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
+AI Tree Launcher v38.33 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
 
 #### 🌟 Core Features
+* **🎵 Dynamic Audio Engine & Zodiac Soundscapes:** Complete sound effect integration! Experience algorithmic audio responses upon expanding/collapsing the triple menus—generating unique sound variations mapped to the 12 Zodiac constellations—along with custom hover, open, and close audio effects.
 * **✨ Constellation & Celestial Guide:** Interactive stargazing module and constellation learning embedded directly into the orbital ecosystem.
 * **👨‍👩‍👧‍👦 Family Age Tracker:** Track family members' ages with exact day and month precision, featuring smart auto-detection for both Solar Hijri (Jalali) and Gregorian calendars.
 * **🎯 Void Tab & 100% Goal Progress Bars:** Enhanced Void Tab featuring visual progress bars up to 100% for personal goals, full app menus, customizable search, and a collapsible "Today's Echo" Zen card.
@@ -35,7 +36,7 @@ AI Tree Launcher v37.33 is a pure **Vanilla JS**, zero-dependency extension that
 * **📅 Time, Task & Advanced Calendar:** Triple calendar (Gregorian, Jalali, Hijri) and an optimized To-Do list. Offline event editing and smart language-aware UI controls.
 * **🧠 Unified Search & AI Tools:** Combined web and bookmark search engine, comprehensive prompt library, and built-in calculator.
 * **🕊️ Global Wisdom Engine:** Daily localized poetry and insights from global spiritual traditions.
-* **🛡️ Secure & Reliable:** Chrome sync, 1-click full JSON backup/restore, auto-snapshots, and privacy-aware auto-hiding.
+* **🛡️ Secure & Reliable:** Minor bug fixes, Chrome sync, 1-click full JSON backup/restore, auto-snapshots, and privacy-aware auto-hiding.
 * **🌍 12 Languages:** Fully localized in English, Persian, Arabic, Turkish, Spanish, Portuguese (BR), German, French, Japanese, Russian, Simplified Chinese, and Traditional Chinese.
 
 #### 💻 Installation (Developer Mode)
@@ -58,9 +59,10 @@ As an independent AI developer based in war-torn Iran, maintaining and expanding
 ### 🚀 终极轨道工作区
 *Void Tab 现已完善且稳定！享受高达 100% 的目标进度条、智能家庭成员年龄计算、无延迟的背景以及“今日回声”。*
 
-AI Tree Launcher v37.33 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
+AI Tree Launcher v38.33 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
 
 #### 🌟 核心功能
+* **🎵 动态音效引擎与黄道十二宫音景：** 音效全面升级！三重菜单的折叠与展开搭载了专属算法，每次触发均可生成独特的音效变体，对应黄道 12 星座；同时新增了鼠标悬停、打开及关闭 launcher 的专属音效。
 * **✨ 星座与天体指南：** 嵌入轨道生态系统的交互式观星与星座学习模块。
 * **👨‍👩‍👧‍👦 家庭成员年龄追踪器：** 精确记录家庭成员的月和日，智能自动识别公历与波斯历（Solar Hijri）。
 * **🎯 Void Tab 与 100% 目标进度条：** Void Tab 页面现已支持高达 100% 的可视化目标进度条、完整应用菜单、自定义搜索和“今日回声” Zen 卡片。
@@ -69,7 +71,7 @@ AI Tree Launcher v37.33 是一款纯 **Vanilla JS**、零依赖的扩展程序�
 * **📅 时间、任务与高级日历：** 三重日历和支持编辑的待办事项列表。
 * **🧠 统一搜索和 AI 工具：** 综合网络和书签搜索引擎、全面的提示词库和内置计算器。
 * **🕊️ 全球智慧引擎：** 每日推送来自全球精神传统的诗歌和感悟。
-* **🛡️ 安全可靠：** Chrome 同步、一键 JSON 备份/恢复以及隐私自动隐藏。
+* **🛡️ 安全可靠：** 修复已知微小 Bug、Chrome 同步、一键 JSON 备份/恢复以及隐私自动隐藏。
 * **🌍 12 种语言：** 完全本地化支持。
 
 #### 💻 安装指南 (开发者模式)
@@ -92,9 +94,10 @@ AI Tree Launcher v37.33 是一款纯 **Vanilla JS**、零依赖的扩展程序�
 ### 🚀 終極軌道工作區
 *Void Tab 現已完善且穩定！享受高達 100% 的目標進度條、智能家庭成員年齡計算、無延遲的背景以及「今日回聲」。*
 
-AI Tree Launcher v37.33 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
+AI Tree Launcher v38.33 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
 
 #### 🌟 核心功能
+* **🎵 動態音效引擎與黃道十二宮音景：** 音效全面升級！三重選單的折疊與展開搭載了專屬演算法，每次觸發均可生成獨特的音效變體，對應黃道 12 星座；同時新增了滑鼠懸停、開啟及關閉 launcher 的專屬音效。
 * **✨ 星座與天體指南：** 嵌入軌道生態系統的互動式觀星與星座學習模組。
 * **👨‍👩‍👧‍👦 家庭成員年齡追蹤器：** 精確記錄家庭成員的月和日，智能自動識別公曆與波斯曆（Solar Hijri）。
 * **🎯 Void Tab 與 100% 目標進度條：** Void Tab 頁面現已支援高達 100% 的視覺化目標進度條、完整應用選單、自訂搜尋和「今日回聲」 Zen 卡片。
@@ -103,7 +106,7 @@ AI Tree Launcher v37.33 是一款純 **Vanilla JS**、零依賴的擴充功能�
 * **📅 時間、任務與高級日曆：** 三重日曆和支援編輯的待辦事項列表。
 * **🧠 統一搜尋和 AI 工具：** 綜合網路和書籤搜尋引擎、全面的提示詞庫和內建計算機。
 * **🕊️ 全球智慧引擎：** 每日推播來自傳統與靈性文化的詩歌和感悟。
-* **🛡️ 安全可靠：** Chrome 同步、一鍵 JSON 備份/還原以及隱私自動隱藏。
+* **🛡️ 安全可靠：** 修復已知微小 Bug、Chrome 同步、一鍵 JSON 備份/還原以及隱私自動隱藏。
 * **🌍 12 種語言：** 完全在地化支援。
 
 #### 💻 安裝指南 (開發者模式)
@@ -126,9 +129,10 @@ AI Tree Launcher v37.33 是一款純 **Vanilla JS**、零依賴的擴充功能�
 ### 🚀 O Espaço de Trabalho Orbital Definitivo
 *A Void Tab agora está completa e estável! Aproveite as barras de progresso de metas de até 100%, rastreador de idade da família e o "Eco de Hoje".*
 
-O AI Tree Launcher v37.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
+O AI Tree Launcher v38.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
 
 #### 🌟 Características Principais
+* **🎵 Motor de Áudio Dinâmico & Paisagens Sonoras do Zodíaco:** Efeitos sonoros completos! Respostas sonoras algorítmicas ao expandir/recolher os menus triplos — gerando variações únicas para as 12 constelações do Zodíaco —, além de efeitos sonoros para passar o mouse, abrir e fechar a extensão.
 * **✨ Guia de Constelações e Astronomia:** Módulo interativo de aprendizagem de constelações e navegação celestial integrado ao ecossistema orbital.
 * **👨‍👩‍👧‍👦 Contador de Idade da Família:** Registro preciso de dia e mês com detecção inteligente de calendários solar (Jalali) e gregoriano.
 * **🎯 Void Tab & Barras de Progresso de 100%:** Exibição visual de progresso para metas na página Void Tab até 100%, menus de aplicativos e cartão Zen "Eco de Hoje".
@@ -137,7 +141,7 @@ O AI Tree Launcher v37.33 é uma extensão pura em **Vanilla JS**, sem dependên
 * **📅 Tempo, Tarefas e Calendário Avançado:** Calendário triplo e lista de tarefas otimizada.
 * **🧠 Busca Unificada e Ferramentas de IA:** Mecanismo de busca combinado, biblioteca de prompts e calculadora.
 * **🕊️ Motor de Sabedoria Global:** Poesia e reflexões diárias de tradições espirituais.
-* **🛡️ Seguro e Confiável:** Sincronização do Chrome, backup JSON com 1 clique e ocultação automática.
+* **🛡️ Seguro e Confiável:** Correção de pequeños bugs, sincronização do Chrome, backup JSON com 1 clique e ocultação automática.
 * **🌍 12 Idiomas:** Totalmente localizado para 12 idiomas diferentes.
 
 #### 💻 Instalação (Modo Desenvolvedor)
@@ -160,9 +164,10 @@ Como um desenvolvedor independente de IA baseado no Irã afetado pela guerra, ma
 ### 🚀 Nihai Yörünge Çalışma Alanı
 *Void Tab artık eksiksiz ve kararlı! %100'e kadar hedef ilerleme çubukları, akıllı aile yaş sayacı ve "Bugünün Yankısı"nın keyfini çıkarın.*
 
-AI Tree Launcher v37.33, tarayıcınızı yüzen bir üretkenlik ekosistemine dönüştüren, saf **Vanilla JS** ile yazılmış eklentidir.
+AI Tree Launcher v38.33, tarayıcınızı yüzen bir üretkenlik ekosistemine dönüştüren, saf **Vanilla JS** ile yazılmış eklentidir.
 
 #### 🌟 Temel Özellikler
+* **🎵 Dinamik Ses Motoru ve Zodyak Ses Temaları:** Ses efektleri tamamen tamamlandı! Üçlü menülerin her açılıp kapanışında 12 Zodyak takımyıldızını temsil eden özel algoritmik sesler oluşturulur; ayrıca fare ile üzerine gelme (hover), eklentiyi açma ve kapatma için yeni ses efektleri eklendi.
 * **✨ Takımyıldız ve Gökyüzü Rehberi:** Yörünge ekosistemine entegre edilmiş etkileşimli takımyıldız öğrenme ve gökyüzü keşif modülü.
 * **👨‍👩‍👧‍👦 Aile Üyeleri Yaş Sayacı:** Hicri Şemsi (Celali) ve Miladi takvimleri akıllıca algılayan, gün ve ay bazında hassas yaş takibi.
 * **🎯 Void Tab ve %100 Hedef İlerleme Çubukları:** Void Tab sayfasında kişisel hedefler için %100'e kadar görsel ilerleme çubuğu gösterimi.
@@ -171,7 +176,7 @@ AI Tree Launcher v37.33, tarayıcınızı yüzen bir üretkenlik ekosistemine d�
 * **📅 Zaman, Görev ve Gelişmiş Takvim:** Üçlü takvim ve To-Do listesi.
 * **🧠 Birleşik Arama ve Yapay Zeka Araçları:** Birleşik web arama motoru, prompt kütüphanesi ve dahili hesap makinesi.
 * **🕊️ Küresel Bilgelik Motoru:** Küresel manevi geleneklerden günlük şiirler.
-* **🛡️ Güvenli ve Güvenilir:** Chrome senkronizasyonu, tek tıklamayla JSON yedekleme ve otomatik gizleme.
+* **🛡️ Güvenli ve Güvenilir:** Hatalar giderildi, Chrome senkronizasyonu, tek tıklamayla JSON yedekleme ve otomatik gizleme.
 * **🌍 12 Dil:** Tamamen yerelleştirilmiş 12 dil desteği.
 
 #### 💻 Kurulum (Geliştirici Modu)
@@ -194,7 +199,10 @@ Savaşın yıktığı İran'da yaşayan bağımsız bir yapay zeka geliştiricis
 ### 🚀 El Espacio de Trabajo Orbital Definitivo
 *¡La Void Tab ahora está completa y estable! Disfruta de barras de progreso de objetivos de hasta el 100%, contador de edad familiar inteligente y "Eco de Hoy".*
 
+AI Tree Launcher v38.33 es una extensión pura en **Vanilla JS**, sin dependencias.
+
 #### 🌟 Características Principales
+* **🎵 Motor de Audio Dinámico y Paisajes Sonoros del Zodiaco:** ¡Efectos de sonido completados! Respuesta sonora algorítmica al desplegar/colapsar los tres menús que genera variaciones únicas asignadas a las 12 constelaciones del Zodiaco, además de efectos de sonido al pasar el cursor (hover), abrir y cerrar la extensión.
 * **✨ Guía de Constelaciones y Astronomía:** Módulo interactivo de aprendizaje de constelaciones integrado directamente en el ecosistema orbital.
 * **👨‍👩‍👧‍👦 Contador de Edad Familiar:** Registro preciso de día y mes con detección automática e inteligente de calendarios solar (Jalali) y gregoriano.
 * **🎯 Void Tab y Barras de Progreso al 100%:** Visualización interactiva del progreso de objetivos hasta el 100% en la Void Tab.
@@ -203,7 +211,7 @@ Savaşın yıktığı İran'da yaşayan bağımsız bir yapay zeka geliştiricis
 * **📅 Tiempo, Tareas y Calendario Avanzado:** Calendario triple y lista de tareas.
 * **🧠 Búsqueda Unificada y Herramientas IA:** Búsqueda combinada, biblioteca de prompts y calculadora.
 * **🕊️ Motor de Sabiduría:** Poesía diaria y reflexiones de tradiciones globales.
-* **🛡️ Seguro y Fiable:** Sincronización, copias de seguridad JSON, y ocultación automática.
+* **🛡️ Seguro y Fiable:** Corrección de pequeños errores, sincronización, copias de seguridad JSON y ocultación automática.
 * **🌍 12 Idiomas:** Completamente localizado para 12 idiomas.
 
 #### 💻 Instalación (Modo Desarrollador)
@@ -226,7 +234,10 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 ### 🚀 Der Ultimative Orbitale Workspace
 *Der Void Tab ist jetzt vollständig und stabil! Genießen Sie Ziel-Fortschrittsbalken bis zu 100 %, intelligente Familienaltersverfolgung und das "Echo von Heute".*
 
+AI Tree Launcher v38.33 ist eine reines **Vanilla JS** Extension ohne externe Abhängigkeiten.
+
 #### 🌟 Hauptmerkmale
+* **🎵 Dynamische Sound-Engine & Tierkreis-Klangwelten:** Vollständige Integration von Soundeffekten! Algorithmitische Audio-Reaktionen beim Auf- und Zuklappen der dreifachen Menüs mit einzigartigen Soundvariationen passend zu den 12 Tierkreiszeichen sowie spezielle Effekte für Hover, Öffnen und Schließen.
 * **✨ Sternbilder & Astronomie-Guide:** Interaktives Modul zum Erlernen von Sternbildern und Himmelsbeobachtung im orbitalen Ökosystem.
 * **👨‍👩‍👧‍👦 Familienmitglieder-Altersrechner:** Präzise Erfassung von Tag und Monat mit intelligenter Erkennung von Sonnen- (Jalali) und Gregorianischem Kalender.
 * **🎯 Void Tab & 100% Ziel-Fortschrittsbalken:** Interaktive Fortschrittsbalken bis zu 100 % für persönliche Ziele auf der Void-Tab-Seite.
@@ -235,7 +246,7 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 * **📅 Zeit, Aufgaben & Erweiterter Kalender:** Dreifach-Kalender und To-Do-Liste.
 * **🧠 Einheitliche Suche & KI-Tools:** Kombinierte Web- und Lesezeichensuche, Prompt-Bibliothek und Taschenrechner.
 * **🕊️ Global Wisdom Engine:** Tägliche Poesie und Weisheiten.
-* **🛡️ Sicher & Zuverlässig:** Chrome-Sync, JSON-Backups und Auto-Hide.
+* **🛡️ Sicher & Zuverlässig:** Behebung kleinerer Bugs, Chrome-Sync, JSON-Backups und Auto-Hide.
 * **🌍 12 Sprachen:** Vollständig in 12 Sprachen lokalisiert.
 
 #### 💻 Installation (Entwicklermodus)
@@ -258,7 +269,10 @@ Als unabhängiger KI-Entwickler hilft Ihr Beitrag, das Projekt am Leben zu erhal
 ### 🚀 L'Espace de Travail Orbital Ultime
 *Le Void Tab est désormais complet et stable ! Profitez de barres de progression d'objectifs jusqu'à 100%, d'un suivi d'âge familial intelligent et de « L'Écho d'Aujourd'hui ».*
 
+AI Tree Launcher v38.33 est une extension pure en **Vanilla JS**, sans dépendances.
+
 #### 🌟 Fonctionnalités Clés
+* **🎵 Moteur Audio Dynamique & Ambiance du Zodiaque :** Effets sonores complets ! Une réponse audio algorithmique lors du dépliage/repliage des trois menus génère des variations uniques associées aux 12 constellations du Zodiaque, complétée par des effets sonores lors du survol (hover), de l'ouverture et de la fermeture.
 * **✨ Guide des Constellations et Astronomie :** Module interactif d'apprentissage des constellations et d'observation céleste intégré à l'écosystème orbital.
 * **👨‍👩‍👧‍👦 Compteur d'Âge Familial :** Saisie précise du jour et du mois avec détection automatique intelligente des calendriers solaire (Jalali) et grégorien.
 * **🎯 Void Tab & Barres de Progression 100% :** Affichage visuel de la progression des objectifs jusqu'à 100% sur la page Void Tab.
@@ -267,7 +281,7 @@ Als unabhängiger KI-Entwickler hilft Ihr Beitrag, das Projekt am Leben zu erhal
 * **📅 Temps, Tâches & Calendrier Avancé :** Triple calendrier et liste de tâches.
 * **🧠 Recherche Unifiée & Outils IA :** Recherche combinée, bibliothèque de prompts et calculatrice.
 * **🕊️ Moteur de Sagesse :** Poésie et réflexions quotidiennes.
-* **🛡️ Sécurisé & Fiable :** Synchronisation, sauvegardes JSON, et masquage automatique.
+* **🛡️ Sécurisé & Fiable :** Correction de bugs mineurs, synchronisation, sauvegardes JSON et masquage automatique.
 * **🌍 12 Langues :** Entièrement localisé en 12 langues.
 
 #### 💻 Installation (Mode Développeur)
@@ -288,9 +302,12 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 <br>
 
 ### 🚀 究極のオービタル・ワークスペース
-*Void Tabが完全かつ安定しました！最大100%の目標進捗バー、スマートな家族の年齢計算、 scandal「今日のエコー」をお楽しみください。*
+*Void Tabが完全かつ安定しました！最大100%の目標進捗バー、スマートな家族の年齢計算、「今日のエコー」をお楽しみください。*
+
+AI Tree Launcher v38.33 は、ピュアな **Vanilla JS** で構築された外部依存性のない拡張機能です。
 
 #### 🌟 主な機能
+* **🎵 ダイナミック・オーディオエンジン＆黄道十二星座のサウンド:** 効果音が完全実装されました！3つのメニューを折りたたむ/展開するたびに、黄道12星座に対応した独自のアルゴリズムサウンドが生成されます。さらに、ホバー（マウスオーバー）、拡張機能の起動および終了時の効果音も追加されました。
 * **✨ 星座＆天体ガイド：** オービタル生態系に直接統合されたインタラクティブな星座学習・天体観測モジュール。
 * **👨‍👩‍👧‍👦 家族の年齢トラッカー:** 太陽暦（ジャラリー）とグレゴリオ暦を自動判別し、月・日単位で正確に年齢をカウント。
 * **🎯 Void Tab & 100%目標進捗バー:** Void Tab ページで個人目標の進捗状況を最大100%までプログレスバーで視覚表示。
@@ -299,7 +316,7 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 * **📅 時間、タスク、高度なカレンダー:** トリプルカレンダーとTo-Doリスト。
 * **🧠 統合検索 & AIツール:** Web統合検索、プロンプト・ライブラリ、電卓。
 * **🕊️ グローバル・ウィズダム:** 世界の詩や伝統的な知恵を毎日配信。
-* **🛡️ セキュリティ & バックアップ:** 同期、JSONバックアップ、自動非表示。
+* **🛡️ セキュリティ & バックアップ:** 軽微なバグ修正、同期、JSONバックアップ、自動非表示。
 * **🌍 12言語対応:** 12の言語に完全ローカライズ。
 
 #### 💻 インストール方法 (デベロッパーモード)
@@ -322,7 +339,10 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 ### 🚀 Ультимативное Орбитальное Пространство
 *Вкладка Void Tab теперь полностью готова и стабильна! Наслаждайтесь полосами прогресса целей до 100%, умным счетчиком возраста семьи и «Эхом сегодня».*
 
+AI Tree Launcher v38.33 — это расширение на чистом **Vanilla JS** без внешних зависимостей.
+
 #### 🌟 Ключевые особенности
+* **🎵 Динамический звуковой движок и звуки Знаков Зодиака:** Звуковые эффекты полностью завершены! Алгоритмический звуковой отклик при сворачивании и разворачивании трех меню каждый раз создает уникальные вариации звука, соответствующие 12 созвездиям Зодиака, а также добавлена озвучка наведения (hover), открытия и закрытия расширения.
 * **✨ Гид по созвездиям и астрономии:** Интерактивный модуль изучения созвездий и звездного неба, встроенный в орбитальную экосистему.
 * **👨‍👩‍👧‍👦 Счетчик возраста членов семьи:** Точный ввод дня и месяца с автоматическим определением солнечного (джалали) и григорианского календарей.
 * **🎯 Void Tab и полосы прогресса целей до 100%:** Визуальное отображение прогресса целей до 100% на странице Void Tab.
@@ -331,18 +351,8 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 * **📅 Время, Задачи и Расширенный календарь:** Тройной календарь и список задач.
 * **🧠 Единый Поиск и ИИ-инструменты:** Объединенный поиск, библиотека промптов и калькулятор.
 * **🕊️ Движок Мудрости:** Ежедневная поэзия и мудрости со всего мира.
-* **🛡️ Безопасность:** Синхронизация, JSON-бэкапы и автоматическое скрытие.
+* **🛡️ Безопасность:** Исправление мелких ошибок, синхронизация, JSON-бэкапы и автоматическое скрытие.
 * **🌍 12 Языков:** Полностью локализован на 12 языков.
-
-#### 💻 Установка (Режим разработчика)
-1. Клонируйте `minoodar/AI-Tree-Launcher` или скачайте ZIP-архив.
-2. Перейдите в `chrome://extensions/` и включите **Режим разработчика**.
-3. Нажмите **Загрузить распакованную** и выберите папку проекта.
-
-#### 💖 Поддержка и вклад
-Как независимый разработчик ИИ в Иране, поддержка этого проекта сильно зависит от сообщества.
-* **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
-* **Иранский риал (IRR):** [Поддержать через Donito](https://donito.me/u-b8wjr)
 
 </details>
 
@@ -350,12 +360,16 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 <summary><strong>🇸🇦 العربية (Arabic)</strong></summary>
 
 <br>
+
 <div dir="rtl">
 
 ### 🚀 مساحة العمل المدارية المطلقة
 *أصبحت علامة التبويب Void Tab الآن مكتملة ومستقرة! استمتع بأشرطة تقدم الأهداف حتى 100%، وحاسبة أعمار أفراد العائلة الذكية، و"صدى اليوم".*
 
+AI Tree Launcher الإصدار v38.33 هو إضافة مبنية بالكامل بلغة **Vanilla JS** بدون أي مكتبات خارجية.
+
 #### 🌟 أبرز الميزات الأساسية
+* **🎵 محرك صوتي ديناميكي وأصوات الأبراج الفلكية:** تم إكمال المؤثرات الصوتية بالكامل! استجابة صوتية خوارزمية عند فتح وإغلاق القوائم الثلاثية تُولد نغمات فريدة تُحاكي 12 برجًا فلكيًا في كل مرة، بالإضافة إلى مؤثرات صوتية جديدة عند تحريك الماوس (Hover)، وعند فتح الإضافة وإغلاقها.
 * **✨ دليل الكوكبات والنجوم:** وحدة تفاعلية لتعلم الكوكبات الفلكية واستكشاف السماء مدمجة في النظام المداري.
 * **👨‍👩‍👧‍👦 عداد أعمار أفراد العائلة:** تسجيل دقيق لليوم والشهر مع التعرف الذكي والتلقائي على التقويمين الهجري الشمسي (الجلالي) والميلادي.
 * **🎯 علامة Void Tab وأشرطة تقدم الأهداف 100%:** عرض تفاعلي وشريطي لنسبة تقدم الأهداف الشخصية حتى 100% في صفحة Void Tab.
@@ -364,7 +378,7 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 * **📅 الوقت، المهام والتقويم المتقدم:** تقويم ثلاثي وقائمة مهام.
 * **🧠 بحث موحد وأدوات ذكية:** محرك بحث يدمج بين الويب والإشارات المرجعية، ومكتبة قوالب نصوص، وحاسبة مدمجة.
 * **🕊️ محرك الحكمة العالمي:** رسائل تأمل يومية وشعر من مختلف الثقافات.
-* **🛡️ الأمان والموثوقية:** مزامنة سحابية، نسخ احتياطي كامل (JSON)، وإخفاء تلقائي.
+* **🛡️ الأمان والموثوقية:** إصلاح الأخطاء البسيطة، مزامنة سحابية، نسخ احتياطي كامل (JSON)، وإخفاء تلقائي.
 * **🌍 12 لغة:** دعم كامل لـ 12 لغة مختلفة.
 
 #### 💻 طريقة التثبيت (وضع المطور)
@@ -389,7 +403,10 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 ### 🚀 پیشرفته‌ترین فضای کاری مداری
 *«تب Void اکنون کامل و پایدار است! از نوارهای پیشرفت اهداف تا ۱۰۰ درصد، سن‌شمار هوشمند اعضای خانواده با تشخیص میلادی و شمسی، پس‌زمینه جذاب و «پژواک امروز» لذت ببرید.»*
 
+AI Tree Launcher نسخه v38.33 یک افزونه مبتنی بر **Vanilla JS** بدون هیچ وابستگی خارجی است که مرورگر شما را به یک زیست‌بوم بهره‌وری شناور تبدیل می‌کند.
+
 #### 🌟 ویژگی‌های کلیدی
+* **🎵 موتور صوتی پویا و آواهای ۱۲ صورت فلکی (Zodiac Soundscapes):** افکت‌های صوتی افزونه کاملاً تکمیل شد! تجربه پاسخ‌های صوتی الگوریتمی هنگام باز و بسته‌شدن (Collapse) منوهای سه‌گانه که با یک الگوریتم خاص در جزئیات، بازسازی صوتی ۱۲ صورت فلکی زودیاک را شکل می‌دهند. همچنین افکت‌های صوتی جدید برای عبور موس (Hover)، باز کردن و بستن خود افزونه اضافه گردید.
 * **✨ آموزش و راهنمای صور فلکی:** ماژول تعاملی ستاره‌شناسی و یادگیری صور فلکی یکپارچه‌شده در فضای کاری مداری.
 * **👨‍👩‍👧‍👦 سن‌شمار کلیه اعضای خانواده:** امکان ثبت دقیق روز و ماه برای کلیه اعضای خانواده همراه با تشخیص هوشمند و خودکار تقویم شمسی و میلادی.
 * **🎯 Void Tab پایدار و نوار پیشرفت ۱۰۰٪ اهداف:** ارائه نوارهای پیشرفت (Progress Bar) تعاملی تا ۱۰۰ درصد برای اهداف در صفحه Void Tab به همراه منوهای کامل برنامه و کارت جمع‌شونده «پژواک امروز».
@@ -398,7 +415,7 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 * **📅 مدیریت زمان، وظایف و تقویم پیشرفته:** تقویم سه‌گانه و لیست پیشرفته کارها با امکان ویرایش آفلاین و پشتیبانی هوشمند زبان.
 * **🧠 جستجوی یکپارچه و ابزارهای AI:** موتور جستجوی تلفیقی (جستجو در وب و بوک‌مارک‌ها)، کتابخانه پرامپت‌ها و ماشین‌حساب داخلی.
 * **🕊️ موتور گنجینه جهانی:** نمایش دوزبانه اشعار و پیام‌های روزانه از ادبیات و سنت‌های معنوی جهان.
-* **🛡️ امنیت و پایداری:** همگام‌سازی ابری Chrome، بکاپ‌گیری کامل JSON با یک کلیک و پنهان‌سازی خودکار در صفحات حساس لاگین.
+* **🛡️ امنیت و پایداری:** رفع باگ‌های جزئی، همگام‌سازی ابری Chrome، بکاپ‌گیری کامل JSON با یک کلیک و پنهان‌سازی خودکار در صفحات حساس لاگین.
 * **🌍 پشتیبانی از ۱۲ زبان:** بومی‌سازی کامل برای ۱۲ زبان زنده دنیا (راست‌چین و چپ‌چین).
 
 #### 💻 آموزش نصب (Developer Mode)
