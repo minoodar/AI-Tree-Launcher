@@ -1791,8 +1791,9 @@
             || pickConstellation();
           if (!z) return;
           // Re-seat from live stage geometry; persist identity only (not coordinates).
+          // Silent restore: formation SFX is only for live user-driven collapses, never on New Tab hydrate.
           const preferred = defaultConstellationCenter(z.scale || 90, z);
-          formConstellationFrom(z, preferred.cx, preferred.cy, preferred.scale);
+          formConstellationFrom(z, preferred.cx, preferred.cy, preferred.scale, false);
         };
         requestAnimationFrame(run);
       }
