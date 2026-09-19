@@ -1883,22 +1883,26 @@ offset-path: border-box; offset-distance: 0%; opacity: 0; transition: opacity 0.
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  margin-top: 6px;
+  gap: 3px;
+  margin-top: 7px;
   text-align: center;
   line-height: 1.4;
+  letter-spacing: 0.15px;
 }
+.ai-life-birth[hidden] { display: none !important; }
 .ai-life-birth-j {
   font-size: 10.5px;
-  font-weight: 600;
-  color: rgba(167, 243, 208, 0.92);
+  font-weight: 650;
+  color: rgba(167, 243, 208, 0.95);
   direction: rtl;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.25);
 }
 .ai-life-birth-g {
   font-size: 10px;
-  font-weight: 600;
-  color: rgba(186, 230, 253, 0.8);
+  font-weight: 650;
+  color: rgba(186, 230, 253, 0.88);
   direction: ltr;
+  text-shadow: 0 0 10px rgba(125, 211, 252, 0.22);
 }
 .ai-clock-age {
   display: none; margin-top: 6px; text-align: center; font-size: 11px; font-weight: 650;

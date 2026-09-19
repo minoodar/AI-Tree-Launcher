@@ -527,6 +527,7 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
         <span id="ai-life-caption"></span>
         <span id="ai-life-now-label">اکنون</span>
       </div>
+      <div class="ai-life-birth" id="ai-life-birth" hidden></div>
       <button type="button" class="ai-family-paper-toggle" id="ai-family-ages-toggle" style="display:none;" aria-expanded="false">
         <span class="ai-family-paper-toggle-label" id="ai-family-ages-toggle-label"></span>
         <span class="ai-family-paper-toggle-chevron">▾</span>
@@ -1297,29 +1298,35 @@ updateSeasonalTracker();
           } catch (e) { age = nowD.getFullYear() - gY; }
         } else { age = nowD.getFullYear() - gY; }
         age = Math.max(0, age);
+        const J_MONTHS = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+        let birthJalali = '';
+        let birthGregorian = '';
         let birthLabel = '';
         try {
           if (hasFullDate) {
             const gDate = new Date(gY, gM - 1, gD);
-            const gStr = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' });
-            let jStr = '';
+            birthGregorian = gDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
             if (typeof gregorianToJalaali === 'function') {
               const j = gregorianToJalaali(gY, gM, gD);
-              const jMonths = currentLang === 'fa'
-                ? ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند']
-                : ['Farvardin','Ordibehesht','Khordad','Tir','Mordad','Shahrivar','Mehr','Aban','Azar','Dey','Bahman','Esfand'];
-              jStr = localizeDigits(String(j.jd)) + ' ' + jMonths[Math.max(0, j.jm - 1)] + ' ' + localizeDigits(String(j.jy));
+              birthJalali = localizeDigits(String(j.jd)) + ' ' + J_MONTHS[Math.max(0, j.jm - 1)] + ' ' + localizeDigits(String(j.jy));
+            } else if (isJalali) {
+              birthJalali = localizeDigits(String(d)) + ' ' + J_MONTHS[Math.max(0, m - 1)] + ' ' + localizeDigits(String(y));
             }
-            birthLabel = isJalali ? (jStr ? jStr + ' · ' + gStr : gStr) : (gStr + (jStr ? ' · ' + jStr : ''));
+            birthLabel = (birthJalali ? birthJalali + ' · ' : '') + birthGregorian;
           } else if (isJalali) {
-            birthLabel = localizeDigits(String(y)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali');
-            try { const g = jalaaliToGregorian(y, 1, 1); if (g) birthLabel += ' · ≈' + g.gy + ' CE'; } catch (e) {}
+            birthJalali = localizeDigits(String(y)) + (currentLang === 'fa' || currentLang === 'ar' ? ' شمسی' : ' Jalali');
+            try { const g = jalaaliToGregorian(y, 1, 1); if (g) birthGregorian = '≈' + g.gy + ' CE'; } catch (e) {}
+            birthLabel = birthJalali + (birthGregorian ? ' · ' + birthGregorian : '');
           } else {
-            birthLabel = String(y) + ' CE';
-            try { const j = gregorianToJalaali(y, 1, 1); if (j) birthLabel += ' · ≈' + localizeDigits(String(j.jy)) + (currentLang === 'fa' ? ' شمسی' : ' Jalali'); } catch (e) {}
+            birthGregorian = String(y) + ' CE';
+            try {
+              const j = gregorianToJalaali(y, 1, 1);
+              if (j) birthJalali = '≈' + localizeDigits(String(j.jy)) + (currentLang === 'fa' || currentLang === 'ar' ? ' شمسی' : ' Jalali');
+            } catch (e) {}
+            birthLabel = (birthJalali ? birthJalali + ' · ' : '') + birthGregorian;
           }
         } catch (e) {}
-        return { age: age, birthLabel: birthLabel };
+        return { age: age, birthLabel: birthLabel, birthJalali: birthJalali, birthGregorian: birthGregorian };
       }
       function getPrimaryBirth() {
         if (Array.isArray(familyAges) && familyAges.length) {
@@ -1404,22 +1411,47 @@ updateSeasonalTracker();
         });
       }
       const primary = getPrimaryBirth();
+      const birthEl = document.getElementById('ai-life-birth');
       if (primary && primary.year) {
          const ageInfo = computePreciseAge(primary.year, primary.month, primary.day);
          const age = ageInfo.age;
          const namePrefix = primary.name ? (primary.name + ' · ') : '';
-         ageEl.textContent = namePrefix + t('ageLabel').replace('{age}', localizeDigits(String(age)));
-         if (ageInfo.birthLabel) ageEl.textContent += ' · ' + ageInfo.birthLabel;
-         ageEl.style.setProperty('display', 'block', 'important');
+         // Age lives on the journey caption — hide redundant age row
+         if (ageEl) {
+           ageEl.textContent = '';
+           ageEl.style.display = 'none';
+           ageEl.style.removeProperty('display');
+         }
          if (journeyEl && journeyCaption) {
              const progress = Math.max(7, Math.min(93, (age / 100) * 100));
              journeyEl.style.setProperty('--life-progress', progress + '%');
-             journeyCaption.textContent = t('journeyCaption').replace('{age}', localizeDigits(String(age)));
+             journeyCaption.textContent = namePrefix + t('journeyCaption').replace('{age}', localizeDigits(String(age)));
              journeyEl.style.display = 'block';
+         }
+         // Dual-line birth under life bar (same language as Today dock)
+         if (birthEl) {
+           birthEl.innerHTML = '';
+           if (ageInfo.birthJalali) {
+             const jLine = document.createElement('div');
+             jLine.className = 'ai-life-birth-j';
+             jLine.textContent = '🌱 ' + ageInfo.birthJalali;
+             birthEl.appendChild(jLine);
+           }
+           if (ageInfo.birthGregorian) {
+             const gLine = document.createElement('div');
+             gLine.className = 'ai-life-birth-g';
+             gLine.textContent = '✦ ' + ageInfo.birthGregorian;
+             birthEl.appendChild(gLine);
+           }
+           if (!ageInfo.birthJalali && !ageInfo.birthGregorian && ageInfo.birthLabel) {
+             birthEl.textContent = ageInfo.birthLabel;
+           }
+           birthEl.hidden = !(ageInfo.birthJalali || ageInfo.birthGregorian || ageInfo.birthLabel);
          }
          renderFamilyAgesPanel();
       } else {
-         ageEl.textContent = ''; ageEl.style.display = 'none'; ageEl.style.removeProperty('display');
+         if (ageEl) { ageEl.textContent = ''; ageEl.style.display = 'none'; ageEl.style.removeProperty('display'); }
+         if (birthEl) { birthEl.innerHTML = ''; birthEl.hidden = true; }
          if (journeyEl) journeyEl.style.display = 'none';
          if (familyToggle) familyToggle.style.display = 'none';
          if (familyListEl) { familyListEl.style.display = 'none'; familyListEl.hidden = true; }
