@@ -246,7 +246,6 @@
   hub.appendChild(undoToggleDot);
 
   // ---- LauncherSound: hover + index map for the 8 hub toggles ----
-  // Order matches CFG.toggleCents in launcher-sound.js (0..7).
   const LAUNCHER_SOUND_TOGGLES = [
     searchToggleDot,   // 0
     noteToggleDot,     // 1
@@ -4797,6 +4796,36 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   const AI_WEB_SEARCH_ENGINE_DEFAULTS = AI_WEB_SEARCH_ENGINES.map((e) => ({ ...e }));
   let customWebSearchEngines = [];
   let activeWebSearchEngine = 'google';
+  let webSearchModes = {};
+  const WEB_SEARCH_ENGINE_MODES = {
+    google: {
+      classic: { template: 'https://www.google.com/search?q={q}' },
+      ai: { template: 'https://www.google.com/search?q={q}&udm=50' }
+    }
+  };
+  function webSearchHasModes(id) {
+    return !!(WEB_SEARCH_ENGINE_MODES[id] && Object.keys(WEB_SEARCH_ENGINE_MODES[id]).length > 1);
+  }
+  function getWebSearchMode(id) {
+    const m = webSearchModes[id];
+    if (m && WEB_SEARCH_ENGINE_MODES[id] && WEB_SEARCH_ENGINE_MODES[id][m]) return m;
+    return 'classic';
+  }
+  function setWebSearchMode(id, mode) {
+    if (!webSearchHasModes(id)) return;
+    if (!WEB_SEARCH_ENGINE_MODES[id][mode]) return;
+    webSearchModes[id] = mode;
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchModes: Object.assign({}, webSearchModes) }); } catch (err) {}
+    renderWebSearchModePill();
+  }
+  function resolveWebSearchTemplate(engine, oneShotMode) {
+    const id = engine && engine.id;
+    const mode = oneShotMode || (webSearchHasModes(id) ? getWebSearchMode(id) : null);
+    if (mode && mode !== 'classic' && WEB_SEARCH_ENGINE_MODES[id] && WEB_SEARCH_ENGINE_MODES[id][mode]) {
+      return WEB_SEARCH_ENGINE_MODES[id][mode].template;
+    }
+    return (engine && engine.template) || 'https://www.google.com/search?q={q}';
+  }
 
   function allWebSearchEngines() { return AI_WEB_SEARCH_ENGINES.concat(customWebSearchEngines); }
   function persistCustomWebEngines() {
@@ -4847,6 +4876,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         e.stopPropagation();
         activeWebSearchEngine = eng.id;
         try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchEngine: eng.id }); } catch (err) {}
+        renderWebSearchModePill();
         closeWebEngineForm();
         renderWebSearchEngineButtons();
       });
@@ -4944,7 +4974,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
 
   if (uiEls.webSearchEngines) {
     try {
-      chrome.storage.local.get(['webSearchEngine', 'webSearchEngineOverrides', 'webSearchCustomEngines'], (data) => {
+      chrome.storage.local.get(['webSearchEngine', 'webSearchEngineOverrides', 'webSearchCustomEngines', 'webSearchModes'], (data) => {
         const overrides = data && data.webSearchEngineOverrides;
         if (overrides && typeof overrides === 'object') {
           AI_WEB_SEARCH_ENGINES.forEach((engine) => {
@@ -4962,17 +4992,75 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         if (data && data.webSearchEngine && allWebSearchEngines().some((e) => e.id === data.webSearchEngine)) {
           activeWebSearchEngine = data.webSearchEngine;
         }
+        if (data && data.webSearchModes && typeof data.webSearchModes === 'object') {
+          webSearchModes = Object.assign({}, data.webSearchModes);
+        }
         renderWebSearchEngineButtons();
+        renderWebSearchModePill();
       });
     } catch (e) { renderWebSearchEngineButtons(); }
   }
 
-  function runWebSearch() {
+  function runWebSearch(oneShotMode) {
     const q = (uiEls.webSearchInput && uiEls.webSearchInput.value || '').trim();
     if (!q) return;
     const engine = allWebSearchEngines().find((e) => e.id === activeWebSearchEngine) || AI_WEB_SEARCH_ENGINES[0];
-    window.open(engine.template.replace('{q}', encodeURIComponent(q)), '_blank', 'noopener');
+    const tpl = resolveWebSearchTemplate(engine, oneShotMode);
+    const url = tpl.indexOf('{q}') >= 0 ? tpl.split('{q}').join(encodeURIComponent(q)) : tpl + encodeURIComponent(q);
+    window.open(url, '_blank', 'noopener');
   }
+
+  function renderWebSearchModePill() {
+    const row = uiEls.webSearchInput && uiEls.webSearchInput.parentElement;
+    if (!row) return;
+    let pill = row.querySelector('#ai-web-search-mode');
+    const show = webSearchHasModes(activeWebSearchEngine);
+    if (!show) {
+      if (pill) pill.hidden = true;
+      return;
+    }
+    if (!pill) {
+      pill = document.createElement('button');
+      pill.type = 'button';
+      pill.id = 'ai-web-search-mode';
+      pill.className = 'ai-web-search-mode';
+      pill.textContent = 'AI';
+      pill.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const next = getWebSearchMode(activeWebSearchEngine) === 'ai' ? 'classic' : 'ai';
+        setWebSearchMode(activeWebSearchEngine, next);
+      });
+      const go = uiEls.webSearchGo;
+      if (go && go.parentElement === row) row.insertBefore(pill, go);
+      else row.appendChild(pill);
+    }
+    pill.hidden = false;
+    const isAi = getWebSearchMode(activeWebSearchEngine) === 'ai';
+    pill.classList.toggle('is-ai', isAi);
+    pill.setAttribute('aria-pressed', String(isAi));
+    pill.title = isAi
+      ? 'AI Mode on — click for classic (Ctrl/⌘+Enter for one-shot classic)'
+      : 'Classic search — click for AI Mode (Ctrl/⌘+Enter for one-shot AI)';
+  }
+
+  try {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area !== 'local') return;
+      if (changes.webSearchModes) {
+        const v = changes.webSearchModes.newValue;
+        webSearchModes = (v && typeof v === 'object') ? Object.assign({}, v) : {};
+        renderWebSearchModePill();
+      }
+      if (changes.webSearchEngine && changes.webSearchEngine.newValue) {
+        const id = changes.webSearchEngine.newValue;
+        if (allWebSearchEngines().some((e) => e.id === id)) {
+          activeWebSearchEngine = id;
+          renderWebSearchEngineButtons();
+          renderWebSearchModePill();
+        }
+      }
+    });
+  } catch (err) {}
 
   if (uiEls.webSearchToggle && uiEls.webSearchDrawer) {
     uiEls.webSearchToggle.addEventListener('click', (e) => {
@@ -4995,7 +5083,15 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   if (uiEls.webSearchInput) {
     uiEls.webSearchInput.addEventListener('keydown', (e) => {
       e.stopPropagation();
-      if (e.key === 'Enter') { e.preventDefault(); runWebSearch(); }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if ((e.ctrlKey || e.metaKey) && webSearchHasModes(activeWebSearchEngine)) {
+          const alt = getWebSearchMode(activeWebSearchEngine) === 'ai' ? 'classic' : 'ai';
+          runWebSearch(alt);
+        } else {
+          runWebSearch();
+        }
+      }
     });
   }
 

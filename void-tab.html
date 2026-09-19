@@ -272,6 +272,38 @@
         transition: background .15s ease, transform .12s ease;
     }
     #ai-void-search-go:hover { background: #2a3654; transform: scale(1.04); }
+
+    /* Google AI mode pill — visible only for Google */
+    #ai-void-search-mode {
+      flex: 0 0 auto;
+      height: 30px;
+      min-width: 38px;
+      padding: 0 12px;
+      margin: 0 2px;
+      border: 1px solid rgba(138, 180, 248, 0.28);
+      border-radius: 999px;
+      background: rgba(138, 180, 248, 0.10);
+      color: #b8c7e6;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      opacity: 1;
+      transition: background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .15s ease;
+    }
+    #ai-void-search-mode:hover {
+      background: rgba(138, 180, 248, 0.22);
+      color: #e8f0fe;
+      border-color: rgba(138, 180, 248, 0.5);
+      transform: scale(1.05);
+    }
+    #ai-void-search-mode.is-ai {
+      background: color-mix(in srgb, var(--engine-accent, #8ab4f8) 32%, transparent);
+      border-color: color-mix(in srgb, var(--engine-accent, #8ab4f8) 65%, transparent);
+      color: #ffffff;
+      box-shadow: 0 0 14px color-mix(in srgb, var(--engine-accent, #8ab4f8) 40%, transparent);
+    }
+    #ai-void-search-mode[hidden] { display: none !important; }
     #ai-void-search-dots {
         display: flex;
         gap: 7px;
@@ -1676,6 +1708,7 @@
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
       <input type="text" id="ai-void-search-input" name="q" autocomplete="off" spellcheck="false" dir="auto" placeholder="Search with Google…" />
+      <button type="button" id="ai-void-search-mode" hidden aria-pressed="false" title="Toggle AI Mode">AI</button>
       <button type="button" id="ai-void-search-go" title="Search" aria-label="Search">→</button>
     </form>
     <div id="ai-void-search-dots" role="tablist" aria-label="Search engines"></div>
