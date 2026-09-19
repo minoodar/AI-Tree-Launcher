@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "AI Tree Launcher",
-  "version": "37.33",
+  "version": "37.34",
   "description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, offline voice dictation, calculator, clock and to-do.",
   "permissions": [
     "storage",
@@ -56,6 +56,7 @@
         "voice-engine.js",
         "toolbar-icons.js",
         "toolbar-dock.js",
+        "launcher-sound.js",
         "content.js"
       ],
       "run_at": "document_idle",

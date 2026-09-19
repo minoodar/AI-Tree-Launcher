@@ -245,6 +245,36 @@
   undoToggleDot.setAttribute('aria-label', 'Undo last edit or deletion');
   hub.appendChild(undoToggleDot);
 
+  // ---- LauncherSound: hover + index map for the 8 hub toggles ----
+  // Order matches CFG.toggleCents in launcher-sound.js (0..7).
+  const LAUNCHER_SOUND_TOGGLES = [
+    searchToggleDot,   // 0
+    noteToggleDot,     // 1
+    allToggleDot,      // 2
+    collapseToggleDot, // 3
+    undoToggleDot,     // 4
+    todoToggleDot,     // 5
+    calcToggleDot,     // 6
+    clockToggleDot     // 7
+  ];
+  function playLauncherOpen() {
+    try { if (window.LauncherSound) LauncherSound.open(); } catch (e) {}
+  }
+  function playLauncherClick(i) {
+    try { if (window.LauncherSound) LauncherSound.click(i); } catch (e) {}
+  }
+  function playLauncherHover(i) {
+    try { if (window.LauncherSound) LauncherSound.hover(i); } catch (e) {}
+  }
+  LAUNCHER_SOUND_TOGGLES.forEach((el, i) => {
+    if (!el) return;
+    el.addEventListener('pointerenter', (e) => {
+      if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+      playLauncherHover(i);
+    });
+  });
+
+
   const spacingArc = document.createElement('div'); spacingArc.id = 'ai-spacing-arc';
   spacingArc.innerHTML = `
     <svg viewBox="0 0 104 104" width="104" height="104">
@@ -3725,7 +3755,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   }
   
   clockToggleDot.addEventListener('click', (e) => {
-      e.stopPropagation(); closeTree(); const isActive = clockPanel.classList.contains('active'); closeAllPanelsExcept('');
+      e.stopPropagation(); playLauncherClick(7); closeTree(); const isActive = clockPanel.classList.contains('active'); closeAllPanelsExcept('');
       if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes();
       if (!isActive) {
         // هر بار باز شدن: مثل یادداشت کنار هاب لنگر شود (موقعیت ذخیره‌شدهٔ دور قبلی نادیده)
@@ -4441,7 +4471,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       todoPanel.style.top = `${topPos}px`;
   }
   todoToggleDot.addEventListener('click', (e) => {
-      if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); const isActive = todoPanel.classList.contains('active'); closeAllPanelsExcept(''); 
+      if (!chrome.runtime?.id) return; e.stopPropagation(); playLauncherClick(5); closeTree(); const isActive = todoPanel.classList.contains('active'); closeAllPanelsExcept(''); 
       if (!isActive) {
         todoPanel.classList.add('active'); root.classList.add('show-todo');
         uiEls.todoTabDaily.classList.toggle('active', activeTodoTab === 'daily');
@@ -4970,7 +5000,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   }
 
   searchToggleDot.addEventListener('click', (e) => {
-      if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); const isActive = searchPanel.classList.contains('active'); closeAllPanelsExcept('');
+      if (!chrome.runtime?.id) return; e.stopPropagation(); playLauncherClick(0); closeTree(); const isActive = searchPanel.classList.contains('active'); closeAllPanelsExcept('');
       if (!isActive) {
         searchPanel.classList.add('active'); root.classList.add('show-search');
         uiEls.searchInput.value = ''; activeSearchCategory = null;
@@ -5125,7 +5155,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       calcPanel.style.left = `${leftPos}px`; calcPanel.style.top = `${topPos}px`;
   }
   calcToggleDot.addEventListener('click', (e) => {
-      e.stopPropagation(); closeTree(); const isActive = calcPanel.classList.contains('active'); closeAllPanelsExcept(''); 
+      e.stopPropagation(); playLauncherClick(6); closeTree(); const isActive = calcPanel.classList.contains('active'); closeAllPanelsExcept(''); 
       if (!isActive) { calcPanel.classList.add('active'); root.classList.add('show-calc'); clearCalc(); adjustCalcPosition(); } resetToggleTimeout();
   });
 
@@ -5480,6 +5510,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
 
   undoToggleDot.addEventListener('click', (e) => {
       e.stopPropagation();
+      playLauncherClick(4);
       // Hybrid priority:
       //  1) TTL-backed bookmark / todo / storage recovery (existing 10s behaviour)
       //  2) Multi-step notepad undo (zero-TTL, survives for the session)
@@ -6135,6 +6166,7 @@ let hubAutoCollapsedByPanel = false;
   noteToggleDot.addEventListener('click', (e) => {
     if (!chrome.runtime?.id) return;
     e.stopPropagation();
+    playLauncherClick(1);
     closeTree();
     isInitialReveal = false;
     root.classList.remove('initial-reveal');
@@ -9733,7 +9765,7 @@ let hubAutoCollapsedByPanel = false;
   }
 
   allToggleDot.addEventListener('click', (e) => {
-    if (!chrome.runtime?.id) return; e.stopPropagation(); 
+    if (!chrome.runtime?.id) return; e.stopPropagation(); playLauncherClick(2); 
     if (showAllOverride) { closeTree(); } else { closeAllPanelsExcept(''); isOpen = true; showAllOverride = true; root.classList.add('open', 'show-all-active'); setHubLabel(t('hubAll')); renderSpiral(); triggerQuantumBloom(); updateBookmarkCount(); resetToggleTimeout(); }
   });
   
@@ -10645,7 +10677,7 @@ let hubAutoCollapsedByPanel = false;
     if (typeof scheduleCinemaCheck === 'function') scheduleCinemaCheck();
   }
 
-  collapseToggleDot.addEventListener('click', (e) => { if (!chrome.runtime?.id) return; e.stopPropagation(); closeTree(); closeAllPanelsExcept(''); hub.classList.add('hub-collapsed'); if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes(); });
+  collapseToggleDot.addEventListener('click', (e) => { if (!chrome.runtime?.id) return; e.stopPropagation(); playLauncherClick(3); closeTree(); closeAllPanelsExcept(''); hub.classList.add('hub-collapsed'); if (typeof collapseMotivationalQuotes === 'function') collapseMotivationalQuotes(); });
 
   let clickTimeout = null;
   let quickAddFired = false; let quickAddActive = false; let quickAddStars = 0;
@@ -10680,12 +10712,12 @@ let hubAutoCollapsedByPanel = false;
   hub.addEventListener('click', (e) => {
     e.stopPropagation(); 
     if (quickAddFired) { quickAddFired = false; return; } 
-    if (hub.classList.contains('hub-collapsed')) { hub.classList.remove('hub-collapsed'); triggerQuantumBloom(); resetAutoCollapseTimer(); return; }
+    if (hub.classList.contains('hub-collapsed')) { hub.classList.remove('hub-collapsed'); playLauncherOpen(); triggerQuantumBloom(); resetAutoCollapseTimer(); return; }
     if (dragMoved) { dragMoved = false; return; } 
     if (uiToggles.includes(e.target.id)) return;
     if (e.detail === 1) {
       clickTimeout = setTimeout(() => {
-        if (!isOpen) { closeAllPanelsExcept(''); isOpen = true; currentLayerMode = 0; root.classList.add('open'); renderSpiral(); triggerQuantumBloom(); } 
+        if (!isOpen) { closeAllPanelsExcept(''); isOpen = true; currentLayerMode = 0; root.classList.add('open'); playLauncherOpen(); renderSpiral(); triggerQuantumBloom(); } 
         else { cycleLayer(); }
         resetToggleTimeout(); resetAutoCollapseTimer(); 
       }, 220); 
