@@ -33,6 +33,15 @@
         user-select: none;
     }
 
+    /* Boot: kill motion until router + storage state applied (no layout thrash on new tab) */
+    html.void-booting *,
+    html.void-booting *::before,
+    html.void-booting *::after {
+        transition: none !important;
+        animation: none !important;
+    }
+
+
     #starfield {
         position: fixed;
         inset: 0;

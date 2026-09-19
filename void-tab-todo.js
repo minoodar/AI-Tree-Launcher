@@ -129,15 +129,30 @@
   let goalsVisible = true;
 
   function applyDockVisibility() {
-    const todoDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('todo'));
-    const goalsDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('goals'));
+    // Only trust live dissolve state. Boot flag is a one-shot hint for first paint;
+    // once VoidDissolve reports "not dissolved", clear the flag so restore can show panels.
+    let todoDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('todo'));
+    if (!todoDissolved && dock.dataset && dock.dataset.voidBootDissolved === '1') {
+      try { delete dock.dataset.voidBootDissolved; } catch (e) {}
+    } else if (!window.VoidDissolve && dock.dataset && dock.dataset.voidBootDissolved === '1') {
+      todoDissolved = true;
+    }
+    let goalsDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('goals'));
+    if (!goalsDissolved && goalsSection && goalsSection.dataset && goalsSection.dataset.voidBootDissolved === '1') {
+      try { delete goalsSection.dataset.voidBootDissolved; } catch (e) {}
+    } else if (!window.VoidDissolve && goalsSection && goalsSection.dataset && goalsSection.dataset.voidBootDissolved === '1') {
+      goalsDissolved = true;
+    }
     if (todoDissolved) {
       // Today dock is side panel — full hide is fine (nothing stacked under it in flow)
       dock.hidden = true;
-      dock.classList.remove('ai-void-is-dissolved');
+      dock.classList.add('ai-void-is-dissolved');
     } else {
       dock.hidden = !dockVisible;
-      if (dockVisible) dock.classList.remove('ai-void-is-dissolved');
+      if (dockVisible) {
+        dock.classList.remove('ai-void-is-dissolved');
+        dock.removeAttribute('hidden');
+      }
     }
     dock.setAttribute('aria-hidden', (dock.hidden || dock.classList.contains('ai-void-is-dissolved')) ? 'true' : 'false');
     if (goalsSection) {
@@ -151,6 +166,7 @@
       } else {
         goalsSection.classList.remove('ai-void-is-dissolved');
         goalsSection.hidden = false;
+        goalsSection.removeAttribute('hidden');
       }
     }
   }
@@ -244,6 +260,9 @@
         },
         onShow: function () {
           dockVisible = true;
+          try { delete dock.dataset.voidBootDissolved; } catch (e) {}
+          dock.classList.remove('ai-void-is-dissolved');
+          dock.hidden = false;
           try { chrome.storage.local.set({ [VISIBLE_KEY]: true }); } catch (e) {}
           applyDockVisibility();
           const btn = document.getElementById('ai-ntp-menu-todo');
@@ -270,6 +289,11 @@
         },
         onShow: function () {
           goalsVisible = true;
+          if (goalsSection) {
+            try { delete goalsSection.dataset.voidBootDissolved; } catch (e) {}
+            goalsSection.classList.remove('ai-void-is-dissolved');
+            // keep hidden if no goals data; applyDockVisibility decides
+          }
           try { chrome.storage.local.set({ voidGoalsVisible: true }); } catch (e) {}
           applyDockVisibility();
         }
@@ -1000,6 +1024,13 @@
     }
   }
   loadFromStorage();
+  try {
+    window.addEventListener('void-dissolve-ready', function onDissolveReady() {
+      applyDockVisibility();
+      try { window.removeEventListener('void-dissolve-ready', onDissolveReady); } catch (e) {}
+    });
+  } catch (e) {}
+
   loadTimeEvents();
   loadBirthYear();
   loadMarkedDays();

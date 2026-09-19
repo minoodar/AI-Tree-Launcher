@@ -658,7 +658,12 @@ const i18nPopup = {
     }
 
     chrome.storage.sync.get(['userBirthYear', 'userBirthMonth', 'userBirthDay', 'aiTreeFamilyAges', 'appLanguage'], (data) => {
-      if (data.appLanguage) { currentLang = data.appLanguage; langSelect.value = currentLang; }
+      if (data.appLanguage) {
+        currentLang = data.appLanguage;
+        langSelect.value = currentLang;
+        // Keep a local mirror for void-tab first paint (router reads local only).
+        try { chrome.storage.local.set({ appLanguage: currentLang }); } catch (e) {}
+      }
       let list = normalizeFamilyList(data.aiTreeFamilyAges);
       if (!list.length && data.userBirthYear) {
         const y = parseInt(data.userBirthYear, 10);
@@ -743,7 +748,10 @@ const i18nPopup = {
         aiTreeFamilyAges: familyAges
       };
       chrome.storage.sync.set(newData, () => {
+        // Mirror appLanguage to local so void-tab-router can read RTL/LTR on the
+        // first paint without waiting for storage.sync (avoids quickbar flip).
         const localData = {
+          appLanguage: langSelect.value,
           showPublicHolidays: holidaysEnabledCb ? !!holidaysEnabledCb.checked : false,
           holidayRegionMode: holidayRegionSelect ? holidayRegionSelect.value : 'auto',
           holidayCustomCountry: holidayCustomCountry ? holidayCustomCountry.value.trim().toUpperCase().slice(0, 2) : '',

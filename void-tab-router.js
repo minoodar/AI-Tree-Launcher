@@ -11,29 +11,29 @@
 // استایل‌ها، canvas و بقیهٔ اسکریپت‌ها — چون همین ترتیب است که از فلاشِ کوتاهِ
 // دیدنِ رابطِ افزونه قبل از ریدایرکت جلوگیری می‌کند.
 //
-// جهت (rtl/ltr) و سمتِ کوییک‌بار/داکِ Today هم دقیقاً به همین دلیل اینجا
-// محاسبه می‌شوند، نه در void-tab-menu.js/void-tab-todo.js — تا از همون
-// فریمِ اول با چیدمانِ نهایی نمایش داده بشه و کاربر یک جابه‌جاییِ لحظه‌ای
-// نبینه. عمداً فقط از chrome.storage.LOCAL استفاده می‌شود (نه sync) — چون
-// storage.sync معمولاً کندتر است و طولانی‌ترشدنِ این زنجیرهٔ async دقیقاً
-// همون «یه لحظه صفحهٔ سفید/خالی قبل از رندر نهایی» را بدتر می‌کرد. فقط یک
-// فراخوانیِ ساده به local، دقیقاً هم‌سرعتِ نسخهٔ قبلی. اگر appLanguage در
-// sync ذخیره شده و هنوز به local نرسیده باشد (بسیار نادر)، void-tab-menu.js
-// خودش بعداً با storage.sync دوباره چک و اصلاح می‌کند — بدون فلیکرِ محسوس،
-// چون این حالت فقط وقتی رخ می‌دهد که این دو مقدار واقعاً فرق کنند.
+// جهت (rtl/ltr)، سمتِ کوییک‌بار/داکِ Today، وضعیتِ جمع‌بودن، و مهم‌تر از همه
+// وضعیتِ dissolve/صورت‌فلکی از chrome.storage.local خوانده می‌شوند و قبل از
+// reveal روی DOM اعمال می‌شوند تا کاربر هنگام باز کردن تب جدید هیچ جابه‌جایی
+// یا فلشِ پنلِ «Today» بسته نبیند.
 // ============================================================================
 (function () {
   // مخفی‌کردنِ فوری و همزمان (synchronous) — قبل از این‌که مرورگر حتی یک
   // فریمِ از canvas/ویجت را رسم کند.
   document.documentElement.style.display = 'none';
+  // تا پایان boot، transition/animation را خاموش نگه می‌داریم تا بعد از
+  // apply شدن state نهایی، هیچ «حرکت اضافی» دیده نشود.
+  document.documentElement.classList.add('void-booting');
 
   function reveal() {
     document.documentElement.style.display = '';
+    // یک فریم صبر کن تا layout با state نهایی settle شود، بعد transition را برگردان
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        document.documentElement.classList.remove('void-booting');
+      });
+    });
   }
 
-  // فهرستِ کمینهٔ زبان‌های راست‌به‌چپ — فقط برای همین تصمیمِ خیلی زودهنگام.
-  // منطقِ رسمیِ isRTL در اسکریپت‌های دیگر بعداً همین نتیجه را دوباره
-  // تأیید می‌کند، پس نگه‌داشتنِ یک کپیِ کوچکِ اینجا بی‌خطر است.
   var RTL_LANGS = ['fa', 'ar', 'he', 'ur', 'ps', 'sd', 'ckb', 'yi', 'dv'];
   function isRtlLang(lang) {
     if (!lang) return false;
@@ -45,18 +45,91 @@
     try { return window.matchMedia('(max-width: 700px)').matches; } catch (e) { return window.innerWidth <= 700; }
   }
 
-  // اعمالِ همزمانِ dir و سمتِ داک/کوییک‌بار — اگر بدنهٔ سند هنوز پارس
-  // نشده (عناصر پیدا نمی‌شوند)، تا DOMContentLoaded صبر می‌کند؛ چون صفحه
-  // همچنان display:none است، این کاملاً نامرئی می‌ماند. برای یک فایلِ
-  // محلیِ کوچک این عملاً بلافاصله اتفاق می‌افتد.
-  function applyStableLayout(dir, dockSide, quickbarSide) {
+  function isDissolvedEntry(state, id) {
+    return !!(state && state[id] && state[id].dissolved);
+  }
+
+  // اعمال layout + collapse + dissolve قبل از اولین paint قابل‌مشاهده
+  function applyStableLayout(opts) {
+    var dir = opts.dir || 'ltr';
+    var dockSide = opts.dockSide || 'left';
+    var quickbarSide = opts.quickbarSide || 'right';
+    var dissolve = opts.dissolve || null;
+    var dockCollapsed = opts.dockCollapsed !== false; // پیش‌فرض: جمع
+    var dockVisible = opts.dockVisible !== false;
+    var echoCollapsed = opts.echoCollapsed !== false;
+    var goalsVisible = opts.goalsVisible !== false;
+
     document.documentElement.dir = dir;
+
     function apply() {
       var qb = document.getElementById('ai-ntp-quickbar');
       var dock = document.getElementById('ai-void-todo-dock');
+      var echo = document.getElementById('ai-void-echo');
+      var goals = document.getElementById('ai-void-agenda-goals-section');
+
       if (qb) qb.dataset.side = quickbarSide;
       if (dock) dock.dataset.side = dockSide;
+
+      // ---- Today dock ----
+      if (dock) {
+        dock.classList.toggle('is-collapsed', !!dockCollapsed);
+        try {
+          var handle = document.getElementById('ai-void-todo-handle');
+          if (handle) handle.setAttribute('aria-expanded', dockCollapsed ? 'false' : 'true');
+        } catch (e) {}
+
+        var todoDissolved = isDissolvedEntry(dissolve, 'todo');
+        if (todoDissolved || !dockVisible) {
+          // پنل کامل نباید حتی یک فریم دیده شود — singularity بعداً توسط
+          // void-dissolve.js در همان موقعیت ذخیره‌شده ساخته می‌شود.
+          dock.hidden = true;
+          dock.classList.add('ai-void-is-dissolved');
+          dock.setAttribute('aria-hidden', 'true');
+          // علامت برای اسکریپت‌های بعدی: state از router از قبل اعمال شده
+          dock.dataset.voidBootDissolved = '1';
+        } else {
+          dock.hidden = false;
+          dock.classList.remove('ai-void-is-dissolved');
+          dock.setAttribute('aria-hidden', 'false');
+          delete dock.dataset.voidBootDissolved;
+        }
+      }
+
+      // ---- Echo ----
+      if (echo) {
+        echo.classList.toggle('is-collapsed', !!echoCollapsed);
+        var echoDissolved = isDissolvedEntry(dissolve, 'echo');
+        if (echoDissolved) {
+          // slot را نگه می‌داریم (visibility) تا Goals نپرد — مثل void-dissolve
+          echo.hidden = false;
+          echo.classList.add('ai-void-is-dissolved');
+          echo.setAttribute('aria-hidden', 'true');
+          echo.dataset.voidBootDissolved = '1';
+        }
+        // اگر dissolve نیست، visibility نهایی را memory/todo بعداً با داده تنظیم می‌کنند
+      }
+
+      // ---- Goals ----
+      if (goals) {
+        var goalsDissolved = isDissolvedEntry(dissolve, 'goals');
+        if (goalsDissolved) {
+          goals.hidden = false;
+          goals.classList.add('ai-void-is-dissolved');
+          goals.setAttribute('aria-hidden', 'true');
+          goals.dataset.voidBootDissolved = '1';
+        } else if (!goalsVisible) {
+          goals.hidden = true;
+          goals.classList.remove('ai-void-is-dissolved');
+        }
+      }
+
+      // پرچم سراسری برای constellation — void-dissolve می‌تواند بدون فلش rebuild کند
+      if (dissolve && dissolve.__constellation) {
+        document.documentElement.dataset.voidBootConstellation = dissolve.__constellation.id || '1';
+      }
     }
+
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', apply, { once: true });
     } else {
@@ -64,40 +137,104 @@
     }
   }
 
-  function finalizeAndReveal(dir, dockSide) {
-    // کوییک‌بار همیشه سمتِ مخالفِ داکِ Today می‌نشیند تا هیچ‌وقت زیرِ هم
-    // نباشند. سمتِ پیش‌فرض (وقتی هنوز چیزی ذخیره نشده): داک=left،
-    // کوییک‌بار=right — هم‌راستا با پیش‌فرضِ خودِ void-tab-todo.js.
+  function finalizeAndReveal(opts) {
+    var dockSide = opts.dockSide || 'left';
     var quickbarSide = isMobileLayout() ? 'right' : (dockSide === 'left' ? 'right' : 'left');
-    applyStableLayout(dir, dockSide, quickbarSide);
+    applyStableLayout({
+      dir: opts.dir || 'ltr',
+      dockSide: dockSide,
+      quickbarSide: quickbarSide,
+      dissolve: opts.dissolve || null,
+      dockCollapsed: opts.dockCollapsed,
+      dockVisible: opts.dockVisible,
+      echoCollapsed: opts.echoCollapsed,
+      goalsVisible: opts.goalsVisible
+    });
     reveal();
   }
 
   try {
-    if (!chrome || !chrome.storage || !chrome.storage.local) { finalizeAndReveal('ltr', 'left'); return; }
+    if (!chrome || !chrome.storage || !chrome.storage.local) {
+      finalizeAndReveal({ dir: 'ltr', dockSide: 'left' });
+      return;
+    }
 
     var params = new URLSearchParams(location.search);
     var explicitOpen = params.get('explicit') === '1';
 
-    // یک فراخوانیِ واحد به local برای هر سه مقدار — نه یک زنجیرهٔ چندتایی.
-    chrome.storage.local.get(['useDefaultNtp', 'voidTodoDock', 'appLanguage'], (res) => {
-      if (chrome.runtime && chrome.runtime.lastError) { finalizeAndReveal('ltr', 'left'); return; }
+    // یک get واحد برای همهٔ کلیدهای لازم برای اولین paint بدون فلش
+    chrome.storage.local.get([
+      'useDefaultNtp',
+      'voidTodoDock',
+      'appLanguage',
+      'voidDissolveState',
+      'voidTodoCollapsed',
+      'voidTodoDockVisible',
+      'voidEchoCollapsed',
+      'voidGoalsVisible',
+      'voidMemoryEchoVisible'
+    ], function (res) {
+      if (chrome.runtime && chrome.runtime.lastError) {
+        finalizeAndReveal({ dir: 'ltr', dockSide: 'left' });
+        return;
+      }
 
       if (!explicitOpen && res && res.useDefaultNtp) {
-        // صفحهٔ خودمان اصلاً نمایان نمی‌شود؛ مستقیم به موتور جستجوی استاندارد
-        // می‌رویم. replace (نه href=) عمداً استفاده شده تا این صفحهٔ واسط در
-        // تاریخچهٔ مرورگر ثبت نشود.
         window.location.replace('https://www.google.com');
         return;
       }
 
       var dockSide = (res && res.voidTodoDock && res.voidTodoDock.side === 'right') ? 'right' : 'left';
       var dir = isRtlLang(res && res.appLanguage) ? 'rtl' : 'ltr';
-      finalizeAndReveal(dir, dockSide);
+
+      // اگر appLanguage فقط در sync باشد (نصب‌های قدیمی)، یک بار از sync بخوان
+      // و local را پر کن — فقط وقتی local خالی است تا latency اضافه نشود.
+      if (!(res && res.appLanguage)) {
+        try {
+          chrome.storage.sync.get(['appLanguage'], function (syncRes) {
+            var lang = syncRes && syncRes.appLanguage;
+            if (lang) {
+              try { chrome.storage.local.set({ appLanguage: lang }); } catch (e) {}
+              dir = isRtlLang(lang) ? 'rtl' : 'ltr';
+            }
+            finish(res, dir, dockSide);
+          });
+          return;
+        } catch (e) { /* fall through */ }
+      }
+
+      finish(res, dir, dockSide);
     });
   } catch (e) {
-    // در هر حالتِ غیرمنتظره، امن‌ترین رفتار نشان‌دادنِ صفحهٔ خودمان است — با
-    // مقادیرِ پیش‌فرض — نه رهاکردنِ کاربر روی یک تبِ کاملاً خالی/سیاه.
-    finalizeAndReveal('ltr', 'left');
+    finalizeAndReveal({ dir: 'ltr', dockSide: 'left' });
+  }
+
+  function finish(res, dir, dockSide) {
+    var dissolve = (res && res.voidDissolveState && typeof res.voidDissolveState === 'object')
+      ? res.voidDissolveState
+      : null;
+
+    var dockCollapsed = (res && typeof res.voidTodoCollapsed === 'boolean')
+      ? res.voidTodoCollapsed
+      : true;
+    var dockVisible = (res && typeof res.voidTodoDockVisible === 'boolean')
+      ? res.voidTodoDockVisible
+      : true;
+    var echoCollapsed = (res && typeof res.voidEchoCollapsed === 'boolean')
+      ? res.voidEchoCollapsed
+      : true;
+    var goalsVisible = (res && typeof res.voidGoalsVisible === 'boolean')
+      ? res.voidGoalsVisible
+      : true;
+
+    finalizeAndReveal({
+      dir: dir,
+      dockSide: dockSide,
+      dissolve: dissolve,
+      dockCollapsed: dockCollapsed,
+      dockVisible: dockVisible,
+      echoCollapsed: echoCollapsed,
+      goalsVisible: goalsVisible
+    });
   }
 })();

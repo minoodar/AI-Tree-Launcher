@@ -72,7 +72,12 @@
   }
   function applyVisibility(hasData) {
     lastHasData = hasData;
-    const dissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('echo'));
+    let dissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('echo'));
+    if (!dissolved && root.dataset && root.dataset.voidBootDissolved === '1') {
+      try { delete root.dataset.voidBootDissolved; } catch (e) {}
+    } else if (!window.VoidDissolve && root.dataset && root.dataset.voidBootDissolved === '1') {
+      dissolved = true;
+    }
     const show = visiblePref && hasData;
     if (dissolved) {
       // Keep layout slot under stage so Goals does not jump up
@@ -86,6 +91,7 @@
     } else {
       root.classList.remove('ai-void-is-dissolved');
       root.hidden = false;
+      root.removeAttribute('hidden');
       root.setAttribute('aria-hidden', 'false');
     }
   }
@@ -221,14 +227,29 @@
       },
       onShow: function () {
         visiblePref = true;
+        try { delete root.dataset.voidBootDissolved; } catch (e) {}
+        root.classList.remove('ai-void-is-dissolved');
         try { chrome.storage.local.set({ [VISIBLE_KEY]: true }); } catch (e) {}
-        applyVisibility(lastHasData);
+        // Force a visibility pass; if data is still loading, show shell until render fills it
+        if (!lastHasData) {
+          root.hidden = false;
+          root.removeAttribute('hidden');
+          root.setAttribute('aria-hidden', 'false');
+        }
+        applyVisibility(lastHasData || true);
         const btn = document.getElementById('ai-ntp-menu-echo');
         if (btn) btn.setAttribute('data-on', '1');
       }
     });
   }
   try { wireEchoDissolve(); } catch (e) {}
+  try {
+    window.addEventListener('void-dissolve-ready', function onDissolveReady() {
+      applyVisibility(lastHasData);
+      try { window.removeEventListener('void-dissolve-ready', onDissolveReady); } catch (e) {}
+    });
+  } catch (e) {}
+
 
   try {
     chrome.storage.sync.get(['appLanguage'], (syncRes) => {

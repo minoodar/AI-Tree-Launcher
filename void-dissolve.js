@@ -1113,19 +1113,36 @@
   layer.setAttribute('aria-hidden', 'true');
   document.documentElement.appendChild(layer);
 
+  let _loadCallbacks = [];
   function loadState(cb) {
+    if (typeof cb === 'function') _loadCallbacks.push(cb);
+    if (stateLoaded) {
+      const q = _loadCallbacks.splice(0, _loadCallbacks.length);
+      q.forEach(function (fn) { try { fn(); } catch (e) {} });
+      return;
+    }
+    if (loadState._inflight) return;
+    loadState._inflight = true;
+    const finish = function (state) {
+      savedState = state && typeof state === 'object' ? state : {};
+      stateLoaded = true;
+      loadState._inflight = false;
+      const q = _loadCallbacks.splice(0, _loadCallbacks.length);
+      q.forEach(function (fn) { try { fn(); } catch (e) {} });
+      try {
+        window.dispatchEvent(new CustomEvent('void-dissolve-ready', { detail: { state: savedState } }));
+      } catch (e) {}
+    };
     try {
-      chrome.storage.local.get([STORAGE_KEY], (res) => {
-        savedState = (res && res[STORAGE_KEY] && typeof res[STORAGE_KEY] === 'object')
-          ? res[STORAGE_KEY]
-          : {};
-        stateLoaded = true;
-        if (typeof cb === 'function') cb();
+      chrome.storage.local.get([STORAGE_KEY], function (res) {
+        if (chrome.runtime && chrome.runtime.lastError) {
+          finish({});
+          return;
+        }
+        finish((res && res[STORAGE_KEY] && typeof res[STORAGE_KEY] === 'object') ? res[STORAGE_KEY] : {});
       });
     } catch (e) {
-      savedState = {};
-      stateLoaded = true;
-      if (typeof cb === 'function') cb();
+      finish({});
     }
   }
 
@@ -1228,8 +1245,14 @@
   }
 
   function countDissolvedPrimaries() {
-    return PRIMARY_IDS.filter((id) => {
-      const e = registry[id];
+    // Prefer persisted flags so a fresh tab can reform the constellation
+    // even before every singularity DOM node is rebuilt.
+    var fromState = PRIMARY_IDS.filter(function (id) {
+      return savedState[id] && savedState[id].dissolved;
+    }).length;
+    if (fromState > 0) return fromState;
+    return PRIMARY_IDS.filter(function (id) {
+      var e = registry[id];
       return e && e.singularity;
     }).length;
   }
@@ -1263,6 +1286,91 @@
     return m;
   }
 
+
+  /**
+   * Constellation placement — stage-relative spatial system (not viewport thirds).
+   *
+   * Horizontal: ± stage.width/6 from stage mid (LTR left, RTL right)
+   * Vertical:   topsites.bottom (or stage.bottom if hidden) + 10px gap,
+   *             using real star bounds.minY so any zodiac figure sits tangent
+   * Scale:      viewport-adaptive from nominal z.scale (clamped ~56..90)
+   *
+   * Returns { cx, cy, scale } — callers must use the returned scale.
+   */
+  function constellationStarBounds(z) {
+    var minY = 0, maxY = 0, minX = 0, maxX = 0, first = true;
+    (z && z.stars || []).forEach(function (s) {
+      var x = typeof s.x === 'number' ? s.x : 0;
+      var y = typeof s.y === 'number' ? s.y : 0;
+      if (first) { minX = maxX = x; minY = maxY = y; first = false; }
+      else {
+        if (x < minX) minX = x; if (x > maxX) maxX = x;
+        if (y < minY) minY = y; if (y > maxY) maxY = y;
+      }
+    });
+    if (first) { minY = -1; maxY = 1; minX = -1; maxX = 1; }
+    return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
+  }
+
+  function defaultConstellationCenter(nominalScale, zodiac) {
+    nominalScale = nominalScale || 90;
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var rtl = false;
+    try {
+      rtl = (document.documentElement.getAttribute('dir') || '').toLowerCase() === 'rtl';
+    } catch (e) {}
+
+    var stageMidX = vw * 0.5;
+    var stageWidth = Math.min(640, vw - 32);
+    var stageBottom = Math.max(88, vh * 0.18) + 160;
+    var anchorBottom = stageBottom;
+
+    try {
+      var stage = document.getElementById('ai-void-stage');
+      if (stage) {
+        var r = stage.getBoundingClientRect();
+        if (r.width > 40 && r.height > 20) {
+          stageMidX = r.left + r.width / 2;
+          stageWidth = r.width;
+          stageBottom = r.bottom;
+          anchorBottom = stageBottom;
+        }
+      }
+      // Prefer real topsites bottom when the row is visible
+      var topsites = document.getElementById('ai-ntp-topsites');
+      if (topsites && !topsites.classList.contains('hidden') && topsites.offsetParent !== null) {
+        var tr = topsites.getBoundingClientRect();
+        if (tr.height > 4 && tr.bottom > 0) {
+          anchorBottom = tr.bottom;
+        }
+      }
+    } catch (e) {}
+
+    // Adaptive scale from free height under the content anchor
+    var gap = 10;
+    var bottomMargin = 56;
+    var availableH = Math.max(80, vh - anchorBottom - gap - bottomMargin);
+    var maxScale = Math.max(56, Math.min(nominalScale, availableH * 0.42));
+    var scale = Math.min(nominalScale, maxScale);
+
+    // Horizontal: stage-relative third (width/6 from mid axis)
+    var offsetX = stageWidth / 6;
+    var cx = rtl ? (stageMidX + offsetX) : (stageMidX - offsetX);
+
+    // Vertical: top of figure tangent to anchor + gap, using real star bounds
+    var bounds = constellationStarBounds(zodiac);
+    // cy + bounds.minY * scale = anchorBottom + gap  →  cy = anchorBottom + gap - bounds.minY * scale
+    var cy = anchorBottom + gap - bounds.minY * scale;
+
+    cx = Math.max(scale + 40, Math.min(vw - scale - 40, cx));
+    var minCy = anchorBottom + gap - bounds.minY * scale * 0.15;
+    cy = Math.max(minCy, Math.min(vh - scale - 80, cy));
+
+    return { cx: cx, cy: cy, scale: scale };
+  }
+
+
   function formConstellation() {
     if (countDissolvedPrimaries() < 3) return;
     const z = pickConstellation();
@@ -1270,18 +1378,12 @@
 
     clearConstellation();
 
-    // Place figure near the visual center of the three current orbs
-    const primaries = PRIMARY_IDS.map((id) => registry[id]).filter((e) => e && e.anchor);
-    let cx = window.innerWidth / 2;
-    let cy = window.innerHeight * 0.42;
-    if (primaries.length) {
-      cx = primaries.reduce((s, e) => s + e.anchor.x, 0) / primaries.length;
-      cy = primaries.reduce((s, e) => s + e.anchor.y, 0) / primaries.length;
-    }
-    // Keep figure on-screen
-    const scale = z.scale || 90;
-    cx = Math.max(scale + 40, Math.min(window.innerWidth - scale - 40, cx));
-    cy = Math.max(scale + 40, Math.min(window.innerHeight - scale - 60, cy));
+    // Stage-relative center + adaptive scale (see defaultConstellationCenter)
+    const nominal = z.scale || 90;
+    const center = defaultConstellationCenter(nominal, z);
+    let cx = center.cx;
+    let cy = center.cy;
+    const scale = center.scale;
 
     const sm = starMap(z);
     const anchors = z.anchors || {};
@@ -1391,6 +1493,15 @@
 
     activeConstellation = { id: z.id, centerX: cx, centerY: cy, scale: scale };
     savedState.__lastZodiac = z.id;
+    PRIMARY_IDS.forEach(function (panelId) {
+      var entry = registry[panelId];
+      if (!entry || !entry.anchor) return;
+      savedState[panelId] = {
+        dissolved: true,
+        x: entry.anchor.x,
+        y: entry.anchor.y
+      };
+    });
     persist();
   }
 
@@ -1452,6 +1563,49 @@
     }
   }
 
+
+  function triggerMeteorBurst() {
+    try {
+      if (window.VoidStarfield && typeof window.VoidStarfield.unlockAudio === 'function') {
+        window.VoidStarfield.unlockAudio();
+      }
+      if (window.VoidStarfield && typeof window.VoidStarfield.triggerMeteor === 'function') {
+        window.VoidStarfield.triggerMeteor(reducedMotion ? 1 : 2);
+      }
+    } catch (e) {}
+  }
+
+  function triggerConstellationSound(mode, opts) {
+    try {
+      if (!window.VoidStarfield) return;
+      if (typeof window.VoidStarfield.unlockAudio === 'function') {
+        window.VoidStarfield.unlockAudio();
+      }
+      if (mode === 'break') {
+        if (typeof window.VoidStarfield.playConstellationBreak === 'function') {
+          window.VoidStarfield.playConstellationBreak();
+        } else if (typeof window.VoidStarfield.playConstellationFormation === 'function') {
+          window.VoidStarfield.playConstellationFormation('break');
+        }
+      } else if (typeof window.VoidStarfield.playConstellationFormation === 'function') {
+        // IMPORTANT: call the starfield API — never recurse into this helper
+        window.VoidStarfield.playConstellationFormation('form', opts || {});
+      }
+    } catch (e) {
+      try { console.warn('[void] constellation sound error', e); } catch (e2) {}
+    }
+  }
+
+  function commitFormation(source) {
+    try {
+      console.log('[void] commitFormation', source, 'dissolved=', countDissolvedPrimaries());
+    } catch (e) {}
+    triggerConstellationSound('form');
+    try {
+      if (countDissolvedPrimaries() >= 3) formConstellation();
+    } catch (e) {}
+  }
+
   function dissolve(id) {
     const entry = registry[id];
     if (!entry || !entry.el || entry.dissolving) return;
@@ -1472,6 +1626,7 @@
 
     entry.el.classList.add('ai-void-is-dissolving');
     particleBurst(rect, false);
+    triggerMeteorBurst();
 
     const finish = () => {
       entry.el.classList.remove('ai-void-is-dissolving');
@@ -1491,7 +1646,13 @@
       }
       // Third primary completes a zodiac figure
       if (countDissolvedPrimaries() >= 3) {
-        setTimeout(formConstellation, reducedMotion ? 40 : 380);
+        try { console.log('[void] third finish, dissolved=', countDissolvedPrimaries()); } catch (e) {}
+        // Double rAF keeps us near the unlock gesture; audio graph uses internal clock for lock @0.45s
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            commitFormation('dissolve');
+          });
+        });
       }
     };
 
@@ -1505,7 +1666,17 @@
 
     entry.dissolving = true;
     const wasConstellation = !!activeConstellation;
-    if (wasConstellation) clearConstellation();
+    if (wasConstellation) {
+      clearConstellation();
+    }
+    // Break sound only when this restore is the last dissolved primary (full return to normal)
+    const otherDissolved = PRIMARY_IDS.filter(function (pid) {
+      return pid !== id && savedState[pid] && savedState[pid].dissolved;
+    }).length;
+    const isLastReturn = !!(savedState[id] && savedState[id].dissolved) && otherDissolved === 0;
+    if (isLastReturn) {
+      triggerConstellationSound('break');
+    }
 
     const orb = entry.singularity;
     let rect = {
@@ -1520,15 +1691,20 @@
       orb.classList.add('is-collapsing');
     }
     particleBurst(rect, true);
+    triggerMeteorBurst();
 
     const finish = () => {
       removeSingularity(entry);
       entry.el.hidden = false;
+      entry.el.removeAttribute('hidden');
       entry.el.classList.remove('ai-void-is-dissolved');
+      try { delete entry.el.dataset.voidBootDissolved; } catch (e) {}
       entry.el.setAttribute('aria-hidden', 'false');
       entry.el.classList.add('ai-void-is-reforming');
       entry.dissolving = false;
       delete savedState[id];
+      // Drop constellation meta once any primary returns
+      if (savedState.__constellation) delete savedState.__constellation;
       persist();
       if (typeof entry.onShow === 'function') {
         try { entry.onShow(); } catch (e) {}
@@ -1586,9 +1762,17 @@
         const sx = savedState[id].x || 40;
         const sy = savedState[id].y || 80;
         entry.anchor = { x: sx, y: sy, preferredX: sx, preferredY: sy };
-        entry.el.hidden = false;
+        // Router may already have hidden the panel (voidBootDissolved) so the
+        // first paint never showed the collapsed Today dock. Do not force
+        // hidden=false on the side panel — that was the flash source.
+        if (id === 'todo') {
+          entry.el.hidden = true;
+        } else {
+          entry.el.hidden = false;
+        }
         entry.el.classList.add('ai-void-is-dissolved');
         entry.el.setAttribute('aria-hidden', 'true');
+        try { delete entry.el.dataset.voidBootDissolved; } catch (e) {}
         placeSingularity(entry, {
           left: entry.anchor.x - 20,
           top: entry.anchor.y - 20,
@@ -1599,39 +1783,36 @@
           try { entry.onHide({ fromStorage: true }); } catch (e) {}
         }
       }
-      // After all primaries restored from storage, maybe reform constellation
+      // Reform constellation below the search stage (not over it).
       if (countDissolvedPrimaries() >= 3 && savedState.__constellation) {
         const prev = ZODIAC.find((z) => z.id === savedState.__constellation.id);
-        if (prev) {
-          // force that id next time pick prefers it
-          savedState.__lastZodiac = null;
-          setTimeout(() => {
-            // temporarily bias pick
-            const realPick = pickConstellation;
-            // form with stored id if available
-            const z = ZODIAC.find((c) => c.id === savedState.__constellation.id) || pickConstellation();
-            if (!z) return;
-            // monkey: set last to something else so pick isn't forced wrong
-            formConstellationFrom(z, savedState.__constellation.cx, savedState.__constellation.cy);
-          }, 120);
-        } else {
-          setTimeout(formConstellation, 120);
-        }
+        const run = () => {
+          const z = (prev && ZODIAC.find((c) => c.id === savedState.__constellation.id))
+            || pickConstellation();
+          if (!z) return;
+          // Re-seat from live stage geometry; persist identity only (not coordinates).
+          const preferred = defaultConstellationCenter(z.scale || 90, z);
+          formConstellationFrom(z, preferred.cx, preferred.cy, preferred.scale);
+        };
+        requestAnimationFrame(run);
       }
     };
     if (stateLoaded) applySaved();
     else loadState(applySaved);
   }
 
-  function formConstellationFrom(z, cx, cy) {
+  function formConstellationFrom(z, cx, cy, forcedScale, withSound) {
     // Reuse formConstellation body with fixed z/center — simplify by setting pick
     if (countDissolvedPrimaries() < 3 || !z) return;
     clearConstellation();
-    const scale = z.scale || 90;
-    cx = cx != null ? cx : window.innerWidth / 2;
-    cy = cy != null ? cy : window.innerHeight * 0.42;
+    var _playFormationSound = withSound !== false;
+    const nominal = z.scale || 90;
+    const center = defaultConstellationCenter(nominal, z);
+    const scale = (forcedScale != null) ? forcedScale : center.scale;
+    if (cx == null) cx = center.cx;
+    if (cy == null) cy = center.cy;
     cx = Math.max(scale + 40, Math.min(window.innerWidth - scale - 40, cx));
-    cy = Math.max(scale + 40, Math.min(window.innerHeight - scale - 60, cy));
+    cy = Math.max(scale + 48, Math.min(window.innerHeight - scale - 80, cy));
 
     const sm = starMap(z);
     const anchors = z.anchors || {};
@@ -1701,19 +1882,48 @@
     document.body.appendChild(constellationLayer);
     activeConstellation = { id: z.id, centerX: cx, centerY: cy, scale: scale };
     savedState.__lastZodiac = z.id;
+    try {
+      if (_playFormationSound && window.VoidStarfield && typeof window.VoidStarfield.playConstellationFormation === 'function') {
+        triggerConstellationSound('form');
+      }
+    } catch (e) {}
+    PRIMARY_IDS.forEach(function (panelId) {
+      var entry = registry[panelId];
+      if (!entry || !entry.anchor) return;
+      savedState[panelId] = {
+        dissolved: true,
+        x: entry.anchor.x,
+        y: entry.anchor.y
+      };
+    });
     persist();
   }
 
+  let _resizeTimer = null;
+  let _lastResizeW = window.innerWidth;
+  let _lastResizeH = window.innerHeight;
   window.addEventListener('resize', () => {
-    if (activeConstellation && countDissolvedPrimaries() >= 3) {
-      const z = ZODIAC.find((c) => c.id === activeConstellation.id);
-      if (z) formConstellationFrom(z, window.innerWidth / 2, window.innerHeight * 0.42);
-    } else {
-      PRIMARY_IDS.forEach((id) => {
-        const e = registry[id];
-        if (e && e.singularity) applyOrbPosition(e);
-      });
-    }
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => {
+      const dw = Math.abs(window.innerWidth - _lastResizeW);
+      const dh = Math.abs(window.innerHeight - _lastResizeH);
+      // Ignore sub-pixel / tiny jitter while dragging a window edge
+      if (dw < 8 && dh < 8) return;
+      _lastResizeW = window.innerWidth;
+      _lastResizeH = window.innerHeight;
+      if (activeConstellation && countDissolvedPrimaries() >= 3) {
+        const z = ZODIAC.find((c) => c.id === activeConstellation.id);
+        if (z) {
+          const c = defaultConstellationCenter(z.scale || 90, z);
+          formConstellationFrom(z, c.cx, c.cy, c.scale, false);
+        }
+      } else {
+        PRIMARY_IDS.forEach((id) => {
+          const e = registry[id];
+          if (e && e.singularity) applyOrbPosition(e);
+        });
+      }
+    }, 120);
   }, { passive: true });
 
   loadState();
