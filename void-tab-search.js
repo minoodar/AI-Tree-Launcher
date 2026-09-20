@@ -31,6 +31,10 @@
   const nextBtn = document.getElementById('ai-void-search-next');
   const form = document.getElementById('ai-void-search-form');
   if (!root || !brand || !brandName || !input || !goBtn || !dots) return;
+  // Ensure go button uses search icon (not a text arrow)
+  if (goBtn && (!goBtn.querySelector('svg') || (goBtn.textContent || '').trim() === '→')) {
+    goBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.2 16.2L21 21"/></svg>';
+  }
 
   // Ensure mode button exists (inject if HTML was not updated)
   let modeBtn = document.getElementById('ai-void-search-mode');
@@ -38,11 +42,19 @@
     modeBtn = document.createElement('button');
     modeBtn.type = 'button';
     modeBtn.id = 'ai-void-search-mode';
-    modeBtn.textContent = 'AI';
+    modeBtn.innerHTML =
+      '<span class="ai-mode-glyph" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+          '<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>' +
+          '<circle cx="12" cy="12" r="4.2"/>' +
+          '<path d="M12 8.2c1.4 0 2.6.8 3.2 2"/>' +
+        '</svg>' +
+      '</span>' +
+      '<span class="ai-mode-label">AI</span>' +
+      '<span class="ai-mode-state">Off</span>';
     modeBtn.setAttribute('aria-pressed', 'false');
     modeBtn.title = 'Toggle AI Mode';
     modeBtn.hidden = true;
-    // Place just before the go button
     if (goBtn.parentNode === form) form.insertBefore(modeBtn, goBtn);
     else form.appendChild(modeBtn);
   }
@@ -134,10 +146,28 @@
         const isAi = getMode(eng.id) === 'ai';
         modeBtn.classList.toggle('is-ai', isAi);
         modeBtn.setAttribute('aria-pressed', String(isAi));
-        modeBtn.textContent = 'AI';
+        // Keep structure: glyph + label + state chip
+        let stateEl = modeBtn.querySelector('.ai-mode-state');
+        let labelEl = modeBtn.querySelector('.ai-mode-label');
+        if (!labelEl || !stateEl) {
+          modeBtn.innerHTML =
+            '<span class="ai-mode-glyph" aria-hidden="true">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>' +
+                '<circle cx="12" cy="12" r="4.2"/>' +
+                '<path d="M12 8.2c1.4 0 2.6.8 3.2 2"/>' +
+              '</svg>' +
+            '</span>' +
+            '<span class="ai-mode-label">AI</span>' +
+            '<span class="ai-mode-state"></span>';
+          stateEl = modeBtn.querySelector('.ai-mode-state');
+          labelEl = modeBtn.querySelector('.ai-mode-label');
+        }
+        if (stateEl) stateEl.textContent = isAi ? 'On' : 'Off';
         modeBtn.title = isAi
-          ? 'AI Mode on — click for classic (Ctrl/⌘+Enter = one-shot classic)'
+          ? 'AI Mode on — click for classic search (Ctrl/⌘+Enter = one-shot classic)'
           : 'AI Mode off — click to enable (Ctrl/⌘+Enter = one-shot AI)';
+        modeBtn.setAttribute('aria-label', isAi ? 'AI Mode on' : 'AI Mode off');
       } else {
         modeBtn.hidden = true;
         modeBtn.setAttribute('hidden', '');

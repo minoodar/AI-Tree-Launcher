@@ -257,21 +257,138 @@
         padding: 10px 4px;
     }
     #ai-void-search-input::placeholder { color: #80868b; }
+    /* AI mode pill — clear off/on for Google */
+    #ai-void-search-mode {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        height: 32px;
+        padding: 0 11px 0 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(60, 64, 67, 0.18);
+        background: rgba(60, 64, 67, 0.06);
+        color: #5f6368;
+        font: 600 11px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+        transition:
+            background .2s ease,
+            border-color .2s ease,
+            color .2s ease,
+            box-shadow .2s ease,
+            transform .12s ease;
+    }
+    #ai-void-search-mode[hidden] { display: none !important; }
+    #ai-void-search-mode .ai-mode-glyph {
+        width: 14px;
+        height: 14px;
+        display: grid;
+        place-items: center;
+        flex: 0 0 14px;
+    }
+    #ai-void-search-mode .ai-mode-glyph svg {
+        width: 14px;
+        height: 14px;
+        display: block;
+    }
+    #ai-void-search-mode .ai-mode-label { line-height: 1; }
+    #ai-void-search-mode .ai-mode-state {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        opacity: 0.75;
+        padding: 2px 5px;
+        border-radius: 999px;
+        background: rgba(60, 64, 67, 0.1);
+        color: inherit;
+    }
+    #ai-void-search-mode:hover {
+        background: rgba(60, 64, 67, 0.1);
+        border-color: rgba(60, 64, 67, 0.28);
+        color: #3c4043;
+    }
+    #ai-void-search-mode:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--engine-accent, #8ab4f8) 70%, transparent);
+        outline-offset: 2px;
+    }
+    /* ON — unmistakable active state */
+    #ai-void-search-mode.is-ai {
+        background: linear-gradient(135deg, #1a73e8 0%, #8ab4f8 55%, #c58af9 100%);
+        border-color: transparent;
+        color: #fff;
+        box-shadow:
+            0 1px 2px rgba(26, 115, 232, 0.25),
+            0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+            0 6px 16px rgba(138, 180, 248, 0.35);
+    }
+    #ai-void-search-mode.is-ai .ai-mode-state {
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+        opacity: 1;
+    }
+    #ai-void-search-mode.is-ai:hover {
+        filter: brightness(1.06);
+        color: #fff;
+        background: linear-gradient(135deg, #1a73e8 0%, #8ab4f8 55%, #c58af9 100%);
+        border-color: transparent;
+    }
+    /* Search submit — refined icon button */
     #ai-void-search-go {
         flex: 0 0 40px;
         width: 40px;
         height: 40px;
         border: 0;
         border-radius: 50%;
-        background: #1a2338;
-        color: #e8eeff;
-        font-size: 18px;
+        background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+        color: #e2e8f0;
         cursor: pointer;
         display: grid;
         place-items: center;
-        transition: background .15s ease, transform .12s ease;
+        box-shadow:
+            0 1px 2px rgba(0, 0, 0, 0.2),
+            0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+        transition:
+            background .18s ease,
+            transform .14s cubic-bezier(.34, 1.4, .64, 1),
+            box-shadow .18s ease,
+            color .18s ease;
     }
-    #ai-void-search-go:hover { background: #2a3654; transform: scale(1.04); }
+    #ai-void-search-go svg {
+        width: 18px;
+        height: 18px;
+        display: block;
+        pointer-events: none;
+    }
+    #ai-void-search-go:hover {
+        background: linear-gradient(160deg, #334155 0%, #1e293b 100%);
+        transform: scale(1.05);
+        box-shadow:
+            0 2px 8px rgba(0, 0, 0, 0.28),
+            0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+        color: #fff;
+    }
+    #ai-void-search-go:active {
+        transform: scale(0.96);
+    }
+    #ai-void-search-go:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--engine-accent, #8ab4f8) 70%, transparent);
+        outline-offset: 2px;
+    }
+    /* When AI mode is on, tint the go button with the same language */
+    #ai-void-search-root[data-mode="ai"] #ai-void-search-go {
+        background: linear-gradient(160deg, #1a73e8 0%, #5b8def 100%);
+        color: #fff;
+        box-shadow:
+            0 2px 10px rgba(26, 115, 232, 0.35),
+            0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+    }
+    #ai-void-search-root[data-mode="ai"] #ai-void-search-go:hover {
+        background: linear-gradient(160deg, #1967d2 0%, #4c7fe0 100%);
+        color: #fff;
+    }
     #ai-void-search-dots {
         display: flex;
         gap: 7px;
@@ -1676,7 +1793,23 @@
         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
       </svg>
       <input type="text" id="ai-void-search-input" name="q" autocomplete="off" spellcheck="false" dir="auto" placeholder="Search with Google…" />
-      <button type="button" id="ai-void-search-go" title="Search" aria-label="Search">→</button>
+      <button type="button" id="ai-void-search-mode" hidden aria-pressed="false" title="Toggle AI Mode">
+        <span class="ai-mode-glyph" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>
+            <circle cx="12" cy="12" r="4.2"/>
+            <path d="M12 8.2c1.4 0 2.6.8 3.2 2"/>
+          </svg>
+        </span>
+        <span class="ai-mode-label">AI</span>
+        <span class="ai-mode-state">Off</span>
+      </button>
+      <button type="button" id="ai-void-search-go" title="Search" aria-label="Search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"/>
+          <path d="M16.2 16.2L21 21"/>
+        </svg>
+      </button>
     </form>
     <div id="ai-void-search-dots" role="tablist" aria-label="Search engines"></div>
   </div>
@@ -1780,12 +1913,10 @@
 <script src="voice-engine.js"></script>
 <script src="toolbar-icons.js"></script>
 <script src="toolbar-dock.js"></script>
-<script src="launcher-sound.js"></script>
 <script src="content.js"></script>
 
 <script src="void-dissolve.js"></script>
 <script src="void-tab-menu.js"></script>
-<script src="firework-sky.js"></script>
 <script src="void-tab-todo.js"></script>
 <script src="void-tab-memory.js"></script>
 
