@@ -169,6 +169,9 @@
         goalsSection.removeAttribute('hidden');
       }
     }
+    try {
+      if (!isGoalsSliderOpen()) stopGoalFireworks();
+    } catch (e) {}
   }
   function wireMenu() {
     const btn = document.getElementById('ai-ntp-menu-todo');
@@ -286,6 +289,7 @@
         onHide: function () {
           goalsVisible = false;
           try { chrome.storage.local.set({ voidGoalsVisible: false }); } catch (e) {}
+          try { stopGoalFireworks(); } catch (e) {}
         },
         onShow: function () {
           goalsVisible = true;
@@ -749,6 +753,107 @@
     return todo.done ? 100 : 0;
   }
 
+
+  // ---- Goal fireworks (FireworkSky) ----
+  const GOAL_FW_MARKS = [
+    { tier: 1, up: 30 },
+    { tier: 2, up: 50 },
+    { tier: 3, up: 70 },
+    { tier: 4, up: 90 }
+  ];
+
+  function isGoalsSliderOpen() {
+    if (!hasGoals) return false;
+    if (!goalsVisible) return false;
+    try {
+      if (window.VoidDissolve && VoidDissolve.isDissolved('goals')) return false;
+    } catch (e) {}
+    if (!goalsSection) return false;
+    if (goalsSection.classList.contains('ai-void-is-dissolved')) return false;
+    if (goalsSection.hidden) return false;
+    return true;
+  }
+
+  function goalsPanelLocus() {
+    try {
+      const sec = goalsSection || document.getElementById('ai-void-agenda-goals-section');
+      if (sec && !sec.hidden) {
+        const r = sec.getBoundingClientRect();
+        return { x: r.left + r.width / 2, y: r.top + r.height * 0.7 };
+      }
+    } catch (e) {}
+    return { x: window.innerWidth * 0.5, y: window.innerHeight * 0.75 };
+  }
+
+  function goalCrossedTiers(fromP, toP) {
+    fromP = Math.max(0, Math.min(100, Number(fromP) || 0));
+    toP = Math.max(0, Math.min(100, Number(toP) || 0));
+    if (toP <= fromP) return 0;
+    let highest = 0;
+    GOAL_FW_MARKS.forEach(function (m) {
+      if (fromP < m.up && toP >= m.up) highest = Math.max(highest, m.tier);
+    });
+    if (fromP < 100 && toP >= 100) highest = 5;
+    return highest;
+  }
+
+  function ensureFireworkSky() {
+    try {
+      if (!window.FireworkSky || FireworkSky._inited) return;
+      var onEvent = null;
+      try {
+        if (typeof FireworkSky.createSynth === 'function') {
+          var AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) {
+            var ac = window.__voidFireworkAC || new AC();
+            window.__voidFireworkAC = ac;
+            var g = ac.createGain();
+            g.gain.value = 0.55;
+            g.connect(ac.destination);
+            onEvent = FireworkSky.createSynth(ac, g);
+            if (ac.state === 'suspended') {
+              document.addEventListener('pointerdown', function () {
+                try { ac.resume(); } catch (e2) {}
+              }, { once: true, capture: true });
+            }
+          }
+        }
+      } catch (eSynth) {}
+      FireworkSky.init({ container: document.body, zIndex: 5, onEvent: onEvent });
+      FireworkSky._inited = true;
+    } catch (e) {}
+  }
+
+  function stopGoalFireworks() {
+    try {
+      if (window.FireworkSky && FireworkSky.stop) FireworkSky.stop();
+    } catch (e) {}
+  }
+
+  function eruptGoalTier(tier, locusEl) {
+    try {
+      if (!isGoalsSliderOpen()) return;
+      if (!window.FireworkSky || typeof FireworkSky.play !== 'function') return;
+      ensureFireworkSky();
+      // Resume audio on this user gesture (slider release)
+      try {
+        if (window.__voidFireworkAC && window.__voidFireworkAC.state === 'suspended') {
+          window.__voidFireworkAC.resume();
+        }
+      } catch (e3) {}
+      let originX = 0.5;
+      if (locusEl && locusEl.getBoundingClientRect) {
+        const r = locusEl.getBoundingClientRect();
+        originX = (r.left + r.width / 2) / Math.max(1, window.innerWidth);
+      } else {
+        const loc = goalsPanelLocus();
+        originX = loc.x / Math.max(1, window.innerWidth);
+      }
+      FireworkSky.play(tier, { originX: originX });
+    } catch (e) {}
+  }
+
+
   function persistTodos() {
     try {
       chrome.storage.sync.set({ aiTreeTodos: todos });
@@ -856,11 +961,26 @@
     }
 
     function commit(val) {
+      const prev = goalProgress(todo);
       const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0)));
       todo.progress = v;
       todo.done = v >= 100;
       applyVisual(v);
       persistTodos();
+      // Fireworks only on upward threshold cross at release
+      const crossed = goalCrossedTiers(prev, v);
+      if (crossed > 0) {
+        if (crossed === 5) {
+          if (!(todo._fwCelebrated && prev >= 90)) {
+            todo._fwCelebrated = true;
+            eruptGoalTier(5, card);
+          }
+        } else {
+          if (v < 90) todo._fwCelebrated = false;
+          eruptGoalTier(crossed, card);
+        }
+      }
+      if (v < 90) todo._fwCelebrated = false;
     }
 
     slider.addEventListener('input', function () {

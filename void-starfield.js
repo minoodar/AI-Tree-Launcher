@@ -205,8 +205,14 @@
         let delta = Math.min(time - lastTime, 40); lastTime = time;
         mouseX += (targetMouseX - mouseX) * 0.025; mouseY += (targetMouseY - mouseY) * 0.025;
         drawBackground();
+        try { volcUpdate(delta); } catch (e) {}
+        // Optional global star dim during climax inhale
+        if (goalVolc.starDim < 0.99) ctx.globalAlpha = goalVolc.starDim;
         for (let i = 0; i < stars.length; i++) { stars[i].update(delta); stars[i].draw(time); }
-        updateShootingStar(delta); requestAnimationFrame(render);
+        if (goalVolc.starDim < 0.99) ctx.globalAlpha = 1;
+        updateShootingStar(delta);
+        try { volcDraw(); } catch (e) {}
+        requestAnimationFrame(render);
     }
     function init() {
         targetMouseX = width / 2; targetMouseY = height / 2; mouseX = width / 2; mouseY = height / 2;
@@ -783,6 +789,331 @@
 
     loadSoundPref();
 
+
+    // ------------------------------------------------------------------
+    // Goal volcanic layer — ambient heat + landmark eruptions + 100% climax
+    // Signature: embers that cool into ash-stars (never arcade fireworks)
+    // ------------------------------------------------------------------
+    var goalVolc = {
+        heatTarget: 0,
+        heat: 0,
+        locusX: 0.5,
+        locusY: 0.85,
+        particles: [],
+        maxParticles: 160,
+        quality: 1,
+        bottomGlow: 0,
+        edgeGlow: 0,
+        starDim: 1,
+        afterglow: 0,
+        climax: null, // { t0, x, y, meteorsFired }
+        lastPulseAt: 0,
+        lastClimaxAt: 0,
+        breathPhase: 0
+    };
+
+    function volcSpawnEmber(x, y, opts) {
+        opts = opts || {};
+        if (goalVolc.particles.length >= Math.floor(goalVolc.maxParticles * goalVolc.quality)) return;
+        var speed = (opts.speed != null ? opts.speed : (0.35 + Math.random() * 0.55));
+        var angle = -Math.PI / 2 + (Math.random() - 0.5) * (opts.spread != null ? opts.spread : 0.7);
+        goalVolc.particles.push({
+            x: x + (Math.random() - 0.5) * (opts.jitter || 8),
+            y: y + (Math.random() - 0.5) * 4,
+            vx: Math.cos(angle) * speed * (0.15 + Math.random() * 0.35),
+            vy: Math.sin(angle) * speed,
+            life: 0,
+            maxLife: opts.maxLife || (1.8 + Math.random() * 2.4),
+            size: opts.size || (1.2 + Math.random() * 2.2),
+            phase: 'ember',
+            ashHold: 0.6 + Math.random() * 1.2
+        });
+    }
+
+    function volcUpdate(delta) {
+        var dt = Math.min(delta, 40) / 1000;
+        // Lerp heat toward target
+        var hDiff = goalVolc.heatTarget - goalVolc.heat;
+        goalVolc.heat += hDiff * Math.min(1, dt * 2.4);
+        if (Math.abs(hDiff) < 0.001) goalVolc.heat = goalVolc.heatTarget;
+
+        goalVolc.breathPhase += dt * (0.5 + goalVolc.heat * 0.3);
+
+        // Ambient bottom glow from heat
+        var ambientCap = goalVolc.climax ? 0.85 : goalVolc.heat;
+        var breath = 1;
+        if (goalVolc.heat >= 0.8 && !goalVolc.climax) {
+            breath = 0.92 + 0.08 * Math.sin(goalVolc.breathPhase * Math.PI * 2);
+        }
+        goalVolc.bottomGlow = ambientCap * 0.55 * breath + goalVolc.afterglow * 0.25;
+
+        // Ambient ember spawn rate from heat
+        if (!prefersReducedMotion && goalVolc.heat > 0.05 && !goalVolc.climax) {
+            var rate = goalVolc.heat * 12 * goalVolc.quality; // per second
+            var n = rate * dt;
+            var lx = goalVolc.locusX * width;
+            var baseY = height - 4;
+            while (n > 1) {
+                volcSpawnEmber(
+                    lx + (Math.random() - 0.5) * width * 0.35,
+                    baseY,
+                    { speed: 0.25 + goalVolc.heat * 0.4, size: 1 + goalVolc.heat * 1.5, maxLife: 2 + goalVolc.heat * 1.5 }
+                );
+                n -= 1;
+            }
+            if (Math.random() < n) {
+                volcSpawnEmber(
+                    lx + (Math.random() - 0.5) * width * 0.35,
+                    baseY,
+                    { speed: 0.25 + goalVolc.heat * 0.4, size: 1 + goalVolc.heat * 1.5 }
+                );
+            }
+        }
+
+        // Climax timeline (~4.5s)
+        if (goalVolc.climax) {
+            var ct = (performance.now() - goalVolc.climax.t0) / 1000;
+            var cx = goalVolc.climax.x;
+            var cy = goalVolc.climax.y;
+            if (ct < 0.4) {
+                goalVolc.starDim = 1 - 0.15 * (ct / 0.4);
+            } else if (ct < 2.5) {
+                goalVolc.starDim = 0.85 + 0.15 * Math.min(1, (ct - 0.4) / 0.6);
+                // Fountain embers
+                if (!prefersReducedMotion) {
+                    var fountainRate = 55 * goalVolc.quality;
+                    var fn = fountainRate * dt;
+                    while (fn > 1) {
+                        volcSpawnEmber(cx, cy, {
+                            speed: 0.7 + Math.random() * 1.1,
+                            spread: 1.1,
+                            size: 1.5 + Math.random() * 2.5,
+                            maxLife: 2.2 + Math.random() * 2,
+                            jitter: 14
+                        });
+                        fn -= 1;
+                    }
+                    if (Math.random() < fn) {
+                        volcSpawnEmber(cx, cy, {
+                            speed: 0.7 + Math.random() * 1.1,
+                            spread: 1.1,
+                            size: 1.5 + Math.random() * 2.5,
+                            maxLife: 2.2 + Math.random() * 2,
+                            jitter: 14
+                        });
+                    }
+                }
+                // Edge lava pulse 0.8–2.2s
+                if (ct >= 0.8 && ct <= 2.2) {
+                    var ep = (ct - 0.8) / 1.4;
+                    goalVolc.edgeGlow = Math.sin(ep * Math.PI) * 0.55;
+                } else {
+                    goalVolc.edgeGlow *= Math.max(0, 1 - dt * 2);
+                }
+                // Warm meteors (rate limited)
+                if (!prefersReducedMotion && ct >= 0.6 && ct <= 2.4 && goalVolc.climax.meteorsFired < 2) {
+                    if (ct > 0.6 + goalVolc.climax.meteorsFired * 0.9) {
+                        goalVolc.climax.meteorsFired++;
+                        try {
+                            if (typeof createShootingStar === 'function') createShootingStar();
+                        } catch (e) {}
+                    }
+                }
+            } else if (ct < 4.5) {
+                goalVolc.starDim = Math.min(1, goalVolc.starDim + dt * 0.3);
+                goalVolc.edgeGlow *= Math.max(0, 1 - dt * 1.5);
+                goalVolc.afterglow = Math.max(goalVolc.afterglow, 0.2 * (1 - (ct - 2.5) / 2));
+            } else {
+                goalVolc.climax = null;
+                goalVolc.starDim = 1;
+                goalVolc.edgeGlow = 0;
+                goalVolc.afterglow = 0.2;
+            }
+
+            // Shockwave ring progress stored on climax
+            goalVolc.climax.ringT = ct;
+        } else {
+            goalVolc.starDim += (1 - goalVolc.starDim) * Math.min(1, dt * 2);
+            goalVolc.edgeGlow *= Math.max(0, 1 - dt * 2);
+            if (goalVolc.afterglow > 0 && goalVolc.heatTarget < 0.15) {
+                goalVolc.afterglow *= Math.max(0, 1 - dt * 0.15);
+            }
+        }
+
+        // Update particles
+        for (var i = goalVolc.particles.length - 1; i >= 0; i--) {
+            var p = goalVolc.particles[i];
+            p.life += dt;
+            if (p.phase === 'ember') {
+                p.vy -= 0.15 * dt; // slight buoyancy slowdown upward is negative y dir already
+                p.vx *= (1 - 0.4 * dt);
+                p.x += p.vx * 60 * dt;
+                p.y += p.vy * 60 * dt;
+                // Cool into ash near end of life or when slow
+                if (p.life > p.maxLife * 0.55 || p.vy > -0.05) {
+                    p.phase = 'ash';
+                    p.ashBorn = p.life;
+                    p.vx *= 0.3;
+                    p.vy = Math.min(p.vy * 0.2, 0.02);
+                }
+            } else {
+                p.x += p.vx * 20 * dt;
+                p.y += p.vy * 20 * dt;
+                if (p.life > p.maxLife + p.ashHold) {
+                    goalVolc.particles.splice(i, 1);
+                    continue;
+                }
+            }
+            if (p.y < -20 || p.x < -40 || p.x > width + 40) {
+                goalVolc.particles.splice(i, 1);
+            }
+        }
+    }
+
+    function volcDraw() {
+        if (goalVolc.heat < 0.01 && goalVolc.particles.length === 0 && !goalVolc.climax && goalVolc.afterglow < 0.01 && goalVolc.edgeGlow < 0.01) {
+            return;
+        }
+
+        // Bottom ambient glow
+        var bgAlpha = Math.min(0.22, goalVolc.bottomGlow * 0.35);
+        if (bgAlpha > 0.004) {
+            var g = ctx.createLinearGradient(0, height, 0, height * (1 - 0.22 - goalVolc.heat * 0.12));
+            g.addColorStop(0, 'rgba(255, 179, 71,' + bgAlpha + ')');
+            g.addColorStop(0.45, 'rgba(255, 200, 120,' + (bgAlpha * 0.35) + ')');
+            g.addColorStop(1, 'rgba(255, 220, 180, 0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, height * 0.55, width, height * 0.45);
+        }
+
+        // Edge lava-light vignette
+        if (goalVolc.edgeGlow > 0.01) {
+            var eg = goalVolc.edgeGlow;
+            var vg = ctx.createRadialGradient(width / 2, height / 2, Math.min(width, height) * 0.25, width / 2, height / 2, Math.max(width, height) * 0.72);
+            vg.addColorStop(0, 'rgba(0,0,0,0)');
+            vg.addColorStop(0.7, 'rgba(255, 140, 90,' + (eg * 0.04) + ')');
+            vg.addColorStop(1, 'rgba(255, 120, 70,' + (eg * 0.18) + ')');
+            ctx.fillStyle = vg;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        // Shockwave ring during climax
+        if (goalVolc.climax && goalVolc.climax.ringT != null) {
+            var rt = goalVolc.climax.ringT;
+            if (rt >= 0.35 && rt <= 2.2) {
+                var rp = (rt - 0.35) / 1.85;
+                var maxR = Math.sqrt(width * width + height * height) * 0.55;
+                var radius = maxR * Math.min(1, rp * 1.15);
+                var ringA = (1 - rp) * 0.45;
+                ctx.beginPath();
+                ctx.arc(goalVolc.climax.x, goalVolc.climax.y, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 210, 140,' + ringA + ')';
+                ctx.lineWidth = 2 + (1 - rp) * 3;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(goalVolc.climax.x, goalVolc.climax.y, radius * 0.92, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 160, 90,' + (ringA * 0.35) + ')';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        // Particles
+        if (goalVolc.particles.length) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < goalVolc.particles.length; i++) {
+                var p = goalVolc.particles[i];
+                var t = p.life / p.maxLife;
+                if (p.phase === 'ember') {
+                    var a = Math.max(0, 0.85 * (1 - t * 0.7));
+                    var r = p.size * (1 - t * 0.3);
+                    // amber → gold → soft white
+                    var rr = 255;
+                    var gg = Math.floor(140 + t * 80);
+                    var bb = Math.floor(60 + t * 100);
+                    ctx.beginPath();
+                    ctx.fillStyle = 'rgba(' + rr + ',' + gg + ',' + bb + ',' + a + ')';
+                    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    var ashT = (p.life - (p.ashBorn || p.maxLife * 0.55)) / (p.ashHold || 1);
+                    var aa = Math.max(0, 0.55 * (1 - ashT));
+                    var ar = p.size * 0.55;
+                    ctx.beginPath();
+                    ctx.fillStyle = 'rgba(220, 232, 255,' + aa + ')';
+                    ctx.arc(p.x, p.y, ar, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+    }
+
+    function volcPlayPulse(tier) {
+        if (!soundEnabled) return;
+        try {
+            var actx = unlockAudioSync();
+            if (!actx || !meteorBus) return;
+            var now = actx.currentTime;
+            var base = 180 + tier * 40;
+            var o1 = actx.createOscillator();
+            var o2 = actx.createOscillator();
+            var g = actx.createGain();
+            o1.type = 'sine'; o2.type = 'sine';
+            o1.frequency.value = base;
+            o2.frequency.value = base * 1.5;
+            g.gain.setValueAtTime(0.0001, now);
+            g.gain.exponentialRampToValueAtTime(0.04 + tier * 0.012, now + 0.04);
+            g.gain.exponentialRampToValueAtTime(0.0001, now + 0.35 + tier * 0.08);
+            o1.connect(g); o2.connect(g); g.connect(meteorBus);
+            o1.start(now); o2.start(now);
+            o1.stop(now + 0.5 + tier * 0.1); o2.stop(now + 0.5 + tier * 0.1);
+        } catch (e) {}
+    }
+
+    function volcPlayClimax() {
+        if (!soundEnabled) return;
+        try {
+            var actx = unlockAudioSync();
+            if (!actx || !meteorBus) return;
+            var now = actx.currentTime;
+            // Noise whoosh
+            var len = Math.floor(actx.sampleRate * 1.2);
+            var buf = actx.createBuffer(1, len, actx.sampleRate);
+            var d = buf.getChannelData(0);
+            for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+            var src = actx.createBufferSource(); src.buffer = buf;
+            var bp = actx.createBiquadFilter(); bp.type = 'bandpass';
+            bp.frequency.setValueAtTime(200, now);
+            bp.frequency.exponentialRampToValueAtTime(4000, now + 1.0);
+            bp.Q.value = 0.7;
+            var ng = actx.createGain();
+            ng.gain.setValueAtTime(0.0001, now);
+            ng.gain.exponentialRampToValueAtTime(0.06, now + 0.15);
+            ng.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+            src.connect(bp); bp.connect(ng); ng.connect(meteorBus);
+            src.start(now); src.stop(now + 1.25);
+            // Soft pentatonic rise
+            var notes = [261.63, 293.66, 329.63, 392.0, 523.25];
+            for (var n = 0; n < notes.length; n++) {
+                (function (freq, idx) {
+                    var o = actx.createOscillator();
+                    var g = actx.createGain();
+                    o.type = 'sine';
+                    o.frequency.value = freq;
+                    var t0 = now + 0.35 + idx * 0.18;
+                    g.gain.setValueAtTime(0.0001, t0);
+                    g.gain.exponentialRampToValueAtTime(0.035, t0 + 0.05);
+                    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.9);
+                    o.connect(g); g.connect(meteorBus);
+                    o.start(t0); o.stop(t0 + 1.0);
+                })(notes[n], n);
+            }
+        } catch (e) {}
+    }
+
+
     window.VoidStarfield = {
         triggerMeteor: function (count, opts) {
             count = Math.max(1, Math.min(3, count || 1));
@@ -840,6 +1171,67 @@
                 setTimeout(step, gapMs);
             })();
         },
+
+        setGoalHeat: function (opts) {
+            opts = opts || {};
+            var h = +opts.heat;
+            if (isNaN(h)) h = 0;
+            goalVolc.heatTarget = Math.max(0, Math.min(0.85, h));
+            if (typeof opts.locusX === 'number') {
+                goalVolc.locusX = opts.locusX > 1 ? opts.locusX / Math.max(1, width) : opts.locusX;
+            }
+            if (typeof opts.locusY === 'number') {
+                goalVolc.locusY = opts.locusY > 1 ? opts.locusY / Math.max(1, height) : opts.locusY;
+            }
+        },
+        eruptGoal: function (opts) {
+            opts = opts || {};
+            var tier = Math.max(1, Math.min(5, opts.tier || 1));
+            var x = typeof opts.x === 'number' ? opts.x : width * 0.5;
+            var y = typeof opts.y === 'number' ? opts.y : height * 0.7;
+            var now = performance.now();
+            if (tier === 5) {
+                if (now - goalVolc.lastClimaxAt < 30000) return;
+                goalVolc.lastClimaxAt = now;
+                goalVolc.climax = { t0: now, x: x, y: y, meteorsFired: 0, ringT: 0 };
+                goalVolc.afterglow = 0;
+                if (!prefersReducedMotion) {
+                    for (var i = 0; i < 24; i++) {
+                        volcSpawnEmber(x, y, { speed: 0.5 + Math.random(), spread: 1.2, size: 2 + Math.random() * 2, maxLife: 2.5, jitter: 12 });
+                    }
+                }
+                volcPlayClimax();
+                return;
+            }
+            if (now - goalVolc.lastPulseAt < 8000) return;
+            goalVolc.lastPulseAt = now;
+            if (prefersReducedMotion) {
+                goalVolc.bottomGlow = Math.max(goalVolc.bottomGlow, 0.15 + tier * 0.08);
+                return;
+            }
+            var count = tier === 1 ? 1 : (tier === 2 ? 12 : (tier === 3 ? 8 : 16));
+            for (var j = 0; j < count; j++) {
+                volcSpawnEmber(x, y, {
+                    speed: 0.4 + tier * 0.12 + Math.random() * 0.3,
+                    spread: 0.5 + tier * 0.15,
+                    size: 1.2 + tier * 0.3,
+                    maxLife: 1.6 + tier * 0.3,
+                    jitter: 6 + tier * 2
+                });
+            }
+            volcPlayPulse(tier);
+        },
+        clearGoalHeat: function () {
+            goalVolc.heatTarget = 0;
+            goalVolc.heat = 0;
+            goalVolc.afterglow = 0;
+            goalVolc.bottomGlow = 0;
+            goalVolc.edgeGlow = 0;
+            goalVolc.starDim = 1;
+            goalVolc.climax = null;
+            goalVolc.particles.length = 0;
+        },
+
         unlockAudio: function () { unlockAudioSync(); }
     };
 
