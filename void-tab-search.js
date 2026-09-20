@@ -13,11 +13,17 @@
     { id: 'brave', label: 'Brave', template: 'https://search.brave.com/search?q={q}', accent: '#fb542b' }
   ];
 
-  // Only Google exposes a mode pill. AI uses udm=50 (can be overridden via webSearchEngineOverrides['google:ai']).
+  // AI-capable engines: Google AI Mode (udm=50) + Bing Copilot Search.
+  // Override templates via webSearchEngineOverrides['google:ai'] / ['bing:ai'] if needed.
+  // Both AI endpoints are undocumented — re-test by hand if behaviour drifts.
   const ENGINE_MODES = {
     google: {
       classic: { label: 'Search', template: 'https://www.google.com/search?q={q}' },
       ai: { label: 'AI', template: 'https://www.google.com/search?q={q}&udm=50' }
+    },
+    bing: {
+      classic: { label: 'Search', template: 'https://www.bing.com/search?q={q}' },
+      ai: { label: 'AI', template: 'https://www.bing.com/copilotsearch?q={q}' }
     }
   };
 
@@ -92,7 +98,13 @@
   function toggleMode() {
     const eng = current();
     if (!hasModes(eng.id)) return;
-    setMode(eng.id, getMode(eng.id) === 'ai' ? 'classic' : 'ai');
+    const next = getMode(eng.id) === 'ai' ? 'classic' : 'ai';
+    // Global sticky: same AI preference for every engine that supports modes
+    Object.keys(ENGINE_MODES).forEach(function (id) {
+      modes[id] = next;
+    });
+    try { chrome.storage.local.set({ webSearchModes: Object.assign({}, modes) }); } catch (e) {}
+    applyModeUI();
   }
 
   function resolveTemplate(engine, oneShotMode) {
@@ -167,7 +179,7 @@
         modeBtn.title = isAi
           ? 'AI Mode on — click for classic search (Ctrl/⌘+Enter = one-shot classic)'
           : 'AI Mode off — click to enable (Ctrl/⌘+Enter = one-shot AI)';
-        modeBtn.setAttribute('aria-label', isAi ? 'AI Mode on' : 'AI Mode off');
+        modeBtn.setAttribute('aria-label', (isAi ? 'AI on' : 'AI off') + ' — ' + (eng.label || eng.id));
       } else {
         modeBtn.hidden = true;
         modeBtn.setAttribute('hidden', '');
@@ -184,6 +196,60 @@
     root.dataset.engine = eng.id;
   }
 
+
+  function homepageOf(engine) {
+    if (!engine || typeof engine.template !== 'string') return null;
+    try {
+      const u = new URL(engine.template.split('{q}').join('x'));
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+      return u.origin + '/';
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function mountEngineLink(host, engine) {
+    if (!host) return;
+    try {
+      const prev = host.querySelector('a[data-engine-link]');
+      if (prev) prev.remove();
+    } catch (_) {}
+
+    const href = homepageOf(engine);
+    if (!href) {
+      host.style.cursor = '';
+      return;
+    }
+
+    const a = document.createElement('a');
+    a.dataset.engineLink = engine.id || 'engine';
+    a.className = 'ai-void-engine-link';
+    a.href = href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.draggable = false;
+    const name = (engine && engine.label) || 'engine';
+    const label = 'Open ' + name;
+    a.setAttribute('aria-label', label);
+    a.title = label;
+
+    // Only stop engine-cycle handlers. Do NOT preventDefault and do NOT
+    // also call window.open — that opened two tabs (native target=_blank + open).
+    a.addEventListener('pointerdown', function (e) {
+      e.stopPropagation();
+    }, true);
+    a.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+    }, true);
+    a.addEventListener('auxclick', function (e) {
+      e.stopPropagation();
+    }, true);
+
+    host.appendChild(a);
+    host.style.cursor = 'pointer';
+  }
+
   function applyEngineUI(opts) {
     const eng = current();
     activeId = eng.id;
@@ -191,6 +257,13 @@
     brand.dataset.engine = eng.id;
     brand.style.setProperty('--engine-accent', eng.accent || '#a5b4fc');
     root.style.setProperty('--engine-accent', eng.accent || '#a5b4fc');
+    try {
+      const markHost = brand.querySelector('.ai-void-search-brand-mark');
+      if (window.AIVoidEngineMarks && typeof AIVoidEngineMarks.mount === 'function') {
+        AIVoidEngineMarks.mount(markHost, eng);
+      }
+      mountEngineLink(markHost, eng);
+    } catch (_) {}
     if (!(opts && opts.skipPulse)) {
       brand.classList.remove('ai-void-search-brand-pulse');
       void brand.offsetWidth;
@@ -314,20 +387,33 @@
   }, { passive: true });
 
   let ptrStartX = 0, ptrActive = false;
+  function isMarkTarget(t) {
+    try {
+      return !!(t && t.closest && (
+        t.closest('a[data-engine-link]') ||
+        t.closest('.ai-void-search-brand-mark')
+      ));
+    } catch (_) { return false; }
+  }
   brand.addEventListener('pointerdown', (e) => {
     if (e.button !== 0) return;
+    if (isMarkTarget(e.target)) return; // logo owns this gesture
     ptrActive = true;
     ptrStartX = e.clientX;
-    brand.setPointerCapture(e.pointerId);
+    try { brand.setPointerCapture(e.pointerId); } catch (_) {}
   });
   brand.addEventListener('pointerup', (e) => {
     if (!ptrActive) return;
     ptrActive = false;
+    if (isMarkTarget(e.target)) return;
     const dx = e.clientX - ptrStartX;
     if (Math.abs(dx) < 36) return;
     if (dx < 0) next(); else prev();
   });
-  brand.addEventListener('click', () => next());
+  brand.addEventListener('click', (e) => {
+    if (isMarkTarget(e.target)) return;
+    next();
+  });
 
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
