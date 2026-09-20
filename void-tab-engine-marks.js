@@ -1,46 +1,57 @@
-// void-tab-engine-marks.js — bundled engine marks for Void Tab search brand.
-// Kill switch BRAND_MARKS_ENABLED = false restores pure accent-dot behaviour.
+// void-tab-engine-marks.js — stacked asset SVG layers; zero-jump via data-engine.
 (() => {
   'use strict';
 
-  const BRAND_MARKS_ENABLED = true;
-
-  const BRAND_MARKS = {
+  const BUILTIN = new Set(['google', 'bing', 'duckduckgo', 'brave']);
+  const ASSETS = {
     google: 'assets/engines/google.svg',
     bing: 'assets/engines/bing.svg',
     duckduckgo: 'assets/engines/duckduckgo.svg',
     brave: 'assets/engines/brave.svg'
   };
 
+  function preloadAll() {
+    Object.keys(ASSETS).forEach(function (id) {
+      try {
+        var im = new Image();
+        im.decoding = 'async';
+        im.src = ASSETS[id];
+      } catch (_) {}
+    });
+  }
+  try { preloadAll(); } catch (_) {}
+
+  /**
+   * host = .ai-void-search-brand-mark (anchor with stacked .mark imgs)
+   * engine = { id, label, template, custom? }
+   */
   function mount(host, engine) {
     if (!host) return;
+    const id = engine && engine.id ? String(engine.id) : 'generic';
+    const key = BUILTIN.has(id) && !(engine && engine.custom) ? id : 'generic';
+    host.dataset.engine = key;
+
+    const name = (engine && engine.label) || key;
+    host.setAttribute('aria-label', 'Open ' + name);
+
+    let href = null;
     try {
-      const prev = host.querySelector('img[data-engine-mark]');
-      if (prev) prev.remove();
+      if (engine && typeof engine.template === 'string') {
+        const u = new URL(engine.template.split('{q}').join('x'));
+        if (u.protocol === 'https:' || u.protocol === 'http:') href = u.origin + '/';
+      }
     } catch (_) {}
-    host.classList.remove('has-brand-mark');
+    if (href) {
+      host.href = href;
+      host.target = '_blank';
+      host.rel = 'noopener noreferrer';
+    } else {
+      host.removeAttribute('href');
+      host.removeAttribute('target');
+    }
 
-    if (!BRAND_MARKS_ENABLED || !engine || engine.custom) return;
-    const src = BRAND_MARKS[engine.id];
-    if (!src) return;
-
-    const img = document.createElement('img');
-    img.dataset.engineMark = engine.id;
-    img.alt = '';
-    img.decoding = 'async';
-    img.draggable = false;
-    // Fixed box BEFORE src resolves — prevents full-viewport SVG flash
-    img.width = 24;
-    img.height = 24;
-    img.style.cssText = 'width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;pointer-events:none;display:block;';
-    host.classList.add('has-brand-mark');
-    img.addEventListener('error', function () {
-      try { img.remove(); } catch (_) {}
-      host.classList.remove('has-brand-mark');
-    }, { once: true });
-    img.src = src;
-    host.appendChild(img);
+    try { localStorage.setItem('aiv:lastEngine', key); } catch (_) {}
   }
 
-  window.AIVoidEngineMarks = { mount: mount };
+  window.AIVoidEngineMarks = { mount: mount, preloadAll: preloadAll };
 })();

@@ -144,19 +144,24 @@
     }
     #ai-void-stage > * { pointer-events: auto; }
 
-    /* Multi-engine search */
+    /* Multi-engine search — always LTR so logo/nav never mirror-jump in RTL locales */
     #ai-void-search {
         width: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 12px;
+        direction: ltr;
+        unicode-bidi: isolate;
     }
     .ai-void-search-brand-row {
         display: flex;
+        flex-direction: row; /* never row-reverse under [dir=rtl] */
         align-items: center;
         gap: 10px;
         user-select: none;
+        direction: ltr;
+        unicode-bidi: isolate;
     }
     .ai-void-search-nav {
         width: 28px;
@@ -180,8 +185,11 @@
     #ai-void-search-brand {
         --engine-accent: #8ab4f8;
         display: flex;
+        flex-direction: row;
         align-items: center;
         gap: 10px;
+        direction: ltr;
+        unicode-bidi: isolate;
         padding: 6px 14px;
         border-radius: 999px;
         background: rgba(12, 16, 32, 0.45);
@@ -195,62 +203,49 @@
     }
     .ai-void-search-brand-pulse { animation: aiVoidBrandPulse .35s ease; }
     @keyframes aiVoidBrandPulse {
-        0% { transform: scale(0.96); opacity: 0.7; }
-        100% { transform: scale(1); opacity: 1; }
+        0% { transform: scale(0.98); }
+        100% { transform: scale(1); }
     }
+    /* Engine mark — no accent orb; stacked SVG layers toggled by data-engine */
     .ai-void-search-brand-mark {
         position: relative;
+        display: block;
         width: 24px;
         height: 24px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #fff 0%, var(--engine-accent) 45%, transparent 70%);
-        box-shadow: 0 0 12px color-mix(in srgb, var(--engine-accent) 55%, transparent);
         flex: 0 0 24px;
-        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
-        display: grid;
-        place-items: center;
-        overflow: visible;
-    }
-    #ai-void-search-brand:hover .ai-void-search-brand-mark {
-        transform: scale(1.16);
-    }
-    .ai-void-search-brand-mark.has-brand-mark {
+        overflow: hidden;
         background: none;
         box-shadow: none;
-        border-radius: 4px;
-        opacity: 1;
-        overflow: hidden;
+        border-radius: 0;
+        color: rgba(226, 232, 255, 0.55);
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
     }
-    /* Always constrain any mark image — prevents Bing (and others) flashing huge */
-    .ai-void-search-brand-mark > img {
+    #ai-void-search-brand:hover .ai-void-search-brand-mark {
+        transform: scale(1.12);
+    }
+    .ai-void-search-brand-mark .mark {
         position: absolute;
         inset: 0;
-        width: 100% !important;
-        height: 100% !important;
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        filter: none;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
         pointer-events: none;
-        user-select: none;
-        -webkit-user-drag: none;
+        /* keep rendered — never display:none */
+        object-fit: contain;
         display: block;
     }
-
-    .ai-void-search-brand-mark { position: relative; }
-    .ai-void-engine-link {
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      cursor: pointer;
-      -webkit-user-drag: none;
-      z-index: 5;
-      /* invisible hit target over the logo */
-      background: transparent;
+    .ai-void-search-brand-mark[data-engine="google"] .mark[data-mark="google"],
+    .ai-void-search-brand-mark[data-engine="bing"] .mark[data-mark="bing"],
+    .ai-void-search-brand-mark[data-engine="duckduckgo"] .mark[data-mark="duckduckgo"],
+    .ai-void-search-brand-mark[data-engine="brave"] .mark[data-mark="brave"],
+    .ai-void-search-brand-mark[data-engine="generic"] .mark[data-mark="generic"] {
+        opacity: 1;
     }
-    .ai-void-engine-link:focus-visible {
-      outline: 2px solid rgba(99, 102, 241, 0.85);
-      outline-offset: 3px;
+    .ai-void-search-brand-mark:focus-visible {
+        outline: 2px solid rgba(99, 102, 241, 0.85);
+        outline-offset: 3px;
     }
     #ai-void-search-brand-name {
         font-size: 22px;
@@ -263,8 +258,11 @@
         width: 100%;
         max-width: 584px;
         display: flex;
+        flex-direction: row;
         align-items: center;
         gap: 8px;
+        direction: ltr;
+        unicode-bidi: isolate;
         padding: 6px 8px 6px 16px;
         border-radius: 28px;
         background: rgba(255, 255, 255, 0.94);
@@ -1726,6 +1724,10 @@
         #ai-ntp-quickbar { transition: none; }
     }
 </style>
+  <link rel="preload" as="image" href="assets/engines/google.svg">
+  <link rel="preload" as="image" href="assets/engines/bing.svg">
+  <link rel="preload" as="image" href="assets/engines/duckduckgo.svg">
+  <link rel="preload" as="image" href="assets/engines/brave.svg">
 </head>
 
 <body>
@@ -1777,12 +1779,25 @@
   <a id="ai-ntp-account" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmyaccount.google.com%2F" target="_blank" rel="noopener" title="Switch account">◉</a>
 </div>
 
+
+
 <section id="ai-void-stage">
-  <div id="ai-void-search" aria-label="Web search">
+  <div id="ai-void-search" dir="ltr" aria-label="Web search">
     <div class="ai-void-search-brand-row">
       <button type="button" class="ai-void-search-nav" id="ai-void-search-prev" title="Previous engine" aria-label="Previous search engine">‹</button>
       <div id="ai-void-search-brand" data-engine="google" title="Swipe or click to switch engine">
-        <span class="ai-void-search-brand-mark" aria-hidden="true"></span>
+        <a class="ai-void-search-brand-mark" data-engine="google"
+           href="https://www.google.com/" target="_blank" rel="noopener noreferrer"
+           aria-label="Open Google">
+          <img class="mark" data-mark="google" src="assets/engines/google.svg" width="24" height="24" alt="" draggable="false" decoding="async" />
+          <img class="mark" data-mark="bing" src="assets/engines/bing.svg" width="24" height="24" alt="" draggable="false" decoding="async" />
+          <img class="mark" data-mark="duckduckgo" src="assets/engines/duckduckgo.svg" width="24" height="24" alt="" draggable="false" decoding="async" />
+          <img class="mark" data-mark="brave" src="assets/engines/brave.svg" width="24" height="24" alt="" draggable="false" decoding="async" />
+          <svg class="mark" data-mark="generic" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M4 12h16M12 4c2.5 2.5 2.5 13.5 0 16M12 4c-2.5 2.5-2.5 13.5 0 16" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </a>
         <span id="ai-void-search-brand-name">Google</span>
       </div>
       <button type="button" class="ai-void-search-nav" id="ai-void-search-next" title="Next engine" aria-label="Next search engine">›</button>
@@ -1898,6 +1913,7 @@
 </div>
 
 <script src="void-starfield.js"></script>
+<script src="engine-boot.js"></script>
 <script src="void-tab-engine-marks.js"></script>
 <script src="void-tab-search.js"></script>
 <script src="void-tab-shortcuts.js"></script>

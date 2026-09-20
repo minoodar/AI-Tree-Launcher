@@ -37,6 +37,7 @@
   const nextBtn = document.getElementById('ai-void-search-next');
   const form = document.getElementById('ai-void-search-form');
   if (!root || !brand || !brandName || !input || !goBtn || !dots) return;
+  try { if (window.AIVoidEngineMarks && AIVoidEngineMarks.preloadAll) AIVoidEngineMarks.preloadAll(); } catch (_) {}
   // Ensure go button uses search icon (not a text arrow)
   if (goBtn && (!goBtn.querySelector('svg') || (goBtn.textContent || '').trim() === '→')) {
     goBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16.2 16.2L21 21"/></svg>';
@@ -262,7 +263,6 @@
       if (window.AIVoidEngineMarks && typeof AIVoidEngineMarks.mount === 'function') {
         AIVoidEngineMarks.mount(markHost, eng);
       }
-      mountEngineLink(markHost, eng);
     } catch (_) {}
     if (!(opts && opts.skipPulse)) {
       brand.classList.remove('ai-void-search-brand-pulse');
