@@ -1557,6 +1557,19 @@
         align-items: center;
         gap: 5px;
     }
+    .ai-void-report-label {
+        flex: 1;
+        min-width: 0;
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(199, 210, 254, 0.55);
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        user-select: none;
+    }
+
     .ai-void-report-email {
         flex: 1 1 auto;
         min-width: 0;
@@ -1887,8 +1900,7 @@
     </div>
     <div class="ai-void-report-bar" id="ai-void-report-bar">
       <div class="ai-void-report-row">
-        <input type="email" id="ai-void-report-email" class="ai-void-report-email" dir="ltr" autocomplete="email" spellcheck="false" maxlength="120" placeholder="you@email.com" aria-label="Email" />
-        <button type="button" id="ai-void-report-send" class="ai-void-report-send" title="Email report">✉</button>
+        <span class="ai-void-report-label" id="ai-void-report-label">Share report</span>
         <button type="button" id="ai-void-report-copy" class="ai-void-report-copy" title="Copy report">⎘</button>
         <button type="button" id="ai-void-report-txt" class="ai-void-report-txt" title="Download .txt">⬇</button>
       </div>
