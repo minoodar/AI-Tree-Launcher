@@ -745,8 +745,31 @@
     return ty === 'goal' || ty === 'goals';
   }
 
+  function todoImpactPct(t) {
+    if (!t) return 10;
+    var n = Number(t.impactPct);
+    if (!isNaN(n) && n > 0) return Math.max(1, Math.min(100, Math.round(n)));
+    if (typeof t.weight === 'number' && t.weight > 0) return Math.max(1, Math.min(100, Math.round(t.weight * 5)));
+    return 10;
+  }
+
   function goalProgress(todo) {
     if (!todo) return 0;
+    // override دستی (اسلایدر یا پنل شناور)
+    if (todo.manualProgress != null && todo.manualProgress !== '') {
+      var m = Number(todo.manualProgress);
+      if (!isNaN(m)) return Math.max(0, Math.min(100, Math.round(m)));
+    }
+    // جمع impactPct کارهای انجام‌شدهٔ پیوندی + آرشیو TTL
+    var kids = (todos || []).filter(function (td) {
+      return td && (td.type || 'daily') === 'daily' && td.linkedGoalId === todo.id;
+    });
+    var archived = typeof todo.completedWeight === 'number' ? todo.completedWeight : 0;
+    if (kids.length || archived) {
+      var doneSum = kids.filter(function (k) { return k.done; })
+        .reduce(function (s, k) { return s + todoImpactPct(k); }, 0);
+      return Math.max(0, Math.min(100, Math.round(doneSum + archived)));
+    }
     if (typeof todo.progress === 'number' && isFinite(todo.progress)) {
       return Math.max(0, Math.min(100, Math.round(todo.progress)));
     }
@@ -870,9 +893,11 @@
     const isTomorrow = !!opts.isTomorrow;
     const row = document.createElement('button');
     row.type = 'button';
+    const isLinked = !!(todo.linkedGoalId);
     row.className = 'ai-void-todo-row'
       + (isTomorrow ? ' is-tomorrow' : '')
-      + (todo.done ? ' done' : '');
+      + (todo.done ? ' done' : '')
+      + (isLinked ? ' is-linked' : '');
     row.title = todo.text || '';
     const check = document.createElement('span');
     check.className = 'ai-void-todo-check';
@@ -881,6 +906,16 @@
     textEl.className = 'ai-void-todo-text';
     textEl.textContent = todo.text || '';
     row.append(check, textEl);
+    if (isLinked) {
+      const star = document.createElement('span');
+      star.className = 'ai-void-todo-star';
+      star.textContent = '★';
+      star.setAttribute('aria-hidden', 'true');
+      const imp = document.createElement('span');
+      imp.className = 'ai-void-todo-impact';
+      imp.textContent = todoImpactPct(todo) + '%';
+      row.append(star, imp);
+    }
     if (isTomorrow) {
       const badge = document.createElement('span');
       badge.className = 'ai-void-tomorrow-badge';
@@ -893,7 +928,34 @@
         todo.sourceCheck.click();
         return;
       }
+      var goal = null;
+      var prev = 0;
+      if (todo.linkedGoalId) {
+        goal = (todos || []).find(function (td) {
+          return td && td.id === todo.linkedGoalId && (td.type || 'daily') === 'goal';
+        }) || null;
+        if (goal) prev = goalProgress(goal);
+      }
       todo.done = !todo.done;
+      if (goal) {
+        goal.manualProgress = null;
+        var next = goalProgress(goal);
+        goal.progress = next;
+        if (todo.done) {
+          var crossed = goalCrossedTiers(prev, next);
+          if (crossed > 0) {
+            if (crossed === 5) {
+              if (!(goal._fwCelebrated && prev >= 90)) {
+                goal._fwCelebrated = true;
+                eruptGoalTier(5, null);
+              }
+            } else {
+              if (next < 90) goal._fwCelebrated = false;
+              eruptGoalTier(crossed, null);
+            }
+          }
+        }
+      }
       persistTodos();
       renderTodos();
     });
@@ -964,6 +1026,7 @@
       const prev = goalProgress(todo);
       const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0)));
       todo.progress = v;
+      todo.manualProgress = v; // اسلایدر = override دستی تا تیک بعدی کار پیوندی
       todo.done = v >= 100;
       applyVisual(v);
       persistTodos();

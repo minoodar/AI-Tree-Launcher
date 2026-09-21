@@ -1075,6 +1075,55 @@
         border-radius: 5px; color: white; font-size: 11px;
     }
     .ai-void-todo-row.done { opacity: .5; }
+
+    /* کارهای پیوندی به هدف — طلایی لطیف */
+    .ai-void-todo-row.is-linked {
+      border: 1px solid rgba(212, 160, 23, 0.22);
+      border-inline-start: 2px solid rgba(212, 160, 23, 0.5);
+      background: linear-gradient(90deg, rgba(212, 160, 23, 0.09), transparent 60%);
+      box-shadow: inset 0 1px 0 rgba(253, 230, 138, 0.05);
+    }
+    .ai-void-todo-row.is-linked:hover {
+      border-color: rgba(212, 160, 23, 0.32);
+      background: linear-gradient(90deg, rgba(212, 160, 23, 0.12), transparent 60%);
+    }
+    .ai-void-todo-row.is-linked .ai-void-todo-text {
+      color: rgba(253, 230, 138, 0.88);
+      font-weight: 550;
+    }
+    .ai-void-todo-row.is-linked.done {
+      opacity: 0.65;
+      border-color: rgba(212, 160, 23, 0.16);
+    }
+    .ai-void-todo-row.is-linked .ai-void-todo-check {
+      border-color: rgba(212, 160, 23, 0.4);
+      box-shadow: none;
+    }
+    .ai-void-todo-row.is-linked.done .ai-void-todo-check {
+      background: linear-gradient(135deg, rgba(212, 160, 23, 0.85), rgba(180, 83, 9, 0.9));
+      border-color: rgba(212, 160, 23, 0.65);
+    }
+    .ai-void-todo-star {
+      flex-shrink: 0;
+      color: #E8C872;
+      font-size: 12px;
+      line-height: 1;
+      text-shadow: 0 0 5px rgba(212, 160, 23, 0.35);
+    }
+    .ai-void-todo-impact {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: rgba(253, 230, 138, 0.92);
+      background: rgba(212, 160, 23, 0.14);
+      border: 1px solid rgba(212, 160, 23, 0.3);
+      border-radius: 6px;
+      padding: 2px 6px;
+      box-shadow: none;
+      letter-spacing: 0.02em;
+    }
+
     .ai-void-todo-row.done .ai-void-todo-check { background: #10B981; border-color: #10B981; }
     .ai-void-todo-row.done .ai-void-todo-text { text-decoration: line-through; }
     .ai-void-todo-text {

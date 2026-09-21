@@ -2762,15 +2762,29 @@ function buildDashEventCard(evt) {
     todayTodos.slice(0, 5).forEach(todo => {
       const row = document.createElement('button');
       row.type = 'button';
-      row.className = 'ai-dash-todo-row' + (todo.done ? ' done' : '');
+      const isLinked = !!(todo.linkedGoalId);
+      row.className = 'ai-dash-todo-row' + (todo.done ? ' done' : '') + (isLinked ? ' is-linked' : '');
       row.title = todo.text || '';
       const check = document.createElement('span'); check.className = 'ai-dash-todo-check'; check.textContent = todo.done ? '✓' : '';
       const text = document.createElement('span'); text.className = 'ai-dash-todo-text'; text.textContent = todo.text || '';
       row.append(check, text);
+      if (isLinked) {
+        const star = document.createElement('span');
+        star.className = 'ai-dash-todo-star';
+        star.textContent = '★';
+        star.setAttribute('aria-hidden', 'true');
+        const imp = document.createElement('span');
+        imp.className = 'ai-dash-todo-impact';
+        imp.textContent = (typeof todoImpactPct === 'function' ? todoImpactPct(todo) : (todo.impactPct || 10)) + '%';
+        row.append(star, imp);
+      }
       row.addEventListener('click', (e) => {
         e.stopPropagation();
-        todo.done = !todo.done;
-        saveTodos();
+        if (typeof toggleTodoDone === 'function') toggleTodoDone(todo);
+        else {
+          todo.done = !todo.done;
+          saveTodos();
+        }
         renderDashTodoSummary();
         if (todoPanel.classList.contains('active')) renderTodos();
       });
@@ -3855,15 +3869,476 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     todosData.forEach(todo => {
       if (!todo.type) { todo.type = 'daily'; changed = true; }
       if (!todo.createdAt) { todo.createdAt = Date.now(); changed = true; }
+      // بدون id پایدار، پیوند کار↔هدف ممکن نیست — برای اهداف قدیمی حتماً بساز
+      if (!todo.id) {
+        todo.id = (typeof newLinkId === 'function' ? newLinkId('td') : ('td_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)));
+        changed = true;
+      }
+      if (todo.type === 'goal') {
+        if (typeof todo.completedWeight !== 'number') { todo.completedWeight = 0; changed = true; }
+        if (todo.manualProgress === undefined) { todo.manualProgress = null; changed = true; }
+      }
     });
     return changed;
   }
 
+  // —— Goal linkage (v1): star روی کار روزانه = linkedGoalId؛ پیشرفت هدف از وزن فرزندان ——
+  const expandedGoalIds = new Set(); // فقط UI session
+  let goalPopoverEl = null;
+
+
+  function todoImpactPct(t) {
+    if (!t) return 10;
+    const n = Number(t.impactPct);
+    if (!Number.isNaN(n) && n > 0) return Math.max(1, Math.min(100, Math.round(n)));
+    // سازگاری با weight قدیمی (۱–۵ → تقریباً ۵–۲۵)
+    if (typeof t.weight === 'number' && t.weight > 0) return Math.max(1, Math.min(100, Math.round(t.weight * 5)));
+    return 10;
+  }
+  function getGoalById(id) {
+    if (!id) return null;
+    return todosData.find(td => td && td.id === id && (td.type || 'daily') === 'goal') || null;
+  }
+  function activeGoalsList() {
+    return todosData.filter(td => td && (td.type || 'daily') === 'goal' && !td.done && td.id);
+  }
+  function childrenOfGoal(goalId) {
+    if (!goalId) return [];
+    return todosData.filter(td => td && (td.type || 'daily') === 'daily' && td.linkedGoalId === goalId);
+  }
+  /** پیشرفت هدف = جمع impactPct کارهای انجام‌شدهٔ پیوندی (سقف ۱۰۰) مگر override دستی */
+  function computeGoalProgress(goal) {
+    if (!goal) return 0;
+    if (goal.manualProgress != null && goal.manualProgress !== '') {
+      const m = Number(goal.manualProgress);
+      if (!Number.isNaN(m)) return Math.max(0, Math.min(100, Math.round(m)));
+    }
+    const kids = childrenOfGoal(goal.id);
+    if (!kids.length) {
+      // اگر هنوز فرزندی نیست، completedWeight آرشیوی را نشان بده (کارهای منقضی‌شده)
+      const archived = typeof goal.completedWeight === 'number' ? goal.completedWeight : 0;
+      return Math.max(0, Math.min(100, Math.round(archived)));
+    }
+    const doneSum = kids.filter(k => k.done).reduce((s, k) => s + todoImpactPct(k), 0);
+    // completedWeight = سهم کارهای انجام‌شده‌ای که TTL خورده‌اند و از لیست رفته‌اند
+    const archived = typeof goal.completedWeight === 'number' ? goal.completedWeight : 0;
+    return Math.max(0, Math.min(100, Math.round(doneSum + archived)));
+  }
+  function sumLinkedImpact(goalId, { doneOnly = false, excludeId = null } = {}) {
+    return childrenOfGoal(goalId).reduce((s, k) => {
+      if (excludeId && k.id === excludeId) return s;
+      if (doneOnly && !k.done) return s;
+      return s + todoImpactPct(k);
+    }, 0);
+  }
+  function adjustGoalCompletedWeight(goal, delta) {
+    if (!goal) return;
+    goal.completedWeight = Math.max(0, (typeof goal.completedWeight === 'number' ? goal.completedWeight : 0) + delta);
+  }
+  // آستانه‌های فشفشه — همان منطق Void Tab (۳۰ / ۵۰ / ۷۰ / ۹۰ / ۱۰۰)
+  const GOAL_FW_MARKS = [
+    { tier: 1, up: 30 },
+    { tier: 2, up: 50 },
+    { tier: 3, up: 70 },
+    { tier: 4, up: 90 }
+  ];
+  function goalCrossedTiers(fromP, toP) {
+    fromP = Math.max(0, Math.min(100, Number(fromP) || 0));
+    toP = Math.max(0, Math.min(100, Number(toP) || 0));
+    if (toP <= fromP) return 0;
+    let highest = 0;
+    GOAL_FW_MARKS.forEach((m) => {
+      if (fromP < m.up && toP >= m.up) highest = Math.max(highest, m.tier);
+    });
+    if (fromP < 100 && toP >= 100) highest = 5;
+    return highest;
+  }
+  function ensurePanelFireworkSky() {
+    try {
+      if (!window.FireworkSky) return false;
+      if (FireworkSky._panelInited) return true;
+      let onEvent = null;
+      try {
+        if (typeof FireworkSky.createSynth === 'function') {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (AC) {
+            const ac = window.__panelFireworkAC || new AC();
+            window.__panelFireworkAC = ac;
+            const g = ac.createGain();
+            g.gain.value = 0.5;
+            g.connect(ac.destination);
+            onEvent = FireworkSky.createSynth(ac, g);
+          }
+        }
+      } catch (eSynth) {}
+      FireworkSky.init({ container: document.documentElement || document.body, zIndex: 2147483000, onEvent: onEvent });
+      FireworkSky._panelInited = true;
+      return true;
+    } catch (e) { return false; }
+  }
+  function celebrateGoalProgress(goal, fromP, toP, locusEl) {
+    const crossed = goalCrossedTiers(fromP, toP);
+    if (crossed <= 0) return;
+    try {
+      if (!window.FireworkSky || typeof FireworkSky.play !== 'function') return;
+      if (!ensurePanelFireworkSky()) return;
+      try {
+        if (window.__panelFireworkAC && window.__panelFireworkAC.state === 'suspended') {
+          window.__panelFireworkAC.resume();
+        }
+      } catch (e3) {}
+      let originX = 0.5;
+      const el = locusEl || (todoPanel && todoPanel.classList.contains('active') ? todoPanel : null);
+      if (el && el.getBoundingClientRect) {
+        const r = el.getBoundingClientRect();
+        originX = (r.left + r.width / 2) / Math.max(1, window.innerWidth);
+      }
+      // جلوگیری از تکرار فینال ۱۰۰٪
+      if (crossed === 5) {
+        if (goal && goal._fwCelebrated && fromP >= 90) return;
+        if (goal) goal._fwCelebrated = true;
+      } else if (goal && toP < 90) {
+        goal._fwCelebrated = false;
+      }
+      FireworkSky.play(crossed, { originX: originX });
+    } catch (e) {}
+  }
+  function syncGoalProgressFromChildren(goal) {
+    if (!goal) return 0;
+    // تیک کارها منبع حقیقت است — override دستی را کنار بگذار
+    goal.manualProgress = null;
+    const pct = computeGoalProgress(goal);
+    goal.progress = pct; // برای اسلایدر Void Tab
+    return pct;
+  }
+  function toggleTodoDone(task) {
+    if (!task) return;
+    let goal = null;
+    let prev = 0;
+    if (task.linkedGoalId) {
+      goal = getGoalById(task.linkedGoalId);
+      if (goal) prev = computeGoalProgress(goal);
+    }
+    task.done = !task.done;
+    if (goal) {
+      const next = syncGoalProgressFromChildren(goal);
+      // فقط وقتی تیک «زده» می‌شود (نه برداشتن تیک) جشن بگیر
+      if (task.done) {
+        const locus = document.querySelector('.ai-goal-card') || todoPanel;
+        celebrateGoalProgress(goal, prev, next, locus);
+      }
+    }
+    saveTodos();
+    renderTodos();
+  }
+  function unlinkTaskFromGoal(task, rerender = true) {
+    if (!task || !task.linkedGoalId) return;
+    // اگر کار done بود و بعداً TTL می‌خورد، سهمش را در completedWeight نگه نمی‌داریم مگر قبلاً archive شده
+    task.linkedGoalId = null;
+    // impactPct را نگه می‌داریم تا در پیوند بعدی پیش‌فرض باشد
+    if (rerender) { saveTodos(); renderTodos(); }
+  }
+  function linkTaskToGoal(task, goalId, impactPct) {
+    if (!task || !goalId) return;
+    if (task.linkedGoalId && task.linkedGoalId !== goalId) {
+      unlinkTaskFromGoal(task, false);
+    }
+    task.linkedGoalId = goalId;
+    if (impactPct != null && impactPct !== '') {
+      const n = Math.max(1, Math.min(100, Math.round(Number(impactPct) || 10)));
+      task.impactPct = n;
+    } else if (task.impactPct == null) {
+      task.impactPct = 10;
+    }
+    saveTodos();
+    renderTodos();
+  }
+  function setTaskImpactPct(task, pct) {
+    if (!task) return;
+    task.impactPct = Math.max(1, Math.min(100, Math.round(Number(pct) || 10)));
+    saveTodos();
+    renderTodos();
+  }
+  function createGoalFromText(textVal) {
+    const g = {
+      id: (typeof newLinkId === 'function' ? newLinkId('td') : ('td_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6))),
+      text: textVal,
+      done: false,
+      type: 'goal',
+      createdAt: Date.now(),
+      completedWeight: 0,
+      manualProgress: null
+    };
+    todosData.push(g);
+    return g;
+  }
+  function closeGoalPopover() {
+    if (goalPopoverEl && goalPopoverEl.parentNode) goalPopoverEl.parentNode.removeChild(goalPopoverEl);
+    goalPopoverEl = null;
+  }
+
+  /** پاپ‌اور دو مرحله‌ای: ۱) انتخاب هدف  ۲) تعیین درصد تأثیر */
+  function openGoalPopover(anchor, task) {
+    closeGoalPopover();
+    if (!task || !todoPanel) return;
+    try { if (migrateTodos()) saveTodos(); } catch (err) {}
+
+    const pop = document.createElement('div');
+    pop.className = 'ai-goal-popover';
+    pop.setAttribute('role', 'dialog');
+    pop.addEventListener('mousedown', (e) => e.stopPropagation());
+    pop.addEventListener('click', (e) => e.stopPropagation());
+
+    function mount(el) {
+      todoPanel.style.position = todoPanel.style.position || 'fixed';
+      if (!pop.parentNode) todoPanel.appendChild(pop);
+      pop.replaceChildren(el);
+      positionPop();
+    }
+    function positionPop() {
+      const a = anchor.getBoundingClientRect();
+      const p = todoPanel.getBoundingClientRect();
+      const popH = Math.min(pop.offsetHeight || 180, Math.max(120, p.height - 16));
+      const popW = pop.offsetWidth || 210;
+      let top = a.bottom - p.top + 4;
+      let left = a.left - p.left;
+      if (top + popH > p.height - 8) top = Math.max(8, a.top - p.top - popH - 4);
+      if (left + popW > p.width - 8) left = Math.max(8, p.width - popW - 8);
+      if (left < 8) left = 8;
+      if (top < 8) top = 8;
+      pop.style.top = top + 'px';
+      pop.style.left = left + 'px';
+      pop.style.maxHeight = (p.height - 16) + 'px';
+    }
+
+    function showImpactStep(goal) {
+      const wrap = document.createElement('div');
+      wrap.className = 'ai-goal-pop-step';
+
+      const title = document.createElement('div');
+      title.className = 'ai-goal-pop-title';
+      title.textContent = t('todoSetImpact') || 'Impact on this goal';
+      wrap.appendChild(title);
+
+      const goalName = document.createElement('div');
+      goalName.className = 'ai-goal-pop-goalname';
+      goalName.textContent = goal.text || '';
+      wrap.appendChild(goalName);
+
+      const current = todoImpactPct(task);
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.min = '1';
+      input.max = '100';
+      input.className = 'ai-goal-pop-impact-input';
+      input.value = String(current);
+      input.dir = 'ltr';
+
+      const suffix = document.createElement('span');
+      suffix.className = 'ai-goal-pop-impact-suffix';
+      suffix.textContent = '%';
+
+      const inputRow = document.createElement('div');
+      inputRow.className = 'ai-goal-pop-impact-row';
+      inputRow.append(input, suffix);
+      wrap.appendChild(inputRow);
+
+      const chips = document.createElement('div');
+      chips.className = 'ai-goal-pop-chips';
+      [5, 10, 15, 20, 25, 50].forEach((v) => {
+        const c = document.createElement('button');
+        c.type = 'button';
+        c.className = 'ai-goal-pop-chip' + (v === current ? ' on' : '');
+        c.textContent = v + '%';
+        c.addEventListener('click', (e) => {
+          e.stopPropagation();
+          input.value = String(v);
+          chips.querySelectorAll('.ai-goal-pop-chip').forEach(x => x.classList.remove('on'));
+          c.classList.add('on');
+        });
+        chips.appendChild(c);
+      });
+      wrap.appendChild(chips);
+
+      // هشدار اگر جمع درصدها از ۱۰۰ رد شود
+      const others = sumLinkedImpact(goal.id, { excludeId: task.id });
+      const hint = document.createElement('div');
+      hint.className = 'ai-goal-pop-hint';
+      const refreshHint = () => {
+        const mine = Math.max(1, Math.min(100, Math.round(Number(input.value) || 10)));
+        const total = others + mine;
+        hint.textContent = (t('todoImpactSumHint') || 'With other tasks: {t}% allocated')
+          .replace('{t}', String(total));
+        hint.classList.toggle('over', total > 100);
+      };
+      input.addEventListener('input', refreshHint);
+      refreshHint();
+      wrap.appendChild(hint);
+
+      const actions = document.createElement('div');
+      actions.className = 'ai-goal-pop-actions';
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.className = 'ai-goal-pop-back';
+      back.textContent = t('todoImpactBack') || 'Back';
+      back.addEventListener('click', (e) => { e.stopPropagation(); showPickStep(); });
+      const ok = document.createElement('button');
+      ok.type = 'button';
+      ok.className = 'ai-goal-pop-ok';
+      ok.textContent = t('todoImpactConfirm') || 'Link';
+      const commit = () => {
+        const pct = Math.max(1, Math.min(100, Math.round(Number(input.value) || 10)));
+        linkTaskToGoal(task, goal.id, pct);
+        closeGoalPopover();
+        try {
+          showToastNotification(
+            (t('toastTodoLinkedImpact') || 'Linked · {p}% of «{g}»')
+              .replace('{p}', String(pct))
+              .replace('{g}', goal.text || '')
+          );
+        } catch (err) {}
+      };
+      ok.addEventListener('click', (e) => { e.stopPropagation(); commit(); });
+      input.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        else if (e.key === 'Escape') { e.preventDefault(); closeGoalPopover(); }
+      });
+      actions.append(back, ok);
+      wrap.appendChild(actions);
+      mount(wrap);
+      setTimeout(() => { try { input.focus(); input.select(); } catch (err) {} }, 30);
+    }
+
+    function showPickStep() {
+      const wrap = document.createElement('div');
+      wrap.className = 'ai-goal-pop-step';
+
+      const title = document.createElement('div');
+      title.className = 'ai-goal-pop-title';
+      title.textContent = t('todoPickGoal') || 'Link to goal';
+      wrap.appendChild(title);
+
+      const goals = activeGoalsList();
+      const listWrap = document.createElement('div');
+      listWrap.className = 'ai-goal-pop-list';
+
+      if (!goals.length) {
+        const empty = document.createElement('div');
+        empty.className = 'ai-goal-pop-empty';
+        empty.textContent = t('todoNoGoals') || 'No goals yet';
+        listWrap.appendChild(empty);
+      } else {
+        goals.forEach((g) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'ai-goal-pop-item' + (task.linkedGoalId === g.id ? ' current' : '');
+          const label = document.createElement('span');
+          label.className = 'ai-goal-pop-label';
+          label.textContent = g.text || '';
+          const prog = document.createElement('span');
+          prog.className = 'ai-goal-pop-share';
+          prog.textContent = computeGoalProgress(g) + '%';
+          b.append(label, prog);
+          b.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            showImpactStep(g);
+          });
+          listWrap.appendChild(b);
+        });
+      }
+      wrap.appendChild(listWrap);
+
+      const add = document.createElement('input');
+      add.type = 'text';
+      add.className = 'ai-goal-pop-new';
+      add.placeholder = t('todoNewGoalPh') || '+ New goal';
+      add.dir = 'auto';
+      add.addEventListener('click', (e) => e.stopPropagation());
+      add.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.key === 'Enter' && add.value.trim()) {
+          e.preventDefault();
+          const g = createGoalFromText(add.value.trim());
+          showImpactStep(g);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeGoalPopover();
+        }
+      });
+      wrap.appendChild(add);
+
+      if (task.linkedGoalId) {
+        const un = document.createElement('button');
+        un.type = 'button';
+        un.className = 'ai-goal-pop-item ai-goal-pop-unlink';
+        un.textContent = t('todoUnlinkGoal') || 'Remove link';
+        un.addEventListener('click', (e) => {
+          e.stopPropagation();
+          unlinkTaskFromGoal(task);
+          closeGoalPopover();
+        });
+        wrap.appendChild(un);
+      }
+
+      mount(wrap);
+      if (!goals.length) setTimeout(() => { try { add.focus(); } catch (err) {} }, 30);
+    }
+
+    goalPopoverEl = pop;
+    showPickStep();
+
+    // اگر از قبل پیوند است و فقط می‌خواهد درصد را عوض کند → مستقیم مرحلهٔ درصد
+    if (task.linkedGoalId) {
+      const g = getGoalById(task.linkedGoalId);
+      if (g) showImpactStep(g);
+    }
+
+    setTimeout(() => {
+      const outside = (e) => {
+        if (!goalPopoverEl) {
+          document.removeEventListener('mousedown', outside, true);
+          return;
+        }
+        if (goalPopoverEl.contains(e.target) || e.target === anchor || (anchor && anchor.contains && anchor.contains(e.target))) {
+          return;
+        }
+        closeGoalPopover();
+        document.removeEventListener('mousedown', outside, true);
+      };
+      document.addEventListener('mousedown', outside, true);
+    }, 0);
+  }
+
+  function handleStarClick(e, task, starEl) {
+    e.stopPropagation();
+    e.preventDefault();
+    // همیشه پاپ‌اور را باز کن تا اهداف قبلی قابل انتخاب باشند (نه فقط ساخت هدف جدید)
+    openGoalPopover(starEl, task);
+  }
+
+
   function pruneExpiredDailyTodos() {
     const before = todosData.length;
     const now = Date.now();
-    todosData = todosData.filter(todo => !(todo.type === 'daily' && (now - (todo.createdAt || now)) >= TODO_DAILY_TTL_MS));
-    if (todosData.length !== before) { saveTodos(); return true; }
+    const kept = [];
+    let changed = false;
+    for (const todo of todosData) {
+      const expired = (todo.type || 'daily') === 'daily' && (now - (todo.createdAt || now)) >= TODO_DAILY_TTL_MS;
+      if (!expired) { kept.push(todo); continue; }
+      changed = true;
+      // کار انجام‌شدهٔ پیوندی: سهم درصدش را روی هدف آرشیو کن تا پیشرفت صفر نشود
+      if (todo.done && todo.linkedGoalId) {
+        const g = getGoalById(todo.linkedGoalId);
+        if (g) adjustGoalCompletedWeight(g, todoImpactPct(todo));
+      }
+    }
+    if (changed) {
+      todosData = kept;
+      saveTodos();
+      return true;
+    }
     return false;
   }
 
@@ -4243,7 +4718,10 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       const isGoal = (todo.type || 'daily') === 'goal';
       const li = document.createElement('li'); li.className = (isGoal ? 'ai-goal-item' : 'ai-todo-item') + (todo.done ? ' done' : '');
       const check = document.createElement('div'); check.className = (isGoal ? 'ai-goal-check' : 'ai-todo-check') + (todo.done ? ' checked' : '');
-      if (isGoal) check.innerHTML = '<span class="ai-goal-star">✨</span>';
+      if (isGoal) {
+        check.innerHTML = '<span class="ai-goal-star">★</span>';
+        check.classList.add('ai-goal-badge');
+      }
       const text = document.createElement('span'); text.className = isGoal ? 'ai-goal-text' : 'ai-todo-text'; text.textContent = String(todo.text || '');
       const chevron = document.createElement('div'); chevron.className = isGoal ? 'ai-goal-chevron' : 'ai-todo-chevron';
       chevron.innerHTML = `<svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>`;
@@ -4251,8 +4729,28 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
 
       const copyButton = document.createElement('div'); copyButton.className = isGoal ? 'ai-goal-copy' : 'ai-todo-copy'; copyButton.title = t('todoCopyTitle');
       copyButton.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
-      const editButton = document.createElement('div'); editButton.className = isGoal ? 'ai-goal-edit' : 'ai-todo-edit'; editButton.title = t('todoEditTitle');
-      editButton.innerHTML = `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"></path></svg>`;
+      // ویرایش با کلیک روی خودِ متن (بدون دکمهٔ جدا) — مینیمال‌تر و سریع‌تر
+      text.title = t('todoEditTitle');
+      text.setAttribute('role', 'button');
+      text.tabIndex = 0;
+
+      // ستارهٔ پیوند به هدف — فقط روی کارهای روزانه (orthogonal به type)
+      let starButton = null;
+      if (!isGoal) {
+        starButton = document.createElement('div');
+        starButton.className = 'ai-todo-star' + (todo.linkedGoalId ? ' on' : '');
+        starButton.textContent = todo.linkedGoalId ? '★' : '☆';
+        const linkedGoal = todo.linkedGoalId ? getGoalById(todo.linkedGoalId) : null;
+        if (todo.linkedGoalId && linkedGoal) {
+          const impact = todoImpactPct(todo);
+          starButton.title = (t('todoLinkedTo') || 'Linked to') + ': ' + (linkedGoal.text || '') + ' · ' + impact + '%';
+          starButton.setAttribute('data-share', impact + '%');
+        } else {
+          starButton.title = t('todoLinkGoal') || 'Link to a goal';
+          starButton.removeAttribute('data-share');
+        }
+        if (todo.linkedGoalId) li.classList.add('linked');
+      }
       // «انتقال به فردا/امروز» — قبلاً برای آیتم‌های فردا این دکمه اصلاً نمایش
       // داده نمی‌شد (یعنی راهی برای برگرداندنش به امروز نبود). حالا برای هر دو
       // حالت نمایش داده می‌شود و رفتار/آیکون/عنوانش بسته به وضعیتِ فعلی عوض می‌شود.
@@ -4266,7 +4764,21 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       const deleteButton = document.createElement('div'); deleteButton.className = isGoal ? 'ai-goal-del' : 'ai-todo-del'; deleteButton.title = t('todoDelTitle'); deleteButton.textContent = '✕';
 
       const rail = document.createElement('div'); rail.className = isGoal ? 'ai-goal-rail' : 'ai-todo-rail';
-      rail.append(copyButton, editButton);
+      if (starButton) rail.append(starButton);
+      // نشان درصد تأثیر — هویت بصری طلایی کنار ستاره
+      if (!isGoal && todo.linkedGoalId) {
+        const impactChip = document.createElement('button');
+        impactChip.type = 'button';
+        impactChip.className = 'ai-todo-impact';
+        impactChip.textContent = todoImpactPct(todo) + '%';
+        impactChip.title = t('todoSetImpact') || 'Set impact %';
+        impactChip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleStarClick(e, todo, impactChip);
+        });
+        rail.append(impactChip);
+      }
+      rail.append(copyButton);
       if (postponeButton) rail.append(postponeButton);
       rail.append(deleteButton);
 
@@ -4291,29 +4803,186 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
 
       if (expiry && isScheduledTomorrow) {
         li.append(check, text, expiry, chevron, rail);
+      } else if (isGoal) {
+        // ردیف هدف: سر + نوار پیشرفت + متا (فرزندان لینک‌شده)
+        const pct = computeGoalProgress(todo);
+        const kids = childrenOfGoal(todo.id);
+        const doneKids = kids.filter(k => k.done).length;
+
+        const head = document.createElement('div');
+        head.className = 'ai-goal-head';
+        head.append(check, text, chevron, rail);
+
+        const pctEl = document.createElement('button');
+        pctEl.type = 'button';
+        pctEl.className = 'ai-goal-pct' + (todo.manualProgress != null && todo.manualProgress !== '' ? ' manual' : '');
+        pctEl.textContent = pct + '%';
+        pctEl.title = t('todoGoalProgressEdit') || 'Click to set progress manually';
+        head.insertBefore(pctEl, rail);
+
+        const bar = document.createElement('div');
+        bar.className = 'ai-goal-bar';
+        const fill = document.createElement('div');
+        fill.className = 'ai-goal-bar-fill';
+        fill.style.width = pct + '%';
+        bar.appendChild(fill);
+
+        const meta = document.createElement('div');
+        meta.className = 'ai-goal-meta';
+        meta.textContent = kids.length
+          ? (t('todoGoalLinkedCount') || '{d} of {n} linked').replace('{d}', doneKids).replace('{n}', kids.length)
+          : (t('todoGoalNoLinked') || 'No linked tasks yet');
+
+        li.classList.add('ai-goal-card');
+        li.append(head, bar, meta);
+
+        if (pct >= 100 && !todo.done) {
+          const finish = document.createElement('button');
+          finish.type = 'button';
+          finish.className = 'ai-goal-finish';
+          finish.textContent = t('todoGoalMarkDone') || 'Mark as done?';
+          finish.addEventListener('click', (e) => {
+            e.stopPropagation();
+            todo.done = true;
+            saveTodos();
+            renderTodos();
+          });
+          li.appendChild(finish);
+        }
+
+        // expand children under the goal (session state)
+        if (kids.length) {
+          const toggleKids = (e) => {
+            if (e) e.stopPropagation();
+            if (expandedGoalIds.has(todo.id)) expandedGoalIds.delete(todo.id);
+            else expandedGoalIds.add(todo.id);
+            renderTodos();
+          };
+          meta.style.cursor = 'pointer';
+          meta.title = t('todoGoalToggleChildren') || 'Show linked tasks';
+          meta.addEventListener('click', toggleKids);
+          if (expandedGoalIds.has(todo.id)) {
+            const sub = document.createElement('ul');
+            sub.className = 'ai-goal-children';
+            kids.forEach((k) => {
+              const childLi = document.createElement('li');
+              childLi.className = 'ai-todo-item ai-goal-child' + (k.done ? ' done' : '') + (k.linkedGoalId ? ' linked' : '');
+              const cCheck = document.createElement('div');
+              cCheck.className = 'ai-todo-check' + (k.done ? ' checked' : '');
+              cCheck.onclick = (ev) => { ev.stopPropagation(); toggleTodoDone(k); };
+              const cText = document.createElement('span');
+              cText.className = 'ai-todo-text';
+              cText.textContent = k.text || '';
+              cText.title = t('todoEditTitle');
+              // ویرایش سریع فرزند
+              cText.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                if (childLi.classList.contains('is-editing')) return;
+                childLi.classList.add('is-editing');
+                const inp = document.createElement('input');
+                inp.type = 'text';
+                inp.className = 'ai-todo-text-input';
+                inp.value = k.text || '';
+                cText.replaceWith(inp);
+                inp.focus();
+                inp.setSelectionRange(0, inp.value.length);
+                let settled = false;
+                const commit = () => {
+                  if (settled) return; settled = true;
+                  const nt = inp.value.trim();
+                  if (nt && nt !== k.text) { k.text = nt; saveTodos(); }
+                  renderTodos();
+                };
+                inp.addEventListener('keydown', (ke) => {
+                  ke.stopPropagation();
+                  if (ke.key === 'Enter') { ke.preventDefault(); commit(); }
+                  else if (ke.key === 'Escape') { ke.preventDefault(); settled = true; renderTodos(); }
+                });
+                inp.addEventListener('blur', commit);
+              });
+              const cImpact = document.createElement('button');
+              cImpact.type = 'button';
+              cImpact.className = 'ai-todo-impact';
+              cImpact.textContent = todoImpactPct(k) + '%';
+              cImpact.title = t('todoSetImpact') || 'Set impact %';
+              cImpact.onclick = (ev) => {
+                ev.stopPropagation();
+                handleStarClick(ev, k, cImpact);
+              };
+              const cUnlink = document.createElement('div');
+              cUnlink.className = 'ai-todo-star on';
+              cUnlink.textContent = '★';
+              cUnlink.title = t('todoUnlinkGoal') || 'Remove link';
+              cUnlink.onclick = (ev) => { ev.stopPropagation(); unlinkTaskFromGoal(k); };
+              childLi.append(cCheck, cText, cImpact, cUnlink);
+              sub.appendChild(childLi);
+            });
+            li.appendChild(sub);
+          }
+        }
+
+        // ویرایش دستی درصد
+        pctEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (li.classList.contains('is-editing-pct')) return;
+          li.classList.add('is-editing-pct');
+          const inp = document.createElement('input');
+          inp.type = 'number';
+          inp.min = '0';
+          inp.max = '100';
+          inp.className = 'ai-goal-pct-input';
+          inp.value = String(pct);
+          const commit = () => {
+            const v = inp.value.trim();
+            todo.manualProgress = v === '' ? null : Math.max(0, Math.min(100, Number(v) || 0));
+            saveTodos();
+            renderTodos();
+          };
+          inp.addEventListener('keydown', (ke) => {
+            ke.stopPropagation();
+            if (ke.key === 'Enter') { ke.preventDefault(); commit(); }
+            else if (ke.key === 'Escape') { ke.preventDefault(); renderTodos(); }
+          });
+          inp.addEventListener('blur', commit);
+          pctEl.replaceWith(inp);
+          inp.focus();
+          inp.select();
+        });
       } else {
-        // Today (and goals): no chip in the flex row; TTL span omitted from layout
+        // Today (daily): no chip in the flex row; TTL span omitted from layout
         li.append(check, text, chevron, rail);
       }
 
-      check.onclick = (e) => { e.stopPropagation(); todo.done = !todo.done; saveTodos(); renderTodos(); };
+      // کار روزانه: تیک = done (+ به‌روز کردن وزن هدف در صورت پیوند)
+      // هدف: چک‌باکس فقط نشان‌دهندهٔ تزئینی است — تکمیل از طریق پیشرفت / Mark as done
+      if (!isGoal) {
+        check.onclick = (e) => { e.stopPropagation(); toggleTodoDone(todo); };
+      } else {
+        check.style.pointerEvents = 'none';
+        check.setAttribute('aria-hidden', 'true');
+        check.title = '';
+      }
+      if (starButton) {
+        starButton.onclick = (e) => handleStarClick(e, todo, starButton);
+      }
       copyButton.onclick = (e) => {
         e.stopPropagation();
         const finish = () => showToastNotification(t('toastTodoCopied'));
         if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(todo.text || '').then(finish).catch(finish); }
         else { finish(); }
       };
-      editButton.onclick = (e) => {
-        e.stopPropagation();
+      const beginInlineEdit = (e) => {
+        if (e) { e.stopPropagation(); e.preventDefault(); }
         if (li.classList.contains('is-editing')) return; // یک ادیت هم‌زمان کافیست
         li.classList.add('is-editing');
         const input = document.createElement('input');
         input.type = 'text';
         input.className = isGoal ? 'ai-goal-text-input' : 'ai-todo-text-input';
         input.value = todo.text || '';
+        input.setAttribute('aria-label', t('todoEditTitle'));
         text.replaceWith(input);
         input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
+        input.setSelectionRange(0, input.value.length); // انتخاب کل متن برای جایگزینی سریع
 
         let settled = false;
         const commit = () => {
@@ -4337,6 +5006,10 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         });
         input.addEventListener('blur', commit);
       };
+      text.addEventListener('click', beginInlineEdit);
+      text.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') { beginInlineEdit(ev); }
+      });
       if (postponeButton) {
         postponeButton.onclick = (e) => {
           e.stopPropagation();
@@ -4363,6 +5036,13 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         if (removeIdx < 0) return;
         const [deletedTodo] = todosData.splice(removeIdx, 1);
         if (!deletedTodo) return;
+        // حذف هدف → فقط unlink فرزندان (خودشان به‌عنوان کار روزانه می‌مانند)
+        if ((deletedTodo.type || 'daily') === 'goal' && deletedTodo.id) {
+          todosData.forEach((td) => {
+            if (td && td.linkedGoalId === deletedTodo.id) td.linkedGoalId = null;
+          });
+        }
+        // حذف کار لینک‌شدهٔ انجام‌شده: completedWeight دست‌نخورده می‌ماند (پیشرفت حفظ می‌شود)
         // حذفِ TODو یعنی حذفِ خودِ رویدادِ ساعتیِ لینک‌شده هم — نه فقط قطعِ لینک؛
         // چون از دیدِ کاربر این ردیفِ TODو خودِ همان رویداد است، نه چیزِ جداگانه.
         // برای اینکه Undo هم درست کار کند، رویدادهای حذف‌شده را همراهِ خودِ TODو
@@ -4398,8 +5078,8 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       if (text.scrollHeight - text.clientHeight > 2) {
         text.classList.add('truncatable');
         chevron.style.visibility = 'visible';
+        // شِورون تنها مسئول باز/بسته کردن متن بلند است؛ کلیک روی متن = ویرایش
         const toggleExpand = (e) => { e.stopPropagation(); li.classList.toggle('expanded'); };
-        text.addEventListener('click', toggleExpand);
         chevron.addEventListener('click', toggleExpand);
       }
     });
@@ -4424,7 +5104,9 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         const tmrw = new Date(); tmrw.setHours(24, 0, 0, 0); 
         createdAt = tmrw.getTime();
       }
-      todosData.push({ id: (typeof newLinkId === 'function' ? newLinkId('td') : ('td_' + Date.now().toString(36))), text, done: false, type: activeTodoTab, createdAt }); input.value = ''; saveTodos(); renderTodos();
+      const newItem = { id: (typeof newLinkId === 'function' ? newLinkId('td') : ('td_' + Date.now().toString(36))), text, done: false, type: activeTodoTab, createdAt };
+      if (activeTodoTab === 'goal') { newItem.completedWeight = 0; newItem.manualProgress = null; }
+      todosData.push(newItem); input.value = ''; saveTodos(); renderTodos();
     }
   };
   document.getElementById('ai-todo-input').addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') document.getElementById('ai-todo-add-btn').click(); });

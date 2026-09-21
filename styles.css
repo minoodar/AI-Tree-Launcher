@@ -1334,7 +1334,11 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-todo-tab.active { background: linear-gradient(135deg, #0D9488, #0F766E); color: #fff; box-shadow: 0 3px 10px rgba(13, 148, 136, 0.45); }
 #ai-todo-panel.goal-mode { border-color: rgba(251, 191, 36, 0.4); box-shadow: var(--glass-shadow), 0 0 30px rgba(251, 191, 36, 0.18); }
 #ai-todo-panel.goal-mode .ai-todo-count { background: rgba(251, 191, 36, 0.25); color: #FDE68A; }
-#ai-todo-panel.goal-mode .ai-todo-tab#ai-todo-tab-goal.active { background: linear-gradient(135deg, #D946EF, #A21CAF); box-shadow: 0 3px 12px rgba(217, 70, 239, 0.5); }
+#ai-todo-panel.goal-mode .ai-todo-tab#ai-todo-tab-goal.active { background: linear-gradient(135deg, #D4A017, #B45309); box-shadow: 0 3px 12px rgba(212, 160, 23, 0.45); color: #fff; }
+#ai-todo-panel.goal-mode .ai-todo-tabs { border-color: rgba(212, 160, 23, 0.25); }
+#ai-todo-panel.goal-mode {
+  background-image: linear-gradient(180deg, rgba(212, 160, 23, 0.10), transparent 140px);
+}
 
 .ai-todo-input-row { display: flex; gap: 8px; }
 #ai-todo-input { flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 10px 12px; border-radius: 10px; font-size: 12px; outline: none; transition: border 0.2s var(--ease-premium); font-family: inherit; }
@@ -1364,9 +1368,12 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-todo-item:hover .ai-todo-check { border-color: rgba(255,255,255,0.7); }
 .ai-todo-check.checked { background: var(--c-emerald); border-color: var(--c-emerald); }
 .ai-todo-check.checked::after { content: '✓'; color: #fff; font-size: 12px; font-weight: 900; }
-.ai-todo-text { flex: 1 1 0%; min-width: 60px; font-size: 12px; color: #fff; direction: auto; word-break: normal; overflow-wrap: break-word; transition: color 0.2s; font-weight: 500; }
+.ai-todo-text { flex: 1 1 0%; min-width: 60px; font-size: 12px; color: #fff; direction: auto; word-break: normal; overflow-wrap: break-word; transition: color 0.2s, background 0.15s ease; font-weight: 500; cursor: text; border-radius: 4px; }
 .ai-todo-item.done .ai-todo-text { text-decoration: line-through; color: rgba(255,255,255,0.6); }
-.ai-todo-text.truncatable { cursor: pointer; }
+.ai-todo-text:hover { background: rgba(255, 255, 255, 0.06); }
+.ai-todo-text:focus-visible { box-shadow: 0 0 0 1.5px rgba(129, 140, 248, 0.55); background: rgba(255, 255, 255, 0.08); outline: none; }
+.ai-todo-text.truncatable { cursor: text; }
+.ai-todo-item.is-editing .ai-todo-rail { opacity: 0.35; pointer-events: none; }
 /* Collapsed: show task text first. Expanded: readable paragraph. */
 .ai-todo-item:not(.expanded) .ai-todo-text {
   display: -webkit-box;
@@ -2918,6 +2925,22 @@ transition: font-size 0.2s var(--ease-premium);
   flex: 1 1 auto;
   font-size: 11.5px;
   line-height: 1.4;
+  cursor: text;
+  border-radius: 4px;
+  outline: none;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-todo-text:hover, .ai-goal-text:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.ai-todo-text:focus-visible, .ai-goal-text:focus-visible {
+  box-shadow: 0 0 0 1.5px rgba(129, 140, 248, 0.55);
+  background: rgba(255, 255, 255, 0.08);
+}
+.ai-todo-item.is-editing .ai-todo-rail,
+.ai-goal-item.is-editing .ai-goal-rail {
+  opacity: 0.35;
+  pointer-events: none;
 }
 .ai-todo-item:not(.expanded) .ai-todo-text,
 .ai-goal-item:not(.expanded) .ai-goal-text {
@@ -6223,3 +6246,472 @@ body.rtl .ai-note-history-menu,
   opacity: 0.5 !important;
   color: #EF4444 !important;
 }
+
+
+/* —— Goal linkage v1: star, linked row, progress card, popover —— */
+.ai-todo-star {
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, color 0.2s, transform 0.15s, text-shadow 0.2s, filter 0.2s;
+  padding: 2px 5px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  font-size: 13px;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  min-width: 22px;
+  min-height: 22px;
+}
+.ai-todo-item:hover .ai-todo-star,
+.ai-todo-item:focus-within .ai-todo-star { opacity: 0.85; }
+.ai-todo-star.on {
+  opacity: 1 !important;
+  color: #E8C872;
+  text-shadow: 0 0 6px rgba(212, 160, 23, 0.35);
+  filter: none;
+}
+.ai-todo-star:hover { color: #F0D78C; transform: scale(1.1); }
+.ai-todo-star.on:hover {
+  text-shadow: 0 0 8px rgba(212, 160, 23, 0.45);
+}
+
+/* —— هویت طلایی لطیف کار پیوندی (هم‌خانواده با glass افزونه) —— */
+.ai-todo-item.linked {
+  position: relative;
+  border: 1px solid rgba(212, 160, 23, 0.22) !important;
+  border-inline-start: 2px solid rgba(212, 160, 23, 0.55) !important;
+  background:
+    linear-gradient(90deg, rgba(212, 160, 23, 0.08), transparent 55%),
+    rgba(255, 255, 255, 0.02) !important;
+  box-shadow: inset 0 1px 0 rgba(253, 230, 138, 0.06);
+}
+.ai-todo-item.linked:hover {
+  border-color: rgba(212, 160, 23, 0.32) !important;
+  background:
+    linear-gradient(90deg, rgba(212, 160, 23, 0.11), transparent 55%),
+    rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(253, 230, 138, 0.08);
+}
+.ai-todo-item.linked .ai-todo-text {
+  color: rgba(253, 230, 138, 0.88) !important;
+  font-weight: 550;
+}
+.ai-todo-item.linked.done {
+  opacity: 0.65;
+  border-color: rgba(212, 160, 23, 0.16) !important;
+}
+.ai-todo-item.linked.done .ai-todo-text {
+  color: rgba(253, 230, 138, 0.45) !important;
+}
+.ai-todo-item.linked .ai-todo-check {
+  border-color: rgba(212, 160, 23, 0.4);
+  box-shadow: none;
+}
+.ai-todo-item.linked .ai-todo-check.checked {
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.85), rgba(180, 83, 9, 0.9)) !important;
+  border-color: rgba(212, 160, 23, 0.7) !important;
+  box-shadow: 0 0 6px rgba(212, 160, 23, 0.25);
+}
+
+/* نشان درصد — شیشه‌ای طلایی، نه زرد نئونی */
+.ai-todo-impact {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+  color: rgba(253, 230, 138, 0.92);
+  background: rgba(212, 160, 23, 0.14);
+  border: 1px solid rgba(212, 160, 23, 0.32);
+  border-radius: 7px;
+  padding: 2px 6px;
+  cursor: pointer;
+  line-height: 1.2;
+  box-shadow: none;
+  letter-spacing: 0.02em;
+}
+.ai-todo-impact:hover {
+  background: rgba(212, 160, 23, 0.22);
+  border-color: rgba(212, 160, 23, 0.45);
+  color: #FDE68A;
+}
+
+/* داشبورد کنار ساعت — همان لطافت */
+.ai-dash-todo-row.is-linked {
+  border: 1px solid rgba(212, 160, 23, 0.22);
+  border-inline-start: 2px solid rgba(212, 160, 23, 0.5);
+  background: linear-gradient(90deg, rgba(212, 160, 23, 0.08), transparent 60%);
+  box-shadow: none;
+}
+.ai-dash-todo-row.is-linked .ai-dash-todo-text {
+  color: rgba(253, 230, 138, 0.88);
+  font-weight: 550;
+}
+.ai-dash-todo-impact {
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(253, 230, 138, 0.9);
+  background: rgba(212, 160, 23, 0.14);
+  border: 1px solid rgba(212, 160, 23, 0.28);
+  border-radius: 5px;
+  padding: 1px 5px;
+  margin-inline-start: auto;
+}
+.ai-dash-todo-star {
+  color: #E8C872;
+  font-size: 11px;
+  flex-shrink: 0;
+  text-shadow: 0 0 4px rgba(212, 160, 23, 0.3);
+}
+
+.ai-goal-card {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+  padding: 10px 12px !important;
+}
+.ai-goal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+.ai-goal-head .ai-goal-text { flex: 1 1 auto; min-width: 0; }
+.ai-goal-pct {
+  flex-shrink: 0;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  color: #FDE68A;
+  border-radius: 8px;
+  padding: 2px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ai-goal-pct:hover { background: rgba(234, 179, 8, 0.28); border-color: rgba(234, 179, 8, 0.6); }
+.ai-goal-pct.manual::after { content: ' ✎'; font-size: 9px; opacity: 0.7; }
+.ai-goal-pct-input {
+  width: 52px;
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(234, 179, 8, 0.55);
+  color: #FDE68A;
+  border-radius: 8px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  outline: none;
+}
+.ai-goal-bar {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.1);
+  overflow: hidden;
+  width: 100%;
+}
+.ai-goal-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #D4A017, #FBBF24);
+  border-radius: 2px;
+  transition: width 0.35s ease;
+}
+.ai-goal-meta {
+  font-size: 10.5px;
+  color: rgba(253, 230, 138, 0.65);
+  padding-inline-start: 2px;
+}
+.ai-goal-finish {
+  align-self: flex-start;
+  margin-top: 2px;
+  font-size: 11px;
+  font-family: inherit;
+  color: #FDE68A;
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  border-radius: 10px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ai-goal-finish:hover { background: rgba(234, 179, 8, 0.25); }
+.ai-goal-children {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0 0 0 10px;
+  border-inline-start: 2px solid rgba(234, 179, 8, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ai-goal-child {
+  padding: 6px 8px !important;
+  background: rgba(0,0,0,0.2) !important;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ai-goal-child .ai-todo-star { opacity: 0.85; }
+
+.ai-goal-popover {
+  position: absolute;
+  z-index: 50;
+  min-width: 160px;
+  max-width: 220px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 6px;
+  background: rgba(20, 18, 12, 0.96);
+  border: 1px solid rgba(234, 179, 8, 0.45);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 1px rgba(234, 179, 8, 0.12);
+  backdrop-filter: blur(12px);
+}
+.ai-goal-pop-item {
+  display: block;
+  width: 100%;
+  text-align: start;
+  padding: 7px 9px;
+  background: none;
+  border: 0;
+  color: rgba(255,255,255,0.88);
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ai-goal-pop-item:hover { background: rgba(234, 179, 8, 0.15); }
+.ai-goal-pop-item.current { color: #FDE68A; font-weight: 700; }
+.ai-goal-pop-unlink { opacity: 0.75; margin-top: 2px; border-top: 1px solid rgba(255,255,255,0.08); border-radius: 0 0 6px 6px; }
+.ai-goal-pop-new {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 4px;
+  padding: 7px 9px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+}
+.ai-goal-pop-new:focus { border-color: rgba(234, 179, 8, 0.65); }
+.ai-goal-pop-empty {
+  padding: 8px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+}
+
+
+/* Goal badge: decorative only — never competes with link-star or delete */
+.ai-goal-check.ai-goal-badge,
+.ai-goal-badge {
+  cursor: default !important;
+  pointer-events: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+  background: linear-gradient(135deg, rgba(212, 160, 23, 0.35), rgba(180, 83, 9, 0.4)) !important;
+  border-color: rgba(251, 191, 36, 0.65) !important;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.25);
+  color: #FDE68A;
+}
+.ai-goal-item.done .ai-goal-badge {
+  opacity: 0.55 !important;
+  filter: grayscale(0.3) !important;
+}
+.ai-goal-head {
+  position: relative;
+  z-index: 1;
+}
+.ai-goal-head .ai-goal-text {
+  cursor: text;
+  position: relative;
+  z-index: 2;
+}
+.ai-goal-head .ai-goal-rail,
+.ai-goal-head .ai-goal-pct {
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+}
+.ai-goal-meta {
+  position: relative;
+  z-index: 1;
+  padding: 4px 2px;
+  border-radius: 6px;
+}
+.ai-goal-meta:hover {
+  background: rgba(234, 179, 8, 0.08);
+  color: rgba(253, 230, 138, 0.9);
+}
+/* Ensure daily link-star never appears styled as goal badge */
+.ai-todo-star {
+  min-width: 22px;
+  min-height: 22px;
+  justify-content: center;
+}
+
+
+/* Goal picker: existing goals first, share % visible */
+.ai-goal-pop-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(253, 230, 138, 0.7);
+  padding: 4px 8px 6px;
+}
+.ai-goal-pop-list {
+  max-height: 140px;
+  overflow-y: auto;
+  margin-bottom: 4px;
+}
+.ai-goal-pop-item {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ai-goal-pop-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: start;
+}
+.ai-goal-pop-share {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #FDE68A;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+.ai-todo-star[data-share]::after {
+  content: attr(data-share);
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  color: #FDE68A;
+  line-height: 1;
+  margin-top: 1px;
+  text-align: center;
+}
+
+
+/* Impact % chips & badge */
+/* impact badge styled in linked identity block */
+.ai-goal-pop-goalname {
+  font-size: 12px;
+  font-weight: 600;
+  color: #FDE68A;
+  padding: 0 8px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-goal-pop-impact-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px 8px;
+}
+.ai-goal-pop-impact-input {
+  width: 64px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(234, 179, 8, 0.45);
+  border-radius: 8px;
+  color: #FDE68A;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  text-align: center;
+}
+.ai-goal-pop-impact-input:focus {
+  border-color: rgba(251, 191, 36, 0.85);
+  box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.2);
+}
+.ai-goal-pop-impact-suffix {
+  font-size: 16px;
+  font-weight: 800;
+  color: #FDE68A;
+}
+.ai-goal-pop-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 0 8px 8px;
+}
+.ai-goal-pop-chip {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.ai-goal-pop-chip:hover { border-color: rgba(234, 179, 8, 0.45); color: #FDE68A; }
+.ai-goal-pop-chip.on {
+  background: rgba(234, 179, 8, 0.22);
+  border-color: rgba(234, 179, 8, 0.55);
+  color: #FDE68A;
+}
+.ai-goal-pop-hint {
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  padding: 0 8px 8px;
+}
+.ai-goal-pop-hint.over { color: #FCA5A5; }
+.ai-goal-pop-actions {
+  display: flex;
+  gap: 6px;
+  padding: 0 8px 6px;
+}
+.ai-goal-pop-back, .ai-goal-pop-ok {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  border-radius: 8px;
+  padding: 7px 0;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.ai-goal-pop-back {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.7);
+}
+.ai-goal-pop-ok {
+  background: linear-gradient(135deg, #D4A017, #B45309);
+  color: #fff;
+  border-color: rgba(234, 179, 8, 0.5);
+}
+.ai-goal-pop-ok:hover { filter: brightness(1.08); }

@@ -57,6 +57,7 @@
         "toolbar-icons.js",
         "toolbar-dock.js",
         "launcher-sound.js",
+        "firework-sky.js",
         "content.js"
       ],
       "run_at": "document_idle",
