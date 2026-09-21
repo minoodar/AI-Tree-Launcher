@@ -27,6 +27,7 @@
 AI Tree Launcher v38.33 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
 
 #### 🌟 Core Features
+* **✅ Advanced To-Do & Goal-Linked Tasks:** Major task management overhaul! Click directly on text to inline-edit titles, substitute empty toggles with Starred priority markers, separate regular tasks from Starred priority tasks, and link tasks directly to master goals with customizable percentage impact weights.
 * **🎆 Interactive Goal Fireworks & Milestones:** Dynamic fireworks celebrate your achievements! Progressing from 30% to 100% triggers scaling pyrotechnic intensities, concluding with a stunning visual celebration upon reaching 100% completion.
 * **🔎 Standardized Search & AI Engine Toggle:** Enhanced search bar supporting AI search mode for Google and Bing. Click the logo to open the homepage, or click the engine name to switch seamlessly between search providers.
 * **🎵 Dynamic Audio Engine & Zodiac Soundscapes:** Complete sound effect integration! Experience algorithmic audio responses upon expanding/collapsing the triple menus—generating unique sound variations mapped to the 12 Zodiac constellations—along with custom hover, open, and close audio effects.
@@ -64,6 +65,7 @@ As an independent AI developer based in war-torn Iran, maintaining and expanding
 AI Tree Launcher v38.33 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
 
 #### 🌟 核心功能
+* **✅ 进阶 To-Do 与目标关联任务：** 待办事项重大升级！直接点击文本即可在线编辑标题，用星标替代空白开关，轻松区分普通任务与星标重点任务，并支持将任务与总目标绑定及自定义目标贡献百分比。
 * **🎆 目标烟花与里程碑庆祝：** 动态烟花效果祝贺您的成就！当目标进度从 30% 增加到 100% 时，烟花效果呈阶梯式增强；达到 100% 时将展现最为绚丽的精彩景象。
 * **🔎 标准化搜索与 AI 模式切换：** 优化搜索栏，支持 Google 和 Bing 的 AI 搜索模式。点击 Logo 可直接打开主页，点击搜索引擎名称可无缝切换。
 * **🎵 动态音效引擎与黄道十二宫音景：** 音效全面升级！三重菜单的折叠与展开搭载了专属算法，每次触发均可生成独特的音效变体，对应黄道 12 星座；同时新增了鼠标悬停、打开及关闭 launcher 的专属音效。
@@ -74,7 +76,7 @@ AI Tree Launcher v38.33 是一款纯 **Vanilla JS**、零依赖的扩展程序�
 * **🎙️ 智能工作室和记事本：** 高级记事本，通过本地 Whisper 模型提供 **100% 离线语音输入**。无屏幕闪烁。
 * **📅 时间、任务与高级日历：** 三重日历和支持编辑的待办事项列表。
 * **🧠 统一搜索和 AI 工具：** 综合网络和书签搜索引擎、全面的提示词库和内置计算器。
-* **🕊️ 全球智慧引擎：** 每日推送来自全球精神传统的诗歌和感悟。
+* **🕊️ 全球智慧引擎：** 每日推送来自全球精神 traditions 的诗歌和感悟。
 * **🛡️ 安全与渲染优化：** 提高标签页渲染稳定性、修复已知微小 Bug、Chrome 同步、一键 JSON 备份/恢复以及隐私自动隐藏。
 * **🌍 12 种语言：** 完全本地化支持。
 
@@ -101,6 +103,7 @@ AI Tree Launcher v38.33 是一款纯 **Vanilla JS**、零依赖的扩展程序�
 AI Tree Launcher v38.33 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
 
 #### 🌟 核心功能
+* **✅ 進階 To-Do 與目標關聯任務：** 待辦事項重大升級！直接點擊文字即可線上編輯標題，用星號替代空白開關，輕鬆區分普通任務與星號重點任務，並支援將任務與總目標綁定及自訂目標貢獻百分比。
 * **🎆 目標煙花與里程碑慶祝：** 動態煙花效果祝賀您的成就！當目標進度從 30% 增加到 100% 時，煙花強度呈階梯式增強；達到 100% 時將展現最為絢麗的精彩景象。
 * **🔎 標準化搜尋與 AI 模式切換：** 優化搜尋欄，支援 Google 和 Bing 的 AI 搜尋模式。點擊 Logo 可直接開啟主頁，點擊搜尋引擎名稱可無縫切換。
 * **🎵 動態音效引擎與黃道十二宮音景：** 音效全面升級！三重選單的折疊與展開搭載了專屬演算法，每次觸發均可生成獨特的音效變體，對應黃道 12 星座；同時新增了滑鼠懸停、開啟及關閉 launcher 的專屬音效。
@@ -138,6 +141,7 @@ AI Tree Launcher v38.33 是一款純 **Vanilla JS**、零依賴的擴充功能�
 O AI Tree Launcher v38.33 é uma extensão pura em **Vanilla JS**, sem dependências, que transforma seu navegador em um ecossistema de produtividade flutuante.
 
 #### 🌟 Características Principais
+* **✅ To-Do Avançado e Tarefas Conectadas a Metas:** Grande atualização na gestão de tarefas! Edite títulos diretamente clicando no texto, substitua comutadores vazios por marcadores de prioridade com estrelas, separe tarefas comuns das prioritárias e conecte-as a metas globais definindo a porcentagem de impacto.
 * **🎆 Fogos de Artifício e Conquista de Metas:** Efeitos visuais celebrativos! Ao progredir de 30% a 100% nas metas, o efeito de fogos de artifício escala de intensidade, culminando em um espetáculo incrível ao atingir 100%.
 * **🔎 Busca Padronizada & Alternância para Modo IA:** Barra de pesquisa aprimorada com suporte a modos IA no Google e Bing. Clique no logo para abrir a página inicial ou clique no nome do motor para alternar.
 * **🎵 Motor de Áudio Dinâmico & Paisagens Sonoras do Zodíaco:** Efeitos sonoros completos! Respostas sonoras algorítmicas ao expandir/recolher os menus triplos — gerando variações únicas para as 12 constelações do Zodíaco —, além de efeitos para passar o mouse, abrir e fechar a extensão.
@@ -175,6 +179,7 @@ Como um desenvolvedor independente de IA baseado no Irã afetado pela guerra, ma
 AI Tree Launcher v38.33, tarayıcınızı yüzen bir üretkenlik ekosistemine dönüştüren, saf **Vanilla JS** ile yazılmış eklentidir.
 
 #### 🌟 Temel Özellikler
+* **✅ Gelişmiş To-Do ve Hedef Bağlantılı Görevler:** Görev yönetiminde büyük yenilik! Metne tıklayarak doğrudan başlık düzenleyin, boş anahtarlar yerine yıldızlı öncelik işaretçileri kullanın, sıradan görevleri yıldızlı görevlerden ayırın ve görevleri genel hedeflere bağlayarak etki yüzdesini belirleyin.
 * **🎆 Havai Fişekli Hedef Kutlamaları:** Başarılarınızı kutlayan dinamik havai fişek efektleri! %30'dan %100'e giden hedef ilerlemelerinde yoğunluğu artan efektler, %100'e ulaşıldığında muhteşem bir görsel şölene dönüşür.
 * **🔎 Standartlaştırılmış Arama ve Yapay Zeka Modu:** Google ve Bing için AI arama desteği sunan gelişmiş arama çubuğu. Logoya tıklayarak ana sayfayı açabilir, arama motoru adına tıklayarak motorlar arasında geçiş yapabilirsiniz.
 * **🎵 Dinamik Ses Motoru ve Zodyak Ses Temaları:** Ses efektleri tamamen tamamlandı! Üçlü menülerin her açılıp kapanışında 12 Zodyak takımyıldızını temsil eden özel algoritmik sesler oluşturulur; ayrıca fare ile üzerine gelme (hover), eklentiyi açma ve kapatma için yeni ses efektleri eklendi.
@@ -212,6 +217,7 @@ Savaşın yıktığı İran'da yaşayan bağımsız bir yapay zeka geliştiricis
 AI Tree Launcher v38.33 es una extensión pura en **Vanilla JS**, sin dependencias.
 
 #### 🌟 Características Principales
+* **✅ To-Do Avanzado y Tareas Vinculadas a Objetivos:** Gran optimización de tareas! Edita títulos haciendo clic en el texto, reemplaza interruptores vacíos con marcas de estrellas prioritarias, separa tareas comunes de las destacadas y conéctalas con tus objetivos generales definiendo su porcentaje de impacto.
 * **🎆 Fuegos Artificiales y Celebración de Objetivos:** ¡Efectos pirotécnicos para celebrar tus logros! A medida que el progreso escala del 30% al 100%, la intensidad de los fuegos aumenta, ofreciendo un espectáculo increíble al alcanzar el 100%.
 * **🔎 Búsqueda Estandarizada y Modo IA:** Barra de búsqueda mejorada con soporte para búsquedas de IA en Google y Bing. Haz clic en el logo para ir a la página principal o en el nombre del motor para cambiar.
 * **🎵 Motor de Audio Dinámico y Paisajes Sonoros del Zodiaco:** ¡Efectos de sonido completados! Respuesta sonora algorítmica al desplegar/colapsar los tres menús que genera variaciones únicas asignadas a las 12 constelaciones del Zodiaco, además de efectos al pasar el cursor (hover), abrir y cerrar.
@@ -249,6 +255,7 @@ Como desarrollador independiente de IA radicado en un Irán afectado por la guer
 AI Tree Launcher v38.33 ist eine reines **Vanilla JS** Extension ohne externe Abhängigkeiten.
 
 #### 🌟 Hauptmerkmale
+* **✅ Erweitertes To-Do & Ziel-verknüpfte Aufgaben:** Grundlegende Aufgabenverwaltung-Optimierung! Bearbeiten Sie Titel direkt per Klick auf den Text, ersetzen Sie leere Schalter durch Sternchen-Prioritäten, trennen Sie gewöhnliche Aufgaben von Sternchen-Aufgaben und verknüpfen Sie diese mit Gesamtzielen inkl. Einfluss-Prozentsatz.
 * **🎆 Ziel-Feuerwerk & Erfolgsmilensteine:** Dynamische Feuerwerkseffekte feiern Ihre Erfolge! Beim Erreichen von 30 % bis 100 % Fortschritt skaliert die Intensität des Feuerwerks bis hin zu einer spektakulären Feier bei 100 %.
 * **🔎 Standardisierte Suche & KI-Modus-Umschaltung:** Verbesserte Suchleiste mit Unterstützung für KI-Suche auf Google und Bing. Klicken Sie auf das Logo für die Startseite oder auf den Namen zum Wechseln des Suchanbieters.
 * **🎵 Dynamische Sound-Engine & Tierkreis-Klangwelten:** Vollständige Integration von Soundeffekten! Algorithmitische Audio-Reaktionen beim Auf- und Zuklappen der dreifachen Menüs mit einzigartigen Soundvariationen passend zu den 12 Tierkreiszeichen sowie spezielle Effekte für Hover, Öffnen und Schließen.
@@ -286,6 +293,7 @@ Als unabhängiger KI-Entwickler hilft Ihr Beitrag, das Projekt am Leben zu erhal
 AI Tree Launcher v38.33 est une extension pure en **Vanilla JS**, sans dépendances.
 
 #### 🌟 Fonctionnalités Clés
+* **✅ To-Do Avancé & Tâches Liées aux Objectifs :** Optimisation majeure des tâches ! Éditez directement les titres en cliquant sur le texte, remplacez les boutons vides par des étoiles de priorité, séparez les tâches ordinaires des tâches étoilées et liez-les aux objectifs globaux avec un pourcentage d'impact.
 * **🎆 Feux d'Artifice & Célébration des Objectifs :** Effets pyrotechniques dynamiques pour fêter vos réussites ! Entre 30% et 100% de progression, l'intensité des feux d'artifice augmente pour offrir un spectacle visuel magnifique à 100%.
 * **🔎 Recherche Standardisée & Mode IA :** Barre de recherche améliorée prenant en charge la recherche IA pour Google et Bing. Cliquez sur le logo pour la page d'accueil ou sur le nom pour changer de moteur.
 * **🎵 Moteur Audio Dynamique & Ambiance du Zodiaque :** Effets sonores complets ! Une réponse audio algorithmique lors du dépliage/repliage des trois menus génère des variations uniques associées aux 12 constellations du Zodiaque, complétée par des effets sonores lors du survol (hover), de l'ouverture et de la fermeture.
@@ -323,6 +331,7 @@ En tant que développeur IA indépendant basé en Iran, le maintien de ce projet
 AI Tree Launcher v38.33 は、ピュアな **Vanilla JS** で構築された外部依存性のない拡張機能です。
 
 #### 🌟 主な機能
+* **✅ 高度なTo-Do＆目標連動タスク:** タスク管理の大幅アップデート！テキストを直接クリックしてインライン編集、空のトグルを星マークで優先度表示、通常タスクと星付き重要タスクを分離し、全体目標に接続して貢献度（%）を設定可能。
 * **🎆 目標達成の花火演出＆マイルストーン:** 目標の達成状況に応じた動的な花火エフェクト！進捗が30%から100%に達するにつれて花火の演出が段階的に豪華になり、100%達成時には最も美しいお祝い演出が表示されます。
 * **🔎 標準化された検索＆AIモード切替:** GoogleおよびBingのAI検索をサポートする高度な検索バー。ロゴをクリックするとホームが開き、検索エンジン名をクリックすると簡単に切り替え可能です。
 * **🎵 ダイナミック・オーディオエンジン＆黄道十二星座のサウンド:** 効果音が完全実装されました！3つのメニューを折りたたむ/展開するたびに、黄道12星座に対応した独自のアルゴリズムサウンドが生成されます。さらに、ホバー（マウスオーバー）、拡張機能の起動および終了時の効果音も追加されました。
@@ -360,6 +369,7 @@ AI Tree Launcher v38.33 は、ピュアな **Vanilla JS** で構築された外�
 AI Tree Launcher v38.33 — это расширение на чистом **Vanilla JS** без внешних зависимостей.
 
 #### 🌟 Ключевые особенности
+* **✅ Продвинутый To-Do и задачи с привязкой к целям:** Масштабное обновление задач! Редактируйте названия кликом по тексту, заменяйте пустые переключатели звездочками приоритета, разделяйте обычные и важные задачи и привязывайте их к общим целям с указанием процента влияния.
 * **🎆 Фейерверки и празднование целей:** Динамические фейерверки в честь ваших достижений! По мере продвижения цели от 30% до 100% интенсивность салюта увеличивается, завершаясь невероятным шоу при 100% выполнении.
 * **🔎 Стандартизированный поиск и переключение AI:** Улучшенная поисковая строка с поддержкой ИИ-поиска в Google и Bing. Клик по логотипу открывает главную страницу, а клик по названию переключает поисковик.
 * **🎵 Динамический звуковой движок и звуки Знаков Зодиака:** Звуковые эффекты полностью завершены! Алгоритмический звуковой отклик при сворачивании и разворачивании трех меню каждый раз создает уникальные вариации звука, соответствующие 12 созвездиям Зодиака, а также добавлена озвучка наведения (hover), открытия и закрытия расширения.
@@ -389,6 +399,7 @@ AI Tree Launcher v38.33 — это расширение на чистом **Vani
 AI Tree Launcher الإصدار v38.33 هو إضافة مبنية بالكامل بلغة **Vanilla JS** بدون أي مكتبات خارجية.
 
 #### 🌟 أبرز الميزات الأساسية
+* **✅ قائمة مهام متقدمة ومرتبطة بالأهداف:** تحديث جذري لإدارة المهام! تعديل العناوين مباشرة بالنقر على النص، استبدال المفاتيح الفارغة بنجوم الأولوية، فصل المهام العادية عن الممتازة بنجمة، وربط المهام بالأهداف الكلية مع تحديد نسبة التأثير.
 * **🎆 ألعاب نارية واحتفال بتحقيق الأهداف:** مؤثرات بصريات نارية احتفالية بإنجازاتك! عند التقدم في الأهداف من 30% إلى 100%، تزداد كثافة الألعاب النارية تدريجيًا لتصل إلى أجمل مشهد عند اكتمال الهدف 100%.
 * **🔎 شريط بحث قياسي والتبديل إلى بحث الـ AI:** شريط بحث متطور يدعم البحث بالذكاء الاصطناعي لمُحركي Google و Bing. الضغط على الشعار يفتح الصفحة الرئيسية، والضغط على اسم المحرك يتيح التبديل السلس بينهما.
 * **🎵 محرك صوتي ديناميكي وأصوات الأبراج الفلكية:** تم إكمال المؤثرات الصوتية بالكامل! استجابة صوتية خوارزمية عند فتح وإغلاق القوائم الثلاثية تُولد نغمات فريدة تُحاكي 12 برجًا فلكيًا في كل مرة، بالإضافة إلى مؤثرات صوتية جديدة عند تحريك الماوس (Hover)، وعند فتح الإضافة وإغلاقها.
@@ -423,11 +434,12 @@ AI Tree Launcher الإصدار v38.33 هو إضافة مبنية بالكامل
 <div dir="rtl">
 
 ### 🚀 پیشرفته‌ترین فضای کاری مداری
-*«تب Void اکنون کامل و پایدار است! از جشن آتش‌بازی رسیدن به اهداف، سن‌شمار هوشمند اعضای خانواده، نوار جستجوی استاندارد با قابلیت AI و «پژواک امروز» لذت ببرید.»*
+*«تب Void اکنون کامل و پایدار است! از جشن آتش‌بازی رسیدن به اهداف، مدیریت پیشرفته To-Do مرتبط با اهداف، سن‌شمار هوشمند اعضای خانواده و «پژواک امروز» لذت ببرید.»*
 
 AI Tree Launcher نسخه v38.33 یک افزونه مبتنی بر **Vanilla JS** بدون هیچ وابستگی خارجی است که مرورگر شما را به یک زیست‌بوم بهره‌وری شناور تبدیل می‌کند.
 
 #### 🌟 ویژگی‌های کلیدی
+* **✅ مدیریت پیشرفته To-Do و اتصال به اهداف کلی:** بهینه‌سازی اساسی بخش مدیریت وظایف! امکان ویرایش عناوین تنها با کلیک مستقیم روی متن، پر کردن جای خالی تاگل‌ها با نشانگرهای ستاره‌دار، تفکیک کارهای معمولی از کارهای ستاره‌دار با اولویت بالا، و امکان اتصال مستقیم هر کار به اهداف کلی (Void Tab Goals) همراه با تعیین دقیق درصد تاثیر بر پیشرفت هدف.
 * **🎆 جشن آتش‌بازی و فشفشه‌افشانی اهداف:** سیستم بصری هیجان‌انگیز برای جشن گرفتن دستاوردها! با پیشرفت اهداف از ۳۰٪ تا ۱۰۰٪، درجه و شدّت فشفشه‌افشانی به‌صورت الگوریتمی تغییر کرده و در صورت رسیدن به ۱۰۰٪ کامل، زیباترین صحنه و افکت آتش‌بازی به نمایش درمی‌آید.
 * **🔎 نوار جستجوی استاندارد و تعویض آسان AI:** ارتقای نوار جستجو به استانداردهای مدرن با پشتیبانی از جستجوی هوش مصنوعی (AI) برای Google و Bing. کلیک روی لوگوی هر موتور، صفحه اصلی آن را باز می‌کند و کلیک روی نام موتور جستجو امکان تعویض و سوییچ سریع را فراهم می‌سازد.
 * **🎵 موتور صوتی پویا و آواهای ۱۲ صورت فلکی (Zodiac Soundscapes):** افکت‌های صوتی افزونه کاملاً تکمیل شد! تجربه پاسخ‌های صوتی الگوریتمی هنگام باز و بسته‌شدن (Collapse) منوهای سه‌گانه که با یک الگوریتم خاص در جزئیات، بازسازی صوتی ۱۲ صورت فلکی زودیاک را شکل می‌دهند. همچنین افکت‌های صوتی جدید برای عبور موس (Hover)، باز کردن و بستن خود افزونه اضافه گردید.
