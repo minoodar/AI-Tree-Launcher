@@ -2,7 +2,7 @@
   'use strict';
   if (global.AITreeMemoryEngine) return;
   const MEMORY_RETENTION_MS = 365 * 24 * 60 * 60 * 1000;
-  const MEMORY_WARM_LIMIT = 50;
+  const MEMORY_WARM_LIMIT = 120;
   const DB_NAME = 'aiTreeMemory';
   const DB_VERSION = 1;
   const STORE_ARCHIVE = 'archive';
@@ -42,14 +42,24 @@
       });
     });
   }
+  // All read-modify-write cycles on WARM_KEY are chained. Without this, a batch
+  // of archives (e.g. several tasks expiring in one prune) fires concurrent
+  // get/set pairs and only the last write survives.
+  let warmQueue = Promise.resolve();
   function pushWarm(record) {
     try {
       if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) return;
-      chrome.storage.local.get([WARM_KEY], function (res) {
-        var list = Array.isArray(res[WARM_KEY]) ? res[WARM_KEY] : [];
-        list = [record].concat(list.filter(function (r) { return r && r.id !== record.id; })).slice(0, MEMORY_WARM_LIMIT);
-        chrome.storage.local.set({ aiTreeMemoryWarm: list });
-      });
+      warmQueue = warmQueue.then(function () {
+        return new Promise(function (resolve) {
+          try {
+            chrome.storage.local.get([WARM_KEY], function (res) {
+              var list = Array.isArray(res && res[WARM_KEY]) ? res[WARM_KEY] : [];
+              list = [record].concat(list.filter(function (r) { return r && r.id !== record.id; })).slice(0, MEMORY_WARM_LIMIT);
+              chrome.storage.local.set({ aiTreeMemoryWarm: list }, function () { resolve(); });
+            });
+          } catch (e) { resolve(); }
+        });
+      }).catch(function () {});
     } catch (e) {}
   }
   function archive(partial) {
@@ -66,21 +76,39 @@
       tags: Array.isArray(partial.tags) ? partial.tags.slice(0, 12) : [],
       importance: partial.importance == null ? null : partial.importance,
       pinned: !!partial.pinned,
-      occurrenceCount: typeof partial.occurrenceCount === 'number' ? partial.occurrenceCount : 1
+      occurrenceCount: typeof partial.occurrenceCount === 'number' ? partial.occurrenceCount : 1,
+      // goal context (Echo): commitments vs. everything else
+      linkedGoalId: partial.linkedGoalId || null,
+      goalTitleSnapshot: partial.goalTitleSnapshot ? String(partial.goalTitleSnapshot).slice(0, 200) : null,
+      impactPct: typeof partial.impactPct === 'number' ? partial.impactPct : null,
+      // signed change; only used by sourceType 'goalProgress'
+      delta: typeof partial.delta === 'number' ? partial.delta : null
     };
     pushWarm(record);
     return idbPut(STORE_ARCHIVE, record).then(function () { return record; }).catch(function () { return null; });
   }
-  function archiveTodo(todo, resolution) {
+  // ctx (optional): { goalTitle } snapshot of the linked goal's text.
+  // Resolutions written by callers: completed | deleted | expired | reopened | restored.
+  // 'expired' on a goal-linked task becomes 'expired-linked'. Ids are
+  // deterministic per todo so archival is idempotent: re-ticking overwrites,
+  // and 'reopened'/'restored' overwrite the earlier record with one the Echo ignores.
+  function archiveTodo(todo, resolution, ctx) {
     if (!todo) return Promise.resolve(null);
     var text = String(todo.text || '').trim();
     if (!text) return Promise.resolve(null);
     var created = typeof todo.createdAt === 'number' ? todo.createdAt : (Date.parse(todo.createdAt) || Date.now());
+    var res = resolution || (todo.done ? 'completed' : 'deleted');
+    if (res === 'expired' && todo.linkedGoalId) res = 'expired-linked';
+    var idSuffix = (res === 'completed' || res === 'reopened') ? 'done' : 'end';
     return archive({
+      id: todo.id ? ('todo_' + todo.id + '_' + idSuffix) : undefined,
       sourceType: 'todo', sourceId: todo.id || null, title: text, createdAt: created,
-      resolvedAt: Date.now(), resolution: resolution || (todo.done ? 'completed' : 'deleted'),
+      resolvedAt: Date.now(), resolution: res,
       type: (todo.type === 'goal') ? 'goal' : 'daily',
-      tags: Array.isArray(todo.tags) ? todo.tags : [], pinned: !!todo.pinned, occurrenceCount: 1
+      tags: Array.isArray(todo.tags) ? todo.tags : [], pinned: !!todo.pinned, occurrenceCount: 1,
+      linkedGoalId: todo.linkedGoalId || null,
+      goalTitleSnapshot: (ctx && ctx.goalTitle) ? ctx.goalTitle : null,
+      impactPct: typeof todo.impactPct === 'number' ? todo.impactPct : null
     });
   }
   function archiveEvent(evt, resolution) {
@@ -107,12 +135,27 @@
       type: mark.golden ? 'recurring' : 'daily', tags: [], pinned: !!mark.golden, occurrenceCount: 1
     });
   }
+  // Manual goal-progress change (slider release / typed %). Pass the signed
+  // delta (after - before), never the absolute value.
+  function archiveGoalProgress(goal, delta) {
+    if (!goal || !goal.id) return Promise.resolve(null);
+    var text = String(goal.text || '').trim();
+    if (!text) return Promise.resolve(null);
+    var d = Math.round(Number(delta) || 0);
+    if (d === 0) return Promise.resolve(null);
+    return archive({
+      sourceType: 'goalProgress', sourceId: goal.id, title: text,
+      resolvedAt: Date.now(), resolution: 'progress-moved',
+      type: d > 0 ? 'gain' : 'loss', delta: d
+    });
+  }
   global.AITreeMemoryEngine = {
     MEMORY_RETENTION_MS: MEMORY_RETENTION_MS,
     archive: archive,
     archiveTodo: archiveTodo,
     archiveEvent: archiveEvent,
     archiveMarkedDay: archiveMarkedDay,
+    archiveGoalProgress: archiveGoalProgress,
     runRetention: function () { return Promise.resolve(); },
     getWarmCache: function () {
       return new Promise(function (resolve) {

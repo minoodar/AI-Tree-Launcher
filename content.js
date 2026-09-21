@@ -2783,6 +2783,7 @@ function buildDashEventCard(evt) {
         if (typeof toggleTodoDone === 'function') toggleTodoDone(todo);
         else {
           todo.done = !todo.done;
+          try { memoryOnTodoToggle(todo); } catch (err) {}
           saveTodos();
         }
         renderDashTodoSummary();
@@ -4028,6 +4029,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         celebrateGoalProgress(goal, prev, next, locus);
       }
     }
+    memoryOnTodoToggle(task);
     saveTodos();
     renderTodos();
   }
@@ -4319,27 +4321,80 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   }
 
 
+  // ── Echo / Memory: goal-linked commitment tracking ────────────────────────
+  // Only active when the memory engine understands goal context (it exposes
+  // archiveGoalProgress). With an older engine every path below falls back to
+  // the previous behaviour exactly, so this file is safe to ship first.
+  function memoryGoalAware() {
+    return typeof AITreeMemoryEngine !== 'undefined' &&
+           typeof AITreeMemoryEngine.archiveGoalProgress === 'function';
+  }
+  // A TODO that is just the automatic mirror of an hourly event. The event
+  // archives itself, so the mirror must never be archived (double counting).
+  function isEventMirrorTodo(todo) {
+    return !!(todo && todo.id && Array.isArray(timeEventsData) &&
+              timeEventsData.some((e) => e && e.linkedTodoId === todo.id));
+  }
+  function memoryGoalCtx(todo) {
+    const goal = todo && todo.linkedGoalId ? getGoalById(todo.linkedGoalId) : null;
+    return { goalTitle: goal ? goal.text : null };
+  }
+  // Called right after task.done flips. 'completed' is archived at tick time
+  // (so a task done on Monday is Monday's win even if it expires on Tuesday).
+  // Archive ids are deterministic, so re-ticking overwrites instead of
+  // duplicating, and un-ticking overwrites the record as 'reopened' (ignored
+  // by the Echo). todo.memArchived remembers that the completion is on file.
+  function memoryOnTodoToggle(todo) {
+    if (!todo || !memoryGoalAware()) return;
+    if ((todo.type || 'daily') !== 'daily' || isEventMirrorTodo(todo)) return;
+    try {
+      if (todo.done) {
+        AITreeMemoryEngine.archiveTodo(todo, 'completed', memoryGoalCtx(todo));
+        todo.memArchived = true;
+      } else if (todo.memArchived) {
+        AITreeMemoryEngine.archiveTodo(todo, 'reopened');
+        todo.memArchived = false;
+      }
+    } catch (e) {}
+  }
+  function memoryOnTodoRestored(item) {
+    if (!item || !memoryGoalAware()) return;
+    if ((item.type || 'daily') !== 'daily' || item.done || isEventMirrorTodo(item)) return;
+    try { AITreeMemoryEngine.archiveTodo(item, 'restored'); } catch (e) {}
+  }
+
   function pruneExpiredDailyTodos() {
-    const before = todosData.length;
     const now = Date.now();
     const kept = [];
-    let changed = false;
+    const dropped = [];
     for (const todo of todosData) {
       const expired = (todo.type || 'daily') === 'daily' && (now - (todo.createdAt || now)) >= TODO_DAILY_TTL_MS;
       if (!expired) { kept.push(todo); continue; }
-      changed = true;
+      dropped.push(todo);
       // کار انجام‌شدهٔ پیوندی: سهم درصدش را روی هدف آرشیو کن تا پیشرفت صفر نشود
       if (todo.done && todo.linkedGoalId) {
         const g = getGoalById(todo.linkedGoalId);
         if (g) adjustGoalCompletedWeight(g, todoImpactPct(todo));
       }
     }
-    if (changed) {
-      todosData = kept;
-      saveTodos();
-      return true;
+    if (!dropped.length) return false;
+
+    // Silent expiry used to leave no trace. Uncompleted tasks are now archived
+    // as 'expired' (the engine turns linked ones into 'expired-linked').
+    // Completed tasks are skipped: their completion was archived at tick time.
+    // Event-mirror TODOs are skipped: the event itself is archived elsewhere.
+    if (memoryGoalAware()) {
+      dropped.forEach((todo) => {
+        try {
+          if (todo.done || isEventMirrorTodo(todo)) return;
+          AITreeMemoryEngine.archiveTodo(todo, 'expired', memoryGoalCtx(todo));
+        } catch (e) {}
+      });
     }
-    return false;
+
+    todosData = kept;
+    saveTodos();
+    return true;
   }
 
   function setAddForTomorrow(val) {
@@ -4933,10 +4988,17 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
           inp.className = 'ai-goal-pct-input';
           inp.value = String(pct);
           const commit = () => {
+            const before = computeGoalProgress(todo);
             const v = inp.value.trim();
             todo.manualProgress = v === '' ? null : Math.max(0, Math.min(100, Number(v) || 0));
+            const after = computeGoalProgress(todo);
             saveTodos();
             renderTodos();
+            // One signed-delta record per real change (Enter + blur can both
+            // fire; the second call sees before === after and is a no-op).
+            if (after !== before && memoryGoalAware()) {
+              try { AITreeMemoryEngine.archiveGoalProgress(todo, after - before); } catch (err) {}
+            }
           };
           inp.addEventListener('keydown', (ke) => {
             ke.stopPropagation();
@@ -5063,8 +5125,15 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
               // خودِ رویداد(ها) آرشیو می‌شود، نه این TODوی خودکارِ آینه‌ای — تا در
               // Today's Echo یک چیزِ واحد دوبار شمرده نشود.
               removedLinkedEvents.forEach((evt) => AITreeMemoryEngine.archiveEvent(evt, 'deleted'));
+            } else if (memoryGoalAware() && deletedTodo.done && deletedTodo.memArchived) {
+              // completion already archived at tick time — don't re-archive it
+              // with today's timestamp
             } else {
-              AITreeMemoryEngine.archiveTodo(deletedTodo, deletedTodo.done ? 'completed' : 'deleted');
+              AITreeMemoryEngine.archiveTodo(
+                deletedTodo,
+                deletedTodo.done ? 'completed' : 'deleted',
+                memoryGoalCtx(deletedTodo)
+              );
             }
           } catch (e) {}
         }
@@ -6253,6 +6322,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
             const insertAt = Math.min(index ?? todosData.length, todosData.length);
             todosData.splice(insertAt, 0, item);
             saveTodos();
+            if (!(Array.isArray(linkedEvents) && linkedEvents.length)) memoryOnTodoRestored(item);
             if (Array.isArray(linkedEvents) && linkedEvents.length) {
               timeEventsData = timeEventsData.concat(linkedEvents);
               try { saveTimeEvents(); refreshDashUI(); if (dayEventSheetOpenIso) renderMarkEventDailyList(dayEventSheetOpenIso); } catch (err) {}

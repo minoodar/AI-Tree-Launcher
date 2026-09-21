@@ -888,6 +888,44 @@
     } catch (err) {}
   }
 
+  // ── Echo / Memory: goal-linked commitment tracking (mirrors content.js) ──
+  // Active only when the memory engine understands goal context; otherwise
+  // every hook below is a no-op and behaviour is unchanged.
+  function memoryGoalAware() {
+    return typeof AITreeMemoryEngine !== 'undefined' &&
+           typeof AITreeMemoryEngine.archiveGoalProgress === 'function';
+  }
+  // Automatic mirror of an hourly event — the event archives itself.
+  function isEventMirrorTodo(todo) {
+    return !!(todo && todo.id && Array.isArray(timeEvents) &&
+              timeEvents.some(function (e) { return e && e.linkedTodoId === todo.id; }));
+  }
+  function memoryGoalCtx(todo) {
+    var goal = null;
+    if (todo && todo.linkedGoalId) {
+      goal = (todos || []).find(function (td) {
+        return td && td.id === todo.linkedGoalId && (td.type || 'daily') === 'goal';
+      }) || null;
+    }
+    return { goalTitle: goal ? goal.text : null };
+  }
+  // 'completed' is archived at tick time with deterministic ids, so re-ticking
+  // never duplicates and un-ticking retracts it ('reopened' is ignored by the
+  // Echo). todo.memArchived remembers that the completion is on file.
+  function memoryOnTodoToggle(todo) {
+    if (!todo || !todo.id || !memoryGoalAware()) return;
+    if ((todo.type || 'daily') !== 'daily' || isEventMirrorTodo(todo)) return;
+    try {
+      if (todo.done) {
+        AITreeMemoryEngine.archiveTodo(todo, 'completed', memoryGoalCtx(todo));
+        todo.memArchived = true;
+      } else if (todo.memArchived) {
+        AITreeMemoryEngine.archiveTodo(todo, 'reopened');
+        todo.memArchived = false;
+      }
+    } catch (err) {}
+  }
+
   function buildTodoRow(todo, opts) {
     opts = opts || {};
     const isTomorrow = !!opts.isTomorrow;
@@ -956,6 +994,7 @@
           }
         }
       }
+      memoryOnTodoToggle(todo);
       persistTodos();
       renderTodos();
     });
@@ -1025,11 +1064,17 @@
     function commit(val) {
       const prev = goalProgress(todo);
       const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0)));
+      const memDelta = v - prev;
       todo.progress = v;
       todo.manualProgress = v; // اسلایدر = override دستی تا تیک بعدی کار پیوندی
       todo.done = v >= 100;
       applyVisual(v);
       persistTodos();
+      // One signed-delta record per slider release (the `input` handler stays
+      // visual-only, so this fires once per drag).
+      if (memDelta !== 0 && memoryGoalAware()) {
+        try { AITreeMemoryEngine.archiveGoalProgress(todo, memDelta); } catch (err) {}
+      }
       // Fireworks only on upward threshold cross at release
       const crossed = goalCrossedTiers(prev, v);
       if (crossed > 0) {

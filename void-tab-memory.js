@@ -28,21 +28,67 @@
   }
   function startOfToday() { const d = new Date(); d.setHours(0,0,0,0); return d.getTime(); }
   function startOfMonth() { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d.getTime(); }
+  /**
+   * Echo v2 summariser. Dispatches on sourceType first so goal-progress records
+   * never leak into the legacy counters, and splits todo activity into
+   * "commitments" (linked to a goal) and everything else.
+   *
+   *   Kept    = linked task, resolution 'completed'
+   *   Missed  = linked task, resolution 'expired-linked'
+   *   Dropped = linked task deleted before it expired (neutral: shown, but not
+   *             part of the follow-through ratio)
+   *
+   * Attribution day = resolvedAt (when it happened), not createdAt.
+   * 'reopened' / 'restored' are retraction markers written by the todo
+   * handlers (un-tick / undo-delete) and are ignored.
+   */
   function summarizeToday(rows) {
     const start = startOfToday(), now = Date.now();
-    const counts = { completed: 0, deleted: 0, eventsDeleted: 0, eventsCompleted: 0, total: 0 };
+    const c = {
+      committedKept: 0, committedMissed: 0, committedDropped: 0,
+      keptItems: [], missedItems: [],
+      progressDelta: 0, progressCount: 0,
+      standardDone: 0, standardExpired: 0, standardCleared: 0,
+      eventsDone: 0, eventsDeleted: 0,
+      visible: 0
+    };
+    const tag = (r) => r.goalTitleSnapshot ? (r.title + ' \u2190 ' + r.goalTitleSnapshot) : String(r.title || '');
     (rows || []).forEach((r) => {
       if (!r || typeof r.resolvedAt !== 'number') return;
       if (r.resolvedAt < start || r.resolvedAt > now) return;
-      counts.total += 1;
-      if (r.resolution === 'completed') counts.completed += 1;
-      if (r.resolution === 'deleted' || r.resolution === 'expired') counts.deleted += 1;
-      if (r.sourceType === 'event') {
-        if (r.resolution === 'completed') counts.eventsCompleted += 1;
-        else counts.eventsDeleted += 1;
+      if (r.resolution === 'reopened' || r.resolution === 'restored') return;
+      const src = r.sourceType || 'todo';
+
+      if (src === 'goalProgress') {
+        if (r.resolution !== 'progress-moved') return;
+        c.progressDelta += (typeof r.delta === 'number' ? r.delta : 0);
+        c.progressCount += 1;
+        return;
+      }
+      if (src === 'event') {
+        if (r.resolution === 'completed') c.eventsDone += 1; else c.eventsDeleted += 1;
+        c.visible += 1;
+        return;
+      }
+      if (src === 'markedDay') { c.standardCleared += 1; c.visible += 1; return; }
+      if (src !== 'todo') return;
+      // A whole goal being deleted is a different signal; its linked children
+      // are archived on their own.
+      if (r.type === 'goal') return;
+
+      if (r.linkedGoalId) {
+        if (r.resolution === 'completed') { c.committedKept += 1; c.keptItems.push(tag(r)); }
+        else if (r.resolution === 'expired-linked' || r.resolution === 'expired') { c.committedMissed += 1; c.missedItems.push(tag(r)); }
+        else c.committedDropped += 1;
+        c.visible += 1;
+      } else {
+        if (r.resolution === 'completed') c.standardDone += 1;
+        else if (r.resolution === 'expired') c.standardExpired += 1;
+        else c.standardCleared += 1;
+        c.visible += 1;
       }
     });
-    return counts;
+    return c;
   }
   function summarizeMonth(rows) {
     const start = startOfMonth(), now = Date.now();
@@ -50,6 +96,8 @@
     (rows || []).forEach((r) => {
       if (!r || typeof r.resolvedAt !== 'number') return;
       if (r.resolvedAt < start || r.resolvedAt > now) return;
+      // Goal-progress deltas and retraction markers are state changes, not activity.
+      if (r.sourceType === 'goalProgress' || r.resolution === 'reopened' || r.resolution === 'restored') return;
       s.total += 1;
       if (r.resolution === 'completed') s.completed += 1;
       if (r.sourceType && s.bySource[r.sourceType] != null) s.bySource[r.sourceType] += 1;
@@ -95,27 +143,83 @@
       root.setAttribute('aria-hidden', 'false');
     }
   }
-  function chip(cls, text) {
+  function num(n) {
+    try { if (typeof localizeDigits === 'function') return localizeDigits(String(n)); } catch (e) {}
+    return String(n);
+  }
+  function chip(cls, text, tip) {
     const span = document.createElement('span');
     span.className = 'ai-void-echo-chip ai-void-echo-chip--' + cls;
     span.textContent = text;
+    if (tip) span.title = tip;
     return span;
   }
+  function column(titleKey, titleFallback, cls) {
+    const col = document.createElement('div');
+    col.className = 'ai-void-echo-col ' + cls;
+    const h = document.createElement('div');
+    h.className = 'ai-void-echo-col-title';
+    h.textContent = label(titleKey, titleFallback);
+    col.appendChild(h);
+    return col;
+  }
+  function tipList(items) { return items.slice(0, 8).join('\n'); }
+
+  // Two columns: Commitments (goal-linked work) and Other (everything else).
+  // Follow-through = kept / (kept + missed); hidden when there were no
+  // commitments, so a day without linked tasks never reads as 0% or 100%.
+  function renderTodayBody(c) {
+    bodyEl.innerHTML = '';
+    const denom = c.committedKept + c.committedMissed;
+    const hasProgress = c.progressCount > 0 && c.progressDelta !== 0;
+
+    if (denom > 0 || hasProgress || c.committedDropped > 0) {
+      const col = column('voidEchoColCommitments', 'Commitments', 'ai-void-echo-col-commit');
+      if (c.committedKept > 0)
+        col.appendChild(chip('done', label('voidEchoKept', '{n} kept').replace('{n}', num(c.committedKept)), tipList(c.keptItems)));
+      if (c.committedMissed > 0)
+        col.appendChild(chip('missed', label('voidEchoMissed', '{n} missed').replace('{n}', num(c.committedMissed)), tipList(c.missedItems)));
+      if (c.committedDropped > 0)
+        col.appendChild(chip('cleared', label('voidEchoDropped', '{n} dropped').replace('{n}', num(c.committedDropped))));
+      if (hasProgress) {
+        const d = c.progressDelta;
+        col.appendChild(chip(d > 0 ? 'progress' : 'cleared',
+          label('voidEchoProgress', 'Progress {sign}{d}%')
+            .replace('{sign}', d > 0 ? '+' : '\u2212').replace('{d}', num(Math.abs(d)))));
+      }
+      if (denom > 0) {
+        const ratio = document.createElement('div');
+        ratio.className = 'ai-void-echo-ratio';
+        ratio.textContent = label('voidEchoFollowThrough', 'Follow-through: {p}%')
+          .replace('{p}', num(Math.round((c.committedKept / denom) * 100)));
+        col.appendChild(ratio);
+      }
+      bodyEl.appendChild(col);
+    }
+
+    const ev = c.eventsDone + c.eventsDeleted;
+    if (c.standardDone + c.standardExpired + c.standardCleared + ev > 0) {
+      const col = column('voidEchoColOther', 'Other', 'ai-void-echo-col-noise');
+      if (c.standardDone > 0)
+        col.appendChild(chip('done', label('voidEchoTasksDone', '{n} tasks done').replace('{n}', num(c.standardDone))));
+      if (c.standardExpired > 0)
+        col.appendChild(chip('cleared', label('voidEchoTasksExpired', '{n} expired').replace('{n}', num(c.standardExpired))));
+      if (c.standardCleared > 0)
+        col.appendChild(chip('cleared', label('voidEchoCleared', '{n} cleared').replace('{n}', num(c.standardCleared))));
+      if (ev > 0)
+        col.appendChild(chip('event', label('voidEchoEvents', '{n} events').replace('{n}', num(ev))));
+      bodyEl.appendChild(col);
+    }
+  }
+
   function render(today, month) {
     applyDir();
     if (titleEl) titleEl.textContent = label('voidEchoTitle', "Today's Echo");
     if (countEl) {
-      countEl.textContent = today.total > 0 ? String(today.total) : '';
-      countEl.hidden = today.total <= 0;
+      countEl.textContent = today.visible > 0 ? num(today.visible) : '';
+      countEl.hidden = today.visible <= 0;
     }
-    if (bodyEl) {
-      bodyEl.innerHTML = '';
-      const eventsN = today.eventsCompleted + today.eventsDeleted;
-      if (today.completed > 0) bodyEl.appendChild(chip('done', label('voidEchoCompleted', '{n} completed').replace('{n}', String(today.completed))));
-      if (eventsN > 0) bodyEl.appendChild(chip('event', label('voidEchoEvents', '{n} events').replace('{n}', String(eventsN))));
-      if (today.deleted > 0 && today.completed === 0 && eventsN === 0) bodyEl.appendChild(chip('cleared', label('voidEchoCleared', '{n} cleared').replace('{n}', String(today.deleted))));
-      if (!bodyEl.childNodes.length && today.total > 0) bodyEl.appendChild(chip('done', label('voidEchoActivity', '{n} moments').replace('{n}', String(today.total))));
-    }
+    if (bodyEl) renderTodayBody(today);
     if (patternEl) {
       let patternText = '';
       if (month.total >= 3) {
@@ -134,7 +238,7 @@
       patternEl.hidden = !patternText;
     }
     applyCollapsed();
-    applyVisibility(today.total > 0 || month.total >= 3);
+    applyVisibility(today.visible > 0 || today.progressCount > 0 || month.total >= 3);
   }
   function loadAndRender() {
     try {
