@@ -1,6 +1,7 @@
 let currentLang = 'en';
 const i18n = {
   en: {
+    voidEngineOpenSite: "Open {name} website", voidEngineSwitchHint: "Swipe or click to switch engine", voidEnginePrev: "Previous engine", voidEngineNext: "Next engine",
     voidAddShortcut: "Add shortcut", voidAdd: "Add", voidEditApp: "Edit shortcut", voidNewApp: "New shortcut", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Edit", voidEditShortcutAria: "Edit shortcut", voidAddLink: "Add link", voidEditLink: "Edit link", voidNewLink: "New link", voidLinkLabelPh: "Link name", voidRemoveLink: "Remove", voidCustomizeLink: "Customize", voidHideLink: "Hide from this list", voidRemove: "Remove",
     todoTitle: "📝 To-Do List",
     todoPending: "Pending",
@@ -370,6 +371,7 @@ const i18n = {
     zodiacCaption_pisces: "The Fish — two currents joined by one thread"
   },
   fa: {
+    voidEngineOpenSite: "بازکردن وب‌سایت {name}", voidEngineSwitchHint: "برای تعویض موتور جستجو، بکشید یا کلیک کنید", voidEnginePrev: "موتور جستجوی قبلی", voidEngineNext: "موتور جستجوی بعدی",
     voidAddShortcut: "افزودن میان‌بر", voidAdd: "افزودن", voidEditApp: "ویرایش میان‌بر", voidNewApp: "میان‌بر جدید", voidAppLabelPh: "Gmail، Drive…", voidEditShortcut: "ویرایش", voidEditShortcutAria: "ویرایش میان‌بر", voidAddLink: "افزودن لینک", voidEditLink: "ویرایش لینک", voidNewLink: "لینک جدید", voidLinkLabelPh: "نام لینک", voidRemoveLink: "حذف", voidCustomizeLink: "سفارشی‌سازی", voidHideLink: "پنهان‌کردن از این لیست", voidRemove: "حذف",
     todoTitle: "📝 کارهای روزانه",
     todoPending: "انجام نشده",
@@ -730,6 +732,7 @@ const i18n = {
     zodiacCaption_pisces: "ماهی‌ها — دو جریان با یک رشته"
   },
   ar: {
+    voidEngineOpenSite: "فتح موقع {name}", voidEngineSwitchHint: "اسحب أو انقر لتبديل محرك البحث", voidEnginePrev: "محرك البحث السابق", voidEngineNext: "محرك البحث التالي",
     voidAddShortcut: "إضافة اختصار", voidAdd: "إضافة", voidEditApp: "تعديل الاختصار", voidNewApp: "اختصار جديد", voidAppLabelPh: "Gmail، Drive…", voidEditShortcut: "تعديل", voidEditShortcutAria: "تعديل الاختصار", voidAddLink: "إضافة رابط", voidEditLink: "تعديل الرابط", voidNewLink: "رابط جديد", voidLinkLabelPh: "اسم الرابط", voidRemoveLink: "إزالة", voidCustomizeLink: "تخصيص", voidHideLink: "إخفاء من هذه القائمة", voidRemove: "إزالة",
     todoTitle: "📝 قائمة المهام",
     todoPending: "قيد الانتظار",
@@ -1086,6 +1089,7 @@ const i18n = {
     zodiacCaption_pisces: "السمكتان — تياران يربطهما خيط واحد"
   },
   ru: {
+    voidEngineOpenSite: "Открыть сайт {name}", voidEngineSwitchHint: "Проведите или нажмите, чтобы сменить поисковик", voidEnginePrev: "Предыдущий поисковик", voidEngineNext: "Следующий поисковик",
     voidAddShortcut: "Добавить ярлык", voidAdd: "Добавить", voidEditApp: "Изменить ярлык", voidNewApp: "Новый ярлык", voidAppLabelPh: "Gmail, Диск…", voidEditShortcut: "Изменить", voidEditShortcutAria: "Изменить ярлык", voidAddLink: "Добавить ссылку", voidEditLink: "Изменить ссылку", voidNewLink: "Новая ссылка", voidLinkLabelPh: "Название ссылки", voidRemoveLink: "Удалить", voidCustomizeLink: "Настроить", voidHideLink: "Скрыть из списка", voidRemove: "Удалить",
     todoTitle: "📝 Список дел",
     todoPending: "Не выполнено",
@@ -1442,6 +1446,7 @@ const i18n = {
     zodiacCaption_pisces: "Рыбы — два течения, связанные одной нитью"
   },
   tr: {
+    voidEngineOpenSite: "{name} web sitesini aç", voidEngineSwitchHint: "Arama motorunu değiştirmek için kaydırın veya tıklayın", voidEnginePrev: "Önceki arama motoru", voidEngineNext: "Sonraki arama motoru",
     voidAddShortcut: "Kısayol ekle", voidAdd: "Ekle", voidEditApp: "Kısayolu düzenle", voidNewApp: "Yeni kısayol", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Düzenle", voidEditShortcutAria: "Kısayolu düzenle", voidAddLink: "Bağlantı ekle", voidEditLink: "Bağlantıyı düzenle", voidNewLink: "Yeni bağlantı", voidLinkLabelPh: "Bağlantı adı", voidRemoveLink: "Kaldır", voidCustomizeLink: "Özelleştir", voidHideLink: "Bu listeden gizle", voidRemove: "Kaldır",
     todoTitle: "📝 Yapılacaklar Listesi",
     todoPending: "Bekliyor",
@@ -1798,6 +1803,7 @@ const i18n = {
     zodiacCaption_pisces: "Balık — bir iplikle birleşen iki akıntı"
   },
   'zh-Hans': {
+    voidEngineOpenSite: "打开 {name} 官网", voidEngineSwitchHint: "滑动或点击以切换搜索引擎", voidEnginePrev: "上一个搜索引擎", voidEngineNext: "下一个搜索引擎",
     voidAddShortcut: "添加快捷方式", voidAdd: "添加", voidEditApp: "编辑快捷方式", voidNewApp: "新建快捷方式", voidAppLabelPh: "Gmail、Drive…", voidEditShortcut: "编辑", voidEditShortcutAria: "编辑快捷方式", voidAddLink: "添加链接", voidEditLink: "编辑链接", voidNewLink: "新建链接", voidLinkLabelPh: "链接名称", voidRemoveLink: "删除", voidCustomizeLink: "自定义", voidHideLink: "从此列表中隐藏", voidRemove: "删除",
     todoTitle: "📝 待办事项",
     todoPending: "待处理",
@@ -2154,6 +2160,7 @@ const i18n = {
     zodiacCaption_pisces: "双鱼——一线相连的两股潮流"
   },
   'zh-Hant': {
+    voidEngineOpenSite: "開啟 {name} 官網", voidEngineSwitchHint: "滑動或點擊以切換搜尋引擎", voidEnginePrev: "上一個搜尋引擎", voidEngineNext: "下一個搜尋引擎",
     voidAddShortcut: "新增捷徑", voidAdd: "新增", voidEditApp: "編輯捷徑", voidNewApp: "新捷徑", voidAppLabelPh: "Gmail、Drive…", voidEditShortcut: "編輯", voidEditShortcutAria: "編輯捷徑", voidAddLink: "新增連結", voidEditLink: "編輯連結", voidNewLink: "新連結", voidLinkLabelPh: "連結名稱", voidRemoveLink: "移除", voidCustomizeLink: "自訂", voidHideLink: "從此清單隱藏", voidRemove: "移除",
     todoTitle: "📝 待辦事項",
     todoPending: "待處理",
@@ -2510,6 +2517,7 @@ const i18n = {
     zodiacCaption_pisces: "雙魚——一線相連的兩股潮流"
   },
   'pt-BR': {
+    voidEngineOpenSite: "Abrir o site do {name}", voidEngineSwitchHint: "Deslize ou clique para trocar de buscador", voidEnginePrev: "Buscador anterior", voidEngineNext: "Próximo buscador",
     voidAddShortcut: "Adicionar atalho", voidAdd: "Adicionar", voidEditApp: "Editar atalho", voidNewApp: "Novo atalho", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Editar", voidEditShortcutAria: "Editar atalho", voidAddLink: "Adicionar link", voidEditLink: "Editar link", voidNewLink: "Novo link", voidLinkLabelPh: "Nome do link", voidRemoveLink: "Remover", voidCustomizeLink: "Personalizar", voidHideLink: "Ocultar desta lista", voidRemove: "Remover",
     todoTitle: "📝 Lista de Tarefas",
     todoPending: "Pendente",
@@ -2866,6 +2874,7 @@ const i18n = {
     zodiacCaption_pisces: "Os Peixes — duas correntes unidas por um fio"
   },
   es: {
+    voidEngineOpenSite: "Abrir el sitio web de {name}", voidEngineSwitchHint: "Desliza o haz clic para cambiar de buscador", voidEnginePrev: "Buscador anterior", voidEngineNext: "Buscador siguiente",
     voidAddShortcut: "Añadir acceso directo", voidAdd: "Añadir", voidEditApp: "Editar acceso directo", voidNewApp: "Nuevo acceso directo", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Editar", voidEditShortcutAria: "Editar acceso directo", voidAddLink: "Añadir enlace", voidEditLink: "Editar enlace", voidNewLink: "Nuevo enlace", voidLinkLabelPh: "Nombre del enlace", voidRemoveLink: "Eliminar", voidCustomizeLink: "Personalizar", voidHideLink: "Ocultar de esta lista", voidRemove: "Eliminar",
     // === Paso 2: tooltips, calendario, búsqueda, tareas (todo) y los
     // botones clave del bloc de notas (Preguntar IA / Borrar-Cerrar / Copiar /
@@ -3044,6 +3053,7 @@ const i18n = {
     zodiacCaption_pisces: "Los Peces — dos corrientes unidas por un hilo"
   },
   de: {
+    voidEngineOpenSite: "Website von {name} öffnen", voidEngineSwitchHint: "Wischen oder klicken, um die Suchmaschine zu wechseln", voidEnginePrev: "Vorherige Suchmaschine", voidEngineNext: "Nächste Suchmaschine",
     voidAddShortcut: "Verknüpfung hinzufügen", voidAdd: "Hinzufügen", voidEditApp: "Verknüpfung bearbeiten", voidNewApp: "Neue Verknüpfung", voidAppLabelPh: "Gmail, Drive …", voidEditShortcut: "Bearbeiten", voidEditShortcutAria: "Verknüpfung bearbeiten", voidAddLink: "Link hinzufügen", voidEditLink: "Link bearbeiten", voidNewLink: "Neuer Link", voidLinkLabelPh: "Linkname", voidRemoveLink: "Entfernen", voidCustomizeLink: "Anpassen", voidHideLink: "Aus dieser Liste ausblenden", voidRemove: "Entfernen",
     // === Schritt 5: Tooltips, Kalender, Suche, Aufgaben (todo) und die
     // wichtigsten Notizblock-Schaltflächen (KI fragen / Löschen-Schließen /
@@ -3222,6 +3232,7 @@ const i18n = {
     zodiacCaption_pisces: "Die Fische — zwei Strömungen, verbunden durch einen Faden"
   },
   fr: {
+    voidEngineOpenSite: "Ouvrir le site de {name}", voidEngineSwitchHint: "Balayez ou cliquez pour changer de moteur de recherche", voidEnginePrev: "Moteur de recherche précédent", voidEngineNext: "Moteur de recherche suivant",
     voidAddShortcut: "Ajouter un raccourci", voidAdd: "Ajouter", voidEditApp: "Modifier le raccourci", voidNewApp: "Nouveau raccourci", voidAppLabelPh: "Gmail, Drive…", voidEditShortcut: "Modifier", voidEditShortcutAria: "Modifier le raccourci", voidAddLink: "Ajouter un lien", voidEditLink: "Modifier le lien", voidNewLink: "Nouveau lien", voidLinkLabelPh: "Nom du lien", voidRemoveLink: "Supprimer", voidCustomizeLink: "Personnaliser", voidHideLink: "Masquer de cette liste", voidRemove: "Supprimer",
     // === Étape 5 : infobulles, calendrier, recherche, tâches (todo) et les
     // boutons clés du bloc-notes (Demander à l'IA / Effacer-Fermer / Copier /
@@ -3400,6 +3411,7 @@ const i18n = {
     zodiacCaption_pisces: "Les Poissons — deux courants liés par un fil"
   },
   ja: {
+    voidEngineOpenSite: "{name} の公式サイトを開く", voidEngineSwitchHint: "スワイプまたはクリックで検索エンジンを切り替え", voidEnginePrev: "前の検索エンジン", voidEngineNext: "次の検索エンジン",
     voidAddShortcut: "ショートカットを追加", voidAdd: "追加", voidEditApp: "ショートカットを編集", voidNewApp: "新しいショートカット", voidAppLabelPh: "Gmail、Drive…", voidEditShortcut: "編集", voidEditShortcutAria: "ショートカットを編集", voidAddLink: "リンクを追加", voidEditLink: "リンクを編集", voidNewLink: "新しいリンク", voidLinkLabelPh: "リンク名", voidRemoveLink: "削除", voidCustomizeLink: "カスタマイズ", voidHideLink: "このリストから非表示", voidRemove: "削除",
     // === ステップ6: ツールチップ、カレンダー、検索、タスク(todo)に加えて、
     // メモ帳の主要ボタン（AIに聞く／消去・閉じる／コピー／共有）まで翻訳。

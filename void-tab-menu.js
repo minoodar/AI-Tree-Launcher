@@ -39,6 +39,7 @@
       set('ai-ntp-menu-settings-label', 'ntpMenuSettings', 'Settings');
       set('ai-ntp-menu-stdtab-label', 'ntpMenuStdTab', 'Use Standard New Tab');
       applyDir();
+      try { if (window.AIVoidEngineMarks && AIVoidEngineMarks.applyTitles) AIVoidEngineMarks.applyTitles(); } catch (e) {}
     } catch (e) {}
   }
 
