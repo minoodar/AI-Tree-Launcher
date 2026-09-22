@@ -424,6 +424,10 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
             <div class="ai-mark-event-badge" id="ai-mark-event-badge"></div>
             <div class="ai-mark-event-text" id="ai-mark-event-text"></div>
             <div class="ai-mark-event-meta" id="ai-mark-event-meta"></div>
+            <label class="ai-mark-golden-toggle ai-mark-delete-toggle" id="ai-mark-delete-row">
+              <input type="checkbox" id="ai-mark-delete-cb" class="ai-mark-golden-cb ai-mark-delete-cb" />
+              <span class="ai-mark-star-btn ai-mark-delete-label" id="ai-mark-delete-label">🗑</span>
+            </label>
             <div class="ai-mark-event-daily-list is-empty" id="ai-mark-event-daily-list"></div>
           </div>
         </div>
@@ -859,6 +863,8 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
     markEventBadge: clockPanel.querySelector('#ai-mark-event-badge'),
     markEventText: clockPanel.querySelector('#ai-mark-event-text'),
     markEventMeta: clockPanel.querySelector('#ai-mark-event-meta'),
+    markDeleteRow: clockPanel.querySelector('#ai-mark-delete-row'),
+    markDeleteCb: clockPanel.querySelector('#ai-mark-delete-cb'),
     markEventDailyList: clockPanel.querySelector('#ai-mark-event-daily-list'),
     clockQuote: clockPanel.querySelector('#ai-clock-quote'),
     clockQuoteTab: clockPanel.querySelector('#ai-rumi-tab'),
@@ -1495,6 +1501,16 @@ updateSeasonalTracker();
 
   function saveMarkedDays() { try { if (chrome.runtime?.id) chrome.storage.sync.set({ aiTreeMarkedDays: markedDays }); } catch (e) {} }
 
+  // حذفِ یک مناسبتِ نشانه‌گذاری‌شده — یک نقطهٔ مشترک برای هر دو محلِ حذف
+  // (دکمهٔ × روی فهرستِ کناری، و تاگلِ حذف داخلِ برگهٔ کاغذیِ خودِ رویداد).
+  function deleteMarkedDayById(id) {
+    if (!id) return;
+    markedDays = markedDays.filter(x => x.id !== id);
+    saveMarkedDays();
+    renderMarkedDays();
+    showToastNotification(t('markToastDeleted'));
+  }
+
   // chrome.storage.local (نه sync) عمداً انتخاب شده: sync سقفِ حجمِ خیلی کمی دارد (~۸KB
   // برای هر کلید) و رویدادهای روزانه/ساعتیِ کاربرِ فعال به‌سرعت از آن رد می‌شوند.
   function saveTimeEvents() { try { if (chrome.runtime?.id) chrome.storage.local.set({ aiTreeTimeEvents: timeEventsData }); } catch (e) {} }
@@ -1680,6 +1696,21 @@ function openMarkEventSheet(m) {
     uiEls.markEventMeta.textContent = `${daysLeftStr} · ${dateStr} · ${calHint}`;
   }
 }
+
+    // تاگلِ حذف — فقط برای مناسبت‌های شخصیِ خودِ کاربر (نه تعطیلاتِ رسمی، که
+    // اصلاً داخلِ markedDays نیستند و حذف‌کردنی نیستند). هر بار که برگه برای
+    // یک مناسبتِ تازه باز می‌شود، تاگل از نو به حالتِ خاموش برمی‌گردد — یک
+    // کلیدِ ماندگار نیست، فقط لحظهٔ تیک‌خوردنش عملِ حذف را اجرا می‌کند.
+    if (uiEls.markDeleteRow && uiEls.markDeleteCb) {
+      uiEls.markDeleteRow.hidden = !!m.isPublic;
+      uiEls.markDeleteRow.title = t('markDeleteTitle');
+      uiEls.markDeleteCb.checked = false;
+      uiEls.markDeleteCb.onchange = () => {
+        if (!uiEls.markDeleteCb.checked) return;
+        deleteMarkedDayById(m.id);
+        closeMarkEventSheet();
+      };
+    }
 
     uiEls.markEventSheet.classList.remove('is-collapsed');
   }
@@ -1910,6 +1941,7 @@ function openMarkEventSheet(m) {
         const link = document.createElement('span'); link.className = 'ai-mark-event-daily-link'; link.textContent = '↗'; link.title = t('dashLinkedTodo');
         row.appendChild(link);
       }
+      appendEventGoalControls(row, evt);
       const delBtn = document.createElement('button');
       delBtn.type = 'button'; delBtn.className = 'ai-mark-event-daily-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
       delBtn.addEventListener('click', (e) => {
@@ -1930,6 +1962,7 @@ function openMarkEventSheet(m) {
     if (uiEls.markEventBadge) uiEls.markEventBadge.textContent = '✨';
     if (uiEls.markEventText) uiEls.markEventText.textContent = t('markEventText');
     if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = t('markEventMeta');
+    if (uiEls.markDeleteRow) uiEls.markDeleteRow.hidden = true;
     uiEls.markEventSheet.classList.remove('is-collapsed');
     dayEventSheetOpenIso = iso;
     currentOpenMarkEvent = null;
@@ -1955,6 +1988,7 @@ function openMarkEventSheet(m) {
     if (uiEls.markEventBadge) uiEls.markEventBadge.textContent = '🗓️';
     if (uiEls.markEventText) uiEls.markEventText.textContent = t('markDayAgenda');
     if (uiEls.markEventMeta) uiEls.markEventMeta.textContent = dateStr;
+    if (uiEls.markDeleteRow) uiEls.markDeleteRow.hidden = true;
     uiEls.markEventSheet.classList.remove('is-collapsed');
     dayEventSheetOpenIso = iso;
     currentOpenMarkEvent = null;
@@ -2156,8 +2190,7 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
       const delBtn = document.createElement('button'); delBtn.type = 'button'; delBtn.className = 'ai-mark-item-del'; delBtn.title = t('markDeleteTitle'); delBtn.textContent = '×';
       delBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        markedDays = markedDays.filter(x => x.id !== m.id);
-        saveMarkedDays(); renderMarkedDays(); showToastNotification(t('markToastDeleted'));
+        deleteMarkedDayById(m.id);
       });
       li.addEventListener('click', (e) => {
         if (e.target === delBtn || delBtn.contains(e.target) || e.target.tagName === 'INPUT') return;
@@ -2237,6 +2270,16 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
   function isoFromDate(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
   function todayDashIso() { return isoFromDate(new Date()); }
   function tomorrowDashIso() { const d = new Date(); d.setDate(d.getDate() + 1); return isoFromDate(d); }
+  // «فردا بودنِ» یک TODو با مقایسهٔ createdAt با نیمه‌شبِ پیشِ‌رو تعیین می‌شود
+  // (نه با خودِ «الان»). قبلاً `createdAt > now` بود که برای TODوی «افزودن برای
+  // فردا» درست کار می‌کرد (createdAt = نیمه‌شبِ امشب)، اما یک کارِ ساعتیِ همین
+  // امروز (مثلاً رویدادی برای ساعت ۱۸ وقتی الان ۱۴ است) هم createdAt‌ش در
+  // آینده است و به‌اشتباه «فردا» طبقه‌بندی می‌شد. مرزِ درست، نیمه‌شب است.
+  function startOfTomorrowMs(ts) {
+    const d = new Date(ts || Date.now());
+    d.setHours(24, 0, 0, 0);
+    return d.getTime();
+  }
   // نمایشِ گرافیکیِ روز/شب کنار ساعتِ هر رویداد — بر اساسِ ساعتِ شروع (۰۶ تا ۱۸ = روز)
   function dayNightIcon(hhmm) {
     const hour = parseInt(String(hhmm).split(':')[0], 10);
@@ -2305,7 +2348,17 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
     const evt = timeEventsData.find(e => e.id === id);
     if (evt && evt.linkedTodoId) {
       const idx = todosData.findIndex(td => td.id === evt.linkedTodoId);
-      if (idx !== -1) { todosData.splice(idx, 1); saveTodos(); if (todoPanel.classList.contains('active')) renderTodos(); }
+      if (idx !== -1) {
+        const linkedTodo = todosData[idx];
+        // مثلِ منقضی‌شدنِ طبیعیِ یک کارِ روزانهٔ پیوندی: قبل از حذف، اگر انجام
+        // شده و به یک هدف پیوند بود، سهمِ درصدش را روی هدف آرشیو کن تا با حذفِ
+        // رویداد، پیشرفتِ هدف یک‌دفعه عقب نرود.
+        if (linkedTodo.done && linkedTodo.linkedGoalId) {
+          const g = getGoalById(linkedTodo.linkedGoalId);
+          if (g) adjustGoalCompletedWeight(g, todoImpactPct(linkedTodo));
+        }
+        todosData.splice(idx, 1); saveTodos(); if (todoPanel.classList.contains('active')) renderTodos();
+      }
     }
     // آرشیو در Memory Layer: فقط خودِ رویداد (نه TODوی لینک‌شده‌اش هم — چون آن
     // فقط آینه‌ای خودکار از همین رویداد است، نه یک چیزِ معنادارِ جدا؛ آرشیوِ
@@ -2324,7 +2377,26 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
     evt.status = wasDone ? 'future' : 'done';
     if (evt.linkedTodoId) {
       const linkedTodo = todosData.find(td => td.id === evt.linkedTodoId);
-      if (linkedTodo) { linkedTodo.done = (evt.status === 'done'); saveTodos(); if (todoPanel.classList.contains('active')) renderTodos(); }
+      if (linkedTodo) {
+        // دقیقاً همان منطقِ toggleTodoDone: پیشرفتِ هدفِ پیوندی (اگر باشد) قبل
+        // و بعدِ تیک را می‌سنجیم تا فقط موقعِ «تیک‌خوردن» (نه برداشتنِ تیک) و
+        // فقط موقعِ عبور از یک آستانه، فشفشه جشن بگیرد.
+        let goal = null, prev = 0;
+        if (linkedTodo.linkedGoalId) {
+          goal = getGoalById(linkedTodo.linkedGoalId);
+          if (goal) prev = computeGoalProgress(goal);
+        }
+        linkedTodo.done = (evt.status === 'done');
+        if (goal) {
+          const next = syncGoalProgressFromChildren(goal);
+          if (linkedTodo.done) {
+            const locus = document.querySelector('.ai-goal-card') || todoPanel;
+            celebrateGoalProgress(goal, prev, next, locus);
+          }
+        }
+        saveTodos();
+        if (todoPanel.classList.contains('active')) renderTodos();
+      }
     }
     // فقط لحظه‌ی تیک‌خوردن (نه برعکسش) به حافظه آرشیو می‌شود — برداشتنِ تیک یعنی
     // «پشیمان شدم»، نه یک رخدادِ جدیدی که ارزشِ به‌خاطرسپردن داشته باشد.
@@ -2358,6 +2430,12 @@ dot.className = 'ai-mark-dot' + (m.days === 0 ? ' is-today' : '') + (m.golden ? 
         evt.date = iso;
         evt.status = 'future';
         const linkedTodo = { id: newLinkId('td'), text: `${evt.startTime} — ${evt.title}`, done: false, type: 'daily', createdAt: Date.now() };
+        // پیوند به هدف را از خودِ رویداد (منبعِ حقیقتِ پایدار) به TODوی
+        // آینه‌ایِ تازه منتقل کن — وگرنه هر تکرارِ روزانه پیوند را پاک می‌کرد.
+        if (evt.linkedGoalId) {
+          linkedTodo.linkedGoalId = evt.linkedGoalId;
+          linkedTodo.impactPct = evt.impactPct || 10;
+        }
         todosData.push(linkedTodo);
         evt.linkedTodoId = linkedTodo.id;
         changed = true;
@@ -2620,6 +2698,7 @@ function buildDashEventCard(evt) {
     card.appendChild(timeWrap); card.appendChild(title);
     if (evt.recurring) { const badge = document.createElement('span'); badge.className = 'ai-event-recur-badge'; badge.title = t('dashRecurringBadge'); badge.textContent = '★'; card.appendChild(badge); }
     if (status === 'recurring-elapsed') { const chip = document.createElement('span'); chip.className = 'ai-event-recur-elapsed-chip'; chip.textContent = '↻ ' + t('scrubberTomorrowBadge'); card.appendChild(chip); }
+    appendEventGoalControls(card, evt);
     card.appendChild(delBtn);
     if (evt.linkedTodoId) { const meta = document.createElement('div'); meta.className = 'ai-event-meta'; meta.textContent = '↗ ' + t('dashLinkedTodo'); card.appendChild(meta); }
     return card;
@@ -4038,7 +4117,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     // اگر کار done بود و بعداً TTL می‌خورد، سهمش را در completedWeight نگه نمی‌داریم مگر قبلاً archive شده
     task.linkedGoalId = null;
     // impactPct را نگه می‌داریم تا در پیوند بعدی پیش‌فرض باشد
-    if (rerender) { saveTodos(); renderTodos(); }
+    if (rerender) { saveTodos(); renderTodos(); syncEventGoalFieldsFromTask(task); }
   }
   function linkTaskToGoal(task, goalId, impactPct) {
     if (!task || !goalId) return;
@@ -4054,13 +4133,70 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     }
     saveTodos();
     renderTodos();
+    syncEventGoalFieldsFromTask(task);
   }
   function setTaskImpactPct(task, pct) {
     if (!task) return;
     task.impactPct = Math.max(1, Math.min(100, Math.round(Number(pct) || 10)));
     saveTodos();
     renderTodos();
+    syncEventGoalFieldsFromTask(task);
   }
+
+  // ── همان مکانیزمِ ستاره/درصد را برای رویدادهای تقویمِ روزانه و ساعتی هم
+  // فعال می‌کند — هر رویداد از قبل یک TODوی آینه‌ای دارد (evt.linkedTodoId،
+  // بالا)؛ همان TODو را به یک هدف پیوند می‌دهیم و کل منطقِ محاسبهٔ پیشرفت/
+  // فشفشه که برای کارهای روزانه نوشته شده، بدونِ تغییر همینجا هم کار می‌کند.
+  // فقط باید evt خودش هم نسخه‌ای از linkedGoalId/impactPct را نگه دارد،
+  // چون رویدادهای تکرارشونده هر روز TODوی آینه‌ای‌شان را دور می‌ریزند و از
+  // نو می‌سازند (pruneExpiredDashEvents) — اگر پیوند فقط روی TODو بود، با
+  // هر تکرار گم می‌شد. evt این‌جا منبعِ حقیقتِ پایدار است.
+  function eventMirrorTask(evt) {
+    if (!evt || !evt.linkedTodoId) return null;
+    return todosData.find(td => td.id === evt.linkedTodoId) || null;
+  }
+  function syncEventGoalFieldsFromTask(task) {
+    if (!task || !task.id || !Array.isArray(timeEventsData)) return;
+    const evt = timeEventsData.find(e => e && e.linkedTodoId === task.id);
+    if (!evt) return;
+    evt.linkedGoalId = task.linkedGoalId || null;
+    evt.impactPct = task.linkedGoalId ? todoImpactPct(task) : null;
+    saveTimeEvents();
+    refreshDashUI();
+  }
+  /** ستاره + چیپِ درصد را روی یک ردیفِ رویداد می‌سازد — هم برای کارتِ داشبوردِ
+   * ساعتیِ «امروز» (buildDashEventCard) و هم برگهٔ تقویمِ روزانه
+   * (renderMarkEventDailyList) از همین یک تابع استفاده می‌شود. */
+  function appendEventGoalControls(row, evt) {
+    const task = eventMirrorTask(evt);
+    if (!task) return;
+    const starButton = document.createElement('button');
+    starButton.type = 'button';
+    starButton.className = 'ai-todo-star' + (task.linkedGoalId ? ' on' : '');
+    starButton.textContent = task.linkedGoalId ? '★' : '☆';
+    const linkedGoal = task.linkedGoalId ? getGoalById(task.linkedGoalId) : null;
+    if (task.linkedGoalId && linkedGoal) {
+      const impact = todoImpactPct(task);
+      starButton.title = (t('todoLinkedTo') || 'Linked to') + ': ' + (linkedGoal.text || '') + ' · ' + impact + '%';
+      starButton.setAttribute('data-share', impact + '%');
+    } else {
+      starButton.title = t('todoLinkGoal') || 'Link to a goal';
+      starButton.removeAttribute('data-share');
+    }
+    starButton.addEventListener('click', (e) => handleStarClick(e, task, starButton));
+    row.appendChild(starButton);
+    if (task.linkedGoalId) {
+      row.classList.add('linked');
+      const impactChip = document.createElement('button');
+      impactChip.type = 'button';
+      impactChip.className = 'ai-todo-impact';
+      impactChip.textContent = todoImpactPct(task) + '%';
+      impactChip.title = t('todoSetImpact') || 'Set impact %';
+      impactChip.addEventListener('click', (e) => { e.stopPropagation(); handleStarClick(e, task, impactChip); });
+      row.appendChild(impactChip);
+    }
+  }
+
   function createGoalFromText(textVal) {
     const g = {
       id: (typeof newLinkId === 'function' ? newLinkId('td') : ('td_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6))),
@@ -4757,7 +4893,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     const visibleTodos = todosData.filter(td => {
       if ((td.type || 'daily') !== activeTodoTab) return false;
       if (activeTodoTab !== 'daily') return true;
-      const isTomorrow = (td.createdAt || now) > now;
+      const isTomorrow = (td.createdAt || now) >= startOfTomorrowMs(now);
       return addForTomorrow ? isTomorrow : !isTomorrow;
     });
     const pendingCount = visibleTodos.filter(td => !td.done).length; if (countEl) countEl.textContent = `${pendingCount} ${activeTodoTab === 'goal' ? t('todoGoalPending') : t('todoPending')}`;
@@ -4809,7 +4945,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       // «انتقال به فردا/امروز» — قبلاً برای آیتم‌های فردا این دکمه اصلاً نمایش
       // داده نمی‌شد (یعنی راهی برای برگرداندنش به امروز نبود). حالا برای هر دو
       // حالت نمایش داده می‌شود و رفتار/آیکون/عنوانش بسته به وضعیتِ فعلی عوض می‌شود.
-      const isScheduledTomorrow = !isGoal && (todo.createdAt || now) > now;
+      const isScheduledTomorrow = !isGoal && (todo.createdAt || now) >= startOfTomorrowMs(now);
       const postponeButton = !isGoal ? document.createElement('div') : null;
       if (postponeButton) {
         postponeButton.className = 'ai-todo-postpone';

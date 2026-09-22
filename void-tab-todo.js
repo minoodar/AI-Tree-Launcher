@@ -84,20 +84,28 @@
 
   // Match content.js daily list:
   // - type daily (not goals)
-  // - createdAt in the past/now → today (tomorrow is stored as createdAt > now)
-  // - still within the 24h TTL window
+  // - createdAt before the next local midnight → today (tomorrow is stored
+  //   as createdAt >= that midnight). Comparing against midnight (not
+  //   against "now") matters because an hourly-dashboard task scheduled for
+  //   later today also has a createdAt in the future — it must still count
+  //   as today, not tomorrow.
   const TODO_DAILY_TTL_MS = 24 * 60 * 60 * 1000;
   function todoCreatedAt(todo, now) {
     const raw = todo && todo.createdAt;
     const parsed = typeof raw === 'number' ? raw : Date.parse(raw);
     return Number.isFinite(parsed) ? parsed : (now || Date.now());
   }
+  function startOfTomorrowMs(now) {
+    const d = new Date(now || Date.now());
+    d.setHours(24, 0, 0, 0);
+    return d.getTime();
+  }
   function isToday(todo, now) {
     now = now || Date.now();
     if (!todo) return false;
     if ((todo.type || 'daily') !== 'daily') return false;
     const created = todoCreatedAt(todo, now);
-    if (created > now) return false; // scheduled for tomorrow
+    if (created >= startOfTomorrowMs(now)) return false; // scheduled for tomorrow
     if (now - created >= TODO_DAILY_TTL_MS) return false; // expired daily
     return true;
   }
@@ -105,7 +113,7 @@
     now = now || Date.now();
     if (!todo) return false;
     if ((todo.type || 'daily') !== 'daily') return false;
-    return todoCreatedAt(todo, now) > now;
+    return todoCreatedAt(todo, now) >= startOfTomorrowMs(now);
   }
 
   function applyCollapsed() {
