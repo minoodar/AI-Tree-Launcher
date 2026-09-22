@@ -220,10 +220,17 @@
         color: rgba(226, 232, 255, 0.55);
         text-decoration: none;
         cursor: pointer;
-        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1), filter .18s ease;
     }
     #ai-void-search-brand:hover .ai-void-search-brand-mark {
         transform: scale(1.12);
+    }
+    /* Extra zoom + subtle glow when the pointer is directly over the logo
+       itself (not just the surrounding brand area). Needs the ID-qualified
+       ancestor selector so it out-specifies the rule above. */
+    #ai-void-search-brand:hover .ai-void-search-brand-mark:hover {
+        transform: scale(1.32);
+        filter: drop-shadow(0 0 6px var(--engine-accent, rgba(165,180,252,0.6)));
     }
     .ai-void-search-brand-mark .mark {
         position: absolute;
