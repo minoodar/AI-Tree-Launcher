@@ -220,17 +220,10 @@
         color: rgba(226, 232, 255, 0.55);
         text-decoration: none;
         cursor: pointer;
-        transition: transform .18s cubic-bezier(.34,1.56,.64,1), filter .18s ease;
+        transition: transform .18s cubic-bezier(.34,1.56,.64,1);
     }
     #ai-void-search-brand:hover .ai-void-search-brand-mark {
         transform: scale(1.12);
-    }
-    /* Extra zoom + subtle glow when the pointer is directly over the logo
-       itself (not just the surrounding brand area). Needs the ID-qualified
-       ancestor selector so it out-specifies the rule above. */
-    #ai-void-search-brand:hover .ai-void-search-brand-mark:hover {
-        transform: scale(1.32);
-        filter: drop-shadow(0 0 6px var(--engine-accent, rgba(165,180,252,0.6)));
     }
     .ai-void-search-brand-mark .mark {
         position: absolute;
@@ -1164,7 +1157,7 @@
         margin-bottom: 0;
     }
     .ai-void-agenda-section.is-goals {
-        width: 100%; max-width: 360px; border-radius: 16px;
+        width: 100%; max-width: 520px; border-radius: 16px;
         margin-top: 0; padding: 10px 12px 12px;
         border: 1px solid rgba(167, 139, 250, 0.18);
         background: rgba(8, 12, 28, 0.42);
@@ -1175,6 +1168,39 @@
     .ai-void-agenda-section.is-goals .ai-void-agenda-section-title {
         color: rgba(196, 181, 253, 0.85);
     }
+    /* بیش از ۲ هدف قبلاً این کارت‌ها را به‌صورت یک ستونِ عمودی روی هم
+       می‌چید و چون #ai-void-stage ارتفاعِ ثابت/اسکرول ندارد، از پایینِ
+       مانیتور بیرون می‌زد و غیرقابل‌دیدن می‌شد. حالا مثل خشت (grid چندستونه)
+       چیده می‌شود و خودِ همین لیست، نه کلِ صفحه، محدود و قابل‌اسکرول است —
+       حدودِ ۱۰ هدف (۲ ستون × ۵ ردیف) بدونِ اسکرول دیده می‌شود، بقیه با
+       اسکرولِ داخلیِ همین کارت. */
+    .ai-void-goals-list.ai-void-todo-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        align-items: start;
+        gap: 8px;
+        max-height: min(56vh, 480px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 2px 2px 2px 0;
+        margin: 0 -2px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(167, 139, 250, .35) transparent;
+    }
+    .ai-void-goals-list.ai-void-todo-list::-webkit-scrollbar { width: 6px; }
+    .ai-void-goals-list.ai-void-todo-list::-webkit-scrollbar-track { background: transparent; }
+    .ai-void-goals-list.ai-void-todo-list::-webkit-scrollbar-thumb {
+        background: rgba(167, 139, 250, .35);
+        border-radius: 999px;
+        border: 1.5px solid transparent;
+        background-clip: padding-box;
+    }
+    .ai-void-goals-list.ai-void-todo-list:hover::-webkit-scrollbar-thumb,
+    .ai-void-goals-list.ai-void-todo-list::-webkit-scrollbar-thumb:hover {
+        background: rgba(167, 139, 250, .6);
+        background-clip: padding-box;
+    }
+    .ai-void-goals-list .ai-void-goal-card { height: 100%; }
 
     /* ── Goal progress card ── */
     .ai-void-goal-card {
@@ -1866,7 +1892,7 @@
       <div id="ai-void-search-brand" data-engine="google" title="Swipe or click to switch engine">
         <a class="ai-void-search-brand-mark" data-engine="google"
            href="https://www.google.com/" target="_blank" rel="noopener noreferrer"
-           aria-label="Open Google website" title="Open Google website">
+           aria-label="Open Google">
           <img class="mark" data-mark="google" src="assets/engines/google.svg" width="24" height="24" alt="" draggable="false" decoding="async" />
           <img class="mark" data-mark="bing" src="assets/engines/bing.svg" width="24" height="24" alt="" draggable="false" decoding="async" />
           <img class="mark" data-mark="duckduckgo" src="assets/engines/duckduckgo.svg" width="24" height="24" alt="" draggable="false" decoding="async" />
