@@ -1147,7 +1147,7 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 /* Large readable ayah */
 .ai-todo-quote-fa {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 800; /* <--- این مقدار از 500 به 800 تغییر یافت تا آیه bold شود */
   color: #f1f5f9;
   white-space: pre-line;
   line-height: 1.55;
@@ -1161,10 +1161,6 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-todo-quote:not(.is-collapsed) .ai-todo-quote-fa {
   color: #1a1a1a;
   text-shadow: none;
-}
-/* فقط در بخش اسلام (آیات کوتاه) متن اصلی ضخیم بماند؛ بقیه منابع همان وزن سبک‌تر را دارند */
-.ai-todo-quote[data-quote-source="islam"] .ai-todo-quote-fa {
-  font-weight: 800;
 }
 
 /* Translation line — switches with the app language, same idea as the Rumi drawer:
