@@ -12070,4 +12070,27 @@ let hubAutoCollapsedByPanel = false;
       });
     }
   }
+    // ==================== بخش جدید: مخفی‌سازی خودکار دامنه‌های ورود ====================
+  function checkAuthHostAndHide() {
+    if (isAuthHost) {
+      root.style.display = 'none';
+      try {
+        if (chrome.runtime?.id) {
+          chrome.storage.sync.get(['aiTreeHiddenDomains'], (res) => {
+            const hiddenDomains = Array.isArray(res.aiTreeHiddenDomains) ? res.aiTreeHiddenDomains : [];
+            if (!hiddenDomains.includes(window.location.hostname)) {
+              hiddenDomains.push(window.location.hostname);
+              chrome.storage.sync.set({ aiTreeHiddenDomains: hiddenDomains });
+            }
+          });
+        }
+      } catch (e) {}
+    }
+  }
+
+  checkAuthHostAndHide();
+
+  new MutationObserver(() => {
+    if (document.body) checkAuthHostAndHide();
+  }).observe(document.documentElement, { childList: true, subtree: true, attributes: true });
 })();
