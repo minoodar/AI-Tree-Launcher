@@ -50,7 +50,7 @@
   }
 
   // اعمال layout + collapse + dissolve قبل از اولین paint قابل‌مشاهده
-  function applyStableLayout(opts) {
+  function applyStableLayout(opts, onDone) {
     var dir = opts.dir || 'ltr';
     var dockSide = opts.dockSide || 'left';
     var quickbarSide = opts.quickbarSide || 'right';
@@ -128,8 +128,27 @@
       if (dissolve && dissolve.__constellation) {
         document.documentElement.dataset.voidBootConstellation = dissolve.__constellation.id || '1';
       }
+
+      // اینجا، نه بیرونِ apply، باید صدا زده بشه — ببین کامنتِ پایینِ همین
+      // تابع (سرِ شرطِ readyState) برای این‌که چرا این تغییر اصلاً لازم بود.
+      if (typeof onDone === 'function') onDone();
     }
 
+    // *** نکتهٔ حیاتی ***
+    // وقتی این اسکریپت (اولین <script> در <head>) اجرا می‌شه، مرورگر هنوز
+    // <body> رو پارس نکرده — یعنی document.getElementById('ai-void-todo-dock')
+    // همین الان null برمی‌گردونه. برای همین apply() تا DOMContentLoaded عقب
+    // می‌افته؛ این بخشش از اول درست بود. باگِ واقعی جای دیگه‌ای بود: قبلاً
+    // reveal() از finalizeAndReveal، مستقیم و بدونِ توجه به این تاخیر صدا
+    // زده می‌شد — یعنی صفحه (document.documentElement.style.display='')
+    // زودتر از این‌که apply() اصلاً اجرا بشه نمایان می‌شد، و کاربر دقیقاً
+    // همون حالتِ خامِ HTML (data-side="left" که مستقیم توی مارک‌آپ نوشته
+    // شده، Todayِ نه‌هنوز-hidden) رو می‌دید تا DOMContentLoaded برسه و
+    // apply() بالاخره اجرا بشه و درستش کنه — یعنی این نه یک رِیس، بلکه یک
+    // باگِ تضمینی و همیشگی بود، چون readyState همین‌جا همیشه 'loading' است.
+    // فیکس: reveal() دیگه از بیرون صدا زده نمی‌شه؛ به‌عنوانِ onDone به خودِ
+    // apply() پاس داده می‌شه، تا مطمئن باشیم صفحه هیچ‌وقت زودتر از اعمالِ
+    // وضعیتِ واقعی نمایان نمی‌شه — چه apply() فوری اجرا بشه چه بعداً.
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', apply, { once: true });
     } else {
@@ -149,8 +168,7 @@
       dockVisible: opts.dockVisible,
       echoCollapsed: opts.echoCollapsed,
       goalsVisible: opts.goalsVisible
-    });
-    reveal();
+    }, reveal);
   }
 
   try {

@@ -75,6 +75,19 @@
   let collapsed = true;
   let dockVisible = true;
   let hasGoals = false;
+  // applyDockVisibility() تا وقتی این true نشده هیچ کاری نمی‌کند. چرا لازم
+  // است: قبل از این‌که void-tab-router.js صفحه رو reveal کنه، دقیقاً همین
+  // وضعیتِ نهایی (dock.hidden/goalsSection.hidden) رو از روی storage از قبل
+  // درست تنظیم کرده. اگه این فایل، قبل از خوندنِ storageِ خودش (که async
+  // است)، با مقادیرِ پیش‌فرضِ بالا (dockVisible=true, hasGoals=false)
+  // زودهنگام applyDockVisibility رو صدا بزنه — که ممکنه اتفاق بیفته، چون
+  // رویدادِ ai-tree-todos-updated می‌تونه قبل از resolve شدنِ
+  // chrome.storage.local.get فایر بشه — همون وضعیتِ درستِ router رو خراب
+  // می‌کنه و بعد، وقتی مقدارِ واقعی از storage می‌رسه، دوباره تصحیحش می‌کنه.
+  // حالا که Today/Echo/Goals رویِ موبایل داخلِ جریانِ فلکسِ Stage هستن (نه
+  // یه overlayِ position:fixed جدا)، همین «نمایش-سپس-تصحیح» باعثِ یک
+  // جابه‌جاییِ دیداریِ (پرش) واقعی توی چیدمان می‌شه، نه فقط یه فلشِ نامحسوس.
+  let storageReady = false;
 
   // ---------------------------------------------------------------- عمومی —
   function pad2(n) { return String(n).padStart(2, '0'); }
@@ -137,6 +150,20 @@
   let goalsVisible = true;
 
   function applyDockVisibility() {
+    // ببین کامنتِ بالای اعلانِ storageReady — قبل از خوندنِ storageِ واقعی،
+    // دست به dock/goalsSection نمی‌زنیم تا وضعیتِ درستی که router از قبل
+    // چیده، به‌اشتباه خراب و بعد تصحیح نشه (= پرش).
+    if (!storageReady) return;
+    // یک منبعِ دومِ همون مشکل: VoidDissolve هم خودش یک chrome.storage.local
+    // مجزا می‌خونه (async) و تا وقتی برنگشته، isDissolved('todo') به‌اشتباه
+    // false برمی‌گردونه (نه چون واقعاً dissolved نیست، بلکه چون هنوز چیزی
+    // نخونده). اگه همین‌جا به آن false اعتماد کنیم، یک Todayِ جمع‌شدهٔ عادی
+    // (نه‌ ستاره‌شده) لحظه‌ای نمایش داده می‌شه و به‌محضِ این‌که VoidDissolve
+    // جواب واقعی رو بده، دوباره پنهان می‌شه — دقیقاً همون پرش. پس تا
+    // VoidDissolve آماده نشده، صبر می‌کنیم؛ روشن‌شدنِ آمادگی‌اش با
+    // 'void-dissolve-ready' یک بارِ دیگه همین تابع رو صدا می‌زنه (پایینِ
+    // همین فایل).
+    if (window.VoidDissolve && typeof VoidDissolve.isReady === 'function' && !VoidDissolve.isReady()) return;
     // Only trust live dissolve state. Boot flag is a one-shot hint for first paint;
     // once VoidDissolve reports "not dissolved", clear the flag so restore can show panels.
     let todoDissolved = !!(window.VoidDissolve && VoidDissolve.isDissolved('todo'));
@@ -1215,6 +1242,15 @@
   window.addEventListener('ai-tree-todos-updated', function (event) {
     acceptTodos(event.detail, false);
   });
+  // به‌محضِ این‌که VoidDissolve دادهٔ واقعی‌اش رو از storage خوند (نه قبلش)،
+  // یک‌بار applyDockVisibility رو دوباره صدا می‌زنیم تا اگه توی بازهٔ
+  // «آماده نبودنِ VoidDissolve» یک تصمیمِ نادرست گرفته بودیم (یا اصلاً هیچ
+  // تصمیمی نگرفته بودیم، چون این تابع تا وقتیِ !isReady() خودش early-return
+  // می‌کنه)، الان با دادهٔ درست تصحیح بشه — این تنها جاییه که بعد از اولین
+  // رندر، دوباره دست به دید بودن/نبودنِ Today می‌زنیم.
+  window.addEventListener('void-dissolve-ready', function () {
+    applyDockVisibility();
+  }, { once: true });
   if (Array.isArray(window.__aiTreeTodosForVoid) && window.__aiTreeTodosForVoid.length) {
     acceptTodos(window.__aiTreeTodosForVoid, false);
   }
@@ -1222,6 +1258,7 @@
   function loadFromStorage() {
     try {
       chrome.storage.local.get(['aiTreeTodos', 'voidTodoDock', 'voidTodoCollapsed', VISIBLE_KEY, 'voidGoalsVisible'], function (localData) {
+        storageReady = true;
         if (localData.voidTodoDock && typeof localData.voidTodoDock === 'object') {
           position = Object.assign({}, position, localData.voidTodoDock);
         }

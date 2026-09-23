@@ -1955,6 +1955,11 @@
     register: register,
     dissolve: dissolve,
     restore: restore,
-    isDissolved: isDissolved
+    isDissolved: isDissolved,
+    // بدونِ این، applyDockVisibility (توی void-tab-todo.js) هیچ راهی نداره
+    // بفهمه که isDissolved('todo') هنوز از savedState خالیِ اولیه جواب
+    // می‌ده (چون loadState هنوز از chrome.storage برنگشته)، نه از دادهٔ
+    // واقعی — دقیقاً همون چیزی که باعثِ فلشِ Today می‌شه.
+    isReady: function () { return stateLoaded; }
   };
 })();
