@@ -1854,52 +1854,59 @@
        ستونی (که Today/Echo/Goals رو از حالتِ کناریِ fixed درمی‌آره و زیرِ
        هم می‌چینه). آستانه‌اش از همون فرمولِ بالا حساب شده: وقتی Today به
        کمینه‌اش (۲۰۰px) می‌رسه، فضای رزرو‌شده هر طرف = ۲۰۰+۱۶+۲۴=۲۴۰px،
-       و Stageِ ~۴۶۰px یعنی VW ≈ ۴۶۰+۲×۲۴۰ = ۹۴۰px. */
-    @media (max-width: 940px) {
-        /* زیرِ این آستانه، وقتی همه‌چیز (سرچ + Frequent Links + Today + Echo
-           + Goals) زیرِ هم می‌شینه، ممکنه رویِ‌همرفته از ارتفاعِ صفحه بلندتر
-           بشه. چون html/body عمداً overflow:hidden هستن (برای جلوگیریِ
-           اسکرولِ کلِ صفحه روی starfield) و این استیج position:fixed هست
-           (پس اسکرولِ سند رو دنبال نمی‌کنه)، بدونِ این قانون هر بخشی که از
-           ویوپورت رد بشه (مثلِ Goals، چون آخرین آیتمه) کاملاً غیرِقابل‌
-           دسترسی می‌موند — نه پنهان به‌خاطرِ منطقِ برنامه، فقط بیرون از دیدِ
-           صفحه.
-           Today (#ai-void-todo-dock) از نظرِ DOM دیگه همین‌جا، بینِ
-           Frequent Links و Echo، زندگی می‌کنه (نه یه <aside>ی مستقلِ
-           position:fixed بعدِ Stage). روی پنجره‌های بزرگ‌تر (بیرونِ این
-           مدیا کوئری) همچنان position:fixed می‌مونه و جای DOM هیچ اثرِ
-           دیداری نداره؛ فقط این‌جا با position:static به‌جای این‌که یک
-           overlayِ شناور باشه و با بازشدن، روی Echo/Goals بیفته، خودش هم
-           یک عضوِ عادیِ همین ستونِ اسکرول‌شونده می‌شه — پس دیگه به‌تعریف
-           نمی‌تونه روی چیزِ دیگه‌ای بیفته. */
-        #ai-void-stage {
-            top: max(64px, 12vh); width: calc(100vw - 24px); gap: 14px;
-            max-height: calc(100vh - max(64px, 12vh) - 24px);
-            overflow-y: auto; overscroll-behavior: contain;
-            scrollbar-width: thin; scrollbar-color: rgba(165, 180, 252, .3) transparent;
-            padding-bottom: 12px;
-        }
-        #ai-void-stage::-webkit-scrollbar { width: 6px; }
-        #ai-void-stage::-webkit-scrollbar-track { background: transparent; }
-        #ai-void-stage::-webkit-scrollbar-thumb { background: rgba(165, 180, 252, .28); border-radius: 999px; }
-        #ai-void-todo-dock {
-            position: static !important; top: auto !important; bottom: auto !important;
-            left: auto !important; right: auto !important; transform: none !important;
-            width: 100%; max-width: none;
-        }
-        #ai-ntp-quickbar, #ai-ntp-quickbar[data-side="left"], #ai-ntp-quickbar[data-side="right"] {
-            left: auto !important; right: 14px !important;
-        }
+/* ---- MOBILE / SMALL WINDOW LAYOUT (max-width: 940px) ---- */
+@media (max-width: 940px) {
+
+    /* Stage Container & Vertical Scroll Rules */
+    #ai-void-stage {
+        position: relative;
+        top: max(64px, 12vh);
+        width: 100%;
+        max-width: calc(100vw - 24px);
+        box-sizing: border-box;
+        gap: 14px;
+        max-height: calc(100vh - max(64px, 12vh) - 24px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(165, 180, 252, 0.3) transparent;
+        padding-bottom: 12px;
     }
-    /* این یکی صرفاً ظاهریه (اندازهٔ فونتِ برندِ سرچ روی گوشی) — چیدمانِ
-       ستونی بالا این‌جا نیست، چون از ۹۴۰px به پایین از قبل فعاله. */
-    @media (max-width: 700px) {
-        #ai-void-search-brand-name { font-size: 18px; }
+
+    #ai-void-stage::-webkit-scrollbar {
+        width: 6px;
     }
-    @media (prefers-reduced-motion: reduce) {
-        .ai-void-search-brand-pulse { animation: none; }
-        #ai-ntp-quickbar { transition: none; }
+    #ai-void-stage::-webkit-scrollbar-track {
+        background: transparent;
     }
+    #ai-void-stage::-webkit-scrollbar-thumb {
+        background: rgba(165, 180, 252, 0.28);
+        border-radius: 999px;
+    }
+
+    /* ==================== لینک‌های پرکاربرد (Frequent Links) ==================== */
+    /* پنهان‌سازی در حالت موبایل و پنجره‌های کوچک */
+    #ai-ntp-topsites {
+        display: none !important;
+    }
+
+    /* ==================== Today Dock ==================== */
+    #ai-void-todo-dock {
+        position: static !important;
+        inset: auto !important;
+        transform: none !important;
+        width: 100%;
+        max-width: none;
+    }
+
+    /* ==================== Quickbar ==================== */
+    #ai-ntp-quickbar,
+    #ai-ntp-quickbar[data-side="left"],
+    #ai-ntp-quickbar[data-side="right"] {
+        left: auto !important;
+        right: 14px !important;
+    }
+}
 </style>
   <link rel="preload" as="image" href="assets/engines/google.svg">
   <link rel="preload" as="image" href="assets/engines/bing.svg">
