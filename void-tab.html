@@ -18,17 +18,6 @@
 <style>
     * { box-sizing: border-box; }
 
-    /* --void-dock-w یک‌بار تعریف می‌شود و در دو جا مصرف می‌شود: عرضِ خودِ
-       Today، و فضایی که Stage برایش کنار می‌گذارد. این‌طوری «فاصلهٔ کافی»
-       یک محاسبهٔ ریاضی‌ست که همیشه درست است، نه یک عددِ حدسی که فقط در چند
-       نقطهٔ نمونه (مثلاً ۱۰۲۴ یا ۱۲۸۰) تست و تاییدش کنیم و جای دیگری از
-       قلم بیفتد. */
-    :root {
-        --void-dock-w: clamp(200px, 20vw, 300px);
-        --void-dock-offset: 16px;   /* فاصلهٔ Today از لبهٔ ویوپورت */
-        --void-dock-gap: 24px;      /* حداقل فاصلهٔ نفس‌کشیدن بینِ Today و Stage */
-    }
-
     html, body {
         width: 100%;
         height: 100%;
@@ -140,26 +129,13 @@
     }
 
     /* ---- Center stage: search + shortcuts + topsites ---- */
-    /* left:0/right:0/margin:auto به‌جای left:50%+transform: هر ancestorِ
-       transform-دار، containing-block رو برای فرزندانِ position:fixed
-       عوض می‌کنه — یعنی از الان که Today (#ai-void-todo-dock) به‌عنوانِ
-       فرزندِ همین استیج زندگی می‌کنه (برای چیدمانِ موبایل)، اگه خودِ استیج
-       transform داشت، Today (که رویِ دسکتاپ همچنان position:fixed هست)
-       دیگه نسبت به کلِ صفحه فیکس نمی‌موند، نسبت به همین باکسِ کوچیکِ استیج
-       فیکس می‌شد و رویِ نوار جستجو می‌افتاد. این روشِ سنترکردن دقیقاً همون
-       نتیجه رو بدونِ transform می‌ده، پس این باگ اصلاً پیش نمی‌آد.
-
-       عرض: به‌جای یه max-width ثابت (۶۴۰px) که در پنجره‌های نه‌چندان‌بزرگ
-       (۱۰۰۰ تا ۱۳۰۰px) به‌سادگی با Todayِ کنارش تصادم می‌کنه، همون فضایی که
-       Today واقعاً اشغال می‌کنه (offset + عرضِ متغیرش + gap) از هر دو طرف
-       کم می‌شه. نتیجه: هیچ عرضی وجود نداره که این دو تا با هم قاطی بشن —
-       نه فقط چند نقطهٔ نمونه که تستش کردیم. */
     #ai-void-stage {
         position: fixed;
-        left: 0; right: 0; margin: 0 auto;
+        left: 50%;
         top: max(88px, 18vh);
+        transform: translateX(-50%);
         z-index: 40;
-        width: min(640px, calc(100vw - 2 * (var(--void-dock-offset) + var(--void-dock-w) + var(--void-dock-gap))));
+        width: min(640px, calc(100vw - 32px));
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -834,22 +810,12 @@
     /* Todo dock — z-index رو حالا حتی از خودِ استیجِ اصلی (۴۰) هم پایین‌تر
        گذاشتیم (۳۰): طبقِ خواستِ کاربر، وقتی داک باز/گسترده می‌شه و با سرچ/
        Echo/Goals هم‌پوشانی پیدا می‌کنه، باید *زیرِ* اون‌ها بمونه، نه روشون -
-       کوییک‌بار (۸۰۰) و دیالوگِ ویرایش (۹۹۹۹۹۹) هنوز از همه بالاترن.
-       نکته برای نگه‌داری بعدی: از وقتی Today به‌خاطرِ چیدمانِ موبایل، از نظرِ
-       DOM داخلِ #ai-void-stage زندگی می‌کنه، این عدد ۳۰ دیگه واقعاً با
-       عددِ ۴۰ِ استیج مقایسه نمی‌شه — چون استیج خودش یک stacking context
-       می‌سازه، و z-index فرزندانش (Today) فقط نسبت به خواهر/برادرهای
-       داخلِ همون استیج (سرچ/Echo/Goals) معنی داره، نه نسبت به بیرون. با
-       این‌حال چون فرمولِ عرضِ Stage (var(--void-dock-w)+gap) تضمین می‌کنه
-       Today رویِ دسکتاپ هیچ‌وقت با محتوای Stage هم‌پوشانیِ فضایی پیدا
-       نکنه، این تغییرِ معنایی عملاً بی‌اثره — ولی اگه یه‌جا Today رو از
-       این ستون بیرون بردید یا فرمولِ عرض رو دستکاری کردید، این نکته را
-       به یاد داشته باشید. */
+       کوییک‌بار (۸۰۰) و دیالوگِ ویرایش (۹۹۹۹۹۹) هنوز از همه بالاترن. */
     #ai-void-todo-dock {
         position: fixed; top: 22%; z-index: 30;
         display: block !important; visibility: visible !important; opacity: 1 !important;
         pointer-events: auto !important;
-        width: var(--void-dock-w);
+        width: min(300px, calc(100vw - 32px));
         max-height: min(64vh, 520px);
         color: #EEF2FF;
         background: rgba(10, 14, 28, .7);
@@ -872,24 +838,8 @@
         opacity: 0 !important;
         pointer-events: none !important;
     }
-    /* همین منطق، این‌بار کلیدش نه dock.hidden بلکه attributeِ
-       data-void-boot-dissolved است — که void-tab-router.js پیش از هر پینتی
-       (قبل از این‌که حتی یک اسکریپتِ دیگه اجرا بشه) روی dock می‌ذاره اگه
-       Today از storage به‌عنوانِ «ستاره‌شده» خونده بشه. این یه لایهٔ دومِ
-       دفاعیه: صرف‌نظر از این‌که بعداً کدوم اسکریپت (void-dissolve.js یا
-       void-tab-todo.js) با چه ترتیبی و چه سرعتی dock.hidden رو ست/آن‌ست
-       می‌کنه، تا وقتی این attribute پاک نشده (که فقط بعد از تاییدِ نهاییِ
-       واقعاً-dissolved-بودن پاک می‌شه)، دیدن شدنِ داک به‌شکلِ عادی/جمع‌شده
-       از نظرِ CSS اصلاً ممکن نیست — یعنی حتی اگه یه race باعث بشه
-       dock.hidden لحظه‌ای false بشه، این قانون بازم مخفیش نگه می‌داره. */
-    #ai-void-todo-dock[data-void-boot-dissolved="1"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }
-    #ai-void-todo-dock[data-side="right"] { right: var(--void-dock-offset); }
-    #ai-void-todo-dock[data-side="left"] { left: var(--void-dock-offset); }
+    #ai-void-todo-dock[data-side="right"] { right: 16px; }
+    #ai-void-todo-dock[data-side="left"] { left: 16px; }
     #ai-void-todo-dock:hover { box-shadow: 0 18px 48px rgba(0,0,0,.48), 0 0 0 1px rgba(165,180,252,.13); }
     #ai-void-todo-dock.is-collapsed { max-height: 42px; }
     #ai-void-todo-dock.is-collapsed .ai-void-agenda-body { display: none; }
@@ -1215,10 +1165,6 @@
         backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
     .ai-void-agenda-section.is-goals[hidden] { display: none !important; }
-    /* همون گاردِ دومِ ai-void-todo-dock، برای Goals هم — همون ریسکِ رِیس رو
-       با همون منطق داره (applyDockVisibility روی هر دو با هم تصمیم
-       می‌گیره)، پس همون تضمینِ CSSی رو هم لازم داره. */
-    .ai-void-agenda-section.is-goals[data-void-boot-dissolved="1"] { display: none !important; }
     .ai-void-agenda-section.is-goals .ai-void-agenda-section-title {
         color: rgba(196, 181, 253, 0.85);
     }
@@ -1853,35 +1799,14 @@
         color: #fca5a5;
     }
 
-    /* عرضِ Stage دیگه یک max-width ثابت نیست — بالاتر (تعریفِ #ai-void-stage)
-       با var(--void-dock-w) به‌صورتِ فرمول محاسبه می‌شه، پس همیشه، در هر
-       عرضی، دقیقاً همون فاصله‌ای که Today واقعاً لازم داره رو کنار می‌ذاره؛
-       دیگه نیازی نیست چند نقطهٔ نمونه (۱۰۲۴، ۱۲۸۰، ...) رو دستی چک کنیم.
-       ولی این فرمول فقط تا یه حدی جواب می‌ده: وقتی خودِ Today به کمینه‌ی
-       clamp (۲۰۰px) رسیده و باز هم فضا کم بیاد، Stage آن‌قدر باریک می‌شه
-       (کمتر از ~۴۶۰px) که دیگه برای نوار جستجو/لینک‌های پرکاربرد قشنگ
-       نیست — این‌جاست که به‌جای فشرده‌کردنِ بیشتر، سوییچ می‌کنیم به چیدمانِ
-       ستونی (که Today/Echo/Goals رو از حالتِ کناریِ fixed درمی‌آره و زیرِ
-       هم می‌چینه). آستانه‌اش از همون فرمولِ بالا حساب شده: وقتی Today به
-       کمینه‌اش (۲۰۰px) می‌رسه، فضای رزرو‌شده هر طرف = ۲۰۰+۱۶+۲۴=۲۴۰px،
-       و Stageِ ~۴۶۰px یعنی VW ≈ ۴۶۰+۲×۲۴۰ = ۹۴۰px. */
-    @media (max-width: 940px) {
-        /* زیرِ این آستانه، وقتی همه‌چیز (سرچ + Frequent Links + Today + Echo
-           + Goals) زیرِ هم می‌شینه، ممکنه رویِ‌همرفته از ارتفاعِ صفحه بلندتر
-           بشه. چون html/body عمداً overflow:hidden هستن (برای جلوگیریِ
-           اسکرولِ کلِ صفحه روی starfield) و این استیج position:fixed هست
-           (پس اسکرولِ سند رو دنبال نمی‌کنه)، بدونِ این قانون هر بخشی که از
-           ویوپورت رد بشه (مثلِ Goals، چون آخرین آیتمه) کاملاً غیرِقابل‌
-           دسترسی می‌موند — نه پنهان به‌خاطرِ منطقِ برنامه، فقط بیرون از دیدِ
-           صفحه.
-           Today (#ai-void-todo-dock) از نظرِ DOM دیگه همین‌جا، بینِ
-           Frequent Links و Echo، زندگی می‌کنه (نه یه <aside>ی مستقلِ
-           position:fixed بعدِ Stage). روی پنجره‌های بزرگ‌تر (بیرونِ این
-           مدیا کوئری) همچنان position:fixed می‌مونه و جای DOM هیچ اثرِ
-           دیداری نداره؛ فقط این‌جا با position:static به‌جای این‌که یک
-           overlayِ شناور باشه و با بازشدن، روی Echo/Goals بیفته، خودش هم
-           یک عضوِ عادیِ همین ستونِ اسکرول‌شونده می‌شه — پس دیگه به‌تعریف
-           نمی‌تونه روی چیزِ دیگه‌ای بیفته. */
+    @media (max-width: 700px) {
+        /* روی موبایل، وقتی همه‌چیز (سرچ + Frequent Links + Echo + Goals)
+           زیرِ هم می‌شینه، ممکنه رویِ‌همرفته از ارتفاعِ صفحه بلندتر بشه. چون
+           html/body عمداً overflow:hidden هستن (برای جلوگیری از اسکرولِ کلِ
+           صفحه روی starfield) و این استیج position:fixed هست (پس اسکرولِ
+           سند رو دنبال نمی‌کنه)، بدونِ این قانون هر بخشی که از ویوپورت رد
+           بشه (مثلِ Goals، چون آخرین آیتمه) کاملاً غیرِقابل‌دسترسی می‌موند —
+           نه پنهان به‌خاطرِ منطقِ برنامه، فقط بیرون از دیدِ صفحه. */
         #ai-void-stage {
             top: max(64px, 12vh); width: calc(100vw - 24px); gap: 14px;
             max-height: calc(100vh - max(64px, 12vh) - 24px);
@@ -1892,19 +1817,11 @@
         #ai-void-stage::-webkit-scrollbar { width: 6px; }
         #ai-void-stage::-webkit-scrollbar-track { background: transparent; }
         #ai-void-stage::-webkit-scrollbar-thumb { background: rgba(165, 180, 252, .28); border-radius: 999px; }
-        #ai-void-todo-dock {
-            position: static !important; top: auto !important; bottom: auto !important;
-            left: auto !important; right: auto !important; transform: none !important;
-            width: 100%; max-width: none;
-        }
+        #ai-void-search-brand-name { font-size: 18px; }
+        #ai-void-todo-dock { top: auto !important; bottom: 16px; width: min(320px, calc(100vw - 32px)); left: 50% !important; right: auto !important; transform: translateX(-50%); }
         #ai-ntp-quickbar, #ai-ntp-quickbar[data-side="left"], #ai-ntp-quickbar[data-side="right"] {
             left: auto !important; right: 14px !important;
         }
-    }
-    /* این یکی صرفاً ظاهریه (اندازهٔ فونتِ برندِ سرچ روی گوشی) — چیدمانِ
-       ستونی بالا این‌جا نیست، چون از ۹۴۰px به پایین از قبل فعاله. */
-    @media (max-width: 700px) {
-        #ai-void-search-brand-name { font-size: 18px; }
     }
     @media (prefers-reduced-motion: reduce) {
         .ai-void-search-brand-pulse { animation: none; }
@@ -2018,41 +1935,6 @@
 
   <div id="ai-ntp-topsites"></div>
 
-  <!-- Today این‌جا، بینِ لینک‌های پرکاربرد و اکو، زندگی می‌کنه (نه
-       دیگه به‌صورتِ <aside>ی مستقل بعدِ Stage) تا روی موبایل
-       (@media max-width:700px) با یک position:static ساده در همون
-       ستونِ اسکرول‌شوندهٔ Stage بشینه، به‌جای این‌که به‌عنوانِ یک
-       overlay مستقلِ position:fixed با Echo/Goals تصادم کنه. رویِ
-       دسکتاپ چون CSS همچنان position:fixed می‌ذاره، جای DOM هیچ اثرِ
-       دیداری نداره — فقط ترتیبِ موبایل رو کنترل می‌کنه. -->
-  <aside id="ai-void-todo-dock" class="is-collapsed" data-side="left" aria-label="Today">
-  <div class="ai-void-todo-head" id="ai-void-todo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
-    <span>◐</span><span class="ai-void-todo-title" id="ai-void-todo-title">Today</span><span class="ai-void-todo-count" id="ai-void-todo-count"></span>
-    <span class="ai-void-todo-chevron" id="ai-void-todo-chevron" aria-hidden="true">▾</span>
-    <button type="button" class="ai-void-dissolve-btn" id="ai-void-todo-dissolve" title="Dissolve into stars">◎</button>
-    <button type="button" class="ai-void-todo-side" id="ai-void-todo-side" title="Move to other side">↔</button>
-  </div>
-  <div class="ai-void-agenda-body" id="ai-void-agenda-body">
-    <div class="ai-void-agenda-datehead" id="ai-void-agenda-datehead"></div>
-    <div class="ai-void-agenda-section">
-      <div class="ai-void-agenda-section-title" id="ai-void-agenda-events-title"></div>
-      <div class="ai-void-agenda-events" id="ai-void-agenda-events"></div>
-    </div>
-    <div class="ai-void-agenda-section">
-      <div class="ai-void-agenda-section-title" id="ai-void-agenda-tasks-title"></div>
-      <div class="ai-void-todo-list" id="ai-void-todo-list"></div>
-    </div>
-    <div class="ai-void-report-bar" id="ai-void-report-bar">
-      <div class="ai-void-report-row">
-        <span class="ai-void-report-label" id="ai-void-report-label">Share report</span>
-        <button type="button" id="ai-void-report-copy" class="ai-void-report-copy" title="Copy report">⎘</button>
-        <button type="button" id="ai-void-report-txt" class="ai-void-report-txt" title="Download .txt">⬇</button>
-      </div>
-      <div class="ai-void-report-hint" id="ai-void-report-hint" aria-live="polite"></div>
-    </div>
-  </div>
-</aside>
-
   <div id="ai-void-echo" class="is-collapsed" hidden aria-live="polite">
     <div class="ai-void-echo-handle" id="ai-void-echo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
       <span class="ai-void-echo-icon" aria-hidden="true">
@@ -2089,6 +1971,34 @@
     <div class="ai-void-todo-list ai-void-goals-list" id="ai-void-goals-list"></div>
   </div>
 </section>
+
+<aside id="ai-void-todo-dock" class="is-collapsed" data-side="left" aria-label="Today">
+  <div class="ai-void-todo-head" id="ai-void-todo-handle" role="button" tabindex="0" aria-expanded="false" title="Show / hide">
+    <span>◐</span><span class="ai-void-todo-title" id="ai-void-todo-title">Today</span><span class="ai-void-todo-count" id="ai-void-todo-count"></span>
+    <span class="ai-void-todo-chevron" id="ai-void-todo-chevron" aria-hidden="true">▾</span>
+    <button type="button" class="ai-void-dissolve-btn" id="ai-void-todo-dissolve" title="Dissolve into stars">◎</button>
+    <button type="button" class="ai-void-todo-side" id="ai-void-todo-side" title="Move to other side">↔</button>
+  </div>
+  <div class="ai-void-agenda-body" id="ai-void-agenda-body">
+    <div class="ai-void-agenda-datehead" id="ai-void-agenda-datehead"></div>
+    <div class="ai-void-agenda-section">
+      <div class="ai-void-agenda-section-title" id="ai-void-agenda-events-title"></div>
+      <div class="ai-void-agenda-events" id="ai-void-agenda-events"></div>
+    </div>
+    <div class="ai-void-agenda-section">
+      <div class="ai-void-agenda-section-title" id="ai-void-agenda-tasks-title"></div>
+      <div class="ai-void-todo-list" id="ai-void-todo-list"></div>
+    </div>
+    <div class="ai-void-report-bar" id="ai-void-report-bar">
+      <div class="ai-void-report-row">
+        <span class="ai-void-report-label" id="ai-void-report-label">Share report</span>
+        <button type="button" id="ai-void-report-copy" class="ai-void-report-copy" title="Copy report">⎘</button>
+        <button type="button" id="ai-void-report-txt" class="ai-void-report-txt" title="Download .txt">⬇</button>
+      </div>
+      <div class="ai-void-report-hint" id="ai-void-report-hint" aria-live="polite"></div>
+    </div>
+  </div>
+</aside>
 
 <div id="ai-void-profile-dialog" role="dialog" aria-modal="true" aria-labelledby="ai-void-profile-title">
   <div class="ai-void-profile-card">
