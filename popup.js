@@ -829,17 +829,25 @@ const i18nPopup = {
     if (createVoidTabBtn) {
       createVoidTabBtn.addEventListener('click', () => {
         const voidTabUrl = chrome.runtime.getURL('void-tab.html');
-        chrome.tabs.query({}, (tabs) => {
-          const existingTab = tabs.find(t => t.url && t.url.indexOf(voidTabUrl) === 0);
-          if (existingTab) {
-            chrome.tabs.update(existingTab.id, { active: true });
-            if (existingTab.windowId) {
-              chrome.windows.update(existingTab.windowId, { focused: true });
+        // انتخابِ صریحِ «تب وید» یعنی کاربر دوباره حالتِ وید را می‌خواهد؛ پس
+        // تیکِ «ریدایرکت به موتور جستجوی استاندارد» باید هم در UI و هم در
+        // storage برداشته شود (وگرنه با باز کردن دوبارهٔ پاپ‌آپ، تیک برمی‌گردد).
+        // قبل از بستنِ پاپ‌آپ صبر می‌کنیم تا نوشتنِ storage کامل شود.
+        const cb = document.getElementById('useDefaultNtpCb');
+        if (cb) cb.checked = false;
+        chrome.storage.local.set({ useDefaultNtp: false }, () => {
+          chrome.tabs.query({}, (tabs) => {
+            const existingTab = tabs.find(t => t.url && t.url.indexOf(voidTabUrl) === 0);
+            if (existingTab) {
+              chrome.tabs.update(existingTab.id, { active: true });
+              if (existingTab.windowId) {
+                chrome.windows.update(existingTab.windowId, { focused: true });
+              }
+            } else {
+              chrome.tabs.create({ url: voidTabUrl + '?explicit=1' });
             }
-          } else {
-            chrome.tabs.create({ url: voidTabUrl + '?explicit=1' });
-          }
-          window.close();
+            window.close();
+          });
         });
       });
     }

@@ -1148,6 +1148,11 @@ opacity: 1; pointer-events: auto; transform: scale(1) translateY(0);
 .ai-todo-quote-fa {
   font-size: 14px;
   font-weight: 800; /* <--- این مقدار از 500 به 800 تغییر یافت تا آیه bold شود */
+  /* فونت‌های Amiri / Scheherazade / Traditional Arabic فقط اگر روی سیستمِ کاربر نصب باشند
+     لود می‌شوند (هیچ @font-face ای نداریم) و بعضی‌شان وزن bold ندارند؛ پس font-weight به‌تنهایی
+     ممکن است اثر دیداری نداشته باشد. این استروکِ نازک مستقل از فونت، متن را ضخیم می‌کند
+     (همان تکنیکی که برای .ai-event-time-label هم استفاده شده). */
+  -webkit-text-stroke: 0.4px currentColor;
   color: #f1f5f9;
   white-space: pre-line;
   line-height: 1.55;
