@@ -14,7 +14,27 @@
 
 <!-- باید همیشه اولین اسکریپت در <head> بماند -->
 <script src="void-tab-router.js"></script>
+<style>
 
+/* --------------------------------------------------------------------- */
+/* لینک‌های پرکاربرد — زوم پایدار در حالت کلاپس (حل مشکل انیمیشن زوم) */
+/* این CSS داخل void-dissolve.js هم اعمال شده (pointer-events: none)    */
+/* --------------------------------------------------------------------- */
+.ai-ts-tile {
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.ai-ts-tile:hover {
+  transform: scale(1.08);
+  z-index: 20;
+}
+
+/* اگر می‌خواهی لینک‌ها کمی taller هم باشند (اختیاری) */
+.ai-ts-tile {
+  height: 58px;
+  min-height: 58px;
+}
 <style>
     * { box-sizing: border-box; }
 
