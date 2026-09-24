@@ -191,6 +191,14 @@
       });
 
     container.appendChild(buildAddTile());
+
+// ---------------------------------------------------------------------
+// **اطمینان از اینکه صور فلکی بلافاصله recalculate شود**
+// این رویداد دقیقاً همان چیزی است که void-dissolve.js منتظرش است
+// ---------------------------------------------------------------------
+try {
+  window.dispatchEvent(new CustomEvent('void-topsites-rendered'));
+} catch (e) {}
   }
 
   function loadAuto() {

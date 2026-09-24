@@ -233,7 +233,14 @@
             try { VoidDissolve.restore('todo'); } catch (err) {}
           } else {
             dockVisible = true;
-            applyDockVisibility();
+           applyDockVisibility();
+
+// **وقتی کلاپس می‌شود و اهداف محو می‌شوند، صور فلکی را دوباره تنظیم کن**
+if (typeof repositionForLayoutChange === 'function') {
+  requestAnimationFrame(() => {
+    repositionForLayoutChange();
+  });
+}
           }
           if (VoidDissolve.isDissolved('goals')) {
             try { VoidDissolve.restore('goals'); } catch (err) {}

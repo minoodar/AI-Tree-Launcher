@@ -1264,9 +1264,23 @@
     }
     activeConstellation = null;
     PRIMARY_IDS.forEach((id) => {
-      const e = registry[id];
-      if (e && e.singularity) e.singularity.classList.remove('is-constellation');
+  const e = registry[id];
+  if (e && e.singularity) applyOrbPosition(e);
+});
+
+// ---------------------------------------------------------------------
+// **نظارت پویا روی ارتفاع واقعی ردیف لینک‌های پرکاربرد**
+// وقتی ارتفاع تغییر کرد، صور فلکی فوراً recalculate می‌شود
+// ---------------------------------------------------------------------
+const topsitesContainer = document.getElementById('ai-ntp-topsites');
+if (topsitesContainer) {
+  const observer = new ResizeObserver(() => {
+    requestAnimationFrame(() => {
+      repositionForLayoutChange();
     });
+  });
+  observer.observe(topsitesContainer);
+}
   }
 
   function pickConstellation() {
@@ -1364,7 +1378,17 @@
     var cy = anchorBottom + gap - bounds.minY * scale;
 
     cx = Math.max(scale + 40, Math.min(vw - scale - 40, cx));
-    var minCy = anchorBottom + gap - bounds.minY * scale * 0.15;
+    // اینجا باگِ اصلیِ اسکرین‌شات بود: وقتی ارتفاعِ ویوپورت کم است (پنجرهٔ
+    // کوتاه)، محدودیتِ «نیفتادن از پایینِ صفحه» (vh - scale - 80) می‌توانست
+    // cy را کوچک‌تر از چیزی کند که برای ماندن *زیرِ* لینک‌های پرکاربرد لازم
+    // بود. minCy قبلاً با ضریبِ ۰.۱۵ (به‌جای ۱) حساب می‌شد — یعنی به‌جای
+    // تضمینِ «کلِ شکل زیرِ لینک‌ها بماند»، فقط «مرکزِ شکل کمی زیرِ لینک‌ها
+    // باشد» را تضمین می‌کرد؛ چون bounds.minY منفی است، نیمهٔ بالاییِ شکل با
+    // همین حالت دوباره می‌رفت توی خودِ ردیفِ لینک‌ها — دقیقاً همان چیزی که
+    // در اسکرین‌شات افتاده بود. حالا minCy با همان فرمولِ اصلیِ cy (ضریبِ
+    // کامل) حساب می‌شود، یعنی حتی اگر فضای پایینِ صفحه کم باشد، اولویت با
+    // «رویِ لینک‌ها نیفتد» است، نه با «کاملاً داخلِ ویوپورت بماند».
+    var minCy = anchorBottom + gap - bounds.minY * scale;
     cy = Math.max(minCy, Math.min(vh - scale - 80, cy));
 
     return { cx: cx, cy: cy, scale: scale };
@@ -1900,6 +1924,26 @@
     persist();
   }
 
+  // منطقِ مشترکِ سه‌جا: هر وقت چیدمانِ صفحه به شکلی تغییر کند که ممکن است
+  // لنگرگاهِ صورتِ فلکی/تک‌ستاره‌ها (پایینِ لینک‌های پرکاربرد) عوض شده
+  // باشد — تغییرِ سایزِ پنجره، اسکرولِ Stage روی موبایل، یا رندرِ دوبارهٔ
+  // خودِ ردیفِ لینک‌های پرکاربرد (که async است و ارتفاعش می‌تواند بعد از
+  // تشکیلِ اولیهٔ صورتِ فلکی عوض شود) — همین یک تابع صدا زده می‌شود.
+  function repositionForLayoutChange() {
+    if (activeConstellation && countDissolvedPrimaries() >= 3) {
+      const z = ZODIAC.find((c) => c.id === activeConstellation.id);
+      if (z) {
+        const c = defaultConstellationCenter(z.scale || 90, z);
+        formConstellationFrom(z, c.cx, c.cy, c.scale, false);
+      }
+    } else {
+      PRIMARY_IDS.forEach((id) => {
+        const e = registry[id];
+        if (e && e.singularity) applyOrbPosition(e);
+      });
+    }
+  }
+
   let _resizeTimer = null;
   let _lastResizeW = window.innerWidth;
   let _lastResizeH = window.innerHeight;
@@ -1912,18 +1956,7 @@
       if (dw < 8 && dh < 8) return;
       _lastResizeW = window.innerWidth;
       _lastResizeH = window.innerHeight;
-      if (activeConstellation && countDissolvedPrimaries() >= 3) {
-        const z = ZODIAC.find((c) => c.id === activeConstellation.id);
-        if (z) {
-          const c = defaultConstellationCenter(z.scale || 90, z);
-          formConstellationFrom(z, c.cx, c.cy, c.scale, false);
-        }
-      } else {
-        PRIMARY_IDS.forEach((id) => {
-          const e = registry[id];
-          if (e && e.singularity) applyOrbPosition(e);
-        });
-      }
+      repositionForLayoutChange();
     }, 120);
   }, { passive: true });
 
@@ -1932,33 +1965,32 @@
   // استیج را اسکرول کند، صورتِ فلکی (که position:fixed است، یعنی نسبت به
   // ویوپورت ثابت می‌ماند) دیگر با لینک‌های پرکاربرد (که داخلِ همون استیجِ
   // اسکرول‌شونده جابه‌جا می‌شوند) هم‌راستا نمی‌ماند و ممکن است رویشان
-  // بیفتد. راه‌حل: همان منطقِ repositioningِ resize را روی اسکرولِ استیج
-  // هم اجرا می‌کنیم — anchorBottom در defaultConstellationCenter از رویِ
-  // getBoundingClientRect زندهٔ topsites حساب می‌شود، پس همین صدازدنِ
-  // دوباره کافی‌ست تا صورتِ فلکی خودش را با موقعیتِ تازهٔ لینک‌ها هماهنگ کند.
+  // بیفتد.
   let _stageScrollTimer = null;
   try {
     const stageEl = document.getElementById('ai-void-stage');
     if (stageEl) {
       stageEl.addEventListener('scroll', () => {
         clearTimeout(_stageScrollTimer);
-        _stageScrollTimer = setTimeout(() => {
-          if (activeConstellation && countDissolvedPrimaries() >= 3) {
-            const z = ZODIAC.find((c) => c.id === activeConstellation.id);
-            if (z) {
-              const c = defaultConstellationCenter(z.scale || 90, z);
-              formConstellationFrom(z, c.cx, c.cy, c.scale, false);
-            }
-          } else {
-            PRIMARY_IDS.forEach((id) => {
-              const e = registry[id];
-              if (e && e.singularity) applyOrbPosition(e);
-            });
-          }
-        }, 80);
+        _stageScrollTimer = setTimeout(repositionForLayoutChange, 80);
       }, { passive: true });
     }
   } catch (e) {}
+
+  // این یکی علتِ واقعیِ اسکرین‌شات‌ها بود: void-tab-topsites.js ردیفِ
+  // لینک‌های پرکاربرد را async و چندبار می‌سازد — اول با pinnedِ خالی، بعد
+  // (چند میلی‌ثانیه دیرتر، وقتی chrome.topSites.get جواب می‌دهد) با
+  // آیکون‌های واقعی که ارتفاعِ ردیف را عوض می‌کنند. اگر صورتِ فلکی دقیقاً
+  // در همان فاصله (قبل از رسیدنِ آیکون‌های واقعی) تشکیل شده باشد،
+  // anchorBottomِ خودش را از رویِ یک ردیفِ هنوز-کامل-نشده حساب کرده و
+  // دیگر هیچ‌وقت (نه با resize نه با scroll) خودش را تصحیح نمی‌کند — چون
+  // هیچ‌کدام از آن دو رویداد واقعاً فایر نمی‌شوند. void-tab-topsites.js
+  // بعد از هر render یک رویدادِ 'void-topsites-rendered' می‌فرستد؛ همین‌جا
+  // با آن گوش می‌دهیم و اگر صورتِ فلکی از قبل تشکیل شده، دوباره با
+  // ارتفاعِ واقعیِ تازه هماهنگش می‌کنیم.
+  window.addEventListener('void-topsites-rendered', () => {
+    repositionForLayoutChange();
+  }, { passive: true });
 
   loadState();
 
