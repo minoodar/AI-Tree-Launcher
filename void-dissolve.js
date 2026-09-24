@@ -1927,6 +1927,39 @@
     }, 120);
   }, { passive: true });
 
+  // موبایل: از وقتی #ai-void-stage به‌جای یک چیدمانِ ثابت، یک ستونِ
+  // اسکرول‌شونده شده (زیرِ ۹۴۰px)، اگه کاربر بعد از تشکیلِ صورتِ فلکی
+  // استیج را اسکرول کند، صورتِ فلکی (که position:fixed است، یعنی نسبت به
+  // ویوپورت ثابت می‌ماند) دیگر با لینک‌های پرکاربرد (که داخلِ همون استیجِ
+  // اسکرول‌شونده جابه‌جا می‌شوند) هم‌راستا نمی‌ماند و ممکن است رویشان
+  // بیفتد. راه‌حل: همان منطقِ repositioningِ resize را روی اسکرولِ استیج
+  // هم اجرا می‌کنیم — anchorBottom در defaultConstellationCenter از رویِ
+  // getBoundingClientRect زندهٔ topsites حساب می‌شود، پس همین صدازدنِ
+  // دوباره کافی‌ست تا صورتِ فلکی خودش را با موقعیتِ تازهٔ لینک‌ها هماهنگ کند.
+  let _stageScrollTimer = null;
+  try {
+    const stageEl = document.getElementById('ai-void-stage');
+    if (stageEl) {
+      stageEl.addEventListener('scroll', () => {
+        clearTimeout(_stageScrollTimer);
+        _stageScrollTimer = setTimeout(() => {
+          if (activeConstellation && countDissolvedPrimaries() >= 3) {
+            const z = ZODIAC.find((c) => c.id === activeConstellation.id);
+            if (z) {
+              const c = defaultConstellationCenter(z.scale || 90, z);
+              formConstellationFrom(z, c.cx, c.cy, c.scale, false);
+            }
+          } else {
+            PRIMARY_IDS.forEach((id) => {
+              const e = registry[id];
+              if (e && e.singularity) applyOrbPosition(e);
+            });
+          }
+        }, 80);
+      }, { passive: true });
+    }
+  } catch (e) {}
+
   loadState();
 
   try {
