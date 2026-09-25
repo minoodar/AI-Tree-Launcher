@@ -804,6 +804,10 @@ if (typeof repositionForLayoutChange === 'function') {
     return ty === 'goal' || ty === 'goals';
   }
 
+  // سقفِ نمایشِ هم‌زمانِ هدف‌ها — نگه‌داشتنش کوچک عمدیه: هم گرید بدونِ اسکرول
+  // قد می‌کشد، هم بیشتر از این معمولاً یعنی پراکندگی، نه تمرکز.
+  const GOALS_MAX_VISIBLE = 6;
+
   function todoImpactPct(t) {
     if (!t) return 10;
     var n = Number(t.impactPct);
@@ -1212,11 +1216,24 @@ if (typeof repositionForLayoutChange === 'function') {
       } else {
         if (goalsTitleEl) goalsTitleEl.textContent = label('todoTabGoals', 'Goals');
         goalsList.innerHTML = '';
-        goals.slice().sort(function (a, b) {
+        // سقفِ سختِ ۶ هدف: هم برای این‌که گرید بدونِ اسکرول/بریدگی همیشه کامل
+        // دیده بشه، هم چون بیشتر از این معمولاً یعنی تمرکز از دست رفته —
+        // نزدیک‌ترین‌ها به اتمام (همون ترتیبِ پیشین) نشون داده می‌شن.
+        const sortedGoals = goals.slice().sort(function (a, b) {
           return goalProgress(b) - goalProgress(a);
-        }).forEach(function (todo) {
+        });
+        const shownGoals = sortedGoals.slice(0, GOALS_MAX_VISIBLE);
+        shownGoals.forEach(function (todo) {
           goalsList.appendChild(buildGoalCard(todo));
         });
+        const hiddenCount = sortedGoals.length - shownGoals.length;
+        if (hiddenCount > 0) {
+          const overflow = document.createElement('div');
+          overflow.className = 'ai-void-goals-overflow';
+          overflow.innerHTML = '<strong>+' + hiddenCount + '</strong> ' +
+            label('voidGoalsOverflowLabel', 'more — worth narrowing your focus');
+          goalsList.appendChild(overflow);
+        }
       }
       // hidden واقعیِ Goals از applyDockVisibility میاد — چون هم به تعدادِ
       // Goals (hasGoals) و هم به روشن/خاموش‌بودنِ Today (dockVisible) بستگی داره.
