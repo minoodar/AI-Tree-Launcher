@@ -1217,13 +1217,32 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (e) {}
 
   // ============================= Initial load =============================
+  // noteTextAlign (chrome.storage.local) و appLanguage (chrome.storage.sync) دو
+  // درخواستِ async مستقلِ همزمان‌ان. قبلاً وقتی کاربر هیچ‌وقت دستی align انتخاب
+  // نکرده بود، default همیشه فیزیکیِ 'left' بود — مستقل از زبان. برای یک کاربرِ
+  // فارسی/عربی که اولین بار دفترچه را باز می‌کند، یعنی متنِ راست‌چین (dir=auto
+  // درست resolve می‌شود) داخلِ یک باکسِ چپ‌چین می‌نشیند: دقیقاً حالتِ «راست‌چین و
+  // چپ‌چین همزمان» که مشکل‌ساز بود. حالا این دو نتیجه هماهنگ می‌شوند: default
+  // (فقط وقتی کاربر قبلاً چیزی انتخاب نکرده) بر اساسِ جهتِ زبانِ تشخیص‌داده‌شده
+  // محاسبه می‌شود، نه یک مقدارِ ثابت. انتخابِ دستیِ کاربر (noteTextAlign ذخیره‌شده)
+  // همچنان همیشه اولویت دارد و دست‌نخورده می‌ماند.
+  let _localLoadData = null;
+  let _langReady = false;
+  function maybeApplyDefaultAlign() {
+    if (_localLoadData === null || !_langReady) return;
+    if (!_localLoadData.noteTextAlign) {
+      setAlign(isRTL(currentLang) ? 'right' : 'left', false);
+    }
+  }
   try {
     chrome.storage.local.get(
       ['savedPromptDraft', 'noteTextAlign', 'noteFontSize', CUSTOM_PROMPT_KEY, PROMPT_OVERRIDE_KEY, PROMPT_HIDDEN_KEY, 'aiTreeEmojiMemory'],
       (data) => {
         els.textarea.value = (data && typeof data.savedPromptDraft === 'string') ? data.savedPromptDraft : '';
         lastValueForEmoji = els.textarea.value;
-        setAlign((data && data.noteTextAlign) || 'left', false);
+        if (data && data.noteTextAlign) setAlign(data.noteTextAlign, false);
+        _localLoadData = data || {};
+        maybeApplyDefaultAlign();
         applyFontSize((data && data.noteFontSize) || FONT_DEFAULT, false);
         if (data && Array.isArray(data[CUSTOM_PROMPT_KEY])) customPrompts = data[CUSTOM_PROMPT_KEY];
         if (data && data[PROMPT_OVERRIDE_KEY] && typeof data[PROMPT_OVERRIDE_KEY] === 'object') promptOverrides = data[PROMPT_OVERRIDE_KEY];
@@ -1236,6 +1255,8 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.sync.get(['appLanguage'], (data) => {
       currentLang = (data && data.appLanguage) || 'en';
       applyTranslation();
+      _langReady = true;
+      maybeApplyDefaultAlign();
     });
   } catch (e) {
     applyTranslation();
