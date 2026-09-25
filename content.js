@@ -11813,7 +11813,19 @@ let hubAutoCollapsedByPanel = false;
     });
   }
   trackNewVideos();
-  new MutationObserver(() => { trackNewVideos(); scheduleCinemaCheck(); }).observe(document.documentElement, { childList: true, subtree: true });
+  // مثل domWatchdog (بالاتر در همین فایل، مدیریتِ SPA re-attach): این observer هم
+  // روی کلِ درختِ سند گوش می‌دهد، پس در فیدهای پرتغییر (اسکرولِ بی‌نهایتِ
+  // توییتر/اینستاگرام) callback می‌تواند صدها بار در ثانیه اجرا شود. قبلاً
+  // trackNewVideos() (یک querySelectorAll('video') روی کلِ صفحه) بی‌درنگ و بدون
+  // throttle داخل همان callback اجرا می‌شد؛ حالا با همان الگوی pending-flag که
+  // domWatchdog استفاده می‌کند batch می‌شود.
+  let _videoScanPending = false;
+  function scheduleVideoScan() {
+    if (_videoScanPending) return;
+    _videoScanPending = true;
+    setTimeout(() => { _videoScanPending = false; trackNewVideos(); }, 150);
+  }
+  new MutationObserver(() => { scheduleVideoScan(); scheduleCinemaCheck(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "resetFloatingMenuPositionAnly") {
