@@ -10531,7 +10531,7 @@ let hubAutoCollapsedByPanel = false;
   async function loadDataAndRender() {
     const [syncData, localData] = await Promise.all([
       storageGet('sync', ['orbitX', 'orbitY', 'linksData', 'coreAIConfig', 'lastDeletedLink', 'userBirthYear', 'userBirthMonth', 'userBirthDay', 'aiTreeFamilyAges', 'nodeSpacing', 'aiTreeTodos', 'appLanguage', 'aiTreeMarkedDays', 'clockCustomX', 'clockCustomY', 'coreSlots5Migrated']),
-      storageGet('local', ['linksData', 'linksData2', 'linksData3', 'linksData4', 'activeNoteAIIndex', 'aiTreeTimeEvents'])
+      storageGet('local', ['linksData', 'linksData2', 'linksData3', 'linksData4', 'activeNoteAIIndex', 'aiTreeTimeEvents', 'aiTreeTodos'])
     ]);
 
     if (typeof localData.activeNoteAIIndex === 'number') {
@@ -10596,10 +10596,24 @@ let hubAutoCollapsedByPanel = false;
     } else if (userBirthYear) {
       familyAges = [{ id: 'legacy', name: '', year: userBirthYear, month: userBirthMonth, day: userBirthDay, primary: true }];
     }
-    if(syncData.aiTreeTodos) {
+    // local منبعِ معتبره؛ sync فقط best-effort و محدود به ۸KB به‌ازایِ هر
+    // کلیده — برای کاربری با این‌همه کار/هدف، آرایه‌ی aiTreeTodos به‌راحتی از
+    // اون سقف رد می‌شه و chrome.storage.sync.set بی‌صدا شکست می‌خوره (بدون
+    // callback، بدون پرتاب خطا، فقط یک warning توی کنسول). قبلاً این بلوک
+    // همیشه sync رو معتبر می‌دونست و local رو باهاش override می‌کرد — یعنی
+    // با هر بار بازشدنِ یک تبِ جدید، نسخه‌ی قدیمیِ گیرکرده‌یِ sync دوباره
+    // رو نسخه‌ی تازه‌ی local (که همین الان یک تیک واقعی توش ثبت شده) می‌نشست:
+    // دقیقاً همون چیزی که باعث می‌شد تیک‌خوردن توی منوی Today «برنگرده».
+    // الان local هروقت داده داشته باشه اولویت داره؛ sync فقط برایِ نصبِ کاملاً
+    // تازه‌ای که هنوز local خالیه (یا یک دستگاهِ قدیمی‌تر که فقط sync داشته)
+    // به‌کار می‌ره.
+    if (Array.isArray(localData.aiTreeTodos) && localData.aiTreeTodos.length) {
+      todosData = localData.aiTreeTodos;
+      migrateTodos(); pruneExpiredDailyTodos();
+    } else if (syncData.aiTreeTodos) {
       todosData = syncData.aiTreeTodos;
       migrateTodos(); pruneExpiredDailyTodos();
-      // برای داده‌های قدیمی که فقط در sync بودند، یک‌بار آینهٔ Void Tab را بساز.
+      // برای داده‌های قدیمی که فقط در sync بودند، یک‌بار آینهٔ local را بساز.
       try { if (chrome.runtime?.id) chrome.storage.local.set({ aiTreeTodos: todosData }); } catch (err) {}
     }
     publishTodosToVoidTab();

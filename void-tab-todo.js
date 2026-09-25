@@ -1314,19 +1314,14 @@ if (typeof repositionForLayoutChange === 'function') {
         chrome.storage.sync.get(['aiTreeTodos'], function (syncData) {
           const localTodos = Array.isArray(localData.aiTreeTodos) ? localData.aiTreeTodos : [];
           const syncTodos = Array.isArray(syncData.aiTreeTodos) ? syncData.aiTreeTodos : [];
-          // Prefer the richer list — not only by length, but by presence of goals
-          // (DOM-scraped fallbacks are daily-only and must not win over full storage).
-          function score(arr) {
-            let s = arr.length;
-            for (let i = 0; i < arr.length; i++) {
-              const ty = String((arr[i] && arr[i].type) || '').toLowerCase();
-              if (ty === 'goal' || ty === 'goals') s += 10;
-            }
-            return s;
-          }
-          let preferred = localTodos;
-          if (score(syncTodos) > score(localTodos)) preferred = syncTodos;
-          else if (syncTodos.length && !localTodos.length) preferred = syncTodos;
+          // local همیشه اولویت داره وقتی داده داره — sync برایِ آرایه‌های
+          // نسبتاً بزرگ (کاربرهایی با کار/هدفِ زیاد) به‌راحتی از سقفِ ۸KBِ
+          // هر آیتم رد می‌شه و chrome.storage.sync.set بی‌صدا شکست می‌خوره؛
+          // قبلاً منطقِ «هرکدوم غنی‌تره» می‌تونست همون نسخهٔ قدیمی/گیرکردهٔ
+          // sync رو به‌جایِ local تازه انتخاب کنه (دقیقاً همون علتِ برنگشتنِ
+          // تیک‌ها در منویِ Today). sync فقط وقتی به‌کار می‌ره که local واقعاً
+          // خالیه (نصبِ تازه یا دستگاهِ دیگه‌ای که هنوز local نداره).
+          const preferred = localTodos.length ? localTodos : syncTodos;
           acceptTodos(preferred, true);
         });
       });
