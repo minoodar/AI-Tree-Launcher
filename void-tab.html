@@ -35,7 +35,7 @@
   height: 58px;
   min-height: 58px;
 }
-
+<style>
     * { box-sizing: border-box; }
 
     /* --void-dock-w یک‌بار تعریف می‌شود و در دو جا مصرف می‌شود: عرضِ خودِ
@@ -955,7 +955,6 @@
     .ai-void-agenda-datehead {
         display: flex; flex-direction: column; gap: 3px;
         padding-bottom: 8px;
-        border-bottom: 1px solid rgba(255,255,255,.08);
     }
     .ai-void-agenda-date-primary { font-size: 12.5px; font-weight: 700; color: #F1F5FF; letter-spacing: .01em; }
     .ai-void-agenda-date-secondary {
@@ -973,26 +972,27 @@
         margin-top: 1px;
     }
     .ai-void-agenda-age { font-size: 10px; color: rgba(251,191,36,.75); margin-top: 3px; font-weight: 600; }
-    .ai-void-agenda-journey { margin-top: 6px; }
-    .ai-void-agenda-journey-top {
-        display: flex; justify-content: space-between;
-        font-size: 8.5px; text-transform: uppercase; letter-spacing: .05em;
-        color: rgba(199,210,254,.45); margin-bottom: 3px;
+
+    /* ---- یک ردیفِ فشردهٔ سن به‌جای چهار خطِ همیشه‌بازِ قبلی — پیش‌فرض بسته ---- */
+    .ai-void-agenda-age-toggle {
+        display: flex; align-items: center; justify-content: space-between; gap: 6px;
+        width: 100%; margin-top: 6px; padding: 0; border: none; background: none;
+        font-family: inherit; cursor: pointer; text-align: start;
+        color: rgba(251, 191, 36, 0.8);
     }
-    .ai-void-agenda-journey-track {
-        height: 4px; border-radius: 999px;
-        background: rgba(255,255,255,.06);
-        overflow: hidden;
+    .ai-void-agenda-age-toggle:hover { color: rgba(251, 191, 36, 1); }
+    .ai-void-agenda-age-summary { font-size: 10px; font-weight: 600; }
+    .ai-void-agenda-age-caret {
+        font-size: 8px; opacity: .55; transition: transform 0.18s ease;
+        transform: rotate(-90deg);
     }
-    .ai-void-agenda-journey-fill {
-        height: 100%; border-radius: 999px;
-        background: linear-gradient(90deg, #7c6af2, #FBBF24);
-    }
-    .ai-void-agenda-journey-caption {
-        font-size: 9.5px; color: rgba(199,210,254,.55); margin-top: 3px; text-align: center;
+    .ai-void-agenda-age-toggle.is-open .ai-void-agenda-age-caret { transform: rotate(0deg); }
+
+    .ai-void-agenda-age-detail {
+        margin-top: 5px; display: flex; flex-direction: column; gap: 4px;
+        animation: voidFamilyOpen 0.22s ease;
     }
     .ai-void-agenda-birth {
-        margin-top: 5px;
         text-align: center;
         display: flex;
         flex-direction: column;
@@ -1013,21 +1013,8 @@
         color: rgba(186, 230, 253, 0.78);
         direction: ltr;
     }
-    .ai-void-agenda-family-toggle {
-        display: block; width: 100%; margin-top: 6px; padding: 4px 8px;
-        border: 1px dashed rgba(165,180,252,.25); border-radius: 7px;
-        background: rgba(255,255,255,0.03); color: rgba(199,210,254,.7);
-        font-size: 9.5px; font-weight: 700; font-family: inherit; cursor: pointer;
-        text-align: center;
-    }
-    .ai-void-agenda-family-toggle.is-open {
-        border-style: solid; border-color: rgba(52,211,153,.35);
-        background: rgba(16,185,129,.08);
-    }
     .ai-void-agenda-family {
-        margin-top: 5px; display: flex; flex-direction: column; gap: 3px;
-        padding: 4px 0 0;
-        animation: voidFamilyOpen 0.22s ease;
+        display: flex; flex-direction: column; gap: 3px;
     }
     @keyframes voidFamilyOpen {
         from { opacity: 0; transform: translateY(-4px); }
@@ -1039,6 +1026,31 @@
     }
     .ai-void-agenda-family-row.is-primary {
         color: #A7F3D0; background: rgba(16,185,129,.1);
+    }
+
+    /* ---- «خط عمر» — دیگر بخشِ متنیِ سن نیست: یک جداکنندهٔ همیشه‌دیدنی و
+       جذاب بینِ بلوکِ تقویم/سن و رویدادها/کارهای زیرش. جایگزینِ همان
+       border-bottom ساده‌ای که قبلاً روی خودِ .ai-void-agenda-datehead بود؛
+       بدونِ سالِ تولد هم .ai-void-agenda-divider همون نقش رو با یک خطِ ساده
+       بازی می‌کند تا لایوت نپرد. ---- */
+    .ai-void-agenda-lifeline {
+        margin-top: 10px; padding-top: 8px;
+        border-top: 1px solid rgba(255,255,255,.06);
+    }
+    .ai-void-agenda-lifeline-track {
+        height: 5px; border-radius: 999px;
+        background: rgba(255,255,255,.06);
+        overflow: hidden;
+        box-shadow: 0 0 10px rgba(124, 106, 242, 0.18);
+    }
+    .ai-void-agenda-lifeline-fill {
+        height: 100%; border-radius: 999px;
+        background: linear-gradient(90deg, #7c6af2, #FBBF24);
+        box-shadow: 0 0 8px rgba(251, 191, 36, 0.45);
+    }
+    .ai-void-agenda-divider {
+        margin-top: 10px;
+        border-top: 1px solid rgba(255,255,255,.08);
     }
     .ai-void-agenda-mark-line {
         font-size: 10.5px; color: rgba(199,210,254,.7);

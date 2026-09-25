@@ -67,7 +67,7 @@
   let userBirthMonth = null;
   let userBirthDay = null;
   let familyAges = [];
-  let voidFamilyExpanded = false;
+  let voidAgeExpanded = false;
 
   let markedDays = [];
   const VISIBLE_KEY = 'voidTodoDockVisible';
@@ -462,71 +462,65 @@ if (typeof repositionForLayoutChange === 'function') {
     const primaryBirth = getVoidPrimary();
     if (primaryBirth && primaryBirth.year) {
       const age = computeVoidAge(primaryBirth.year, primaryBirth.month, primaryBirth.day);
-      const wrap = document.createElement('div');
-      wrap.className = 'ai-void-agenda-journey';
-      const top = document.createElement('div');
-      top.className = 'ai-void-agenda-journey-top';
-      const origin = document.createElement('span');
-      origin.textContent = label('originLabel', 'Origin');
-      const present = document.createElement('span');
-      present.textContent = label('presentLabel', 'Now');
-      top.append(origin, present);
-      const track = document.createElement('div');
-      track.className = 'ai-void-agenda-journey-track';
-      const fill = document.createElement('div');
-      fill.className = 'ai-void-agenda-journey-fill';
-      const pct = Math.max(4, Math.min(96, (age / 90) * 100));
-      fill.style.width = pct + '%';
-      track.appendChild(fill);
-      const cap = document.createElement('div');
-      cap.className = 'ai-void-agenda-journey-caption';
+
+      // ------------------------------------------------------------------
+      // یک ردیفِ فشرده به‌جای ۴ خطِ همیشه‌بازِ قبلی (Origin/Now + نوار +
+      // کپشنِ سن + تاریخ‌های تولد + دکمهٔ خانواده). حالا همهٔ این جزئیات زیرِ
+      // یک تاگلِ واحد جمع می‌شوند و پیش‌فرض بسته‌اند؛ فقط این یک خط همیشه
+      // دیده می‌شود. خودِ نوارِ سن («خط عمر») دیگر بخشی از این تاگل نیست —
+      // پایین‌تر، بیرون از این بلوک، به‌عنوان یک جداکنندهٔ همیشه‌‌دیدنی بینِ
+      // این هد و رویدادها/کارها رندر می‌شود.
+      // ------------------------------------------------------------------
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'ai-void-agenda-age-toggle' + (voidAgeExpanded ? ' is-open' : '');
+      toggle.setAttribute('aria-expanded', voidAgeExpanded ? 'true' : 'false');
       const nameBit = primaryBirth.name ? (primaryBirth.name + ' · ') : '';
-      cap.textContent = nameBit + label('journeyCaption', '{age} years on the path').replace('{age}', String(age));
-      wrap.append(top, track, cap);
-      const birthLines = formatVoidBirthLines(primaryBirth.year, primaryBirth.month, primaryBirth.day);
-      if (birthLines.jalali || birthLines.gregorian || birthLines.plain) {
-        const birthWrap = document.createElement('div');
-        birthWrap.className = 'ai-void-agenda-birth';
-        if (birthLines.jalali) {
-          const jLine = document.createElement('div');
-          jLine.className = 'ai-void-agenda-birth-j';
-          jLine.textContent = '🌱 ' + birthLines.jalali;
-          birthWrap.appendChild(jLine);
+      const summary = document.createElement('span');
+      summary.className = 'ai-void-agenda-age-summary';
+      summary.textContent = '\u{1F382} ' + nameBit + label('journeyCaption', '{age} years on the path').replace('{age}', String(age));
+      const caret = document.createElement('span');
+      caret.className = 'ai-void-agenda-age-caret';
+      caret.textContent = '\u25BE';
+      toggle.append(summary, caret);
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        voidAgeExpanded = !voidAgeExpanded;
+        renderDateHead();
+      });
+      dateHead.appendChild(toggle);
+
+      if (voidAgeExpanded) {
+        const detail = document.createElement('div');
+        detail.className = 'ai-void-agenda-age-detail';
+
+        const birthLines = formatVoidBirthLines(primaryBirth.year, primaryBirth.month, primaryBirth.day);
+        if (birthLines.jalali || birthLines.gregorian || birthLines.plain) {
+          const birthWrap = document.createElement('div');
+          birthWrap.className = 'ai-void-agenda-birth';
+          if (birthLines.jalali) {
+            const jLine = document.createElement('div');
+            jLine.className = 'ai-void-agenda-birth-j';
+            jLine.textContent = '🌱 ' + birthLines.jalali;
+            birthWrap.appendChild(jLine);
+          }
+          if (birthLines.gregorian) {
+            const gLine = document.createElement('div');
+            gLine.className = 'ai-void-agenda-birth-g';
+            gLine.textContent = '✦ ' + birthLines.gregorian;
+            birthWrap.appendChild(gLine);
+          }
+          if (!birthLines.jalali && !birthLines.gregorian && birthLines.plain) {
+            birthWrap.textContent = birthLines.plain;
+          }
+          detail.appendChild(birthWrap);
         }
-        if (birthLines.gregorian) {
-          const gLine = document.createElement('div');
-          gLine.className = 'ai-void-agenda-birth-g';
-          gLine.textContent = '✦ ' + birthLines.gregorian;
-          birthWrap.appendChild(gLine);
-        }
-        if (!birthLines.jalali && !birthLines.gregorian && birthLines.plain) {
-          birthWrap.textContent = birthLines.plain;
-        }
-        wrap.appendChild(birthWrap);
-      }
-      // Collapsible family roster — primary only until toggle opens
-      const others = (familyAges || []).filter(m => m && m.year && !m.primary);
-      if (others.length) {
-        const tog = document.createElement('button');
-        tog.type = 'button';
-        tog.className = 'ai-void-agenda-family-toggle' + (voidFamilyExpanded ? ' is-open' : '');
-        tog.setAttribute('aria-expanded', voidFamilyExpanded ? 'true' : 'false');
-        const n = others.length;
-        const openTxt = (typeof currentLang !== 'undefined' && currentLang === 'fa')
-          ? (n + ' عضو دیگر خانواده')
-          : (n + ' more');
-        const closeTxt = (typeof currentLang !== 'undefined' && currentLang === 'fa')
-          ? 'بستن'
-          : 'Hide';
-        tog.textContent = (voidFamilyExpanded ? closeTxt : openTxt) + ' ▾';
-        tog.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          voidFamilyExpanded = !voidFamilyExpanded;
-          renderDateHead();
-        });
-        wrap.appendChild(tog);
-        if (voidFamilyExpanded) {
+
+        // اعضای خانواده دیگر دکمهٔ تاگلِ جدا ندارند — همان یک تاگلِ بیرونی
+        // کافی است؛ وقتی باز است، کل فهرست همین‌جا دیده می‌شود.
+        const others = (familyAges || []).filter(m => m && m.year && !m.primary);
+        if (others.length) {
           const fam = document.createElement('div');
           fam.className = 'ai-void-agenda-family is-open';
           const ordered = (familyAges || []).filter(m => m && m.year).slice()
@@ -540,10 +534,33 @@ if (typeof repositionForLayoutChange === 'function') {
             if (bl) row.title = bl;
             fam.appendChild(row);
           });
-          wrap.appendChild(fam);
+          detail.appendChild(fam);
         }
+
+        dateHead.appendChild(detail);
       }
-      dateHead.appendChild(wrap);
+
+      // «خط عمر» — نوارِ پیشرفتِ سن، حالا یک جداکنندهٔ همیشه‌‌دیدنی و مستقل
+      // از تاگلِ بالا، دقیقاً روی مرزِ بینِ این هد (تقویم+سن) و رویدادها/
+      // کارهای پایینِ داک. border-bottom قبلیِ خودِ .ai-void-agenda-datehead
+      // (در CSS) عمداً برداشته شده تا این نوار جایگزینِ همان مرز بشود، نه
+      // یک خط اضافه‌تر.
+      const lifeline = document.createElement('div');
+      lifeline.className = 'ai-void-agenda-lifeline';
+      const track = document.createElement('div');
+      track.className = 'ai-void-agenda-lifeline-track';
+      const fill = document.createElement('div');
+      fill.className = 'ai-void-agenda-lifeline-fill';
+      const pct = Math.max(4, Math.min(96, (age / 90) * 100));
+      fill.style.width = pct + '%';
+      track.appendChild(fill);
+      lifeline.appendChild(track);
+      dateHead.appendChild(lifeline);
+    } else {
+      // بدون سالِ تولد: همان مرزِ سادهٔ قبلی، تا لایوت با/بدون این داده نپرد.
+      const divider = document.createElement('div');
+      divider.className = 'ai-void-agenda-divider';
+      dateHead.appendChild(divider);
     }
     renderMarkedDayLine();
   }
