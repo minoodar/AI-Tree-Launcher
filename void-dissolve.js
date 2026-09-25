@@ -1264,23 +1264,31 @@
     }
     activeConstellation = null;
     PRIMARY_IDS.forEach((id) => {
-  const e = registry[id];
-  if (e && e.singularity) applyOrbPosition(e);
-});
-
-// ---------------------------------------------------------------------
-// **نظارت پویا روی ارتفاع واقعی ردیف لینک‌های پرکاربرد**
-// وقتی ارتفاع تغییر کرد، صور فلکی فوراً recalculate می‌شود
-// ---------------------------------------------------------------------
-const topsitesContainer = document.getElementById('ai-ntp-topsites');
-if (topsitesContainer) {
-  const observer = new ResizeObserver(() => {
-    requestAnimationFrame(() => {
-      repositionForLayoutChange();
+      const e = registry[id];
+      if (e && e.singularity) applyOrbPosition(e);
     });
-  });
-  observer.observe(topsitesContainer);
-}
+  }
+
+  // ---------------------------------------------------------------------
+  // **نظارت پویا روی ارتفاع واقعی ردیف لینک‌های پرکاربرد**
+  // وقتی ارتفاع تغییر کرد، صور فلکی فوراً recalculate می‌شود.
+  // این observer فقط یک‌بار (سطح ماژول) ساخته می‌شود — قبلاً داخل
+  // clearConstellation() ساخته می‌شد که هر بار صدا زده می‌شد (هر dissolve/
+  // restore) یک ResizeObserver تازه روی همون المان می‌ساخت و قبلی‌ها هیچ‌وقت
+  // disconnect نمی‌شدند: نشتِ نامحدودِ observer که با هر resize، تعدادِ
+  // رو‌به‌رشدی از rebuild/storage-write تکراری اجرا می‌کرد.
+  // ---------------------------------------------------------------------
+  let topsitesObserver = null;
+  function ensureTopsitesObserver() {
+    if (topsitesObserver) return;
+    const topsitesContainer = document.getElementById('ai-ntp-topsites');
+    if (!topsitesContainer) return;
+    topsitesObserver = new ResizeObserver(() => {
+      requestAnimationFrame(() => {
+        repositionForLayoutChange();
+      });
+    });
+    topsitesObserver.observe(topsitesContainer);
   }
 
   function pickConstellation() {
@@ -1993,6 +2001,7 @@ if (topsitesContainer) {
   }, { passive: true });
 
   loadState();
+  ensureTopsitesObserver();
 
   try {
     chrome.storage.onChanged.addListener((changes) => {
