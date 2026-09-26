@@ -114,6 +114,7 @@
     if (handle) handle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
   }
   function setCollapsed(next) {
+    if (root.classList.contains('ai-void-is-dissolved')) return;
     collapsed = !!next;
     applyCollapsed();
     try { chrome.storage.local.set({ [COLLAPSED_KEY]: collapsed }); } catch (e) {}

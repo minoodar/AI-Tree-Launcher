@@ -134,6 +134,9 @@
     handle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
   }
   function setCollapsed(next) {
+    // اگه الان محوشونده (سیاه‌چاله)، دستِ کلاپسِ ساده بهش نرسه — این دو
+    // سیستمِ toggle باید کاملاً مستقل بمونن، نه هم‌زمان روی یه چیز اثر بذارن.
+    if (dock.classList.contains('ai-void-is-dissolved')) return;
     collapsed = !!next;
     applyCollapsed();
     try { chrome.storage.local.set({ voidTodoCollapsed: collapsed }); } catch (e) {}

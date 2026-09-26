@@ -820,6 +820,10 @@
     }
     #ai-void-echo[hidden] { display: none !important; }
     #ai-void-echo.is-collapsed { max-height: 40px; }
+    /* همون منطقِ نئونِ Today، اینجا با نقره‌ایِ Echo. */
+    #ai-void-echo.is-collapsed:not(.ai-void-is-dissolved) {
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28), 0 0 22px rgba(203, 213, 225, .34);
+    }
     #ai-void-echo:not(.is-collapsed) { max-height: 320px; }
     #ai-void-echo.is-collapsed .ai-void-echo-content { display: none; }
     .ai-void-echo-handle {
@@ -913,6 +917,12 @@
     #ai-void-todo-dock[data-side="left"] { left: var(--void-dock-offset); }
     #ai-void-todo-dock:hover { box-shadow: 0 18px 48px rgba(0,0,0,.48), 0 0 0 1px rgba(165,180,252,.13); }
     #ai-void-todo-dock.is-collapsed { max-height: 42px; }
+    /* لحظه‌ای که جمع می‌شه (کلاپسِ سادهٔ هرروزه، نه دیسالوِ ستاره‌ای)، همون
+       هویتِ آبیِ Today به‌شکلِ یه سایهٔ نئونیِ واضح‌تر برمی‌گرده — یه نشونهٔ
+       بصریِ ملایم که «فقط جمع شده، نه محو» رو از حالتِ dissolve متمایز می‌کنه. */
+    #ai-void-todo-dock.is-collapsed:not(.ai-void-is-dissolved) {
+        box-shadow: 0 15px 42px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.06), 0 0 22px rgba(56, 189, 248, .38);
+    }
     #ai-void-todo-dock.is-collapsed .ai-void-agenda-body { display: none; }
     #ai-void-todo-dock.is-collapsed .ai-void-todo-head { border-bottom-color: transparent; }
     .ai-void-todo-head {
