@@ -810,8 +810,12 @@
     /* ---- Today's Echo (collapsible zen card) ---- */
     #ai-void-echo {
         width: 100%; max-width: 360px; border-radius: 16px;
-        background: rgba(8, 12, 28, 0.42); border: 1px solid rgba(165, 180, 252, 0.12);
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+        background: rgba(8, 12, 28, 0.42);
+        /* کادرِ خودِ Echo، نه یه لکهٔ تازه — هویتِ نقره‌ای رویِ همون مرزِ
+           موجود، هم‌الگو با کارِ Today. */
+        border: 1px solid rgba(203, 213, 225, 0.32);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28), 0 0 20px rgba(203, 213, 225, 0.14);
+        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
         overflow: hidden; transition: opacity 0.25s ease, max-height 0.28s cubic-bezier(.16,1,.3,1);
     }
     #ai-void-echo[hidden] { display: none !important; }
@@ -821,13 +825,18 @@
     .ai-void-echo-handle {
         display: flex; align-items: center; gap: 8px; padding: 9px 12px;
         cursor: pointer; user-select: none; color: rgba(199, 210, 254, 0.85);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        /* همون تقسیم‌کنندهٔ فیزیکیِ موجود، فقط رنگِ نقره‌ایِ Echo رو گرفته. */
+        border-bottom: 1px solid rgba(203, 213, 225, 0.28);
     }
     #ai-void-echo.is-collapsed .ai-void-echo-handle { border-bottom-color: transparent; }
     .ai-void-echo-handle:hover { background: rgba(255, 255, 255, 0.04); }
     .ai-void-echo-icon { width: 18px; height: 18px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; color: rgba(167, 139, 250, 0.9); }
     .ai-void-echo-icon svg { width: 16px; height: 16px; display: block; }
-    .ai-void-echo-title { flex: 1 1 auto; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(199, 210, 254, 0.78); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ai-void-echo-title {
+        flex: 1 1 auto; font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase;
+        color: rgba(199, 210, 254, 0.78);
+        min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
     .ai-void-echo-count { font-size: 10.5px; font-weight: 700; min-width: 18px; height: 18px; padding: 0 6px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: rgba(167, 139, 250, 0.18); color: #c4b5fd; border: 1px solid rgba(167, 139, 250, 0.28); }
     .ai-void-echo-count[hidden] { display: none !important; }
     .ai-void-echo-chevron { font-size: 11px; opacity: 0.65; transition: transform 0.22s ease; flex: 0 0 auto; }
@@ -863,11 +872,13 @@
         max-height: min(64vh, 520px);
         color: #EEF2FF;
         background: rgba(10, 14, 28, .7);
-        border: 1px solid rgba(165, 180, 252, .28);
+        /* کادرِ خودِ پنل، نه یه لکهٔ تازه — هویتِ آبیِ Today رو رویِ مرزِ
+           خودِ داک می‌ذاریم؛ همون قابی که از قبل هست، فقط رنگش. */
+        border: 1px solid rgba(56, 189, 248, .38);
         border-radius: 14px;
         backdrop-filter: blur(18px) saturate(1.15);
         -webkit-backdrop-filter: blur(18px) saturate(1.15);
-        box-shadow: 0 15px 42px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.06);
+        box-shadow: 0 15px 42px rgba(0,0,0,.38), inset 0 1px rgba(255,255,255,.06), 0 0 20px rgba(56, 189, 248, .16);
         overflow: hidden;
         transition: box-shadow .2s ease, opacity .2s ease, max-height .28s cubic-bezier(.16,1,.3,1);
     }
@@ -907,7 +918,9 @@
     .ai-void-todo-head {
         display: flex; align-items: center; gap: 8px;
         padding: 9px 10px;
-        border-bottom: 1px solid rgba(255,255,255,.07);
+        /* تقسیم‌کنندهٔ هدر/بدنه که از قبل هست، فقط رنگِ آبیِ Today رو گرفته —
+           نه یه لکهٔ تازه، بلکه همون مرزِ فیزیکیِ موجود. */
+        border-bottom: 1px solid rgba(56, 189, 248, .32);
         cursor: pointer; user-select: none;
     }
     .ai-void-todo-head:active { cursor: grabbing; }
