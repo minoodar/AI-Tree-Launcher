@@ -602,7 +602,7 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
     <input type="text" id="ai-search-input" dir="auto" autocomplete="off" />
     <ul id="ai-search-results"></ul>
     <button type="button" class="ai-web-search-toggle" id="ai-web-search-toggle" aria-expanded="false">
-      <span class="ai-web-search-toggle-icon">🌐</span>
+      <span class="ai-web-search-toggle-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M16.2 16.2L21 21"/></svg></span>
       <span id="ai-web-search-toggle-label"></span>
       <span class="ai-web-search-toggle-chevron">▾</span>
     </button>
@@ -626,7 +626,7 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
       </div>
       <div class="ai-web-search-row">
         <input type="text" id="ai-web-search-input" dir="auto" autocomplete="off" />
-        <button type="button" id="ai-web-search-go" class="ai-web-search-go" aria-label="Search">→</button>
+        <button type="button" id="ai-web-search-go" class="ai-web-search-go" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M16.2 16.2L21 21"/></svg></button>
       </div>
     </div>
   `;
@@ -5719,6 +5719,17 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     } catch (err) {}
   }
 
+  const WEB_SEARCH_BUILTIN_IDS = new Set(['google', 'bing', 'duckduckgo', 'brave']);
+  function webEngineIconMarkup(eng) {
+    if (WEB_SEARCH_BUILTIN_IDS.has(eng.id) && eng.builtIn) {
+      let src = '';
+      try { src = chrome.runtime.getURL('assets/engines/' + eng.id + '.svg'); } catch (e) {}
+      return '<img src="' + src + '" alt="" loading="lazy" />';
+    }
+    // موتورِ سفارشی: بدونِ لوگویِ رسمی — یه دایرهٔ خط‌آیکونیِ ژنریک، هم‌خانواده
+    // با بقیهٔ آیکون‌های stroke=currentColor این افزونه (نه یه ایموجی).
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>';
+  }
   function renderWebSearchEngineButtons() {
     if (!uiEls.webSearchEngines) return;
     uiEls.webSearchEngines.innerHTML = '';
@@ -5728,6 +5739,11 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
       btn.className = 'ai-web-engine-btn';
       btn.setAttribute('aria-pressed', String(eng.id === activeWebSearchEngine));
       btn.title = eng.template;
+
+      const iconSpan = document.createElement('span');
+      iconSpan.className = 'ai-web-engine-icon';
+      iconSpan.innerHTML = webEngineIconMarkup(eng);
+      btn.appendChild(iconSpan);
 
       const labelSpan = document.createElement('span');
       labelSpan.className = 'ai-web-engine-label';
