@@ -626,6 +626,7 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
       </div>
       <div class="ai-web-search-row">
         <input type="text" id="ai-web-search-input" dir="auto" autocomplete="off" />
+        <button type="button" id="ai-web-search-mode" class="ai-web-search-mode-mini" aria-pressed="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/><circle cx="12" cy="12" r="4.2"/><path d="M12 8.2c1.4 0 2.6.8 3.2 2"/></svg></button>
         <button type="button" id="ai-web-search-go" class="ai-web-search-go" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M16.2 16.2L21 21"/></svg></button>
       </div>
     </div>
@@ -821,6 +822,7 @@ const clockPanel = document.createElement('div'); clockPanel.id = 'ai-clock-pane
     webSearchEngineFormReset: searchPanel.querySelector('#ai-web-engine-form-reset'),
     webSearchEngineFormDelete: searchPanel.querySelector('#ai-web-engine-form-delete'),
     webSearchInput: searchPanel.querySelector('#ai-web-search-input'),
+    webSearchMode: searchPanel.querySelector('#ai-web-search-mode'),
     webSearchGo: searchPanel.querySelector('#ai-web-search-go'),
     todoWhenRow: todoPanel.querySelector('#ai-todo-when-row'),
     todoWhenToday: todoPanel.querySelector('#ai-todo-when-today'),
@@ -5696,6 +5698,36 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   let customWebSearchEngines = [];
   let activeWebSearchEngine = 'google';
 
+  // حالتِ AI برایِ Google/Bing — دقیقاً همون کلیدِ ذخیره‌سازیِ webSearchModes که
+  // نوارِ سرچِ New Tab (void-tab-search.js) استفاده می‌کنه، پس این تاگل و اون
+  // یکی خودکار sync می‌مونن، نه دو حالتِ جداگونه.
+  const WEB_SEARCH_ENGINE_MODES = {
+    google: { classic: 'https://www.google.com/search?q={q}', ai: 'https://www.google.com/search?q={q}&udm=50' },
+    bing: { classic: 'https://www.bing.com/search?q={q}', ai: 'https://www.bing.com/copilotsearch?q={q}' }
+  };
+  let webSearchModes = {};
+  function webEngineHasModes(id) { return !!WEB_SEARCH_ENGINE_MODES[id]; }
+  function webEngineMode(id) { return webEngineHasModes(id) && webSearchModes[id] === 'ai' ? 'ai' : 'classic'; }
+  function applyWebSearchModeUI() {
+    if (!uiEls.webSearchMode) return;
+    const has = webEngineHasModes(activeWebSearchEngine);
+    uiEls.webSearchMode.hidden = !has;
+    if (!has) return;
+    const isAi = webEngineMode(activeWebSearchEngine) === 'ai';
+    uiEls.webSearchMode.setAttribute('aria-pressed', String(isAi));
+    uiEls.webSearchMode.classList.toggle('is-ai', isAi);
+    uiEls.webSearchMode.title = (typeof t === 'function' && t('webSearchAiModeTitle')) || 'AI Mode';
+  }
+  function toggleWebSearchMode() {
+    if (!webEngineHasModes(activeWebSearchEngine)) return;
+    const next = webEngineMode(activeWebSearchEngine) === 'ai' ? 'classic' : 'ai';
+    // مثل New Tab: ترجیحِ AI سراسری برای هر دو موتوریه که مُد دارن، نه فقط
+    // موتورِ فعلی — یه‌بار روشن‌کردن یعنی «همیشه AI را ترجیح بده».
+    Object.keys(WEB_SEARCH_ENGINE_MODES).forEach((id) => { webSearchModes[id] = next; });
+    try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchModes: Object.assign({}, webSearchModes) }); } catch (e) {}
+    applyWebSearchModeUI();
+  }
+
   function allWebSearchEngines() { return AI_WEB_SEARCH_ENGINES.concat(customWebSearchEngines); }
   function persistCustomWebEngines() {
     try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchCustomEngines: customWebSearchEngines }); } catch (err) {}
@@ -5763,6 +5795,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         try { if (chrome.runtime?.id) chrome.storage.local.set({ webSearchEngine: eng.id }); } catch (err) {}
         closeWebEngineForm();
         renderWebSearchEngineButtons();
+        applyWebSearchModeUI();
       });
       uiEls.webSearchEngines.appendChild(btn);
     });
@@ -5858,7 +5891,7 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
 
   if (uiEls.webSearchEngines) {
     try {
-      chrome.storage.local.get(['webSearchEngine', 'webSearchEngineOverrides', 'webSearchCustomEngines'], (data) => {
+      chrome.storage.local.get(['webSearchEngine', 'webSearchEngineOverrides', 'webSearchCustomEngines', 'webSearchModes'], (data) => {
         const overrides = data && data.webSearchEngineOverrides;
         if (overrides && typeof overrides === 'object') {
           AI_WEB_SEARCH_ENGINES.forEach((engine) => {
@@ -5876,7 +5909,11 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         if (data && data.webSearchEngine && allWebSearchEngines().some((e) => e.id === data.webSearchEngine)) {
           activeWebSearchEngine = data.webSearchEngine;
         }
+        if (data && data.webSearchModes && typeof data.webSearchModes === 'object') {
+          webSearchModes = Object.assign({}, data.webSearchModes);
+        }
         renderWebSearchEngineButtons();
+        applyWebSearchModeUI();
       });
     } catch (e) { renderWebSearchEngineButtons(); }
   }
@@ -5885,8 +5922,24 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     const q = (uiEls.webSearchInput && uiEls.webSearchInput.value || '').trim();
     if (!q) return;
     const engine = allWebSearchEngines().find((e) => e.id === activeWebSearchEngine) || AI_WEB_SEARCH_ENGINES[0];
-    window.open(engine.template.replace('{q}', encodeURIComponent(q)), '_blank', 'noopener');
+    let template = engine.template;
+    if (webEngineHasModes(engine.id) && webEngineMode(engine.id) === 'ai') {
+      template = WEB_SEARCH_ENGINE_MODES[engine.id].ai;
+    }
+    window.open(template.replace('{q}', encodeURIComponent(q)), '_blank', 'noopener');
   }
+
+  if (uiEls.webSearchMode) {
+    uiEls.webSearchMode.addEventListener('click', (e) => { e.stopPropagation(); toggleWebSearchMode(); });
+  }
+  try {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'local' && changes.webSearchModes) {
+        webSearchModes = (changes.webSearchModes.newValue && typeof changes.webSearchModes.newValue === 'object') ? changes.webSearchModes.newValue : {};
+        applyWebSearchModeUI();
+      }
+    });
+  } catch (e) {}
 
   if (uiEls.webSearchToggle && uiEls.webSearchDrawer) {
     uiEls.webSearchToggle.addEventListener('click', (e) => {
@@ -10464,6 +10517,15 @@ let hubAutoCollapsedByPanel = false;
           }
           if (changes.aiTreeTodos) { todosData = changes.aiTreeTodos.newValue || []; migrateTodos(); pruneExpiredDailyTodos(); if(todoPanel.classList.contains('active')) renderTodos(); }
           if (changes.aiTreeMarkedDays) { markedDays = changes.aiTreeMarkedDays.newValue || []; if (clockPanel.classList.contains('active')) renderMarkedDays(); }
+          // بدونِ این، یک تبِ دیگه که از قبل باز بوده (و نسخهٔ قدیمی‌تر رو توی
+          // حافظه نگه داشته) هیچ‌وقت از رویدادِ تازه‌ای که همین الان توی تبِ
+          // فعلی ثبت شد خبردار نمی‌شد — و هر saveTimeEvents() بعدیِ اون تبِ
+          // قدیمی (حتی برایِ یه ویرایشِ کاملاً نامرتبط)، همون نسخهٔ قدیمی رو
+          // رویِ نسخهٔ تازه می‌نوشت: دقیقاً همون «ثبت شد ولی توی تبِ دیگه نیست».
+          if (changes.aiTreeTimeEvents) {
+            timeEventsData = Array.isArray(changes.aiTreeTimeEvents.newValue) ? changes.aiTreeTimeEvents.newValue : [];
+            if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI();
+          }
           if (changes.lastDeletedLink) {
               if (changes.lastDeletedLink.newValue) {
                   if (!pendingUndoState.type) setUndoState('storage', null);

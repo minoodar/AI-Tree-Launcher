@@ -5057,32 +5057,35 @@ body.rtl .ai-note-history-menu,
   max-height: 420px;
   margin-top: 10px;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.91);
-  border-color: rgba(255, 255, 255, 0.68);
-  box-shadow: 0 10px 26px rgba(2, 6, 23, 0.20), inset 0 1px 0 rgba(255,255,255,0.82);
-  backdrop-filter: blur(14px) saturate(145%);
-  -webkit-backdrop-filter: blur(14px) saturate(145%);
+  /* دارک، هم‌خانواده با تمِ تیرهٔ پنلِ اصلیِ بوکمارک — نه اون تمِ روشنِ
+     «آسمانی»ِ قبلی. فقط خودِ اینپوتِ جستجو (پایین‌تر) سفید می‌مونه، دقیقاً
+     مثلِ اینکه پس‌زمینهٔ خودِ صفحهٔ New Tab تیره است ولی نوارِ جستجوش سفید. */
+  background: rgba(15, 17, 30, 0.92);
+  border-color: rgba(56, 189, 248, 0.28);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
 }
 .ai-web-search-meta { display: flex; flex-direction: column; align-items: stretch; gap: 7px; margin-bottom: 8px; }
 .ai-web-search-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.ai-web-search-section-label { margin: 0; color: #334155; }
+.ai-web-search-section-label { margin: 0; }
 
-/* Toggle to add a new engine — a quiet dashed "+" chip, same sky family as the
+/* Toggle to add a new engine — a quiet dashed "+" chip, same dark family as the
    engine chips themselves, so it reads as "one of these" rather than a stray
    leftover control. */
 .ai-web-engine-add {
   flex: 0 0 auto;
   width: 22px; height: 22px;
   display: flex; align-items: center; justify-content: center;
-  border: 1px dashed rgba(51, 65, 85, 0.35);
+  border: 1px dashed rgba(186, 230, 253, 0.35);
   border-radius: 7px;
   background: transparent;
-  color: #0284c7;
+  color: #7dd3fc;
   font: 800 14px/1 inherit;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
-.ai-web-engine-add:hover { background: rgba(14, 165, 233, 0.12); border-color: rgba(14, 165, 233, 0.55); }
+.ai-web-engine-add:hover { background: rgba(14, 165, 233, 0.16); border-color: rgba(14, 165, 233, 0.6); }
 .ai-web-engine-add:active { transform: scale(0.92); }
 
 .ai-web-search-engines { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
@@ -5091,16 +5094,16 @@ body.rtl .ai-note-history-menu,
   flex: 1 1 72px;
   display: flex; align-items: center; justify-content: center; gap: 3px;
   padding-inline-end: 15px;
-  color: #475569;
-  background: rgba(255,255,255,0.70);
-  border-color: rgba(51, 65, 85, 0.18);
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.14);
 }
-.ai-web-engine-btn:hover { color: #0f172a; background: rgba(255,255,255,0.95); }
+.ai-web-engine-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.09); }
 .ai-web-engine-btn[aria-pressed="true"] {
-  color: #075985;
-  background: rgba(224, 242, 254, 0.92);
-  border-color: rgba(14, 165, 233, 0.62);
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.10);
+  color: #e0f2fe;
+  background: rgba(14, 165, 233, 0.2);
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.14);
 }
 .ai-web-engine-label { pointer-events: none; }
 /* Per-engine pencil — small and quiet at rest, brightens on hover so switching
@@ -5117,7 +5120,7 @@ body.rtl .ai-note-history-menu,
   cursor: pointer;
   transition: opacity 0.15s ease, background 0.15s ease;
 }
-.ai-web-engine-edit:hover { opacity: 1; background: rgba(2, 6, 23, 0.10); }
+.ai-web-engine-edit:hover { opacity: 1; background: rgba(255, 255, 255, 0.14); }
 
 /* Inline edit/add form — replaces the old window.prompt() flow with a real,
    themed form: name + URL, Save/Cancel always, Reset only for built-ins with
@@ -5126,8 +5129,8 @@ body.rtl .ai-note-history-menu,
   margin-top: 8px;
   padding: 8px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(51, 65, 85, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -5144,8 +5147,8 @@ body.rtl .ai-note-history-menu,
   width: 100%;
   padding: 7px 9px;
   border-radius: 8px;
-  border: 1px solid rgba(51, 65, 85, 0.22);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.94);
   color: #0f172a;
   font-size: 11.5px;
   font-family: inherit;
@@ -5153,7 +5156,7 @@ body.rtl .ai-note-history-menu,
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .ai-web-engine-form input::placeholder { color: #64748b; }
-.ai-web-engine-form input:focus { border-color: rgba(14, 165, 233, 0.75); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14); }
+.ai-web-engine-form input:focus { border-color: rgba(14, 165, 233, 0.75); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.24); }
 .ai-web-engine-form-actions { display: flex; gap: 6px; }
 .ai-web-engine-form-actions button {
   flex: 1;
@@ -5166,20 +5169,44 @@ body.rtl .ai-note-history-menu,
 }
 .ai-web-engine-save { background: #0284c7; color: #fff; }
 .ai-web-engine-save:hover { background: #0369a1; }
-.ai-web-engine-cancel { background: rgba(51, 65, 85, 0.10); color: #334155; }
-.ai-web-engine-cancel:hover { background: rgba(51, 65, 85, 0.18); }
-.ai-web-engine-reset { background: rgba(245, 158, 11, 0.14); color: #92400e; }
-.ai-web-engine-reset:hover { background: rgba(245, 158, 11, 0.24); }
-.ai-web-engine-delete { background: rgba(239, 68, 68, 0.12); color: #b91c1c; }
-.ai-web-engine-delete:hover { background: rgba(239, 68, 68, 0.22); }
+.ai-web-engine-cancel { background: rgba(255, 255, 255, 0.1); color: #e2e8f0; }
+.ai-web-engine-cancel:hover { background: rgba(255, 255, 255, 0.18); }
+.ai-web-engine-reset { background: rgba(245, 158, 11, 0.18); color: #fcd34d; }
+.ai-web-engine-reset:hover { background: rgba(245, 158, 11, 0.28); }
+.ai-web-engine-delete { background: rgba(239, 68, 68, 0.16); color: #fca5a5; }
+.ai-web-engine-delete:hover { background: rgba(239, 68, 68, 0.26); }
+/* اینپوتِ جستجو — تنها منطقه‌ای که سفید می‌مونه، دقیقاً مثلِ نوارِ سفیدِ
+   خودِ صفحهٔ New Tab روی پس‌زمینهٔ تیره. */
 #ai-web-search-input {
-  background: rgba(255,255,255,0.76);
-  border-color: rgba(51, 65, 85, 0.22);
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #202124;
 }
-#ai-web-search-input::placeholder { color: #64748b; }
-#ai-web-search-input:focus { border-color: rgba(14, 165, 233, 0.75); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14); }
+#ai-web-search-input::placeholder { color: #80868b; }
+#ai-web-search-input:focus { border-color: rgba(14, 165, 233, 0.75); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.22); }
+/* دکمهٔ AI Mode — کوچیک، مینیمال، فقط آیکون؛ نسخهٔ فشرده‌شدهٔ همون دکمهٔ
+   pill-ی نوارِ سرچِ New Tab، بدونِ برچسبِ متنی/بجِ state که اونجا هست. */
+.ai-web-search-mode-mini {
+  flex: 0 0 auto;
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.ai-web-search-mode-mini svg { width: 14px; height: 14px; display: block; }
+.ai-web-search-mode-mini:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.ai-web-search-mode-mini.is-ai {
+  color: #7dd3fc;
+  background: rgba(14, 165, 233, 0.22);
+  border-color: rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 8px rgba(14, 165, 233, 0.35);
+}
 /* دکمهٔ جستجوی وب — هم‌خانواده با دکمهٔ دایره‌ایِ نوارِ جستجوی New Tab:
+
    گرادیانِ صاف + یه حلقهٔ نرمِ inset، نه چندلایه بِوِلِ گلاسی. */
 .ai-web-search-go {
   background: linear-gradient(160deg, #38bdf8 0%, #0284c7 100%) !important;
