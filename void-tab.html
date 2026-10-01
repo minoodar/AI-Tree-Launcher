@@ -1662,7 +1662,65 @@
         text-align: center;
         pointer-events: none;
         z-index: 39;
-        max-width: 280px;
+        max-width: 300px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .ai-void-constellation-text { flex: 1 1 auto; min-width: 0; }
+    /* فلش‌های سواپ — چون خودِ کپشن pointer-events:none دارد (تا رویِ استارفیلدِ
+       زیرش کلیک قفل نکند)، اینجا صریحاً auto می‌شود تا واقعاً کلیک‌پذیر باشند —
+       نبودِ همین یک خط، قبلاً باعث می‌شد این دکمه‌ها اصلاً کار نکنند. */
+    .ai-void-constellation-nav {
+        flex: 0 0 auto;
+        pointer-events: auto;
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        border: 1px solid rgba(199, 210, 254, 0.22);
+        background: rgba(12, 14, 26, 0.55);
+        color: rgba(226, 232, 255, 0.78);
+        font-size: 15px; line-height: 1;
+        cursor: pointer;
+        display: grid; place-items: center;
+        backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+    .ai-void-constellation-nav:hover, .ai-void-constellation-nav:focus-visible {
+        background: rgba(99, 102, 241, 0.3);
+        border-color: rgba(165, 180, 252, 0.65);
+        color: #fff;
+        transform: scale(1.12);
+        outline: none;
+    }
+    .ai-void-constellation-nav:active { transform: scale(0.94); }
+    .ai-void-constellation-facts {
+        margin-top: 5px;
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: rgba(251, 191, 36, 0.68);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    }
+    /* پیش‌نمایشِ محوِ همسایه (هاورِ فلش) — همون خطوط/ستاره‌ها، خیلی کم‌نور،
+       بدونِ هیچ commit‌ای تا وقتی واقعاً کلیک بشه. */
+    .ai-void-constellation-ghost {
+        z-index: 37;
+        opacity: 0;
+        transition: opacity 0.22s ease;
+    }
+    .ai-void-constellation-ghost.is-visible { opacity: 1; }
+    .ai-void-constellation-ghost line {
+        stroke: rgba(199, 210, 254, 0.16);
+        stroke-width: 1;
+        stroke-linecap: round;
+    }
+    .ai-void-constellation-ghost circle {
+        fill: rgba(248, 250, 252, 0.22);
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .ai-void-constellation-ghost { transition: none !important; }
+        .ai-void-constellation-nav { transition: none !important; }
     }
     .ai-void-constellation-name {
         font-size: 13px;
@@ -1951,6 +2009,7 @@
         .ai-void-search-brand-pulse { animation: none; }
         #ai-ntp-quickbar { transition: none; }
     }
+
 </style>
   <link rel="preload" as="image" href="assets/engines/google.svg">
   <link rel="preload" as="image" href="assets/engines/bing.svg">

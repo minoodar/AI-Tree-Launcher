@@ -1098,6 +1098,110 @@
         "alrescha"
       ]
     ]
+  },
+  {
+    "id": "ophiuchus",
+    "name": "Ophiuchus",
+    "caption": "The Serpent-Bearer — the 13th constellation on the ecliptic, not a 13th zodiac sign",
+    "yAxis": "down",
+    "scale": 92,
+    "stars": [
+      {
+        "id": "rasalhague",
+        "x": 0.0,
+        "y": -0.85,
+        "role": "anchor",
+        "mag": 1
+      },
+      {
+        "id": "sabik",
+        "x": 0.55,
+        "y": 0.42,
+        "role": "anchor",
+        "mag": 0.88
+      },
+      {
+        "id": "yed_posterior",
+        "x": -0.55,
+        "y": 0.35,
+        "role": "anchor",
+        "mag": 0.82
+      },
+      {
+        "id": "cebalrai",
+        "x": 0.42,
+        "y": -0.55,
+        "role": "helper",
+        "mag": 0.6
+      },
+      {
+        "id": "kappa_oph",
+        "x": -0.45,
+        "y": -0.6,
+        "role": "helper",
+        "mag": 0.5
+      },
+      {
+        "id": "yed_prior",
+        "x": -0.62,
+        "y": -0.05,
+        "role": "helper",
+        "mag": 0.58
+      },
+      {
+        "id": "zeta_oph",
+        "x": 0.0,
+        "y": 0.65,
+        "role": "helper",
+        "mag": 0.55
+      },
+      {
+        "id": "nu_oph",
+        "x": 0.68,
+        "y": -0.02,
+        "role": "helper",
+        "mag": 0.48
+      }
+    ],
+    "anchors": {
+      "today": "rasalhague",
+      "goals": "sabik",
+      "echo": "yed_posterior"
+    },
+    "edges": [
+      [
+        "rasalhague",
+        "cebalrai"
+      ],
+      [
+        "cebalrai",
+        "nu_oph"
+      ],
+      [
+        "nu_oph",
+        "sabik"
+      ],
+      [
+        "sabik",
+        "zeta_oph"
+      ],
+      [
+        "zeta_oph",
+        "yed_posterior"
+      ],
+      [
+        "yed_posterior",
+        "yed_prior"
+      ],
+      [
+        "yed_prior",
+        "kappa_oph"
+      ],
+      [
+        "kappa_oph",
+        "rasalhague"
+      ]
+    ]
   }
 ];
 
@@ -1194,6 +1298,181 @@
       }
     } catch (e) {}
     return z.caption || '';
+  }
+
+  // یک خطِ گلچین‌شدهٔ اضافه — عنصر/کیفیت/حاکمِ سنتی، یا برایِ Ophiuchus
+  // یادداشتِ «سیزدهمین صورتِ فلکی». همون الگویِ t()-محورِ zodiacName/
+  // zodiacCaption، پس با اضافه‌شدنِ کلیدهایِ واقعی به i18n.js خودکار
+  // چندزبانه می‌شود؛ تا آن‌موقع، fallbackِ انگلیسی نشان داده می‌شود.
+  const ZODIAC_TRAITS = {
+    aries: { el: 'fire', mod: 'cardinal', ruler: 'mars' },
+    taurus: { el: 'earth', mod: 'fixed', ruler: 'venus' },
+    gemini: { el: 'air', mod: 'mutable', ruler: 'mercury' },
+    cancer: { el: 'water', mod: 'cardinal', ruler: 'moon' },
+    leo: { el: 'fire', mod: 'fixed', ruler: 'sun' },
+    virgo: { el: 'earth', mod: 'mutable', ruler: 'mercury' },
+    libra: { el: 'air', mod: 'cardinal', ruler: 'venus' },
+    scorpius: { el: 'water', mod: 'fixed', ruler: 'mars' },
+    sagittarius: { el: 'fire', mod: 'mutable', ruler: 'jupiter' },
+    capricornus: { el: 'earth', mod: 'cardinal', ruler: 'saturn' },
+    aquarius: { el: 'air', mod: 'fixed', ruler: 'saturn' },
+    pisces: { el: 'water', mod: 'mutable', ruler: 'jupiter' }
+  };
+  const TRAIT_EN = {
+    fire: 'Fire', earth: 'Earth', air: 'Air', water: 'Water',
+    cardinal: 'Cardinal', fixed: 'Fixed', mutable: 'Mutable',
+    mars: 'Mars', venus: 'Venus', mercury: 'Mercury', moon: 'Moon', sun: 'Sun', jupiter: 'Jupiter', saturn: 'Saturn'
+  };
+  function traitText(key) {
+    try {
+      if (typeof t === 'function') {
+        const v = t('zodiacTrait_' + key);
+        if (v && v !== 'zodiacTrait_' + key) return v;
+      }
+    } catch (e) {}
+    return TRAIT_EN[key] || key;
+  }
+  function zodiacFacts(z) {
+    if (!z) return '';
+    if (z.id === 'ophiuchus') {
+      try {
+        if (typeof t === 'function') {
+          const v = t('zodiacOphNote');
+          if (v && v !== 'zodiacOphNote') return v;
+        }
+      } catch (e) {}
+      return '13th constellation of the ecliptic';
+    }
+    const tr = ZODIAC_TRAITS[z.id];
+    if (!tr) return '';
+    return traitText(tr.el) + ' · ' + traitText(tr.mod) + ' · ' + traitText(tr.ruler);
+  }
+
+  function navLabel(key, fallback) {
+    try {
+      if (typeof t === 'function') {
+        const v = t(key);
+        if (v && v !== key) return v;
+      }
+    } catch (e) {}
+    return fallback;
+  }
+
+  // ساختِ کپشن + فلش‌هایِ سواپ — یک‌جا، برایِ استفادهٔ مشترکِ formConstellation
+  // و formConstellationFrom (که قبلاً هرکدوم نسخهٔ ساده‌ترِ خودشون رو داشتن).
+  function buildCaptionBlock(z, cx, cy, pos) {
+    const cap = document.createElement('div');
+    cap.className = 'ai-void-constellation-caption';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = 'ai-void-constellation-nav ai-void-constellation-prev';
+    prevBtn.textContent = '‹';
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = 'ai-void-constellation-nav ai-void-constellation-next';
+    nextBtn.textContent = '›';
+    [[prevBtn, -1], [nextBtn, 1]].forEach(function (pair) {
+      const btn = pair[0], dir = pair[1];
+      btn.addEventListener('click', function (e) { e.stopPropagation(); swapConstellation(dir); });
+      btn.addEventListener('mouseenter', function () { showGhostPeek(dir); });
+      btn.addEventListener('mouseleave', hideGhostPeek);
+      btn.addEventListener('focus', function () { showGhostPeek(dir); });
+      btn.addEventListener('blur', hideGhostPeek);
+    });
+    const prevL = navLabel('voidZodiacPrev', 'Previous constellation');
+    const nextL = navLabel('voidZodiacNext', 'Next constellation');
+    prevBtn.title = prevL; prevBtn.setAttribute('aria-label', prevL);
+    nextBtn.title = nextL; nextBtn.setAttribute('aria-label', nextL);
+
+    const textWrap = document.createElement('div');
+    textWrap.className = 'ai-void-constellation-text';
+    const title = document.createElement('div');
+    title.className = 'ai-void-constellation-name';
+    title.textContent = zodiacName(z);
+    const blurb = document.createElement('div');
+    blurb.className = 'ai-void-constellation-blurb';
+    blurb.textContent = zodiacCaption(z);
+    const facts = document.createElement('div');
+    facts.className = 'ai-void-constellation-facts';
+    facts.textContent = zodiacFacts(z);
+    textWrap.append(title, blurb, facts);
+
+    cap.append(prevBtn, textWrap, nextBtn);
+
+    let maxY = cy;
+    Object.keys(pos).forEach(function (k) { if (pos[k].y > maxY) maxY = pos[k].y; });
+    cap.style.left = cx + 'px';
+    cap.style.top = (maxY + 28) + 'px';
+    return cap;
+  }
+
+  // ---------------------------------------------------------------------
+  // سواپِ دستیِ صورتِ فلکی — کاربر با فلش‌هایِ کنارِ کپشن، همینجا رویِ صفحه،
+  // بینِ ۱۳ صورتِ فلکی می‌چرخد. formConstellationFrom (که از قبل برایِ
+  // reposition-on-resize نوشته شده) دقیقاً همون تابعیه که لازمه: با همون
+  // cx/cy/scaleِ فعلی صدا زده می‌شه تا شکل «همون‌جا عوض» بشه، نه بپره یه‌جایِ
+  // دیگه. رنگِ خودِ سه سیاه‌چاله (Today آبی/Goals طلایی/Echo نقره‌ای) عمداً
+  // اینجا دست نمی‌خوره — طبقِ همون اصلِ طراحیِ قبلی، هویتِ سیاه‌چاله از
+  // صورتِ فلکیِ نمایش‌داده‌شده مستقل می‌مونه.
+  // ---------------------------------------------------------------------
+  function swapConstellation(dir) {
+    if (!activeConstellation || !constellationLayer) return;
+    const idx = ZODIAC.findIndex((c) => c.id === activeConstellation.id);
+    if (idx < 0) return;
+    const next = ZODIAC[(idx + dir + ZODIAC.length) % ZODIAC.length];
+    const cx = activeConstellation.centerX;
+    const cy = activeConstellation.centerY;
+    const scale = activeConstellation.scale;
+    hideGhostPeek();
+    formConstellationFrom(next, cx, cy, scale, true);
+  }
+
+  // ---------------------------------------------------------------------
+  // پیش‌نمایشِ محوِ همسایه — فقط رویِ هاور/فوکسِ فلش، بدونِ commit کردنِ
+  // چیزی (نه singularityها جابه‌جا می‌شن، نه savedState تغییر می‌کنه).
+  // ---------------------------------------------------------------------
+  let ghostLayer = null;
+  function showGhostPeek(dir) {
+    if (!activeConstellation || !constellationLayer) return;
+    const idx = ZODIAC.findIndex((c) => c.id === activeConstellation.id);
+    if (idx < 0) return;
+    const z = ZODIAC[(idx + dir + ZODIAC.length) % ZODIAC.length];
+    hideGhostPeek();
+    const cx = activeConstellation.centerX;
+    const cy = activeConstellation.centerY;
+    const scale = activeConstellation.scale;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('class', 'ai-void-constellation-ghost');
+    svg.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible';
+    const pos = Object.create(null);
+    (z.stars || []).forEach((s) => { pos[s.id] = { x: cx + s.x * scale, y: cy + s.y * scale }; });
+    (z.edges || []).forEach((pair) => {
+      const a = pos[pair[0]], b = pos[pair[1]];
+      if (!a || !b) return;
+      const line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+      line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+      svg.appendChild(line);
+    });
+    (z.stars || []).forEach((s) => {
+      const mag = typeof s.mag === 'number' ? s.mag : 0.5;
+      const r = 2 + mag * 2.2;
+      const c = document.createElementNS(svgNS, 'circle');
+      c.setAttribute('cx', pos[s.id].x); c.setAttribute('cy', pos[s.id].y); c.setAttribute('r', r);
+      svg.appendChild(c);
+    });
+    document.body.appendChild(svg);
+    ghostLayer = svg;
+    requestAnimationFrame(() => { if (ghostLayer === svg) svg.classList.add('is-visible'); });
+  }
+  function hideGhostPeek() {
+    if (!ghostLayer) return;
+    const g = ghostLayer;
+    ghostLayer = null;
+    g.classList.remove('is-visible');
+    setTimeout(() => { try { g.remove(); } catch (e) {} }, 220);
   }
 
   function refreshConstellationCaption() {
@@ -1504,20 +1783,7 @@
     });
 
     // Caption
-    const cap = document.createElement('div');
-    cap.className = 'ai-void-constellation-caption';
-    const title = document.createElement('div');
-    title.className = 'ai-void-constellation-name';
-    title.textContent = zodiacName(z);
-    const blurb = document.createElement('div');
-    blurb.className = 'ai-void-constellation-blurb';
-    blurb.textContent = zodiacCaption(z);
-    cap.append(title, blurb);
-    // Place caption under figure bounds
-    let maxY = cy;
-    Object.keys(pos).forEach((k) => { if (pos[k].y > maxY) maxY = pos[k].y; });
-    cap.style.left = cx + 'px';
-    cap.style.top = (maxY + 28) + 'px';
+    const cap = buildCaptionBlock(z, cx, cy, pos);
     constellationLayer.appendChild(cap);
 
     document.body.appendChild(constellationLayer);
@@ -1898,19 +2164,7 @@
       h.style.opacity = String(0.25 + mag * 0.75);
       constellationLayer.appendChild(h);
     });
-    const cap = document.createElement('div');
-    cap.className = 'ai-void-constellation-caption';
-    const title = document.createElement('div');
-    title.className = 'ai-void-constellation-name';
-    title.textContent = zodiacName(z);
-    const blurb = document.createElement('div');
-    blurb.className = 'ai-void-constellation-blurb';
-    blurb.textContent = zodiacCaption(z);
-    cap.append(title, blurb);
-    let maxY = cy;
-    Object.keys(pos).forEach((k) => { if (pos[k].y > maxY) maxY = pos[k].y; });
-    cap.style.left = cx + 'px';
-    cap.style.top = (maxY + 28) + 'px';
+    const cap = buildCaptionBlock(z, cx, cy, pos);
     constellationLayer.appendChild(cap);
     document.body.appendChild(constellationLayer);
     activeConstellation = { id: z.id, centerX: cx, centerY: cy, scale: scale };
@@ -2034,6 +2288,11 @@
     // بفهمه که isDissolved('todo') هنوز از savedState خالیِ اولیه جواب
     // می‌ده (چون loadState هنوز از chrome.storage برنگشته)، نه از دادهٔ
     // واقعی — دقیقاً همون چیزی که باعثِ فلشِ Today می‌شه.
-    isReady: function () { return stateLoaded; }
+    isReady: function () { return stateLoaded; },
+    // فقط‌خواندنی، برایِ بخشِ مستقلِ «آسمان زودیاک» (void-tab-zodiac.js):
+    // همان دادهٔ مرکزی و همان صورتِ فلکیِ فعلاً شکل‌گرفته، بدونِ دست‌زدن به
+    // چرخهٔ dissolve/formation.
+    getZodiac: function () { return ZODIAC; },
+    getActiveConstellationId: function () { return activeConstellation ? activeConstellation.id : null; }
   };
 })();
