@@ -979,7 +979,16 @@
         display: flex; flex-direction: column; gap: 3px;
         padding-bottom: 8px;
     }
-    .ai-void-agenda-date-primary { font-size: 12.5px; font-weight: 700; color: #F1F5FF; letter-spacing: .01em; }
+    /* خطِ میلادی: دو سطرِ مرتب — روزِ هفته به‌صورتِ برچسبِ کوچک، زیرش
+       تاریخِ کامل با سال. سال کمی کم‌رنگ‌تر است تا روز/ماه غالب بمانند، ولی
+       همیشه دیده می‌شود. عرضِ داک تا ۲۰۰px هم بدونِ شکستنِ ناجور جا می‌شود. */
+    .ai-void-agenda-date-primary { display: flex; flex-direction: column; gap: 1px; color: #F1F5FF; letter-spacing: .01em; }
+    .ai-void-agenda-date-weekday {
+        font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .14em; color: rgba(125, 211, 252, 0.8);
+    }
+    .ai-void-agenda-date-full { font-size: 13px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
+    .ai-void-agenda-date-year { font-weight: 600; color: rgba(241, 245, 255, 0.62); }
     .ai-void-agenda-date-secondary {
         font-size: 13px;
         font-weight: 700;

@@ -437,8 +437,26 @@ if (typeof repositionForLayoutChange === 'function') {
   function renderDateHead() {
     const now = new Date();
     dateHead.innerHTML = '';
+    // خطِ اصلیِ میلادی: روزِ هفته (برچسبِ کوچک) + تاریخِ کامل با سال. ترتیبِ
+    // روز/ماه/سال را خودِ Intl بر اساسِ زبانِ مرورگر تعیین می‌کند (formatToParts)،
+    // و سال یک span جدا می‌گیرد تا با وزنِ ملایم‌تر کنارِ روز و ماه بنشیند.
     const primary = document.createElement('div'); primary.className = 'ai-void-agenda-date-primary';
-    primary.textContent = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+    const wd = document.createElement('span'); wd.className = 'ai-void-agenda-date-weekday';
+    wd.textContent = now.toLocaleDateString(undefined, { weekday: 'long' });
+    primary.appendChild(wd);
+    const full = document.createElement('span'); full.className = 'ai-void-agenda-date-full';
+    try {
+      new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+        .formatToParts(now).forEach(p => {
+          if (p.type === 'year') {
+            const y = document.createElement('span'); y.className = 'ai-void-agenda-date-year';
+            y.textContent = p.value; full.appendChild(y);
+          } else { full.appendChild(document.createTextNode(p.value)); }
+        });
+    } catch (e) {
+      full.textContent = now.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+    primary.appendChild(full);
     dateHead.appendChild(primary);
     try {
       const secondary = document.createElement('div'); secondary.className = 'ai-void-agenda-date-secondary';
