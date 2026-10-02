@@ -1739,6 +1739,65 @@
         text-shadow: 0 1px 3px rgba(0,0,0,0.45);
     }
 
+    /* ---- Zodiac sky: چرخِ صورت‌های فلکی (void-dissolve.js → buildSky) ----
+       صورتِ فلکیِ فعال وسطِ صفحه؛ همسایه‌ها کم‌رنگ دو طرفِ آن. همهٔ موقعیت‌ها را
+       JS هر فریم رویِ transform/opacity می‌نویسد، پس اینجا فقط ظاهر هست. */
+    .ai-void-sky {
+        position: fixed; inset: 0; width: 100%; height: 100%;
+        pointer-events: none; overflow: visible;
+    }
+    /* باندِ سوایپ — فقط دورِ آسمان، نه کلِ صفحه */
+    .ai-void-sky-zone {
+        position: fixed; left: 0; right: 0;
+        pointer-events: auto;
+        touch-action: pan-y;
+        cursor: grab;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .ai-void-sky-zone.is-dragging { cursor: grabbing; }
+
+    .zs-edge {
+        fill: none;
+        stroke: rgba(199, 210, 254, 0.34);
+        stroke-width: 1.1;
+        stroke-linecap: round;
+    }
+    .zs-halo { fill: url(#zsHalo); }
+    .zs-core { fill: #f8fafc; }
+    .zs-con.is-near .zs-core.is-helper {
+        animation: zsTwinkle 5s ease-in-out infinite;
+        animation-delay: var(--tw, 0s);
+    }
+    @keyframes zsTwinkle { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+    /* کمربندِ نمادها (کمانِ ظریفِ زیرِ شکل‌ها) */
+    .zs-belt-line  { fill: none; stroke: url(#zsBelt); stroke-width: 1; opacity: 0.55; }
+    .zs-belt-ticks { fill: none; stroke: url(#zsBelt); stroke-width: 8; }
+    .zs-glyph {
+        fill: rgba(199, 210, 254, 0.85);
+        font-size: 13px;
+        text-anchor: middle;
+        dominant-baseline: central;
+        font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", "Noto Sans Symbols", system-ui, sans-serif;
+    }
+
+    /* ورودِ زنده: خطوطِ شکل «کشیده» می‌شوند */
+    .ai-void-constellation.is-forming .zs-edge {
+        stroke-dasharray: 1;
+        animation: zsDraw 1.25s cubic-bezier(.3, .7, .2, 1) both;
+        animation-delay: calc(var(--i, 0) * 80ms + 250ms);
+    }
+    @keyframes zsDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+    /* کپشن: متنِ فارسی/انگلیسی جا شود و موقعِ چرخش نرم محو شود */
+    .ai-void-constellation-caption { max-width: min(420px, 92vw); }
+    .ai-void-constellation-text { text-align: center; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .zs-con.is-near .zs-core.is-helper { animation: none !important; }
+        .ai-void-constellation.is-forming .zs-edge { animation: none !important; stroke-dasharray: none; }
+    }
+
     .ai-void-singularity.is-awake {
         transform: scale(1.12);
     }

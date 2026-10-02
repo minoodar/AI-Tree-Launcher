@@ -1,6 +1,7 @@
 /*!
  * Void Dissolve — organic singularities + zodiac constellation mode
- * When all three center panels dissolve, primaries form a random zodiac asterism.
+ * When all three center panels dissolve, primaries form a zodiac sky: the active
+ * constellation spans the search bar, the others rest faintly on a rotating wheel.
  */
 (function () {
   'use strict';
@@ -16,6 +17,10 @@
   const PANEL_THEME = { todo: 'today', goals: 'goals', echo: 'echo' };
   const reducedMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
+  // ترتیبِ واقعیِ دایرة‌البروج (مارافسا بینِ عقرب و کمان). مختصاتِ ستاره‌ها از RA/Dec
+  // واقعی با تصویرِ نقشهٔ آسمان (شرق سمتِ چپ) محاسبه شده و هر شکل به‌گونه‌ای نرمال
+  // شده که بزرگ‌ترین نیم‌بعدش = ۱ باشد؛ اندازهٔ نهایی را layoutSky از روی پهنای نوارِ
+  // جستجو می‌گیرد. سه لنگر به‌ترتیبِ چپ→راست = Today / Goals / Echo.
   const ZODIAC = [
   {
     "id": "aries",
@@ -24,69 +29,15 @@
     "yAxis": "down",
     "scale": 100,
     "stars": [
-      {
-        "id": "hamal",
-        "x": -0.72,
-        "y": -0.05,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "sheratan",
-        "x": 0.05,
-        "y": -0.38,
-        "role": "anchor",
-        "mag": 0.9
-      },
-      {
-        "id": "mesarthim",
-        "x": 0.7,
-        "y": 0.05,
-        "role": "anchor",
-        "mag": 0.82
-      },
-      {
-        "id": "delta_ari",
-        "x": 0.32,
-        "y": 0.48,
-        "role": "helper",
-        "mag": 0.52
-      },
-      {
-        "id": "epsilon_ari",
-        "x": -0.32,
-        "y": 0.35,
-        "role": "helper",
-        "mag": 0.45
-      }
+      { "id": "hamal", "x": 0.645, "y": 0.081, "role": "anchor", "mag": 0.73 },
+      { "id": "sheratan", "x": 0.97, "y": 0.385, "role": "helper", "mag": 0.58 },
+      { "id": "mesarthim", "x": 1.0, "y": 0.557, "role": "anchor", "mag": 0.3 },
+      { "id": "c41_ari", "x": -0.466, "y": -0.352, "role": "anchor", "mag": 0.36 },
+      { "id": "c39_ari", "x": -0.364, "y": -0.557, "role": "helper", "mag": 0.2 },
+      { "id": "botein", "x": -1.0, "y": 0.508, "role": "helper", "mag": 0.2 }
     ],
-    "anchors": {
-      "today": "hamal",
-      "goals": "sheratan",
-      "echo": "mesarthim"
-    },
-    "edges": [
-      [
-        "hamal",
-        "sheratan"
-      ],
-      [
-        "sheratan",
-        "mesarthim"
-      ],
-      [
-        "mesarthim",
-        "delta_ari"
-      ],
-      [
-        "delta_ari",
-        "epsilon_ari"
-      ],
-      [
-        "epsilon_ari",
-        "hamal"
-      ]
-    ]
+    "anchors": {"today": "c41_ari", "goals": "hamal", "echo": "mesarthim"},
+    "edges": [["c39_ari", "c41_ari"], ["c41_ari", "hamal"], ["hamal", "sheratan"], ["sheratan", "mesarthim"]]
   },
   {
     "id": "taurus",
@@ -95,91 +46,18 @@
     "yAxis": "down",
     "scale": 92,
     "stars": [
-      {
-        "id": "aldebaran",
-        "x": 0.05,
-        "y": 0.18,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "elnath",
-        "x": -0.7,
-        "y": -0.62,
-        "role": "anchor",
-        "mag": 0.92
-      },
-      {
-        "id": "zeta_tau",
-        "x": 0.7,
-        "y": -0.58,
-        "role": "anchor",
-        "mag": 0.82
-      },
-      {
-        "id": "gamma_tau",
-        "x": -0.42,
-        "y": -0.15,
-        "role": "helper",
-        "mag": 0.55
-      },
-      {
-        "id": "theta1_tau",
-        "x": -0.2,
-        "y": 0.28,
-        "role": "helper",
-        "mag": 0.48
-      },
-      {
-        "id": "delta1_tau",
-        "x": 0.42,
-        "y": 0.52,
-        "role": "helper",
-        "mag": 0.5
-      },
-      {
-        "id": "lambda_tau",
-        "x": 0.05,
-        "y": -0.78,
-        "role": "helper",
-        "mag": 0.46
-      }
+      { "id": "aldebaran", "x": 0.12, "y": 0.313, "role": "anchor", "mag": 0.99 },
+      { "id": "elnath", "x": -0.794, "y": -0.625, "role": "anchor", "mag": 0.81 },
+      { "id": "zeta_tau", "x": -1.0, "y": -0.046, "role": "helper", "mag": 0.5 },
+      { "id": "gamma_tau", "x": 0.413, "y": 0.382, "role": "helper", "mag": 0.35 },
+      { "id": "delta1_tau", "x": 0.356, "y": 0.233, "role": "helper", "mag": 0.33 },
+      { "id": "epsilon_tau", "x": 0.253, "y": 0.106, "role": "helper", "mag": 0.38 },
+      { "id": "theta2_tau", "x": 0.252, "y": 0.363, "role": "helper", "mag": 0.41 },
+      { "id": "lambda_tau", "x": 0.76, "y": 0.625, "role": "anchor", "mag": 0.39 },
+      { "id": "alcyone", "x": 1.0, "y": -0.276, "role": "helper", "mag": 0.53 }
     ],
-    "anchors": {
-      "today": "aldebaran",
-      "goals": "elnath",
-      "echo": "zeta_tau"
-    },
-    "edges": [
-      [
-        "elnath",
-        "gamma_tau"
-      ],
-      [
-        "gamma_tau",
-        "aldebaran"
-      ],
-      [
-        "aldebaran",
-        "zeta_tau"
-      ],
-      [
-        "zeta_tau",
-        "lambda_tau"
-      ],
-      [
-        "lambda_tau",
-        "elnath"
-      ],
-      [
-        "aldebaran",
-        "theta1_tau"
-      ],
-      [
-        "theta1_tau",
-        "delta1_tau"
-      ]
-    ]
+    "anchors": {"today": "elnath", "goals": "aldebaran", "echo": "lambda_tau"},
+    "edges": [["lambda_tau", "gamma_tau"], ["gamma_tau", "theta2_tau"], ["theta2_tau", "aldebaran"], ["aldebaran", "zeta_tau"], ["gamma_tau", "delta1_tau"], ["delta1_tau", "epsilon_tau"], ["epsilon_tau", "elnath"]]
   },
   {
     "id": "gemini",
@@ -188,83 +66,19 @@
     "yAxis": "down",
     "scale": 88,
     "stars": [
-      {
-        "id": "castor",
-        "x": -0.38,
-        "y": -0.82,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "pollux",
-        "x": 0.38,
-        "y": -0.82,
-        "role": "anchor",
-        "mag": 0.98
-      },
-      {
-        "id": "wasat",
-        "x": 0.22,
-        "y": 0.05,
-        "role": "anchor",
-        "mag": 0.78
-      },
-      {
-        "id": "mekbuda",
-        "x": -0.48,
-        "y": 0.2,
-        "role": "helper",
-        "mag": 0.55
-      },
-      {
-        "id": "alhena",
-        "x": 0.18,
-        "y": 0.78,
-        "role": "helper",
-        "mag": 0.58
-      },
-      {
-        "id": "tejat",
-        "x": -0.45,
-        "y": 0.62,
-        "role": "helper",
-        "mag": 0.5
-      },
-      {
-        "id": "propus",
-        "x": -0.68,
-        "y": 0.85,
-        "role": "helper",
-        "mag": 0.43
-      }
+      { "id": "castor", "x": -0.764, "y": -0.909, "role": "anchor", "mag": 0.82 },
+      { "id": "pollux", "x": -1.0, "y": -0.539, "role": "anchor", "mag": 0.92 },
+      { "id": "alhena", "x": 0.494, "y": 0.573, "role": "anchor", "mag": 0.74 },
+      { "id": "wasat", "x": -0.443, "y": 0.039, "role": "helper", "mag": 0.38 },
+      { "id": "mebsuta", "x": 0.358, "y": -0.262, "role": "helper", "mag": 0.49 },
+      { "id": "tejat", "x": 0.821, "y": -0.012, "role": "helper", "mag": 0.53 },
+      { "id": "propus", "x": 1.0, "y": -0.011, "role": "helper", "mag": 0.43 },
+      { "id": "mekbuda", "x": -0.09, "y": 0.174, "role": "helper", "mag": 0.32 },
+      { "id": "alzirr", "x": 0.327, "y": 0.909, "role": "helper", "mag": 0.42 },
+      { "id": "tau_gem", "x": -0.244, "y": -0.751, "role": "helper", "mag": 0.2 }
     ],
-    "anchors": {
-      "today": "castor",
-      "goals": "pollux",
-      "echo": "wasat"
-    },
-    "edges": [
-      [
-        "castor",
-        "mekbuda"
-      ],
-      [
-        "mekbuda",
-        "tejat"
-      ],
-      [
-        "tejat",
-        "propus"
-      ],
-      [
-        "pollux",
-        "wasat"
-      ],
-      [
-        "wasat",
-        "alhena"
-      ]
-    ]
+    "anchors": {"today": "pollux", "goals": "castor", "echo": "alhena"},
+    "edges": [["castor", "tau_gem"], ["tau_gem", "mebsuta"], ["mebsuta", "tejat"], ["tejat", "propus"], ["pollux", "wasat"], ["wasat", "mekbuda"], ["mekbuda", "alhena"], ["alhena", "alzirr"], ["mebsuta", "wasat"]]
   },
   {
     "id": "cancer",
@@ -273,76 +87,15 @@
     "yAxis": "down",
     "scale": 105,
     "stars": [
-      {
-        "id": "acubens",
-        "x": -0.72,
-        "y": 0.05,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "altarf",
-        "x": 0.68,
-        "y": 0.08,
-        "role": "anchor",
-        "mag": 0.86
-      },
-      {
-        "id": "asellus_borealis",
-        "x": 0.02,
-        "y": -0.62,
-        "role": "anchor",
-        "mag": 0.8
-      },
-      {
-        "id": "asellus_australis",
-        "x": 0.12,
-        "y": 0.6,
-        "role": "helper",
-        "mag": 0.65
-      },
-      {
-        "id": "iota_cnc",
-        "x": -0.38,
-        "y": -0.38,
-        "role": "helper",
-        "mag": 0.48
-      },
-      {
-        "id": "rho_cnc",
-        "x": 0.48,
-        "y": -0.35,
-        "role": "helper",
-        "mag": 0.43
-      }
+      { "id": "acubens", "x": -0.507, "y": 0.727, "role": "anchor", "mag": 0.22 },
+      { "id": "altarf", "x": 0.507, "y": 1.0, "role": "anchor", "mag": 0.38 },
+      { "id": "asellus_australis", "x": -0.174, "y": 0.084, "role": "helper", "mag": 0.29 },
+      { "id": "asellus_borealis", "x": -0.141, "y": -0.255, "role": "helper", "mag": 0.2 },
+      { "id": "iota_cnc", "x": -0.222, "y": -1.0, "role": "anchor", "mag": 0.27 },
+      { "id": "praesepe", "x": -0.065, "y": -0.103, "role": "helper", "mag": 0.34 }
     ],
-    "anchors": {
-      "today": "acubens",
-      "goals": "asellus_borealis",
-      "echo": "altarf"
-    },
-    "edges": [
-      [
-        "acubens",
-        "iota_cnc"
-      ],
-      [
-        "iota_cnc",
-        "asellus_borealis"
-      ],
-      [
-        "asellus_borealis",
-        "rho_cnc"
-      ],
-      [
-        "rho_cnc",
-        "altarf"
-      ],
-      [
-        "asellus_borealis",
-        "asellus_australis"
-      ]
-    ]
+    "anchors": {"today": "acubens", "goals": "iota_cnc", "echo": "altarf"},
+    "edges": [["altarf", "asellus_australis"], ["asellus_australis", "asellus_borealis"], ["asellus_borealis", "iota_cnc"], ["asellus_australis", "acubens"]]
   },
   {
     "id": "leo",
@@ -351,91 +104,18 @@
     "yAxis": "down",
     "scale": 90,
     "stars": [
-      {
-        "id": "regulus",
-        "x": -0.42,
-        "y": 0.18,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "algieba",
-        "x": -0.35,
-        "y": -0.55,
-        "role": "anchor",
-        "mag": 0.92
-      },
-      {
-        "id": "denebola",
-        "x": 0.78,
-        "y": 0.35,
-        "role": "anchor",
-        "mag": 0.9
-      },
-      {
-        "id": "zosma",
-        "x": 0.2,
-        "y": 0.05,
-        "role": "helper",
-        "mag": 0.62
-      },
-      {
-        "id": "chertan",
-        "x": 0.48,
-        "y": -0.35,
-        "role": "helper",
-        "mag": 0.55
-      },
-      {
-        "id": "eta_leo",
-        "x": -0.78,
-        "y": -0.12,
-        "role": "helper",
-        "mag": 0.5
-      },
-      {
-        "id": "epsilon_leo",
-        "x": 0.55,
-        "y": 0.7,
-        "role": "helper",
-        "mag": 0.48
-      }
+      { "id": "regulus", "x": 0.635, "y": 0.482, "role": "anchor", "mag": 0.88 },
+      { "id": "denebola", "x": -1.0, "y": 0.303, "role": "anchor", "mag": 0.7 },
+      { "id": "algieba", "x": 0.446, "y": -0.059, "role": "anchor", "mag": 0.72 },
+      { "id": "zosma", "x": -0.432, "y": -0.106, "role": "helper", "mag": 0.6 },
+      { "id": "chertan", "x": -0.434, "y": 0.244, "role": "helper", "mag": 0.42 },
+      { "id": "adhafera", "x": 0.5, "y": -0.304, "role": "helper", "mag": 0.4 },
+      { "id": "rasalas", "x": 0.888, "y": -0.482, "role": "helper", "mag": 0.3 },
+      { "id": "algenubi", "x": 1.0, "y": -0.329, "role": "helper", "mag": 0.5 },
+      { "id": "eta_leo", "x": 0.651, "y": 0.153, "role": "helper", "mag": 0.38 }
     ],
-    "anchors": {
-      "today": "regulus",
-      "goals": "algieba",
-      "echo": "denebola"
-    },
-    "edges": [
-      [
-        "regulus",
-        "eta_leo"
-      ],
-      [
-        "eta_leo",
-        "algieba"
-      ],
-      [
-        "algieba",
-        "chertan"
-      ],
-      [
-        "chertan",
-        "zosma"
-      ],
-      [
-        "zosma",
-        "regulus"
-      ],
-      [
-        "zosma",
-        "denebola"
-      ],
-      [
-        "denebola",
-        "epsilon_leo"
-      ]
-    ]
+    "anchors": {"today": "denebola", "goals": "algieba", "echo": "regulus"},
+    "edges": [["regulus", "eta_leo"], ["eta_leo", "algieba"], ["algieba", "adhafera"], ["adhafera", "rasalas"], ["rasalas", "algenubi"], ["algieba", "zosma"], ["zosma", "denebola"], ["zosma", "chertan"], ["chertan", "denebola"], ["chertan", "regulus"]]
   },
   {
     "id": "virgo",
@@ -444,91 +124,18 @@
     "yAxis": "down",
     "scale": 88,
     "stars": [
-      {
-        "id": "spica",
-        "x": 0.05,
-        "y": 0.72,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "vindemiatrix",
-        "x": 0.62,
-        "y": -0.62,
-        "role": "anchor",
-        "mag": 0.9
-      },
-      {
-        "id": "zavijava",
-        "x": -0.72,
-        "y": -0.58,
-        "role": "anchor",
-        "mag": 0.82
-      },
-      {
-        "id": "porrima",
-        "x": -0.08,
-        "y": -0.2,
-        "role": "helper",
-        "mag": 0.65
-      },
-      {
-        "id": "auva",
-        "x": 0.42,
-        "y": 0.02,
-        "role": "helper",
-        "mag": 0.58
-      },
-      {
-        "id": "epsilon_vir",
-        "x": -0.35,
-        "y": 0.18,
-        "role": "helper",
-        "mag": 0.5
-      },
-      {
-        "id": "gamma_vir",
-        "x": -0.68,
-        "y": 0.4,
-        "role": "helper",
-        "mag": 0.46
-      }
+      { "id": "spica", "x": -0.096, "y": 0.513, "role": "anchor", "mag": 0.96 },
+      { "id": "vindemiatrix", "x": 0.171, "y": -0.513, "role": "anchor", "mag": 0.54 },
+      { "id": "porrima", "x": 0.409, "y": 0.063, "role": "helper", "mag": 0.56 },
+      { "id": "zavijava", "x": 1.0, "y": -0.087, "role": "anchor", "mag": 0.36 },
+      { "id": "zaniah", "x": 0.661, "y": 0.026, "role": "helper", "mag": 0.3 },
+      { "id": "auva", "x": 0.247, "y": -0.162, "role": "helper", "mag": 0.41 },
+      { "id": "heze", "x": -0.206, "y": 0.023, "role": "helper", "mag": 0.42 },
+      { "id": "syrma", "x": -0.685, "y": 0.274, "role": "helper", "mag": 0.25 },
+      { "id": "mu_vir", "x": -1.0, "y": 0.258, "role": "helper", "mag": 0.3 }
     ],
-    "anchors": {
-      "today": "spica",
-      "goals": "vindemiatrix",
-      "echo": "zavijava"
-    },
-    "edges": [
-      [
-        "zavijava",
-        "porrima"
-      ],
-      [
-        "porrima",
-        "vindemiatrix"
-      ],
-      [
-        "porrima",
-        "auva"
-      ],
-      [
-        "auva",
-        "spica"
-      ],
-      [
-        "porrima",
-        "epsilon_vir"
-      ],
-      [
-        "epsilon_vir",
-        "gamma_vir"
-      ],
-      [
-        "gamma_vir",
-        "spica"
-      ]
-    ]
+    "anchors": {"today": "spica", "goals": "vindemiatrix", "echo": "zavijava"},
+    "edges": [["zavijava", "zaniah"], ["zaniah", "porrima"], ["porrima", "auva"], ["auva", "vindemiatrix"], ["porrima", "heze"], ["heze", "spica"], ["heze", "syrma"], ["syrma", "mu_vir"]]
   },
   {
     "id": "libra",
@@ -537,80 +144,15 @@
     "yAxis": "down",
     "scale": 100,
     "stars": [
-      {
-        "id": "zubeneschamali",
-        "x": 0.0,
-        "y": -0.72,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "zubenelgenubi",
-        "x": -0.68,
-        "y": 0.02,
-        "role": "anchor",
-        "mag": 0.9
-      },
-      {
-        "id": "zubenelhakrabi",
-        "x": 0.68,
-        "y": 0.02,
-        "role": "anchor",
-        "mag": 0.8
-      },
-      {
-        "id": "gamma_lib",
-        "x": 0.0,
-        "y": 0.02,
-        "role": "helper",
-        "mag": 0.55
-      },
-      {
-        "id": "iota_lib",
-        "x": -0.48,
-        "y": 0.65,
-        "role": "helper",
-        "mag": 0.48
-      },
-      {
-        "id": "theta_lib",
-        "x": 0.48,
-        "y": 0.65,
-        "role": "helper",
-        "mag": 0.45
-      }
+      { "id": "zubeneschamali", "x": -0.055, "y": -1.0, "role": "anchor", "mag": 0.59 },
+      { "id": "zubenelgenubi", "x": 0.547, "y": -0.347, "role": "anchor", "mag": 0.56 },
+      { "id": "zubenelhakrabi", "x": -0.484, "y": -0.47, "role": "helper", "mag": 0.29 },
+      { "id": "sigma_lib", "x": 0.243, "y": 0.559, "role": "helper", "mag": 0.43 },
+      { "id": "upsilon_lib", "x": -0.518, "y": 0.839, "role": "helper", "mag": 0.37 },
+      { "id": "tau_lib", "x": -0.547, "y": 1.0, "role": "anchor", "mag": 0.35 }
     ],
-    "anchors": {
-      "today": "zubeneschamali",
-      "goals": "zubenelgenubi",
-      "echo": "zubenelhakrabi"
-    },
-    "edges": [
-      [
-        "zubenelgenubi",
-        "zubeneschamali"
-      ],
-      [
-        "zubeneschamali",
-        "zubenelhakrabi"
-      ],
-      [
-        "zubenelgenubi",
-        "gamma_lib"
-      ],
-      [
-        "gamma_lib",
-        "zubenelhakrabi"
-      ],
-      [
-        "zubenelgenubi",
-        "iota_lib"
-      ],
-      [
-        "zubenelhakrabi",
-        "theta_lib"
-      ]
-    ]
+    "anchors": {"today": "tau_lib", "goals": "zubeneschamali", "echo": "zubenelgenubi"},
+    "edges": [["zubenelgenubi", "zubeneschamali"], ["zubeneschamali", "zubenelhakrabi"], ["zubenelhakrabi", "zubenelgenubi"], ["zubenelgenubi", "sigma_lib"], ["zubenelhakrabi", "upsilon_lib"], ["upsilon_lib", "tau_lib"]]
   },
   {
     "id": "scorpius",
@@ -619,485 +161,25 @@
     "yAxis": "down",
     "scale": 82,
     "stars": [
-      {
-        "id": "antares",
-        "x": -0.12,
-        "y": -0.02,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "shaula",
-        "x": 0.55,
-        "y": 0.58,
-        "role": "anchor",
-        "mag": 0.94
-      },
-      {
-        "id": "sargas",
-        "x": -0.72,
-        "y": 0.42,
-        "role": "anchor",
-        "mag": 0.88
-      },
-      {
-        "id": "dschubba",
-        "x": -0.5,
-        "y": -0.48,
-        "role": "helper",
-        "mag": 0.68
-      },
-      {
-        "id": "acrab",
-        "x": -0.78,
-        "y": -0.68,
-        "role": "helper",
-        "mag": 0.58
-      },
-      {
-        "id": "larawag",
-        "x": 0.1,
-        "y": 0.38,
-        "role": "helper",
-        "mag": 0.55
-      },
-      {
-        "id": "jabbah",
-        "x": 0.42,
-        "y": -0.32,
-        "role": "helper",
-        "mag": 0.52
-      },
-      {
-        "id": "lesath",
-        "x": 0.78,
-        "y": 0.78,
-        "role": "helper",
-        "mag": 0.48
-      }
+      { "id": "antares", "x": 0.428, "y": -0.414, "role": "anchor", "mag": 0.94 },
+      { "id": "shaula", "x": -0.725, "y": 0.484, "role": "anchor", "mag": 0.81 },
+      { "id": "sargas", "x": -0.792, "y": 0.98, "role": "helper", "mag": 0.76 },
+      { "id": "dschubba", "x": 0.95, "y": -0.734, "role": "helper", "mag": 0.65 },
+      { "id": "acrab", "x": 0.859, "y": -0.971, "role": "anchor", "mag": 0.59 },
+      { "id": "larawag", "x": 0.055, "y": 0.248, "role": "helper", "mag": 0.66 },
+      { "id": "jabbah", "x": 0.943, "y": -1.0, "role": "helper", "mag": 0.27 },
+      { "id": "pi_sco", "x": 0.976, "y": -0.44, "role": "helper", "mag": 0.53 },
+      { "id": "sigma_sco", "x": 0.575, "y": -0.484, "role": "helper", "mag": 0.53 },
+      { "id": "tau_sco", "x": 0.311, "y": -0.264, "role": "helper", "mag": 0.54 },
+      { "id": "mu1_sco", "x": 0.025, "y": 0.563, "role": "helper", "mag": 0.49 },
+      { "id": "zeta2_sco", "x": -0.02, "y": 0.926, "role": "helper", "mag": 0.36 },
+      { "id": "eta_sco", "x": -0.34, "y": 1.0, "role": "helper", "mag": 0.42 },
+      { "id": "iota1_sco", "x": -0.976, "y": 0.738, "role": "helper", "mag": 0.49 },
+      { "id": "kappa_sco", "x": -0.885, "y": 0.646, "role": "helper", "mag": 0.63 },
+      { "id": "lesath", "x": -0.674, "y": 0.5, "role": "helper", "mag": 0.57 }
     ],
-    "anchors": {
-      "today": "antares",
-      "goals": "shaula",
-      "echo": "sargas"
-    },
-    "edges": [
-      [
-        "acrab",
-        "dschubba"
-      ],
-      [
-        "dschubba",
-        "antares"
-      ],
-      [
-        "antares",
-        "larawag"
-      ],
-      [
-        "larawag",
-        "shaula"
-      ],
-      [
-        "shaula",
-        "lesath"
-      ],
-      [
-        "antares",
-        "sargas"
-      ],
-      [
-        "sargas",
-        "larawag"
-      ]
-    ]
-  },
-  {
-    "id": "sagittarius",
-    "name": "Sagittarius",
-    "caption": "The Archer — the Teapot beside the galactic heart",
-    "yAxis": "down",
-    "scale": 82,
-    "stars": [
-      {
-        "id": "kaus_australis",
-        "x": -0.45,
-        "y": 0.62,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "kaus_media",
-        "x": 0.05,
-        "y": 0.05,
-        "role": "anchor",
-        "mag": 0.92
-      },
-      {
-        "id": "nunki",
-        "x": 0.62,
-        "y": -0.52,
-        "role": "anchor",
-        "mag": 0.9
-      },
-      {
-        "id": "kaus_borealis",
-        "x": -0.42,
-        "y": -0.52,
-        "role": "helper",
-        "mag": 0.72
-      },
-      {
-        "id": "phi_sgr",
-        "x": -0.72,
-        "y": -0.05,
-        "role": "helper",
-        "mag": 0.62
-      },
-      {
-        "id": "lambda_sgr",
-        "x": 0.35,
-        "y": 0.48,
-        "role": "helper",
-        "mag": 0.6
-      },
-      {
-        "id": "ascella",
-        "x": 0.78,
-        "y": 0.02,
-        "role": "helper",
-        "mag": 0.58
-      },
-      {
-        "id": "tau_sgr",
-        "x": 0.82,
-        "y": -0.72,
-        "role": "helper",
-        "mag": 0.5
-      }
-    ],
-    "anchors": {
-      "today": "kaus_australis",
-      "goals": "kaus_media",
-      "echo": "nunki"
-    },
-    "edges": [
-      [
-        "kaus_borealis",
-        "kaus_media"
-      ],
-      [
-        "kaus_media",
-        "kaus_australis"
-      ],
-      [
-        "kaus_media",
-        "lambda_sgr"
-      ],
-      [
-        "lambda_sgr",
-        "ascella"
-      ],
-      [
-        "ascella",
-        "nunki"
-      ],
-      [
-        "nunki",
-        "tau_sgr"
-      ],
-      [
-        "kaus_borealis",
-        "phi_sgr"
-      ],
-      [
-        "phi_sgr",
-        "kaus_australis"
-      ]
-    ]
-  },
-  {
-    "id": "capricornus",
-    "name": "Capricornus",
-    "caption": "The Sea-Goat — an ancient vessel of stars",
-    "yAxis": "down",
-    "scale": 94,
-    "stars": [
-      {
-        "id": "deneb_algedi",
-        "x": 0.68,
-        "y": 0.45,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "dabih",
-        "x": -0.58,
-        "y": -0.45,
-        "role": "anchor",
-        "mag": 0.9
-      },
-      {
-        "id": "algedi",
-        "x": 0.0,
-        "y": -0.72,
-        "role": "anchor",
-        "mag": 0.84
-      },
-      {
-        "id": "nashira",
-        "x": 0.28,
-        "y": 0.68,
-        "role": "helper",
-        "mag": 0.65
-      },
-      {
-        "id": "zeta_cap",
-        "x": -0.72,
-        "y": 0.28,
-        "role": "helper",
-        "mag": 0.58
-      },
-      {
-        "id": "theta_cap",
-        "x": -0.15,
-        "y": 0.12,
-        "role": "helper",
-        "mag": 0.5
-      }
-    ],
-    "anchors": {
-      "today": "deneb_algedi",
-      "goals": "dabih",
-      "echo": "algedi"
-    },
-    "edges": [
-      [
-        "dabih",
-        "algedi"
-      ],
-      [
-        "algedi",
-        "deneb_algedi"
-      ],
-      [
-        "deneb_algedi",
-        "nashira"
-      ],
-      [
-        "nashira",
-        "zeta_cap"
-      ],
-      [
-        "zeta_cap",
-        "dabih"
-      ],
-      [
-        "dabih",
-        "theta_cap"
-      ],
-      [
-        "theta_cap",
-        "deneb_algedi"
-      ]
-    ]
-  },
-  {
-    "id": "aquarius",
-    "name": "Aquarius",
-    "caption": "The Water Bearer — a stream falling through space",
-    "yAxis": "down",
-    "scale": 88,
-    "stars": [
-      {
-        "id": "sadalsuud",
-        "x": -0.45,
-        "y": -0.62,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "sadalmelik",
-        "x": 0.45,
-        "y": -0.45,
-        "role": "anchor",
-        "mag": 0.9
-      },
-      {
-        "id": "skate",
-        "x": 0.28,
-        "y": 0.52,
-        "role": "anchor",
-        "mag": 0.8
-      },
-      {
-        "id": "albali",
-        "x": -0.05,
-        "y": -0.05,
-        "role": "helper",
-        "mag": 0.62
-      },
-      {
-        "id": "situla",
-        "x": 0.72,
-        "y": 0.02,
-        "role": "helper",
-        "mag": 0.58
-      },
-      {
-        "id": "lambda_aqr",
-        "x": -0.62,
-        "y": 0.38,
-        "role": "helper",
-        "mag": 0.52
-      },
-      {
-        "id": "phi_aqr",
-        "x": -0.18,
-        "y": 0.72,
-        "role": "helper",
-        "mag": 0.48
-      }
-    ],
-    "anchors": {
-      "today": "sadalsuud",
-      "goals": "sadalmelik",
-      "echo": "skate"
-    },
-    "edges": [
-      [
-        "sadalsuud",
-        "albali"
-      ],
-      [
-        "albali",
-        "sadalmelik"
-      ],
-      [
-        "albali",
-        "situla"
-      ],
-      [
-        "situla",
-        "skate"
-      ],
-      [
-        "skate",
-        "phi_aqr"
-      ],
-      [
-        "phi_aqr",
-        "lambda_aqr"
-      ],
-      [
-        "lambda_aqr",
-        "sadalsuud"
-      ]
-    ]
-  },
-  {
-    "id": "pisces",
-    "name": "Pisces",
-    "caption": "The Fish — two currents joined by one thread",
-    "yAxis": "down",
-    "scale": 88,
-    "stars": [
-      {
-        "id": "alrescha",
-        "x": 0.0,
-        "y": 0.05,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "eta_piscium",
-        "x": -0.72,
-        "y": -0.62,
-        "role": "anchor",
-        "mag": 0.88
-      },
-      {
-        "id": "omega_piscium",
-        "x": 0.72,
-        "y": 0.62,
-        "role": "anchor",
-        "mag": 0.82
-      },
-      {
-        "id": "gamma_piscium",
-        "x": -0.55,
-        "y": -0.12,
-        "role": "helper",
-        "mag": 0.62
-      },
-      {
-        "id": "iota_piscium",
-        "x": -0.72,
-        "y": 0.38,
-        "role": "helper",
-        "mag": 0.55
-      },
-      {
-        "id": "omicron_piscium",
-        "x": 0.5,
-        "y": 0.08,
-        "role": "helper",
-        "mag": 0.52
-      },
-      {
-        "id": "alpha_piscium",
-        "x": 0.72,
-        "y": -0.45,
-        "role": "helper",
-        "mag": 0.5
-      },
-      {
-        "id": "delta_piscium",
-        "x": 0.25,
-        "y": -0.7,
-        "role": "helper",
-        "mag": 0.45
-      }
-    ],
-    "anchors": {
-      "today": "alrescha",
-      "goals": "eta_piscium",
-      "echo": "omega_piscium"
-    },
-    "edges": [
-      [
-        "eta_piscium",
-        "gamma_piscium"
-      ],
-      [
-        "gamma_piscium",
-        "iota_piscium"
-      ],
-      [
-        "iota_piscium",
-        "alrescha"
-      ],
-      [
-        "alrescha",
-        "omicron_piscium"
-      ],
-      [
-        "omicron_piscium",
-        "omega_piscium"
-      ],
-      [
-        "omega_piscium",
-        "alpha_piscium"
-      ],
-      [
-        "alpha_piscium",
-        "delta_piscium"
-      ],
-      [
-        "delta_piscium",
-        "alrescha"
-      ]
-    ]
+    "anchors": {"today": "shaula", "goals": "antares", "echo": "acrab"},
+    "edges": [["jabbah", "acrab"], ["acrab", "dschubba"], ["dschubba", "pi_sco"], ["dschubba", "sigma_sco"], ["sigma_sco", "antares"], ["antares", "tau_sco"], ["tau_sco", "larawag"], ["larawag", "mu1_sco"], ["mu1_sco", "zeta2_sco"], ["zeta2_sco", "eta_sco"], ["eta_sco", "sargas"], ["sargas", "iota1_sco"], ["iota1_sco", "kappa_sco"], ["kappa_sco", "shaula"], ["shaula", "lesath"]]
   },
   {
     "id": "ophiuchus",
@@ -1106,104 +188,107 @@
     "yAxis": "down",
     "scale": 92,
     "stars": [
-      {
-        "id": "rasalhague",
-        "x": 0.0,
-        "y": -0.85,
-        "role": "anchor",
-        "mag": 1
-      },
-      {
-        "id": "sabik",
-        "x": 0.55,
-        "y": 0.42,
-        "role": "anchor",
-        "mag": 0.88
-      },
-      {
-        "id": "yed_posterior",
-        "x": -0.55,
-        "y": 0.35,
-        "role": "anchor",
-        "mag": 0.82
-      },
-      {
-        "id": "cebalrai",
-        "x": 0.42,
-        "y": -0.55,
-        "role": "helper",
-        "mag": 0.6
-      },
-      {
-        "id": "kappa_oph",
-        "x": -0.45,
-        "y": -0.6,
-        "role": "helper",
-        "mag": 0.5
-      },
-      {
-        "id": "yed_prior",
-        "x": -0.62,
-        "y": -0.05,
-        "role": "helper",
-        "mag": 0.58
-      },
-      {
-        "id": "zeta_oph",
-        "x": 0.0,
-        "y": 0.65,
-        "role": "helper",
-        "mag": 0.55
-      },
-      {
-        "id": "nu_oph",
-        "x": 0.68,
-        "y": -0.02,
-        "role": "helper",
-        "mag": 0.48
-      }
+      { "id": "rasalhague", "x": -0.375, "y": -1.0, "role": "anchor", "mag": 0.71 },
+      { "id": "cebalrai", "x": -0.488, "y": -0.574, "role": "helper", "mag": 0.55 },
+      { "id": "kappa_oph", "x": 0.118, "y": -0.83, "role": "helper", "mag": 0.45 },
+      { "id": "marfik", "x": 0.472, "y": -0.437, "role": "helper", "mag": 0.31 },
+      { "id": "yed_prior", "x": 0.692, "y": -0.134, "role": "anchor", "mag": 0.56 },
+      { "id": "yed_posterior", "x": 0.639, "y": -0.081, "role": "helper", "mag": 0.46 },
+      { "id": "zeta_oph", "x": 0.39, "y": 0.232, "role": "helper", "mag": 0.6 },
+      { "id": "sabik", "x": -0.05, "y": 0.506, "role": "anchor", "mag": 0.63 },
+      { "id": "theta_oph", "x": -0.203, "y": 1.0, "role": "helper", "mag": 0.44 },
+      { "id": "gamma_oph", "x": -0.268, "y": -0.475, "role": "helper", "mag": 0.33 },
+      { "id": "nu_oph", "x": -0.692, "y": 0.189, "role": "helper", "mag": 0.42 }
     ],
-    "anchors": {
-      "today": "rasalhague",
-      "goals": "sabik",
-      "echo": "yed_posterior"
-    },
-    "edges": [
-      [
-        "rasalhague",
-        "cebalrai"
-      ],
-      [
-        "cebalrai",
-        "nu_oph"
-      ],
-      [
-        "nu_oph",
-        "sabik"
-      ],
-      [
-        "sabik",
-        "zeta_oph"
-      ],
-      [
-        "zeta_oph",
-        "yed_posterior"
-      ],
-      [
-        "yed_posterior",
-        "yed_prior"
-      ],
-      [
-        "yed_prior",
-        "kappa_oph"
-      ],
-      [
-        "kappa_oph",
-        "rasalhague"
-      ]
-    ]
+    "anchors": {"today": "rasalhague", "goals": "sabik", "echo": "yed_prior"},
+    "edges": [["rasalhague", "cebalrai"], ["rasalhague", "kappa_oph"], ["kappa_oph", "marfik"], ["marfik", "yed_prior"], ["yed_prior", "yed_posterior"], ["yed_posterior", "zeta_oph"], ["zeta_oph", "sabik"], ["sabik", "theta_oph"], ["cebalrai", "gamma_oph"], ["gamma_oph", "nu_oph"], ["nu_oph", "sabik"]]
+  },
+  {
+    "id": "sagittarius",
+    "name": "Sagittarius",
+    "caption": "The Archer — the Teapot beside the galactic heart",
+    "yAxis": "down",
+    "scale": 82,
+    "stars": [
+      { "id": "kaus_australis", "x": 0.399, "y": 0.676, "role": "anchor", "mag": 0.76 },
+      { "id": "kaus_media", "x": 0.503, "y": -0.011, "role": "helper", "mag": 0.57 },
+      { "id": "kaus_borealis", "x": 0.276, "y": -0.676, "role": "helper", "mag": 0.54 },
+      { "id": "nunki", "x": -0.617, "y": -0.544, "role": "anchor", "mag": 0.72 },
+      { "id": "ascella", "x": -0.857, "y": -0.004, "role": "helper", "mag": 0.59 },
+      { "id": "tau_sgr", "x": -1.0, "y": -0.337, "role": "helper", "mag": 0.43 },
+      { "id": "phi_sgr", "x": -0.303, "y": -0.44, "role": "helper", "mag": 0.46 },
+      { "id": "alnasl", "x": 1.0, "y": 0.079, "role": "anchor", "mag": 0.5 }
+    ],
+    "anchors": {"today": "nunki", "goals": "kaus_australis", "echo": "alnasl"},
+    "edges": [["alnasl", "kaus_media"], ["kaus_media", "kaus_australis"], ["kaus_australis", "ascella"], ["ascella", "tau_sgr"], ["tau_sgr", "nunki"], ["nunki", "phi_sgr"], ["phi_sgr", "kaus_borealis"], ["kaus_borealis", "kaus_media"], ["phi_sgr", "ascella"]]
+  },
+  {
+    "id": "capricornus",
+    "name": "Capricornus",
+    "caption": "The Sea-Goat — an ancient vessel of stars",
+    "yAxis": "down",
+    "scale": 94,
+    "stars": [
+      { "id": "algedi", "x": 1.0, "y": -0.683, "role": "anchor", "mag": 0.37 },
+      { "id": "dabih", "x": 0.925, "y": -0.471, "role": "helper", "mag": 0.48 },
+      { "id": "theta_cap", "x": -0.081, "y": -0.238, "role": "helper", "mag": 0.26 },
+      { "id": "iota_cap", "x": -0.444, "y": -0.276, "role": "helper", "mag": 0.21 },
+      { "id": "nashira", "x": -0.844, "y": -0.292, "role": "helper", "mag": 0.35 },
+      { "id": "deneb_algedi", "x": -1.0, "y": -0.343, "role": "anchor", "mag": 0.53 },
+      { "id": "psi_cap", "x": 0.364, "y": 0.527, "role": "helper", "mag": 0.24 },
+      { "id": "omega_cap", "x": 0.24, "y": 0.683, "role": "anchor", "mag": 0.25 },
+      { "id": "zeta_cap", "x": -0.548, "y": 0.255, "role": "helper", "mag": 0.33 },
+      { "id": "epsilon_cap", "x": -0.78, "y": -0.025, "role": "helper", "mag": 0.2 }
+    ],
+    "anchors": {"today": "deneb_algedi", "goals": "omega_cap", "echo": "algedi"},
+    "edges": [["algedi", "dabih"], ["dabih", "theta_cap"], ["theta_cap", "iota_cap"], ["iota_cap", "nashira"], ["nashira", "deneb_algedi"], ["dabih", "psi_cap"], ["psi_cap", "omega_cap"], ["omega_cap", "zeta_cap"], ["zeta_cap", "epsilon_cap"], ["epsilon_cap", "deneb_algedi"]]
+  },
+  {
+    "id": "aquarius",
+    "name": "Aquarius",
+    "caption": "The Water Bearer — a stream falling through space",
+    "yAxis": "down",
+    "scale": 88,
+    "stars": [
+      { "id": "sadalsuud", "x": 0.309, "y": -0.105, "role": "helper", "mag": 0.52 },
+      { "id": "sadalmelik", "x": -0.23, "y": -0.438, "role": "anchor", "mag": 0.51 },
+      { "id": "skat", "x": -1.0, "y": 0.546, "role": "anchor", "mag": 0.44 },
+      { "id": "albali", "x": 1.0, "y": 0.144, "role": "anchor", "mag": 0.33 },
+      { "id": "sadachbia", "x": -0.48, "y": -0.371, "role": "helper", "mag": 0.31 },
+      { "id": "zeta_aqr", "x": -0.593, "y": -0.457, "role": "helper", "mag": 0.35 },
+      { "id": "eta_aqr", "x": -0.696, "y": -0.451, "role": "helper", "mag": 0.27 },
+      { "id": "pi_aqr", "x": -0.537, "y": -0.546, "role": "helper", "mag": 0.2 },
+      { "id": "lambda_aqr", "x": -0.968, "y": 0.023, "role": "helper", "mag": 0.33 },
+      { "id": "ancha", "x": -0.405, "y": 0.036, "role": "helper", "mag": 0.23 }
+    ],
+    "anchors": {"today": "skat", "goals": "sadalmelik", "echo": "albali"},
+    "edges": [["albali", "sadalsuud"], ["sadalsuud", "sadalmelik"], ["sadalmelik", "sadachbia"], ["sadachbia", "zeta_aqr"], ["zeta_aqr", "eta_aqr"], ["zeta_aqr", "pi_aqr"], ["eta_aqr", "lambda_aqr"], ["lambda_aqr", "skat"]]
+  },
+  {
+    "id": "pisces",
+    "name": "Pisces",
+    "caption": "The Fish — two currents joined by one thread",
+    "yAxis": "down",
+    "scale": 88,
+    "stars": [
+      { "id": "gamma_psc", "x": 1.0, "y": 0.246, "role": "helper", "mag": 0.34 },
+      { "id": "kappa_psc", "x": 0.881, "y": 0.345, "role": "helper", "mag": 0.2 },
+      { "id": "lambda_psc", "x": 0.697, "y": 0.32, "role": "helper", "mag": 0.2 },
+      { "id": "iota_psc", "x": 0.724, "y": 0.131, "role": "helper", "mag": 0.24 },
+      { "id": "theta_psc", "x": 0.869, "y": 0.094, "role": "anchor", "mag": 0.21 },
+      { "id": "omega_psc", "x": 0.489, "y": 0.071, "role": "helper", "mag": 0.27 },
+      { "id": "epsilon_psc", "x": -0.283, "y": 0.02, "role": "anchor", "mag": 0.21 },
+      { "id": "delta_psc", "x": -0.11, "y": 0.035, "role": "helper", "mag": 0.2 },
+      { "id": "mu_psc", "x": -0.379, "y": 0.106, "role": "helper", "mag": 0.2 },
+      { "id": "nu_psc", "x": -0.742, "y": 0.138, "role": "helper", "mag": 0.2 },
+      { "id": "alrescha", "x": -1.0, "y": 0.272, "role": "anchor", "mag": 0.31 },
+      { "id": "omicron_psc", "x": -0.798, "y": -0.042, "role": "helper", "mag": 0.21 },
+      { "id": "eta_psc", "x": -0.629, "y": -0.345, "role": "helper", "mag": 0.36 }
+    ],
+    "anchors": {"today": "alrescha", "goals": "epsilon_psc", "echo": "theta_psc"},
+    "edges": [["gamma_psc", "kappa_psc"], ["kappa_psc", "lambda_psc"], ["lambda_psc", "iota_psc"], ["iota_psc", "theta_psc"], ["theta_psc", "gamma_psc"], ["iota_psc", "omega_psc"], ["omega_psc", "delta_psc"], ["delta_psc", "epsilon_psc"], ["epsilon_psc", "mu_psc"], ["mu_psc", "nu_psc"], ["nu_psc", "alrescha"], ["alrescha", "omicron_psc"], ["omicron_psc", "eta_psc"]]
   }
-];
+  ];
 
   /** @type {Record<string, any>} */
   const registry = Object.create(null);
@@ -1211,6 +296,7 @@
   let stateLoaded = false;
   let activeConstellation = null; // { id, centerX, centerY }
   let constellationLayer = null;
+  let hydrateScheduled = false;
 
   const layer = document.createElement('div');
   layer.id = 'ai-void-dissolve-layer';
@@ -1358,27 +444,71 @@
     return fallback;
   }
 
-  // ساختِ کپشن + فلش‌هایِ سواپ — یک‌جا، برایِ استفادهٔ مشترکِ formConstellation
-  // و formConstellationFrom (که قبلاً هرکدوم نسخهٔ ساده‌ترِ خودشون رو داشتن).
-  function buildCaptionBlock(z, cx, cy, pos) {
+  // =====================================================================
+  // آسمانِ زودیاک
+  // ---------------------------------------------------------------------
+  // بعد از کلاپسِ سه منوی اصلی، هر ۱۳ صورتِ فلکی روی یک کمانِ بزرگ (یک
+  // «چرخ») چیده می‌شوند. صورتِ فلکیِ فعال وسطِ صفحه، به پهنای نوارِ جستجو؛
+  // همسایه‌ها کم‌رنگ و کوچک‌تر و کمی کج‌شده در دو طرف. چرخاندنِ چرخ (سوایپ،
+  // کلیک رویِ همسایه، فلش‌ها، کیبورد، wheel افقی) کلِ چرخ را دورِ مرکزِ
+  // کمان می‌چرخاند؛ سه ستارهٔ لنگر (Today/Goals/Echo) با چرخ حرکت می‌کنند
+  // و موقعِ عبور به لنگرهای صورتِ فلکیِ بعدی می‌لغزند.
+  //
+  // همه‌چیز با یک عددِ پیوسته (sky.pos = «اندیسِ اعشاریِ صورتِ فلکیِ وسط»)
+  // کنترل می‌شود؛ renderSky فقط تابعی از همین عدد است، پس درگ، فلیک و
+  // انیمیشنِ دکمه‌ها همگی یک مسیر را می‌روند.
+  // =====================================================================
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const SKY_GLYPH = {
+    aries: '\u2648', taurus: '\u2649', gemini: '\u264A', cancer: '\u264B', leo: '\u264C',
+    virgo: '\u264D', libra: '\u264E', scorpius: '\u264F', ophiuchus: '\u26CE',
+    sagittarius: '\u2650', capricornus: '\u2651', aquarius: '\u2652', pisces: '\u2653'
+  };
+  // [فاصلهٔ اندیسی از مرکز, شفافیت] — درون‌یابی نرم بینِ نقطه‌ها
+  const SKY_FADE = [[0, 1], [0.22, 1], [1, 0.36], [2, 0.12], [2.8, 0]];
+  const SKY_BELT_GAP = 36;          // فاصلهٔ کمربندِ نمادها از پایینِ شکل
+  const SKY_CAPTION_RESERVE = 132;  // جا برای کمربند + کپشن زیرِ شکل
+  const SKY_INTRO_MS = 1700;
+
+  let sky = null;
+
+  function skyMod(a, n) { return ((a % n) + n) % n; }
+  function skyWrap(d, n) { d = skyMod(d, n); return d > n / 2 ? d - n : d; }
+  function skyClamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  function skyEaseInOut(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+  function skyEaseOut(t) { return 1 - Math.pow(1 - t, 3); }
+  function skyFade(ad) {
+    for (let i = 1; i < SKY_FADE.length; i++) {
+      const a = SKY_FADE[i - 1], b = SKY_FADE[i];
+      if (ad <= b[0]) {
+        const t = (ad - a[0]) / (b[0] - a[0]);
+        return a[1] + (b[1] - a[1]) * (t * t * (3 - 2 * t));
+      }
+    }
+    return 0;
+  }
+  function skyEl(name, attrs, cls) {
+    const el = document.createElementNS(SVG_NS, name);
+    if (cls) el.setAttribute('class', cls);
+    if (attrs) Object.keys(attrs).forEach((k) => el.setAttribute(k, attrs[k]));
+    return el;
+  }
+
+  // ---- کپشن (نام + توضیح + ویژگی‌ها) با فلش‌های قبلی/بعدی ----------------
+  function buildCaptionBlock() {
     const cap = document.createElement('div');
     cap.className = 'ai-void-constellation-caption';
 
     const prevBtn = document.createElement('button');
     prevBtn.type = 'button';
     prevBtn.className = 'ai-void-constellation-nav ai-void-constellation-prev';
-    prevBtn.textContent = '‹';
+    prevBtn.textContent = '\u2039';
     const nextBtn = document.createElement('button');
     nextBtn.type = 'button';
     nextBtn.className = 'ai-void-constellation-nav ai-void-constellation-next';
-    nextBtn.textContent = '›';
+    nextBtn.textContent = '\u203A';
     [[prevBtn, -1], [nextBtn, 1]].forEach(function (pair) {
-      const btn = pair[0], dir = pair[1];
-      btn.addEventListener('click', function (e) { e.stopPropagation(); swapConstellation(dir); });
-      btn.addEventListener('mouseenter', function () { showGhostPeek(dir); });
-      btn.addEventListener('mouseleave', hideGhostPeek);
-      btn.addEventListener('focus', function () { showGhostPeek(dir); });
-      btn.addEventListener('blur', hideGhostPeek);
+      pair[0].addEventListener('click', function (e) { e.stopPropagation(); skyStep(pair[1]); });
     });
     const prevL = navLabel('voidZodiacPrev', 'Previous constellation');
     const nextL = navLabel('voidZodiacNext', 'Next constellation');
@@ -1387,103 +517,500 @@
 
     const textWrap = document.createElement('div');
     textWrap.className = 'ai-void-constellation-text';
+    textWrap.setAttribute('aria-live', 'polite');
     const title = document.createElement('div');
     title.className = 'ai-void-constellation-name';
-    title.textContent = zodiacName(z);
     const blurb = document.createElement('div');
     blurb.className = 'ai-void-constellation-blurb';
-    blurb.textContent = zodiacCaption(z);
     const facts = document.createElement('div');
     facts.className = 'ai-void-constellation-facts';
-    facts.textContent = zodiacFacts(z);
     textWrap.append(title, blurb, facts);
 
     cap.append(prevBtn, textWrap, nextBtn);
-
-    let maxY = cy;
-    Object.keys(pos).forEach(function (k) { if (pos[k].y > maxY) maxY = pos[k].y; });
-    cap.style.left = cx + 'px';
-    cap.style.top = (maxY + 28) + 'px';
+    cap._parts = { textWrap: textWrap, title: title, blurb: blurb, facts: facts };
     return cap;
   }
 
-  // ---------------------------------------------------------------------
-  // سواپِ دستیِ صورتِ فلکی — کاربر با فلش‌هایِ کنارِ کپشن، همینجا رویِ صفحه،
-  // بینِ ۱۳ صورتِ فلکی می‌چرخد. formConstellationFrom (که از قبل برایِ
-  // reposition-on-resize نوشته شده) دقیقاً همون تابعیه که لازمه: با همون
-  // cx/cy/scaleِ فعلی صدا زده می‌شه تا شکل «همون‌جا عوض» بشه، نه بپره یه‌جایِ
-  // دیگه. رنگِ خودِ سه سیاه‌چاله (Today آبی/Goals طلایی/Echo نقره‌ای) عمداً
-  // اینجا دست نمی‌خوره — طبقِ همون اصلِ طراحیِ قبلی، هویتِ سیاه‌چاله از
-  // صورتِ فلکیِ نمایش‌داده‌شده مستقل می‌مونه.
-  // ---------------------------------------------------------------------
-  function swapConstellation(dir) {
-    if (!activeConstellation || !constellationLayer) return;
-    const idx = ZODIAC.findIndex((c) => c.id === activeConstellation.id);
-    if (idx < 0) return;
-    const next = ZODIAC[(idx + dir + ZODIAC.length) % ZODIAC.length];
-    const cx = activeConstellation.centerX;
-    const cy = activeConstellation.centerY;
-    const scale = activeConstellation.scale;
-    hideGhostPeek();
-    formConstellationFrom(next, cx, cy, scale, true);
-  }
-
-  // ---------------------------------------------------------------------
-  // پیش‌نمایشِ محوِ همسایه — فقط رویِ هاور/فوکسِ فلش، بدونِ commit کردنِ
-  // چیزی (نه singularityها جابه‌جا می‌شن، نه savedState تغییر می‌کنه).
-  // ---------------------------------------------------------------------
-  let ghostLayer = null;
-  function showGhostPeek(dir) {
-    if (!activeConstellation || !constellationLayer) return;
-    const idx = ZODIAC.findIndex((c) => c.id === activeConstellation.id);
-    if (idx < 0) return;
-    const z = ZODIAC[(idx + dir + ZODIAC.length) % ZODIAC.length];
-    hideGhostPeek();
-    const cx = activeConstellation.centerX;
-    const cy = activeConstellation.centerY;
-    const scale = activeConstellation.scale;
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('class', 'ai-void-constellation-ghost');
-    svg.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible';
-    const pos = Object.create(null);
-    (z.stars || []).forEach((s) => { pos[s.id] = { x: cx + s.x * scale, y: cy + s.y * scale }; });
-    (z.edges || []).forEach((pair) => {
-      const a = pos[pair[0]], b = pos[pair[1]];
-      if (!a || !b) return;
-      const line = document.createElementNS(svgNS, 'line');
-      line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
-      line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
-      svg.appendChild(line);
-    });
-    (z.stars || []).forEach((s) => {
-      const mag = typeof s.mag === 'number' ? s.mag : 0.5;
-      const r = 2 + mag * 2.2;
-      const c = document.createElementNS(svgNS, 'circle');
-      c.setAttribute('cx', pos[s.id].x); c.setAttribute('cy', pos[s.id].y); c.setAttribute('r', r);
-      svg.appendChild(c);
-    });
-    document.body.appendChild(svg);
-    ghostLayer = svg;
-    requestAnimationFrame(() => { if (ghostLayer === svg) svg.classList.add('is-visible'); });
-  }
-  function hideGhostPeek() {
-    if (!ghostLayer) return;
-    const g = ghostLayer;
-    ghostLayer = null;
-    g.classList.remove('is-visible');
-    setTimeout(() => { try { g.remove(); } catch (e) {} }, 220);
+  function skyFillCaption(z) {
+    if (!sky || !sky.caption || !z) return;
+    const p = sky.caption._parts;
+    p.title.textContent = zodiacName(z);
+    p.blurb.textContent = zodiacCaption(z);
+    p.facts.textContent = zodiacFacts(z);
   }
 
   function refreshConstellationCaption() {
-    if (!constellationLayer || !activeConstellation) return;
-    const z = ZODIAC.find((c) => c.id === activeConstellation.id);
-    if (!z) return;
-    const nameEl = constellationLayer.querySelector('.ai-void-constellation-name');
-    const blurbEl = constellationLayer.querySelector('.ai-void-constellation-blurb');
-    if (nameEl) nameEl.textContent = zodiacName(z);
-    if (blurbEl) blurbEl.textContent = zodiacCaption(z);
+    if (!sky) return;
+    const n = sky.cons.length;
+    skyFillCaption(sky.cons[skyMod(Math.round(sky.pos), n)].z);
   }
+
+  // ---- هندسه: نوارِ جستجو → عرضِ شکل، زیرِ لینک‌های پرکاربرد → ارتفاع ----
+  function skyAnchorBox() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    let midX = vw / 2;
+    let barW = Math.min(640, vw - 32);
+    let anchorBottom = Math.max(88, vh * 0.18) + 160;
+    try {
+      const stage = document.getElementById('ai-void-stage');
+      if (stage) {
+        const r = stage.getBoundingClientRect();
+        if (r.width > 40 && r.height > 20) {
+          midX = r.left + r.width / 2;
+          barW = r.width;
+          anchorBottom = r.bottom;
+        }
+      }
+      const form = document.getElementById('ai-void-search-form');
+      if (form) {
+        const fr = form.getBoundingClientRect();
+        if (fr.width > 80) { midX = fr.left + fr.width / 2; barW = fr.width; }
+      }
+      const topsites = document.getElementById('ai-ntp-topsites');
+      if (topsites && !topsites.classList.contains('hidden') && topsites.offsetParent !== null) {
+        const tr = topsites.getBoundingClientRect();
+        if (tr.height > 4 && tr.bottom > 0) anchorBottom = tr.bottom;
+      }
+    } catch (e) {}
+    return { vw: vw, vh: vh, midX: midX, barW: barW, anchorBottom: anchorBottom };
+  }
+
+  function layoutSky() {
+    if (!sky) return;
+    const box = skyAnchorBox();
+    const vw = box.vw, vh = box.vh;
+    const W = skyClamp(box.barW, 260, Math.max(260, Math.min(700, vw - 24)));
+    const top = box.anchorBottom + 12;
+    const H = skyClamp(vh - top - SKY_CAPTION_RESERVE, 110, Math.min(320, W * 0.55));
+    const S = skyClamp(W * 0.9, 230, 640);     // فاصلهٔ مرکزِ دو صورتِ فلکیِ مجاور
+    const R = S * 4.5;                          // شعاعِ چرخ (خیلی بزرگ → انحنای ملایم)
+    const step = S / R;
+    const cx = skyClamp(box.midX, Math.min(W / 2 + 8, vw / 2), Math.max(vw - W / 2 - 8, vw / 2));
+    const cy = top + H / 2;
+
+    const key = [vw, vh, Math.round(W), Math.round(H), Math.round(cx), Math.round(cy)].join('|');
+    if (sky.layoutKey === key) return;
+    sky.layoutKey = key;
+
+    const Rb = R - H / 2 - SKY_BELT_GAP;
+    const g = sky.geo = {
+      vw: vw, vh: vh, W: W, H: H, S: S, R: R, step: step, cx: cx, cy: cy,
+      pivotY: cy + R, Rb: Rb, Rg: Rb + 14, phiMax: step * 2.7, beltP: Rb * step
+    };
+
+    // هر صورتِ فلکی در جعبهٔ W×H جا می‌شود (نسبتِ واقعی حفظ می‌شود)
+    const halfW = Math.max(40, W / 2 - 16), halfH = Math.max(40, H / 2 - 8);
+    sky.cons.forEach((c) => {
+      const u = Math.min(halfW / Math.max(c.hx, 0.01), halfH / Math.max(c.hy, 0.01));
+      c.u = u;
+      c.stars.forEach((s) => {
+        s.lx = s.x * u; s.ly = s.y * u;
+        const r = 1.2 + s.mag * 2.0;
+        s.core.setAttribute('cx', s.lx.toFixed(2)); s.core.setAttribute('cy', s.ly.toFixed(2)); s.core.setAttribute('r', r.toFixed(2));
+        s.halo.setAttribute('cx', s.lx.toFixed(2)); s.halo.setAttribute('cy', s.ly.toFixed(2)); s.halo.setAttribute('r', (r * 4.4).toFixed(2));
+      });
+      c.edges.forEach((e) => {
+        e.el.setAttribute('x1', e.a.lx.toFixed(2)); e.el.setAttribute('y1', e.a.ly.toFixed(2));
+        e.el.setAttribute('x2', e.b.lx.toFixed(2)); e.el.setAttribute('y2', e.b.ly.toFixed(2));
+      });
+    });
+
+    // کمربندِ نمادها: کمانِ هم‌مرکز با چرخ، زیرِ شکل‌ها
+    const phiM = g.phiMax;
+    const x0 = cx - Rb * Math.sin(phiM), x1 = cx + Rb * Math.sin(phiM);
+    const y0 = g.pivotY - Rb * Math.cos(phiM);
+    const d = 'M ' + x0.toFixed(2) + ' ' + y0.toFixed(2) + ' A ' + Rb.toFixed(2) + ' ' + Rb.toFixed(2) + ' 0 0 1 ' + x1.toFixed(2) + ' ' + y0.toFixed(2);
+    sky.beltLine.setAttribute('d', d);
+    sky.beltTicks.setAttribute('d', d);
+    sky.beltTicks.setAttribute('stroke-dasharray', '1.4 ' + Math.max(1, g.beltP - 1.4).toFixed(2));
+    sky.beltGrad.setAttribute('x1', x0.toFixed(2));
+    sky.beltGrad.setAttribute('x2', x1.toFixed(2));
+
+    // ناحیهٔ سوایپ: فقط همین باند (نه کلِ صفحه) تا با چیزهای دیگر تداخل نکند
+    sky.zone.style.top = Math.max(0, cy - H / 2 - 14) + 'px';
+    sky.zone.style.height = (H + SKY_BELT_GAP + 104) + 'px';
+
+    sky.caption.style.left = cx + 'px';
+    sky.caption.style.top = (cy + H / 2 + SKY_BELT_GAP + 14) + 'px';
+  }
+
+  // موقعیتِ جهانیِ یک ستاره (بعد از چرخش/مقیاسِ گروهش)
+  function skyStarWorld(c, starId) {
+    const s = c.sm[starId];
+    if (!s || !c.pl) return null;
+    const p = c.pl;
+    return {
+      x: p.X + p.k * (s.lx * p.cos - s.ly * p.sin),
+      y: p.Y + p.k * (s.lx * p.sin + s.ly * p.cos)
+    };
+  }
+
+  function renderSky(now) {
+    if (!sky || !sky.geo) return;
+    const g = sky.geo, N = sky.cons.length, pos = sky.pos;
+
+    let introF = 1;
+    if (sky.intro) {
+      if (now >= sky.introEnd) sky.intro = false;
+      else introF = skyEaseOut(skyClamp((now - sky.introStart - 450) / 1100, 0, 1));
+    }
+
+    for (let i = 0; i < N; i++) {
+      const c = sky.cons[i];
+      const d = skyWrap(i - pos, N);
+      const ad = Math.abs(d);
+      const phi = d * g.step;
+      const k = 1 - 0.30 * Math.min(ad, 1) - 0.08 * skyClamp(ad - 1, 0, 1);
+      const sn = Math.sin(phi), cs = Math.cos(phi);
+      const X = g.cx + g.R * sn;
+      const Y = g.cy + g.R * (1 - cs);
+      c.d = d;
+      c.pl = { X: X, Y: Y, phi: phi, k: k, sin: sn, cos: cs };
+
+      let op = skyFade(ad);
+      if (ad > 0.6) op *= introF;
+      if (op < 0.012) {
+        if (c.vis) { c.g.setAttribute('visibility', 'hidden'); c.glyph.setAttribute('visibility', 'hidden'); c.vis = false; }
+        continue;
+      }
+      if (!c.vis) { c.g.setAttribute('visibility', 'visible'); c.glyph.setAttribute('visibility', 'visible'); c.vis = true; }
+      const deg = (phi * 57.29578).toFixed(3);
+      c.g.setAttribute('opacity', op.toFixed(3));
+      c.g.setAttribute('transform', 'translate(' + X.toFixed(2) + ' ' + Y.toFixed(2) + ') rotate(' + deg + ') scale(' + k.toFixed(4) + ')');
+      const near = ad < 0.5;
+      if (near !== c.near) { c.near = near; c.g.classList.toggle('is-near', near); }
+      const gx = g.cx + g.Rg * sn, gy = g.pivotY - g.Rg * cs;
+      c.glyph.setAttribute('opacity', (op * 0.9).toFixed(3));
+      c.glyph.setAttribute('transform', 'translate(' + gx.toFixed(2) + ' ' + gy.toFixed(2) + ') rotate(' + deg + ')');
+    }
+
+    // تیک‌های کمربند: با چرخ می‌چرخند و حسِ «چرخش» را می‌دهند
+    const base = g.Rb * (g.phiMax + (0.5 - pos) * g.step) - 0.7;
+    sky.beltTicks.setAttribute('stroke-dashoffset', (-skyMod(base, g.beltP)).toFixed(2));
+    sky.beltLayer.setAttribute('opacity', (0.35 + 0.65 * introF).toFixed(3));
+
+    // سه ستارهٔ لنگر: بینِ لنگرِ صورتِ فلکیِ پایین و بالا درون‌یابی می‌شوند
+    const i0 = Math.floor(pos), frac = pos - i0;
+    const ca = sky.cons[skyMod(i0, N)], cb = sky.cons[skyMod(i0 + 1, N)];
+    const sm = frac * frac * (3 - 2 * frac);
+    PRIMARY_IDS.forEach((pid) => {
+      const entry = registry[pid];
+      if (!entry || !entry.anchor) return;
+      const key = PANEL_THEME[pid];
+      const pa = skyStarWorld(ca, ca.z.anchors[key]);
+      const pb = skyStarWorld(cb, cb.z.anchors[key]);
+      if (!pa || !pb) return;
+      entry.anchor.x = pa.x + (pb.x - pa.x) * sm;
+      entry.anchor.y = pa.y + (pb.y - pa.y) * sm;
+      applyOrbPosition(entry);
+    });
+
+    // کپشن: نزدیک‌ترین صورتِ فلکی؛ وسطِ چرخش محو می‌شود و متن در نقطهٔ نامرئی عوض می‌شود
+    const nearest = skyMod(Math.round(pos), N);
+    if (nearest !== sky.shown) { sky.shown = nearest; skyFillCaption(sky.cons[nearest].z); }
+    sky.caption._parts.textWrap.style.opacity = String(skyClamp(1 - Math.abs(pos - Math.round(pos)) * 2.6, 0, 1));
+  }
+
+  // ---- حلقهٔ انیمیشن --------------------------------------------------
+  function skyLoop() {
+    if (!sky || sky.raf) return;
+    sky.raf = requestAnimationFrame(skyTick);
+  }
+
+  function skyTick(now) {
+    if (!sky) return;
+    sky.raf = 0;
+    let again = false;
+    const tw = sky.tween;
+    if (tw) {
+      const p = tw.dur <= 0 ? 1 : skyClamp((now - tw.t0) / tw.dur, 0, 1);
+      sky.pos = tw.from + (tw.to - tw.from) * tw.ease(p);
+      if (p >= 1) {
+        sky.pos = skyMod(tw.to, sky.cons.length);
+        sky.tween = null;
+        renderSky(now);
+        skySettle();
+      } else again = true;
+    }
+    if (sky.intro) again = true;
+    if (!tw || again) renderSky(now);
+    if (again) skyLoop();
+  }
+
+  function skyGoTo(target, o) {
+    if (!sky) return;
+    o = o || {};
+    const n = sky.cons.length;
+    const from = sky.pos;
+    const dist = Math.abs(target - from);
+    if (dist < 0.001) {
+      sky.tween = null;
+      sky.pos = skyMod(target, n);
+      renderSky(performance.now());
+      skySettle();
+      return;
+    }
+    const idx = skyMod(Math.round(target), n);
+    if (idx !== sky.soundIdx) {
+      sky.soundIdx = idx;
+      triggerConstellationSound('form');
+    }
+    const dur = reducedMotion ? 0 : (o.dur || 950) * (0.55 + 0.45 * Math.min(dist, 1));
+    sky.tween = { from: from, to: target, t0: performance.now(), dur: dur, ease: o.ease || skyEaseInOut };
+    skyLoop();
+  }
+
+  function skyStep(dir) {
+    if (!sky || performance.now() < sky.readyAt) return;
+    const base = sky.tween ? Math.round(sky.tween.to) : Math.round(sky.pos);
+    skyGoTo(base + dir, { dur: 1000 });
+  }
+
+  // وقتی چرخ ایستاد: هویتِ صورتِ فلکیِ فعال + موقعیتِ لنگرها ذخیره می‌شود
+  function skySettle() {
+    if (!sky) return;
+    const idx = skyMod(Math.round(sky.pos), sky.cons.length);
+    sky.pos = idx;
+    sky.settledIdx = idx;
+    const z = sky.cons[idx].z;
+    if (activeConstellation) activeConstellation.id = z.id;
+    savedState.__lastZodiac = z.id;
+    PRIMARY_IDS.forEach(function (pid) {
+      const entry = registry[pid];
+      if (!entry || !entry.anchor) return;
+      savedState[pid] = { dissolved: true, x: entry.anchor.x, y: entry.anchor.y };
+    });
+    persist();
+  }
+
+  function skyClickAt(x, y) {
+    if (!sky || !sky.geo) return;
+    let best = null, bd = Infinity;
+    sky.cons.forEach((c) => {
+      if (!c.pl) return;
+      const ad = Math.abs(c.d);
+      if (ad < 0.6 || ad > 1.6) return;
+      const dist = Math.hypot(x - c.pl.X, y - c.pl.Y);
+      if (dist < bd) { bd = dist; best = c.d; }
+    });
+    if (best !== null && bd < sky.geo.S * 0.55) {
+      skyGoTo(Math.round(sky.pos) + Math.round(best), { dur: 950 });
+    }
+  }
+
+  // ---- ورودی: درگ/سوایپ، wheel افقی، کیبورد ---------------------------
+  function skyBindInput() {
+    const zone = sky.zone;
+
+    zone.addEventListener('pointerdown', (e) => {
+      if (!sky || performance.now() < sky.readyAt) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      sky.tween = null;
+      sky.drag = {
+        id: e.pointerId, x0: e.clientX, pos0: sky.pos, idx0: Math.round(sky.pos),
+        moved: false, samples: [[performance.now(), e.clientX]]
+      };
+      try { zone.setPointerCapture(e.pointerId); } catch (err) {}
+      zone.classList.add('is-dragging');
+    });
+
+    zone.addEventListener('pointermove', (e) => {
+      const d = sky && sky.drag;
+      if (!d || e.pointerId !== d.id) return;
+      const dx = e.clientX - d.x0;
+      if (!d.moved && Math.abs(dx) > 5) d.moved = true;
+      if (!d.moved) return;
+      sky.pos = skyClamp(d.pos0 - dx / sky.geo.S, d.idx0 - 1.15, d.idx0 + 1.15);
+      d.samples.push([performance.now(), e.clientX]);
+      if (d.samples.length > 8) d.samples.shift();
+      skyLoop();
+    });
+
+    const finish = (e, cancelled) => {
+      const d = sky && sky.drag;
+      if (!d || e.pointerId !== d.id) return;
+      sky.drag = null;
+      zone.classList.remove('is-dragging');
+      try { zone.releasePointerCapture(e.pointerId); } catch (err) {}
+      if (!d.moved) { if (!cancelled) skyClickAt(e.clientX, e.clientY); return; }
+      let v = 0; // واحد: اندیس بر میلی‌ثانیه
+      const sm = d.samples;
+      if (sm.length >= 2) {
+        const a = sm[0], b = sm[sm.length - 1], dt = b[0] - a[0];
+        if (dt > 0 && performance.now() - b[0] < 120) v = -(b[1] - a[1]) / sky.geo.S / dt;
+      }
+      const proj = cancelled ? sky.pos : sky.pos + v * 260;
+      const target = skyClamp(Math.round(proj), d.idx0 - 1, d.idx0 + 1);
+      skyGoTo(target, { ease: skyEaseOut, dur: 750 });
+    };
+    zone.addEventListener('pointerup', (e) => finish(e, false));
+    zone.addEventListener('pointercancel', (e) => finish(e, true));
+
+    zone.addEventListener('wheel', (e) => {
+      if (!sky || performance.now() < sky.readyAt) return;
+      const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+      if (!dx) return;
+      e.preventDefault();
+      const now = performance.now();
+      if (now - sky.lastWheel > 220) sky.wheelAcc = 0;
+      sky.lastWheel = now;
+      sky.wheelAcc += dx;
+      if (now < sky.wheelLock) return;
+      if (Math.abs(sky.wheelAcc) > 45) {
+        skyStep(sky.wheelAcc > 0 ? 1 : -1);
+        sky.wheelAcc = 0;
+        sky.wheelLock = now + 520;
+      }
+    }, { passive: false });
+
+    sky.onKey = (e) => {
+      if (!sky || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      const t = e.target, tag = t && t.tagName;
+      if (t && (t.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT')) return;
+      e.preventDefault();
+      skyStep(e.key === 'ArrowRight' ? 1 : -1);
+    };
+    document.addEventListener('keydown', sky.onKey);
+  }
+
+  function skyTeardown() {
+    if (!sky) return;
+    if (sky.raf) { try { cancelAnimationFrame(sky.raf); } catch (e) {} }
+    try { document.removeEventListener('keydown', sky.onKey); } catch (e) {}
+    sky = null;
+  }
+
+  // ---- ساختِ آسمان ------------------------------------------------------
+  function buildSky(startZ, opts) {
+    opts = opts || {};
+    clearConstellation();
+    const N = ZODIAC.length;
+    const startIdx = Math.max(0, ZODIAC.findIndex((c) => c.id === startZ.id));
+    const now = performance.now();
+    const intro = !!opts.intro && !reducedMotion;
+
+    const layerEl = document.createElement('div');
+    layerEl.className = 'ai-void-constellation' + (intro ? ' is-forming' : '');
+    layerEl.setAttribute('role', 'group');
+    layerEl.setAttribute('aria-label', 'Zodiac');
+
+    const zone = document.createElement('div');
+    zone.className = 'ai-void-sky-zone';
+
+    const svg = skyEl('svg', null, 'ai-void-sky');
+    const defs = skyEl('defs');
+    const halo = skyEl('radialGradient', { id: 'zsHalo' });
+    halo.append(
+      skyEl('stop', { offset: '0%', 'stop-color': '#c7d2fe', 'stop-opacity': '0.55' }),
+      skyEl('stop', { offset: '100%', 'stop-color': '#818cf8', 'stop-opacity': '0' })
+    );
+    const beltGrad = skyEl('linearGradient', { id: 'zsBelt', gradientUnits: 'userSpaceOnUse', x1: '0', y1: '0', x2: '1', y2: '0' });
+    beltGrad.append(
+      skyEl('stop', { offset: '0%', 'stop-color': '#c7d2fe', 'stop-opacity': '0' }),
+      skyEl('stop', { offset: '30%', 'stop-color': '#c7d2fe', 'stop-opacity': '0.34' }),
+      skyEl('stop', { offset: '50%', 'stop-color': '#e0e7ff', 'stop-opacity': '0.6' }),
+      skyEl('stop', { offset: '70%', 'stop-color': '#c7d2fe', 'stop-opacity': '0.34' }),
+      skyEl('stop', { offset: '100%', 'stop-color': '#c7d2fe', 'stop-opacity': '0' })
+    );
+    defs.append(halo, beltGrad);
+    svg.appendChild(defs);
+
+    const beltLayer = skyEl('g', null, 'zs-belt');
+    const beltLine = skyEl('path', null, 'zs-belt-line');
+    const beltTicks = skyEl('path', null, 'zs-belt-ticks');
+    beltLayer.append(beltLine, beltTicks);
+    svg.appendChild(beltLayer);
+
+    const consLayer = skyEl('g', null, 'zs-cons');
+    const glyphLayer = skyEl('g', null, 'zs-glyphs');
+    const cons = ZODIAC.map((z) => {
+      const g = skyEl('g', { 'data-id': z.id, visibility: 'hidden' }, 'zs-con');
+      const sm = Object.create(null);
+      const stars = (z.stars || []).map((s, j) => {
+        const st = { id: s.id, x: s.x, y: s.y, mag: typeof s.mag === 'number' ? s.mag : 0.5, lx: 0, ly: 0 };
+        st.halo = skyEl('circle', null, 'zs-halo');
+        st.core = skyEl('circle', null, 'zs-core' + (s.role === 'anchor' ? '' : ' is-helper'));
+        st.core.style.setProperty('--tw', (-Math.random() * 5).toFixed(2) + 's');
+        sm[s.id] = st;
+        return st;
+      });
+      const edges = [];
+      (z.edges || []).forEach((pair, j) => {
+        const a = sm[pair[0]], b = sm[pair[1]];
+        if (!a || !b) return;
+        const el = skyEl('line', { pathLength: '1' }, 'zs-edge');
+        el.style.setProperty('--i', String(j));
+        edges.push({ el: el, a: a, b: b });
+      });
+      edges.forEach((e) => g.appendChild(e.el));
+      stars.forEach((s) => g.appendChild(s.halo));
+      stars.forEach((s) => g.appendChild(s.core));
+      consLayer.appendChild(g);
+
+      const glyph = skyEl('text', { visibility: 'hidden' }, 'zs-glyph');
+      glyph.textContent = (SKY_GLYPH[z.id] || '\u2605') + '\uFE0E';
+      glyphLayer.appendChild(glyph);
+
+      let hx = 0, hy = 0;
+      stars.forEach((s) => { hx = Math.max(hx, Math.abs(s.x)); hy = Math.max(hy, Math.abs(s.y)); });
+      return { z: z, g: g, glyph: glyph, edges: edges, stars: stars, sm: sm, hx: hx, hy: hy, u: 1, d: 0, pl: null, vis: false, near: false };
+    });
+    svg.append(consLayer, glyphLayer);
+
+    const caption = buildCaptionBlock();
+    layerEl.append(zone, svg, caption);
+    document.body.appendChild(layerEl);
+    constellationLayer = layerEl;
+
+    const thisSky = sky = {
+      layer: layerEl, zone: zone, svg: svg, caption: caption,
+      beltLayer: beltLayer, beltLine: beltLine, beltTicks: beltTicks, beltGrad: beltGrad,
+      cons: cons, geo: null, layoutKey: '',
+      pos: startIdx, settledIdx: startIdx, soundIdx: startIdx, shown: -1,
+      tween: null, drag: null, raf: 0,
+      intro: intro, introStart: now, introEnd: intro ? now + SKY_INTRO_MS : 0,
+      readyAt: intro ? now + 1000 : 0,
+      wheelAcc: 0, lastWheel: 0, wheelLock: 0, onKey: null
+    };
+
+    // لنگرها: در ورودِ زنده با CSS به جایگاه می‌لغزند؛ بعدش فقط JS هر فریم جابه‌جایشان می‌کند
+    PRIMARY_IDS.forEach((pid) => {
+      const entry = registry[pid];
+      if (!entry || !entry.singularity) return;
+      entry.singularity.classList.add('is-constellation');
+      entry.singularity.style.transition = intro
+        ? 'left 0.95s cubic-bezier(.2,.8,.2,1), top 0.95s cubic-bezier(.2,.8,.2,1), opacity 0.35s ease, transform 0.4s cubic-bezier(.2,.9,.2,1)'
+        : '';
+    });
+    if (intro) {
+      setTimeout(() => {
+        if (sky !== thisSky) return;
+        PRIMARY_IDS.forEach((pid) => {
+          const entry = registry[pid];
+          if (entry && entry.singularity) entry.singularity.style.transition = '';
+        });
+        try { layerEl.classList.remove('is-forming'); } catch (e) {}
+      }, SKY_INTRO_MS + 700);
+    }
+
+    layoutSky();
+    renderSky(now);
+    skyBindInput();
+    requestAnimationFrame(() => { if (sky === thisSky) layerEl.classList.add('is-visible'); });
+    if (intro) skyLoop();
+
+    const g = sky.geo;
+    activeConstellation = { id: ZODIAC[startIdx].id, centerX: g.cx, centerY: g.cy, scale: g.W };
+    savedState.__lastZodiac = ZODIAC[startIdx].id;
+    PRIMARY_IDS.forEach(function (pid) {
+      const entry = registry[pid];
+      if (!entry || !entry.anchor) return;
+      savedState[pid] = { dissolved: true, x: entry.anchor.x, y: entry.anchor.y };
+    });
+    persist();
+  }
+
 
   function rand(a, b) { return a + Math.random() * (b - a); }
 
@@ -1537,6 +1064,7 @@
   }
 
   function clearConstellation() {
+    skyTeardown();
     if (constellationLayer) {
       try { constellationLayer.remove(); } catch (e) {}
       constellationLayer = null;
@@ -1613,194 +1141,19 @@
     return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
   }
 
-  function defaultConstellationCenter(nominalScale, zodiac) {
-    nominalScale = nominalScale || 90;
-    var vw = window.innerWidth;
-    var vh = window.innerHeight;
-    var rtl = false;
-    try {
-      rtl = (document.documentElement.getAttribute('dir') || '').toLowerCase() === 'rtl';
-    } catch (e) {}
-
-    var stageMidX = vw * 0.5;
-    var stageWidth = Math.min(640, vw - 32);
-    var stageBottom = Math.max(88, vh * 0.18) + 160;
-    var anchorBottom = stageBottom;
-
-    try {
-      var stage = document.getElementById('ai-void-stage');
-      if (stage) {
-        var r = stage.getBoundingClientRect();
-        if (r.width > 40 && r.height > 20) {
-          stageMidX = r.left + r.width / 2;
-          stageWidth = r.width;
-          stageBottom = r.bottom;
-          anchorBottom = stageBottom;
-        }
-      }
-      // Prefer real topsites bottom when the row is visible
-      var topsites = document.getElementById('ai-ntp-topsites');
-      if (topsites && !topsites.classList.contains('hidden') && topsites.offsetParent !== null) {
-        var tr = topsites.getBoundingClientRect();
-        if (tr.height > 4 && tr.bottom > 0) {
-          anchorBottom = tr.bottom;
-        }
-      }
-    } catch (e) {}
-
-    // Adaptive scale from free height under the content anchor
-    var gap = 10;
-    var bottomMargin = 56;
-    var availableH = Math.max(80, vh - anchorBottom - gap - bottomMargin);
-    var maxScale = Math.max(56, Math.min(nominalScale, availableH * 0.42));
-    var scale = Math.min(nominalScale, maxScale);
-
-    // Horizontal: stage-relative third (width/6 from mid axis)
-    var offsetX = stageWidth / 6;
-    var cx = rtl ? (stageMidX + offsetX) : (stageMidX - offsetX);
-
-    // Vertical: top of figure tangent to anchor + gap, using real star bounds
-    var bounds = constellationStarBounds(zodiac);
-    // cy + bounds.minY * scale = anchorBottom + gap  →  cy = anchorBottom + gap - bounds.minY * scale
-    var cy = anchorBottom + gap - bounds.minY * scale;
-
-    cx = Math.max(scale + 40, Math.min(vw - scale - 40, cx));
-    // اینجا باگِ اصلیِ اسکرین‌شات بود: وقتی ارتفاعِ ویوپورت کم است (پنجرهٔ
-    // کوتاه)، محدودیتِ «نیفتادن از پایینِ صفحه» (vh - scale - 80) می‌توانست
-    // cy را کوچک‌تر از چیزی کند که برای ماندن *زیرِ* لینک‌های پرکاربرد لازم
-    // بود. minCy قبلاً با ضریبِ ۰.۱۵ (به‌جای ۱) حساب می‌شد — یعنی به‌جای
-    // تضمینِ «کلِ شکل زیرِ لینک‌ها بماند»، فقط «مرکزِ شکل کمی زیرِ لینک‌ها
-    // باشد» را تضمین می‌کرد؛ چون bounds.minY منفی است، نیمهٔ بالاییِ شکل با
-    // همین حالت دوباره می‌رفت توی خودِ ردیفِ لینک‌ها — دقیقاً همان چیزی که
-    // در اسکرین‌شات افتاده بود. حالا minCy با همان فرمولِ اصلیِ cy (ضریبِ
-    // کامل) حساب می‌شود، یعنی حتی اگر فضای پایینِ صفحه کم باشد، اولویت با
-    // «رویِ لینک‌ها نیفتد» است، نه با «کاملاً داخلِ ویوپورت بماند».
-    var minCy = anchorBottom + gap - bounds.minY * scale;
-    cy = Math.max(minCy, Math.min(vh - scale - 80, cy));
-
-    return { cx: cx, cy: cy, scale: scale };
-  }
 
 
   function formConstellation() {
     if (countDissolvedPrimaries() < 3) return;
     const z = pickConstellation();
     if (!z) return;
+    buildSky(z, { intro: true });
+  }
 
-    clearConstellation();
-
-    // Stage-relative center + adaptive scale (see defaultConstellationCenter)
-    const nominal = z.scale || 90;
-    const center = defaultConstellationCenter(nominal, z);
-    let cx = center.cx;
-    let cy = center.cy;
-    const scale = center.scale;
-
-    const sm = starMap(z);
-    const anchors = z.anchors || {};
-    const idToPanel = {
-      [anchors.today]: 'todo',
-      [anchors.goals]: 'goals',
-      [anchors.echo]: 'echo'
-    };
-
-    // Move primary orbs to anchor positions (animated via CSS transition on left/top)
-    PRIMARY_IDS.forEach((panelId) => {
-      const entry = registry[panelId];
-      if (!entry || !entry.anchor) return;
-      let starId = null;
-      if (panelId === 'todo') starId = anchors.today;
-      else if (panelId === 'goals') starId = anchors.goals;
-      else if (panelId === 'echo') starId = anchors.echo;
-      const star = starId && sm[starId];
-      if (!star) return;
-      const x = cx + star.x * scale;
-      const y = cy + star.y * scale;
-      entry.anchor.x = x;
-      entry.anchor.y = y;
-      // keep preferred (CoG) for when constellation breaks
-      if (entry.singularity) {
-        entry.singularity.classList.add('is-constellation');
-        entry.singularity.style.transition = reducedMotion
-          ? 'none'
-          : 'left 0.85s cubic-bezier(.2,.8,.2,1), top 0.85s cubic-bezier(.2,.8,.2,1), transform 0.4s ease';
-      }
-      applyOrbPosition(entry);
-    });
-
-    // Helper layer
-    constellationLayer = document.createElement('div');
-    constellationLayer.className = 'ai-void-constellation';
-    constellationLayer.setAttribute('aria-hidden', 'true');
-
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('class', 'ai-void-constellation-lines');
-    svg.style.position = 'fixed';
-    svg.style.left = '0';
-    svg.style.top = '0';
-    svg.style.width = '100%';
-    svg.style.height = '100%';
-    svg.style.pointerEvents = 'none';
-    svg.style.overflow = 'visible';
-
-    const pos = Object.create(null);
-    (z.stars || []).forEach((s) => {
-      pos[s.id] = {
-        x: cx + s.x * scale,
-        y: cy + s.y * scale,
-        star: s
-      };
-    });
-
-    (z.edges || []).forEach((pair) => {
-      const a = pos[pair[0]];
-      const b = pos[pair[1]];
-      if (!a || !b) return;
-      const line = document.createElementNS(svgNS, 'line');
-      line.setAttribute('x1', String(a.x));
-      line.setAttribute('y1', String(a.y));
-      line.setAttribute('x2', String(b.x));
-      line.setAttribute('y2', String(b.y));
-      line.setAttribute('class', 'ai-void-constellation-edge');
-      svg.appendChild(line);
-    });
-    constellationLayer.appendChild(svg);
-
-    // Helper stars (non-clickable)
-    (z.stars || []).forEach((s) => {
-      if (s.role === 'anchor') return;
-      const mag = typeof s.mag === 'number' ? s.mag : 0.5;
-      const size = 6 + mag * 5;
-      const h = document.createElement('span');
-      h.className = 'ai-void-helper-star';
-      h.style.width = size + 'px';
-      h.style.height = size + 'px';
-      h.style.left = (pos[s.id].x - size / 2) + 'px';
-      h.style.top = (pos[s.id].y - size / 2) + 'px';
-      h.style.opacity = String(0.25 + mag * 0.75);
-      constellationLayer.appendChild(h);
-    });
-
-    // Caption
-    const cap = buildCaptionBlock(z, cx, cy, pos);
-    constellationLayer.appendChild(cap);
-
-    document.body.appendChild(constellationLayer);
-    requestAnimationFrame(() => constellationLayer.classList.add('is-visible'));
-
-    activeConstellation = { id: z.id, centerX: cx, centerY: cy, scale: scale };
-    savedState.__lastZodiac = z.id;
-    PRIMARY_IDS.forEach(function (panelId) {
-      var entry = registry[panelId];
-      if (!entry || !entry.anchor) return;
-      savedState[panelId] = {
-        dissolved: true,
-        x: entry.anchor.x,
-        y: entry.anchor.y
-      };
-    });
-    persist();
+  // سازگاری با فراخوانی‌های قدیمی؛ حالا همه‌چیز از buildSky می‌گذرد.
+  function formConstellationFrom(z, cx, cy, forcedScale, withSound) {
+    if (countDissolvedPrimaries() < 3 || !z) return;
+    buildSky(z, { intro: withSound !== false });
   }
 
   function placeSingularity(entry, rect) {
@@ -2081,110 +1434,22 @@
           try { entry.onHide({ fromStorage: true }); } catch (e) {}
         }
       }
-      // Reform constellation below the search stage (not over it).
-      if (countDissolvedPrimaries() >= 3 && savedState.__constellation) {
-        const prev = ZODIAC.find((z) => z.id === savedState.__constellation.id);
-        const run = () => {
-          const z = (prev && ZODIAC.find((c) => c.id === savedState.__constellation.id))
+      // آسمان را بعد از باز شدنِ تب دوباره می‌سازد (فقط هویت ذخیره می‌شود، هندسه از چیدمانِ زنده).
+      if (countDissolvedPrimaries() >= 3 && savedState.__constellation && !hydrateScheduled) {
+        hydrateScheduled = true;
+        requestAnimationFrame(() => {
+          hydrateScheduled = false;
+          if (sky) return;
+          const z = ZODIAC.find((c) => savedState.__constellation && c.id === savedState.__constellation.id)
             || pickConstellation();
-          if (!z) return;
-          // Re-seat from live stage geometry; persist identity only (not coordinates).
-          const preferred = defaultConstellationCenter(z.scale || 90, z);
-          // Silent on New Tab hydrate — sound only for live user-driven formation
-          formConstellationFrom(z, preferred.cx, preferred.cy, preferred.scale, false);
-        };
-        requestAnimationFrame(run);
+          if (z) buildSky(z, { intro: false });
+        });
       }
     };
     if (stateLoaded) applySaved();
     else loadState(applySaved);
   }
 
-  function formConstellationFrom(z, cx, cy, forcedScale, withSound) {
-    // Reuse formConstellation body with fixed z/center — simplify by setting pick
-    if (countDissolvedPrimaries() < 3 || !z) return;
-    clearConstellation();
-    var _playFormationSound = withSound !== false;
-    const nominal = z.scale || 90;
-    const center = defaultConstellationCenter(nominal, z);
-    const scale = (forcedScale != null) ? forcedScale : center.scale;
-    if (cx == null) cx = center.cx;
-    if (cy == null) cy = center.cy;
-    cx = Math.max(scale + 40, Math.min(window.innerWidth - scale - 40, cx));
-    cy = Math.max(scale + 48, Math.min(window.innerHeight - scale - 80, cy));
-
-    const sm = starMap(z);
-    const anchors = z.anchors || {};
-    PRIMARY_IDS.forEach((panelId) => {
-      const entry = registry[panelId];
-      if (!entry || !entry.anchor) return;
-      let starId = panelId === 'todo' ? anchors.today : panelId === 'goals' ? anchors.goals : anchors.echo;
-      const star = starId && sm[starId];
-      if (!star) return;
-      entry.anchor.x = cx + star.x * scale;
-      entry.anchor.y = cy + star.y * scale;
-      if (entry.singularity) {
-        entry.singularity.classList.add('is-constellation');
-        entry.singularity.style.transition = reducedMotion ? 'none' : 'left 0.85s cubic-bezier(.2,.8,.2,1), top 0.85s cubic-bezier(.2,.8,.2,1)';
-      }
-      applyOrbPosition(entry);
-    });
-
-    constellationLayer = document.createElement('div');
-    constellationLayer.className = 'ai-void-constellation is-visible';
-    constellationLayer.setAttribute('aria-hidden', 'true');
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('class', 'ai-void-constellation-lines');
-    svg.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;pointer-events:none;overflow:visible';
-    const pos = Object.create(null);
-    (z.stars || []).forEach((s) => {
-      pos[s.id] = { x: cx + s.x * scale, y: cy + s.y * scale, star: s };
-    });
-    (z.edges || []).forEach((pair) => {
-      const a = pos[pair[0]], b = pos[pair[1]];
-      if (!a || !b) return;
-      const line = document.createElementNS(svgNS, 'line');
-      line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
-      line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
-      line.setAttribute('class', 'ai-void-constellation-edge');
-      svg.appendChild(line);
-    });
-    constellationLayer.appendChild(svg);
-    (z.stars || []).forEach((s) => {
-      if (s.role === 'anchor') return;
-      const mag = typeof s.mag === 'number' ? s.mag : 0.5;
-      const size = 6 + mag * 5;
-      const h = document.createElement('span');
-      h.className = 'ai-void-helper-star';
-      h.style.width = size + 'px';
-      h.style.height = size + 'px';
-      h.style.left = (pos[s.id].x - size / 2) + 'px';
-      h.style.top = (pos[s.id].y - size / 2) + 'px';
-      h.style.opacity = String(0.25 + mag * 0.75);
-      constellationLayer.appendChild(h);
-    });
-    const cap = buildCaptionBlock(z, cx, cy, pos);
-    constellationLayer.appendChild(cap);
-    document.body.appendChild(constellationLayer);
-    activeConstellation = { id: z.id, centerX: cx, centerY: cy, scale: scale };
-    savedState.__lastZodiac = z.id;
-    try {
-      if (_playFormationSound && window.VoidStarfield && typeof window.VoidStarfield.playConstellationFormation === 'function') {
-        triggerConstellationSound('form');
-      }
-    } catch (e) {}
-    PRIMARY_IDS.forEach(function (panelId) {
-      var entry = registry[panelId];
-      if (!entry || !entry.anchor) return;
-      savedState[panelId] = {
-        dissolved: true,
-        x: entry.anchor.x,
-        y: entry.anchor.y
-      };
-    });
-    persist();
-  }
 
   // منطقِ مشترکِ سه‌جا: هر وقت چیدمانِ صفحه به شکلی تغییر کند که ممکن است
   // لنگرگاهِ صورتِ فلکی/تک‌ستاره‌ها (پایینِ لینک‌های پرکاربرد) عوض شده
@@ -2192,11 +1457,13 @@
   // خودِ ردیفِ لینک‌های پرکاربرد (که async است و ارتفاعش می‌تواند بعد از
   // تشکیلِ اولیهٔ صورتِ فلکی عوض شود) — همین یک تابع صدا زده می‌شود.
   function repositionForLayoutChange() {
-    if (activeConstellation && countDissolvedPrimaries() >= 3) {
-      const z = ZODIAC.find((c) => c.id === activeConstellation.id);
-      if (z) {
-        const c = defaultConstellationCenter(z.scale || 90, z);
-        formConstellationFrom(z, c.cx, c.cy, c.scale, false);
+    if (sky && countDissolvedPrimaries() >= 3) {
+      layoutSky();
+      renderSky(performance.now());
+      if (activeConstellation && sky.geo) {
+        activeConstellation.centerX = sky.geo.cx;
+        activeConstellation.centerY = sky.geo.cy;
+        activeConstellation.scale = sky.geo.W;
       }
     } else {
       PRIMARY_IDS.forEach((id) => {
@@ -2293,6 +1560,8 @@
     // همان دادهٔ مرکزی و همان صورتِ فلکیِ فعلاً شکل‌گرفته، بدونِ دست‌زدن به
     // چرخهٔ dissolve/formation.
     getZodiac: function () { return ZODIAC; },
-    getActiveConstellationId: function () { return activeConstellation ? activeConstellation.id : null; }
+    getActiveConstellationId: function () { return activeConstellation ? activeConstellation.id : null; },
+    // چرخاندنِ دستیِ چرخِ زودیاک از بیرون (dir = +1 بعدی، -1 قبلی)
+    rotateZodiac: function (dir) { skyStep(dir < 0 ? -1 : 1); }
   };
 })();
