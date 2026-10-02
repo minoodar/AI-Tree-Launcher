@@ -1781,6 +1781,24 @@
         font-family: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", "Noto Sans Symbols", system-ui, sans-serif;
     }
 
+    /* نقطهٔ اعتدالِ بهاری + خطِ «عصر» در کپشنِ حوت/دلو */
+    .zs-age-core { fill: #fbbf24; filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.9)); }
+    .zs-age-ring {
+        fill: none; stroke: rgba(251, 191, 36, 0.55); stroke-width: 1;
+        transform-box: fill-box; transform-origin: center;
+        animation: zsAgePulse 3.6s ease-out infinite;
+    }
+    @keyframes zsAgePulse { 0% { transform: scale(0.4); opacity: 0.9; } 100% { transform: scale(1.5); opacity: 0; } }
+    .ai-void-constellation-age {
+        margin-top: 3px;
+        font-size: 10px;
+        font-weight: 500;
+        color: rgba(251, 191, 36, 0.8);
+        text-shadow: 0 1px 3px rgba(0,0,0,0.45);
+    }
+    .ai-void-constellation-age:empty { display: none; }
+    @media (prefers-reduced-motion: reduce) { .zs-age-ring { animation: none !important; opacity: 0.5; } }
+
     /* ورودِ زنده: خطوطِ شکل «کشیده» می‌شوند */
     .ai-void-constellation.is-forming .zs-edge {
         stroke-dasharray: 1;

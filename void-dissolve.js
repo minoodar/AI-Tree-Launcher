@@ -434,6 +434,17 @@
     return traitText(tr.el) + ' · ' + traitText(tr.mod) + ' · ' + traitText(tr.ruler);
   }
 
+  // خطِ «عصر» فقط برای حوت (عصرِ فعلی) و دلو (عصرِ بعدی)؛ بقیه خالی.
+  function zodiacAgeText(z) {
+    if (!z) return '';
+    const key = z.id === 'pisces' ? 'zodiacAgeNow' : z.id === 'aquarius' ? 'zodiacAgeNext' : '';
+    if (!key) return '';
+    const fallback = key === 'zodiacAgeNow'
+      ? 'Age of Pisces \u00B7 the spring equinox still rests here'
+      : 'Next age \u00B7 the equinox arrives around 2600';
+    return navLabel(key, fallback);
+  }
+
   function navLabel(key, fallback) {
     try {
       if (typeof t === 'function') {
@@ -469,6 +480,19 @@
   const SKY_BELT_GAP = 36;          // فاصلهٔ کمربندِ نمادها از پایینِ شکل
   const SKY_CAPTION_RESERVE = 132;  // جا برای کمربند + کپشن زیرِ شکل
   const SKY_INTRO_MS = 1700;
+
+  // ---- «عصر» (Age): نقطهٔ اعتدالِ بهاری، طبقِ مرزهای IAU --------------------
+  // اعتدالِ بهاری حدودِ ۶۸ پیش‌ازمیلاد وارد حوت شد و حدودِ ۲۵۹۷ میلادی وارد دلو
+  // می‌شود. یعنی از نظرِ نجومی هنوز «عصر حوت» است؛ دلو «عصرِ بعدی» است. اگر
+  // خواستی روایتِ نجومیِ رایج («سپیده‌دمِ عصرِ دلو») را نشان بدهی، فقط کلیدهای
+  // زبان و AGE_SHOW_AS_DAWN را عوض کن.
+  const AGE_START_YEAR = -68;
+  const AGE_END_YEAR = 2597;
+  function ageProgress() {
+    const d = new Date();
+    const y = d.getFullYear() + d.getMonth() / 12;
+    return skyClamp((y - AGE_START_YEAR) / (AGE_END_YEAR - AGE_START_YEAR), 0, 1);
+  }
 
   let sky = null;
 
@@ -524,10 +548,12 @@
     blurb.className = 'ai-void-constellation-blurb';
     const facts = document.createElement('div');
     facts.className = 'ai-void-constellation-facts';
-    textWrap.append(title, blurb, facts);
+    const age = document.createElement('div');
+    age.className = 'ai-void-constellation-age';
+    textWrap.append(title, blurb, facts, age);
 
     cap.append(prevBtn, textWrap, nextBtn);
-    cap._parts = { textWrap: textWrap, title: title, blurb: blurb, facts: facts };
+    cap._parts = { textWrap: textWrap, title: title, blurb: blurb, facts: facts, age: age };
     return cap;
   }
 
@@ -537,6 +563,7 @@
     p.title.textContent = zodiacName(z);
     p.blurb.textContent = zodiacCaption(z);
     p.facts.textContent = zodiacFacts(z);
+    p.age.textContent = zodiacAgeText(z);
   }
 
   function refreshConstellationCaption() {
@@ -688,6 +715,23 @@
     const base = g.Rb * (g.phiMax + (0.5 - pos) * g.step) - 0.7;
     sky.beltTicks.setAttribute('stroke-dashoffset', (-skyMod(base, g.beltP)).toFixed(2));
     sky.beltLayer.setAttribute('opacity', (0.35 + 0.65 * introF).toFixed(3));
+
+    // نقطهٔ اعتدال: از مرکزِ حوت (اندیسِ ۱۲) به سمتِ مرزِ دلو (۱۱٫۵) و آن‌سوتر می‌لغزد
+    if (sky.ageIdx == null) {
+      const pi = ZODIAC.findIndex((c) => c.id === 'pisces'), aq = ZODIAC.findIndex((c) => c.id === 'aquarius');
+      sky.ageIdx = (pi < 0 || aq < 0) ? -1 : pi + skyWrap(aq - pi, N) * 0.5 * ageProgress() * 2;
+    }
+    if (sky.ageIdx >= 0) {
+      const ad2 = skyWrap(sky.ageIdx - pos, N);
+      const phiA = ad2 * g.step;
+      const o2 = skyFade(Math.abs(ad2)) * introF;
+      if (o2 < 0.02) sky.ageDot.setAttribute('visibility', 'hidden');
+      else {
+        sky.ageDot.setAttribute('visibility', 'visible');
+        sky.ageDot.setAttribute('opacity', o2.toFixed(3));
+        sky.ageDot.setAttribute('transform', 'translate(' + (g.cx + g.Rb * Math.sin(phiA)).toFixed(2) + ' ' + (g.pivotY - g.Rb * Math.cos(phiA)).toFixed(2) + ')');
+      }
+    }
 
     // سه ستارهٔ لنگر: بینِ لنگرِ صورتِ فلکیِ پایین و بالا درون‌یابی می‌شوند
     const i0 = Math.floor(pos), frac = pos - i0;
@@ -922,6 +966,11 @@
     beltLayer.append(beltLine, beltTicks);
     svg.appendChild(beltLayer);
 
+    // نقطهٔ اعتدالِ بهاری: نقطهٔ طلاییِ کوچک رویِ کمان، بینِ حوت و دلو
+    const ageDot = skyEl('g', { visibility: 'hidden' }, 'zs-age');
+    ageDot.append(skyEl('circle', { r: '7' }, 'zs-age-ring'), skyEl('circle', { r: '2.6' }, 'zs-age-core'));
+    beltLayer.appendChild(ageDot);
+
     const consLayer = skyEl('g', null, 'zs-cons');
     const glyphLayer = skyEl('g', null, 'zs-glyphs');
     const cons = ZODIAC.map((z) => {
@@ -965,7 +1014,7 @@
 
     const thisSky = sky = {
       layer: layerEl, zone: zone, svg: svg, caption: caption,
-      beltLayer: beltLayer, beltLine: beltLine, beltTicks: beltTicks, beltGrad: beltGrad,
+      beltLayer: beltLayer, ageDot: ageDot, beltLine: beltLine, beltTicks: beltTicks, beltGrad: beltGrad,
       cons: cons, geo: null, layoutKey: '',
       pos: startIdx, settledIdx: startIdx, soundIdx: startIdx, shown: -1,
       tween: null, drag: null, raf: 0,
