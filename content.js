@@ -5499,19 +5499,30 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
   // امتیازدهی فازیِ سبک: مچ مستقیم بالاترین امتیاز را می‌گیرد؛ در غیر این صورت
   // اگر حروف کوئری به همان ترتیب (نه لزوماً پشت‌سرهم) در متن پیدا شوند امتیاز نسبی می‌گیرد.
   function fuzzyScore(text, query) {
-    text = (text || '').toLowerCase(); query = query.toLowerCase();
-    if (!query) return 0;
-    if (text.includes(query)) return 1000 - text.length;
-    let qi = 0, score = 0, lastIdx = -1;
-    for (let i = 0; i < text.length && qi < query.length; i++) {
-      if (text[i] === query[qi]) {
-        score += (lastIdx === i - 1) ? 5 : 1;
-        lastIdx = i; qi++;
-      }
+  text = (text || '').toLowerCase(); query = (query || '').toLowerCase();
+  if (!query) return 0;
+  const len = Math.min(text.length, 500);
+
+  if (text.startsWith(query)) return 3000 - len;          // شروع متن
+
+  let pos = text.indexOf(query);
+  if (pos > -1) {
+    while (pos > -1) {                                      // شروع یک کلمه
+      if (pos === 0 || /[\s\-_.\/:,()|]/.test(text[pos - 1])) return 2000 - len;
+      pos = text.indexOf(query, pos + 1);
     }
-    return qi === query.length ? score - text.length * 0.1 : -1;
+    return 1000 - len;                                      // جایی وسط متن
   }
 
+  let qi = 0, score = 0, lastIdx = -1;                      // تطبیق فازی ترتیبی
+  for (let i = 0; i < text.length && qi < query.length; i++) {
+    if (text[i] === query[qi]) {
+      score += (lastIdx === i - 1) ? 5 : 1;
+      lastIdx = i; qi++;
+    }
+  }
+  return qi === query.length ? Math.max(1, score - len * 0.1) : -1;
+}
   function renderSearchResults(rawQuery) {
     const list = uiEls.searchResults; list.innerHTML = '';
     const query = (rawQuery || '').trim().toLowerCase();
@@ -5532,8 +5543,8 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
         // ترتیبِ اولویتِ رتبه‌بندی: مچ در عنوان > مچ در تگ‌ها > مچ در توضیحات
         let score = -1;
         if (titleScore > -1) score = titleScore;
-        else if (tagScore > -1) score = tagScore - 1000;
-        else if (descScore > -1) score = descScore - 2000;
+        else if (tagScore > -1) score = tagScore - 10000;
+        else if (descScore > -1) score = descScore - 20000;
         const matchedTag = titleScore === -1 && tagScore > -1;
         const matchedDesc = titleScore === -1 && tagScore === -1 && descScore > -1;
         return { link, hub, idx, score, matchedTag, matchedDesc };
