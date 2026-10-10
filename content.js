@@ -1515,7 +1515,87 @@ updateSeasonalTracker();
 
   // chrome.storage.local (نه sync) عمداً انتخاب شده: sync سقفِ حجمِ خیلی کمی دارد (~۸KB
   // برای هر کلید) و رویدادهای روزانه/ساعتیِ کاربرِ فعال به‌سرعت از آن رد می‌شوند.
-  function saveTimeEvents() { try { if (chrome.runtime?.id) chrome.storage.local.set({ aiTreeTimeEvents: timeEventsData }); } catch (e) {} }
+  // ذخیرهٔ رویدادها دیگر «کلِ آرایهٔ داخل رمِ همین تب» را کورکورانه روی storage نمی‌نویسد.
+  // قبلاً تبِ قدیمی (که از رویدادهای تبِ جدید خبر نداشت) با هر ذخیره — حتی یک prune خودکار
+  // نیمه‌شب یا تایمرِ ۵ دقیقه‌ای — آرایهٔ کهنهٔ خودش را روی نسخهٔ تازه می‌نوشت. حالا
+  // ادغامِ سه‌طرفه (base = آخرین نسخه‌ای که این تب دیده، mine = حافظهٔ فعلی، fresh = storage
+  // در لحظهٔ ذخیره) انجام می‌شود: فقط «تغییراتِ واقعیِ همین تب» (افزودن/ویرایش/حذف) اعمال
+  // می‌شود و بقیهٔ رویدادهای storage دست‌نخورده می‌ماند. حذف هم بدونِ tombstone ممکن است،
+  // چون «حذف» یعنی: در base بود ولی در mine نیست.
+  let timeEventsBaseline = [];
+  let lastTimeEventsJson = '';
+  let timeEventsSaveInFlight = false;
+  let timeEventsResavePending = false;
+  function cloneJsonSafe(v) { try { return JSON.parse(JSON.stringify(v)); } catch (e) { return []; } }
+  function snapshotTimeEventsBaseline() { timeEventsBaseline = cloneJsonSafe(timeEventsData); }
+  function timeEventKey(e) { return (e && e.id) ? String(e.id) : ('__' + JSON.stringify(e)); }
+  function mergeTimeEvents(base, mine, fresh) {
+    const baseJson = new Map((base || []).map(e => [timeEventKey(e), JSON.stringify(e)]));
+    const mineKeys = new Set((mine || []).map(timeEventKey));
+    const out = new Map();
+    (fresh || []).forEach(e => { if (e) out.set(timeEventKey(e), e); });
+    baseJson.forEach((_, k) => { if (!mineKeys.has(k)) out.delete(k); });          // حذف‌شده توسط همین تب
+    (mine || []).forEach(e => {                                                        // جدید/ویرایش‌شده توسط همین تب
+      if (!e) return;
+      const k = timeEventKey(e);
+      if (baseJson.get(k) !== JSON.stringify(e)) out.set(k, e);
+    });
+    return Array.from(out.values());
+  }
+  function saveTimeEvents() {
+    try {
+      if (!chrome.runtime?.id) return;
+      if (timeEventsSaveInFlight) { timeEventsResavePending = true; return; }
+      timeEventsSaveInFlight = true;
+      const mine = cloneJsonSafe(timeEventsData);
+      const mineJson = JSON.stringify(mine);
+      chrome.storage.local.get(['aiTreeTimeEvents'], (res) => {
+        try {
+          let merged = mine;
+          try {
+            const fresh = Array.isArray(res && res.aiTreeTimeEvents) ? res.aiTreeTimeEvents : [];
+            merged = mergeTimeEvents(timeEventsBaseline, mine, fresh);
+          } catch (e) {}
+          const mergedJson = JSON.stringify(merged);
+          lastTimeEventsJson = mergedJson; // پژواکِ onChanged همین نوشتن نادیده گرفته شود
+          chrome.storage.local.set({ aiTreeTimeEvents: merged }, () => {
+            timeEventsSaveInFlight = false;
+            if (chrome.runtime.lastError) { console.warn('[AI Tree] saveTimeEvents:', chrome.runtime.lastError.message); return; }
+            if (JSON.stringify(timeEventsData) === mineJson) {
+              // در فاصلهٔ ذخیره تغییری نبوده: نسخهٔ ادغام‌شده (شاملِ رویدادهای تبِ‌های دیگر) را بپذیر.
+              timeEventsData = merged; snapshotTimeEventsBaseline();
+              if (mergedJson !== mineJson) {
+                try {
+                  if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI(); else checkUpcomingEventsReminder();
+                } catch (e) {}
+              }
+            } else {
+              timeEventsBaseline = mine; timeEventsResavePending = true; // تغییر تازه‌ای وسط راه آمد؛ یک دور دیگر
+            }
+            if (timeEventsResavePending) { timeEventsResavePending = false; saveTimeEvents(); }
+          });
+        } catch (e) { timeEventsSaveInFlight = false; }
+      });
+    } catch (e) { timeEventsSaveInFlight = false; }
+  }
+  // تغییرِ رویدادها از تبِ دیگر/Void Tab/popup (فقط وقتی واقعاً با حافظهٔ ما فرق دارد).
+  function applyExternalTimeEvents(nv) {
+    const incoming = Array.isArray(nv) ? nv : [];
+    const json = JSON.stringify(incoming);
+    if (json === lastTimeEventsJson || timeEventsSaveInFlight) return;
+    timeEventsData = incoming; lastTimeEventsJson = json; snapshotTimeEventsBaseline();
+    try {
+      if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI(); else checkUpcomingEventsReminder();
+      if (dayEventSheetOpenIso) renderMarkEventDailyList(dayEventSheetOpenIso);
+    } catch (e) {}
+  }
+  // مشابه بالا برای todos — بدونِ ادغام؛ فقط جلوگیری از اعمالِ پژواکِ نوشتنِ خودمان.
+  function applyExternalTodos(nv) {
+    const incoming = Array.isArray(nv) ? nv : [];
+    if (JSON.stringify(incoming) === JSON.stringify(todosData)) return;
+    todosData = incoming; migrateTodos(); pruneExpiredDailyTodos(); publishTodosToVoidTab();
+    if (todoPanel.classList.contains('active')) renderTodos();
+  }
 
 
   function pruneExpiredMarkedDays() {
@@ -10526,17 +10606,10 @@ let hubAutoCollapsedByPanel = false;
             if (prim) { userBirthYear = prim.year; userBirthMonth = prim.month; userBirthDay = prim.day; }
             if (clockPanel.classList.contains('active')) updateClockAge();
           }
-          if (changes.aiTreeTodos) { todosData = changes.aiTreeTodos.newValue || []; migrateTodos(); pruneExpiredDailyTodos(); if(todoPanel.classList.contains('active')) renderTodos(); }
+          if (changes.aiTreeTodos) applyExternalTodos(changes.aiTreeTodos.newValue);
           if (changes.aiTreeMarkedDays) { markedDays = changes.aiTreeMarkedDays.newValue || []; if (clockPanel.classList.contains('active')) renderMarkedDays(); }
-          // بدونِ این، یک تبِ دیگه که از قبل باز بوده (و نسخهٔ قدیمی‌تر رو توی
-          // حافظه نگه داشته) هیچ‌وقت از رویدادِ تازه‌ای که همین الان توی تبِ
-          // فعلی ثبت شد خبردار نمی‌شد — و هر saveTimeEvents() بعدیِ اون تبِ
-          // قدیمی (حتی برایِ یه ویرایشِ کاملاً نامرتبط)، همون نسخهٔ قدیمی رو
-          // رویِ نسخهٔ تازه می‌نوشت: دقیقاً همون «ثبت شد ولی توی تبِ دیگه نیست».
-          if (changes.aiTreeTimeEvents) {
-            timeEventsData = Array.isArray(changes.aiTreeTimeEvents.newValue) ? changes.aiTreeTimeEvents.newValue : [];
-            if (uiEls.dashPanel && uiEls.dashPanel.classList.contains('active')) refreshDashUI();
-          }
+          // aiTreeTimeEvents عمداً اینجا (sync) نیست: saveTimeEvents() روی chrome.storage.local می‌نویسد،
+          // پس شنوندهٔ آن در شاخهٔ area === 'local' پایین‌تر است (قبلاً اینجا بود و هرگز اجرا نمی‌شد).
           if (changes.lastDeletedLink) {
               if (changes.lastDeletedLink.newValue) {
                   if (!pendingUndoState.type) setUndoState('storage', null);
@@ -10551,6 +10624,10 @@ let hubAutoCollapsedByPanel = false;
           }
       }
       if (area === 'local') {
+        // هماهنگی زندهٔ بین تب‌ها: رویدادها فقط در local ذخیره می‌شوند؛ todos هم همیشه آینهٔ local
+        // دارد (sync بالای ~۸KB بی‌صدا شکست می‌خورد، پس شنوندهٔ sync به‌تنهایی کافی نیست).
+        if (changes.aiTreeTimeEvents) applyExternalTimeEvents(changes.aiTreeTimeEvents.newValue);
+        if (changes.aiTreeTodos) applyExternalTodos(changes.aiTreeTodos.newValue);
         if (changes.showPublicHolidays || changes.holidayRegionMode || changes.holidayCustomCountry) {
           if (changes.showPublicHolidays) showPublicHolidays = changes.showPublicHolidays.newValue !== undefined ? !!changes.showPublicHolidays.newValue : true;
           if (changes.holidayRegionMode) holidayRegionMode = changes.holidayRegionMode.newValue || 'auto';
@@ -10707,7 +10784,7 @@ let hubAutoCollapsedByPanel = false;
     }
     publishTodosToVoidTab();
     if(Array.isArray(syncData.aiTreeMarkedDays)) { markedDays = syncData.aiTreeMarkedDays; pruneExpiredMarkedDays(); }
-    if(Array.isArray(localData.aiTreeTimeEvents)) { timeEventsData = localData.aiTreeTimeEvents; pruneExpiredDashEvents(); }
+    if(Array.isArray(localData.aiTreeTimeEvents)) { timeEventsData = localData.aiTreeTimeEvents; lastTimeEventsJson = JSON.stringify(timeEventsData); snapshotTimeEventsBaseline(); pruneExpiredDashEvents(); }
     try {
       if (chrome.runtime?.id) {
         chrome.storage.local.get(['showPublicHolidays', 'holidayRegionMode', 'holidayCustomCountry'], (res) => {
@@ -11929,6 +12006,111 @@ let hubAutoCollapsedByPanel = false;
     setTimeout(() => { _videoScanPending = false; trackNewVideos(); }, 150);
   }
   new MutationObserver(() => { scheduleVideoScan(); scheduleCinemaCheck(); }).observe(document.documentElement, { childList: true, subtree: true });
+
+  // ---------------------------------------------------------------------
+  // «استراحتِ ویجت»:
+  //   • ۱ دقیقه بی‌استفادگی  → اگر کاربر ویجت را جابه‌جا کرده بود، به گوشهٔ پیش‌فرضِ خودش برمی‌گردد.
+  //   • ۵ دقیقه بی‌استفادگی → ویجت محو/غیرفعال می‌شود (display دست نمی‌خورد تا با منطقِ
+  //     fullscreen/دامنه/سینمایی تداخل نکند) و با نزدیک‌شدنِ ماوس به جایش دوباره ظاهر می‌شود.
+  // «استفاده» یعنی: تعامل با خودِ ویجت/پنل‌ها، یا بازبودنِ هر پنل/فرم/درگ. زمانِ تبِ پس‌زمینه
+  // حساب نمی‌شود. روی صفحه‌های خودِ افزونه (Void Tab) غیرفعال است.
+  // ---------------------------------------------------------------------
+  const IDLE_RESET_POSITION_MS = 60 * 1000;
+  const IDLE_HIDE_MS = 5 * 60 * 1000;
+  const IDLE_WAKE_MARGIN_PX = 90;
+  const IDLE_CLEARS_SAVED_POSITION = true; // true: orbitX/orbitY ذخیره‌شده هم پاک شود تا بعد از رفرش هم گوشه بماند
+  let lastWidgetActivityTs = Date.now();
+  let idleHidden = false;
+  let idleFadeAnim = null;
+  let idleWakeMoveHandler = null;
+
+  function isWidgetAtDefaultPosition() {
+    const st = root.style;
+    if (!st.left && !st.top && !st.bottom) return true;
+    return st.left === WIDGET1_DEFAULT_LEFT && st.top === 'auto' && st.bottom === WIDGET1_DEFAULT_BOTTOM;
+  }
+  function isWidgetBusy() {
+    try {
+      return !!(isDragging || quickAddActive || isHoveringWidget || isNotePinned || isOpen ||
+        inlineForm.classList.contains('active') || quickNoteForm.classList.contains('active') ||
+        calcPanel.classList.contains('active') || clockPanel.classList.contains('active') ||
+        todoPanel.classList.contains('active') || searchPanel.classList.contains('active') ||
+        starEditorPopup.classList.contains('active') ||
+        (uiEls.webSearchDrawer && !uiEls.webSearchDrawer.hasAttribute('hidden')));
+    } catch (e) { return true; } // در شک، «مشغول» حساب کن تا ویجتِ در حال استفاده هرگز پنهان نشود
+  }
+  function touchWidgetActivity() {
+    lastWidgetActivityTs = Date.now();
+    if (idleHidden) wakeFromIdle();
+  }
+  function idleResetPositionToCorner() {
+    if (cinemaModeActive || widgetHiddenByFullscreen || widgetHiddenByDomain || root.style.display === 'none') return;
+    if (isWidgetAtDefaultPosition()) return;
+    const apply = () => {
+      root.style.left = WIDGET1_DEFAULT_LEFT; root.style.top = 'auto'; root.style.bottom = WIDGET1_DEFAULT_BOTTOM;
+      try { if (IDLE_CLEARS_SAVED_POSITION && chrome.runtime?.id) chrome.storage.sync.remove(['orbitX', 'orbitY']); } catch (err) {}
+      try { adjustNotepadPosition(); adjustCalcPosition(); adjustClockPosition(); adjustTodoPosition(); adjustSearchPosition(); adjustDotsNavPosition(); adjustHubDotsPosition(); } catch (err) {}
+    };
+    try {
+      const out = root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-out', fill: 'forwards' });
+      out.onfinish = () => {
+        apply();
+        try { root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-in' }); } catch (err) {}
+        out.cancel();
+      };
+    } catch (err) { apply(); }
+  }
+  function enterIdleHidden() {
+    if (idleHidden) return;
+    idleHidden = true;
+    root.setAttribute('inert', '');
+    root.style.pointerEvents = 'none';
+    try {
+      idleFadeAnim = root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 500, easing: 'ease-out', fill: 'forwards' });
+      const a = idleFadeAnim;
+      a.onfinish = () => { if (idleHidden) root.style.opacity = '0'; a.cancel(); if (idleFadeAnim === a) idleFadeAnim = null; };
+    } catch (err) { root.style.opacity = '0'; }
+    let lastCheck = 0;
+    idleWakeMoveHandler = (e) => {
+      const now = Date.now(); if (now - lastCheck < 120) return; lastCheck = now;
+      const r = root.getBoundingClientRect(), m = IDLE_WAKE_MARGIN_PX;
+      if (e.clientX >= r.left - m && e.clientX <= r.right + m && e.clientY >= r.top - m && e.clientY <= r.bottom + m) touchWidgetActivity();
+    };
+    document.addEventListener('mousemove', idleWakeMoveHandler, { passive: true });
+  }
+  function wakeFromIdle() {
+    if (!idleHidden) return;
+    idleHidden = false;
+    lastWidgetActivityTs = Date.now();
+    if (idleWakeMoveHandler) { document.removeEventListener('mousemove', idleWakeMoveHandler); idleWakeMoveHandler = null; }
+    try { if (idleFadeAnim) { idleFadeAnim.cancel(); idleFadeAnim = null; } } catch (err) {}
+    root.removeAttribute('inert');
+    root.style.pointerEvents = '';
+    root.style.opacity = '';
+    try { root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, easing: 'ease-in' }); } catch (err) {}
+  }
+  if (location.protocol !== 'chrome-extension:') {
+    [root, quickNoteForm, calcPanel, clockPanel, todoPanel, searchPanel].forEach((el) => {
+      if (!el) return;
+      ['pointerdown', 'keydown', 'wheel', 'focusin'].forEach((ev) => el.addEventListener(ev, touchWidgetActivity, { passive: true, capture: true }));
+      el.addEventListener('mouseenter', touchWidgetActivity, { passive: true });
+    });
+    // پایانِ درگ هم «استفاده» است (مدتِ درگ از لحظهٔ mousedown حساب نشود).
+    hub.addEventListener('mousedown', () => document.addEventListener('mouseup', touchWidgetActivity, { once: true }), true);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) lastWidgetActivityTs = Date.now(); });
+    const idleTickId = setInterval(() => {
+      if (!chrome.runtime?.id) { clearInterval(idleTickId); return; } // افزونه ری‌لود شده؛ این تبِ یتیم دیگر کاری نکند
+      if (document.hidden || root.style.display === 'none') return;
+      if (isWidgetBusy()) { lastWidgetActivityTs = Date.now(); if (idleHidden) wakeFromIdle(); return; }
+      const idleFor = Date.now() - lastWidgetActivityTs;
+      if (idleFor >= IDLE_RESET_POSITION_MS && !idleHidden) idleResetPositionToCorner();
+      if (idleFor >= IDLE_HIDE_MS) enterIdleHidden();
+    }, 5000);
+    // بازراه‌اندازی/ریست از popup باید ویجتِ خوابیده را بیدار کند.
+    chrome.runtime.onMessage.addListener((message) => {
+      if (message && (message.action === 'relaunchLauncher' || message.action === 'softRelaunchAnly' || message.action === 'resetFloatingMenuPositionAnly')) touchWidgetActivity();
+    });
+  }
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === "resetFloatingMenuPositionAnly") {
