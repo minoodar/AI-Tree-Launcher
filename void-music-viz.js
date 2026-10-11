@@ -339,7 +339,7 @@ precision highp float;
 in vec2 aPolar;   // r, theta0
 in vec4 aMisc;    // seed, size, band (0..11 = pitch class, 12 = inner dust, 13 = outer dust), tier
 in float aU;      // position inside its band, 0..1
-uniform vec2 uView; uniform vec2 uCenter; uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath;
+uniform vec2 uView; uniform vec2 uCenter; uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath, uHoleR;
 uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uConf, uDim, uMid, uHigh, uStructure;
 uniform float uChroma[12]; uniform vec3 uPal[12];
 uniform sampler2D uAur; uniform float uAurMix;
@@ -358,11 +358,14 @@ void main(){
   vec2 p = vec2(r * cos(th), r * side * uSin);
   float c = cos(uTilt), s = sin(uTilt);
   p = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
+  int ib = int(clamp(band, 0.0, 11.0) + 0.5);
+  float e = ring ? uChroma[ib] : 0.0;
+  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side);
+  float pointRadius = clamp(sz * uPx, 1.0, 10.0) / max(uPx, 0.1) * 0.5;
+  if (length(p) <= uHoleR + pointRadius / max(uScale, 1.0)) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); gl_PointSize = 1.0; return; }
   vec2 px = uCenter + p * uScale;
   gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
 
-  int ib = int(clamp(band, 0.0, 11.0) + 0.5);
-  float e = ring ? uChroma[ib] : 0.0;
   float edge = smoothstep(0.0, 0.14, aU) * (1.0 - smoothstep(0.86, 1.0, aU));     // لبه‌های نرمِ هر نوار
   float shimmer = 0.88 + 0.12 * sin(uTime * (0.7 + 1.8 * seed) + seed * 47.0);
   float dop = 1.0 + 0.30 * (-cos(th));
@@ -390,7 +393,6 @@ void main(){
   float highGlint = uHigh * smoothstep(0.91, 0.995, seed) * (0.5 + 0.5 * sin(uTime * (1.8 + seed * 1.3) + seed * 47.0));
   lum = (lum * shimmer * (1.0 + (ring ? 0.10 * uMid * armWave : 0.0) + 0.32 * highGlint) + pulse * 0.9) * dop * vis * uDim;
   vCol = vec4(col * lum, 0.0);
-  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side);
   gl_PointSize = clamp(sz * uPx, 1.0, 10.0);
 }`;
 
@@ -568,7 +570,7 @@ void main(){
       G = {};
       G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uRich', 'uTint', 'uHole', 'uAsp', 'uBend', 'uDisk', 'uChroma', 'uPal', 'uBandIn', 'uBandOut', 'uNote', 'uHigh']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
-      G.dots = program(gl, VS_DOTS, FS_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
+      G.dots = program(gl, VS_DOTS, FS_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
       G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
     } catch (e) { teardownGL(); V.dead = true; return false; }
     try {
@@ -874,6 +876,7 @@ void main(){
         gl.uniform2f(u.uView, V.vw, V.vh); gl.uniform2f(u.uCenter, V.cx, V.cy);
         gl.uniform1f(u.uScale, sceneScale); gl.uniform1f(u.uSin, sinI); gl.uniform1f(u.uTilt, roll); gl.uniform1f(u.uPx, V.rs); gl.uniform1f(u.uHalf, half);
         gl.uniform1f(u.uDiskBreath, diskBreath);
+        gl.uniform1f(u.uHoleR, HOLE_R);
         gl.uniform1f(u.uPhase, V.phase + V.track * 3.1);
         gl.uniform1f(u.uReveal, Lg * 1.4 - 0.1);
         gl.uniform1f(u.uLum, V.L.lum); gl.uniform1f(u.uTime, nowS % 6000);
