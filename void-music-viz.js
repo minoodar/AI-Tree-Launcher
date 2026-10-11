@@ -404,26 +404,34 @@ precision highp float;
 uniform vec2 uCanvas; uniform float uPx; uniform vec2 uCenter; uniform float uScale, uHoleR, uLevel, uLum;
 uniform float uTime, uEnergy, uBass, uFlare, uAxis; uniform vec3 uTint;
 out vec4 o;
+float haloHash(float x){ return fract(sin(x * 127.1 + 311.7) * 43758.5453); }
+float haloNoise(float a){
+  float x = fract(a / 6.2831853) * 12.0, i = floor(x), f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(haloHash(mod(i, 12.0) + 1.0), haloHash(mod(i + 1.0, 12.0) + 1.0), f);
+}
 void main(){
   vec2 p = vec2(gl_FragCoord.x, uCanvas.y - gl_FragCoord.y) / uPx - uCenter;
   float R = uHoleR * uScale;
   float d = length(p) / R;
   float a = atan(p.y, p.x);
   float body = (1.0 - smoothstep(0.985, 1.0, d)) * (0.55 + 0.45 * smoothstep(0.2, 0.7, uLevel)) * step(0.02, uLevel);   // کرهٔ کامل و سیاه؛ در حالتِ کم‌نور هم هست، فقط کمی در شفق محو
+  float local = haloNoise(a);
   // نورِ لبه دیگر ثابت نیست: لکه‌های روشنِ هاله مثل مادهٔ در حالِ گردش دورِ سیاه‌چاله می‌چرخند،
   // درونِ هاله تندتر از بیرونش (برشِ کپلری ~ d^-1.5) و با موسیقی شتاب می‌گیرند
   float w = pow(max(d, 1.0), -1.5);
   float f1 = 0.5 + 0.5 * sin(2.0 * (a - uTime * 0.34 * w) + 1.3 * sin(a * 3.0 + uTime * 0.21));
   float f2 = 0.5 + 0.5 * sin(7.0 * (a + uTime * 0.16 * w) + 1.7 + 0.8 * sin(a * 4.0 - uTime * 0.17));
-  float flow = 0.86 + 0.12 * (2.0 * f1 - 1.0) + 0.08 * (2.0 * f2 - 1.0)
-             + 0.035 * sin(5.0 * a - uTime * 0.09 + sin(2.0 * a + uTime * 0.04));
+  float flow = 0.88 + 0.10 * (2.0 * local - 1.0) + 0.06 * (2.0 * f1 - 1.0) + 0.025 * (2.0 * f2 - 1.0);
   float dop = 1.0 + 0.38 * cos(a - uAxis);                             // سمتِ نزدیک‌شونده روشن‌تر؛ محور آهسته می‌چرخد
   float uneven = 0.55 * sin(2.0 * a + uTime * 0.08) + 0.30 * sin(5.0 * a - uTime * 0.053) + 0.15 * sin(9.0 * a + uTime * 0.027);
-  float edge = 1.05 + 0.020 * uneven;
+  float edge = 1.05 + 0.018 * uneven + 0.012 * (local - 0.5);
   float radial = d - edge;
-  float width = 0.115 + 0.025 * uEnergy + 0.010 * uBass;
-  float radialGlow = exp(-pow(abs(radial) / width, 1.55));
-  float brightnessVariation = clamp(0.94 + 0.055 * sin(3.0 * a + uTime * 0.06) + 0.035 * sin(8.0 * a - uTime * 0.035), 0.78, 1.0);
+  float width = (0.110 + 0.022 * uEnergy + 0.009 * uBass) * (0.84 + 0.32 * local);
+  float innerGlow = exp(-pow(max(-radial, 0.0) / (width * 0.92), 1.50));
+  float outerGlow = exp(-pow(max(radial, 0.0) / (width * (1.24 + 0.18 * local)), 1.38));
+  float radialGlow = radial < 0.0 ? innerGlow : outerGlow;
+  float brightnessVariation = clamp(0.78 + 0.20 * local + 0.035 * sin(3.0 * a + uTime * 0.06), 0.70, 1.0);
   float breathe = 0.97 + 0.03 * sin(uTime * 0.22 + 0.4 * uneven);
   float ring = radialGlow * brightnessVariation * (0.34 + 0.24 * uEnergy + 0.07 * uBass);
   float halo = exp(-max(d - 1.0, 0.0) * (4.8 - 2.0 * uEnergy)) * smoothstep(0.98, 1.035, d) * (0.36 + 0.44 * uEnergy) * (0.94 + 0.06 * brightnessVariation);
@@ -682,6 +690,7 @@ void main(){
     if (!V.ok && !initGL()) return;
     V.powder.key = '';
     V.entrance.pending = true;
+    VM.setPowder(true);
     if (!V.running && V.playing) startLoop();
   }
 
@@ -729,8 +738,8 @@ void main(){
       if (pst.on || !V.playing || !VM.isOpen() || document.hidden || reduced()) cancelTitleEntrance(false);
       else if (V.entrance.active) V.entrance.elapsed += dt;
     }
-    VM.setPowder((pst.on && V.powder.n > 0) || (V.entrance.active && V.entrance.elapsed < V.entrance.duration));
     if (V.entrance.active && V.entrance.elapsed >= V.entrance.duration + V.entrance.handoff) cancelTitleEntrance(false);
+    VM.setPowder((pst.on && V.powder.n > 0) || (V.entrance.active && V.entrance.elapsed < V.entrance.duration + V.entrance.handoff));
 
     const needSpec = V.L.galaxy > 0.02 || V.stage === 'galaxy' || pst.on;
     if (A.ok && V.playing && audio && !audio.paused) analyze(dt, needSpec);

@@ -246,7 +246,7 @@ body.void-music-leaving > *:not(#starfield):not(.space-vignette):not(#void-music
 #void-music-root.is-quiet .vm-meta { opacity: 0; }
 body.vm-quiet, body.vm-quiet * { cursor: none !important; }
 /* عنوان به ذرات تبدیل شده؛ نسخهٔ DOM محو می‌ماند */
-#void-music-root.is-powder .vm-meta { opacity: 0 !important; }
+#void-music-root.is-powder .vm-meta { opacity: 0 !important; visibility: hidden; }
 
 .vm-viz { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; display: block; }
 .vm-hud {
