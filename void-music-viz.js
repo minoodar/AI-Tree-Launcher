@@ -30,6 +30,10 @@
     minGalaxyS: 1.2, exitHoldS: 1.4, enterHoldS: 0.18, cooldownS: 0.6, holeRest: 0.20, holeBase: 0.30,
     powderMinS: 8.0      // پودرِ عنوان: حداقل ۸ ثانیه، و هرگز کمتر از ۱/۲۰ طولِ آهنگ
   };
+  const BREATH = {
+    periodS: 120, solitudePitch: 66, majestyPitch: 32,
+    solitudeZoom: 0.72, majestyZoom: 1.0
+  };
   const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -227,6 +231,7 @@
     cpuMs: 0, haloT: 0, flare: 0, tintC: [1.0, 0.86, 0.60], grace: 0, synE: 0.5,
     q: 1, slowN: 0, fastN: 0, rich: 0.8,
     rs: 1, W: 0, H: 0, vw: 0, vh: 0, cx: 0, cy: 0, scale: 1, incl: 24, N: 0,
+    breath: { mix: 0, pitch: 50, zoom: 1, ready: false },
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
     hud: null, hudOn: false, hudT: 0, frames: 0, fps: 0, fpsT: 0, tint: [1, 0.9, 0.7]
@@ -549,7 +554,8 @@ void main(){
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     // هندسهٔ صفحه: سیاه‌چاله کمی بالاتر از وسط؛ در پرتره دیسک «رو به‌تر» می‌شود
     const portrait = V.vw / V.vh < 0.8;
-    V.incl = portrait ? 62 : 50;     // نگاه از بالا به پایین؛ در step() آرام نوسان می‌کند
+    V.incl = portrait ? 62 : 50;     // زاویهٔ ارتفاعِ دوربین نسبت به صفحهٔ دیسک؛ در step() آرام نوسان می‌کند
+    if (!V.breath.ready) { V.breath.pitch = V.incl; V.breath.ready = true; }
     V.scale = portrait ? V.vw * 0.92 : Math.min(V.vw * 0.44, V.vh * 0.95);
     V.cx = V.vw / 2; V.cy = V.vh * (portrait ? 0.40 : 0.45);
     V.powder.key = '';    // پودر باید دوباره نمونه‌برداری شود
@@ -690,6 +696,16 @@ void main(){
     // دوربین: شیبِ دیسک و رولِ بسیار کند — حسِ شناور بودن در فضا (دوره‌ها ≈ ۱۲۰ و ۹۰ ثانیه)
     V.inclNow = V.incl + 6 * Math.sin(nowS * 0.052);
     V.rollNow = V.tilt + 0.05 * Math.sin(nowS * 0.07 + 1.3);
+    // حرکتِ دوربین مستقل از انرژی و ضربانِ صداست؛ reduced-motion آن را متوقف می‌کند.
+    const autoProgress = rm ? 0 : 0.5 - 0.5 * Math.cos(nowS * TAU / BREATH.periodS);
+    if (!Number.isFinite(V.breath.pitch)) V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50;
+    if (!Number.isFinite(V.breath.zoom)) V.breath.zoom = 1;
+    if (!Number.isFinite(V.breath.mix)) V.breath.mix = 0;
+    V.breath.pitch += (lerp(BREATH.solitudePitch, BREATH.majestyPitch, autoProgress) - V.breath.pitch) * expK(dt, 3.5);
+    V.breath.zoom += (lerp(BREATH.solitudeZoom, BREATH.majestyZoom, autoProgress) - V.breath.zoom) * expK(dt, 3.5);
+    const breathActive = V.playing && VM.isOpen() && !document.hidden && !rm;
+    if (rm) V.breath.mix = 0;
+    else V.breath.mix += ((breathActive ? 1 : 0) - V.breath.mix) * expK(dt, 1.8);
     V.tilt += (V.tiltT - V.tilt) * expK(dt, 2.5);
     V.spiralPh += (V.spiralPhT - V.spiralPh) * expK(dt, 2.5);
 
@@ -703,7 +719,14 @@ void main(){
   function draw(nowS) {
     const gl = V.gl;
     const La = V.L.aurora, Lg = V.L.galaxy;
-    const sinI = Math.sin((V.inclNow || V.incl) * Math.PI / 180), roll = V.rollNow || V.tilt;
+    const baseIncl = Number.isFinite(V.inclNow) ? V.inclNow : V.incl;
+    const mix = Number.isFinite(V.breath.mix) ? clamp(V.breath.mix, 0, 1) : 0;
+    const breathPitch = Number.isFinite(V.breath.pitch) ? clamp(V.breath.pitch, 28, 70) : baseIncl;
+    const breathZoom = Number.isFinite(V.breath.zoom) ? clamp(V.breath.zoom, 0.65, 1) : 1;
+    const cameraPitch = lerp(baseIncl, breathPitch, mix);
+    const sinI = Math.sin(cameraPitch * Math.PI / 180);
+    const sceneScale = V.scale * lerp(1, breathZoom, mix);
+    const roll = V.rollNow || V.tilt;
     gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND);
 
     if (La > 0.003) {
@@ -719,7 +742,7 @@ void main(){
       gl.uniform2f(G.aurora.u.uHole, V.cx / V.vw, 1 - V.cy / V.vh); gl.uniform1f(G.aurora.u.uAsp, V.vw / V.vh);
       gl.uniform1f(G.aurora.u.uBend, clamp(0.45 + 0.55 * Lg, 0, 1));
       // هویتِ مشترک: همان نوارهای نت، همان شیب/چرخش و رنگِ نت‌ها در شفق هم بازتاب می‌شود
-      gl.uniform4f(G.aurora.u.uDisk, V.scale / V.vh, sinI, roll, clamp(Lg, 0, 1) * 0.85);
+      gl.uniform4f(G.aurora.u.uDisk, sceneScale / V.vh, sinI, roll, clamp(Lg, 0, 1) * 0.85);
       gl.uniform1fv(G.aurora.u.uChroma, A.chroma); gl.uniform3fv(G.aurora.u.uPal, PAL);
       gl.uniform1fv(G.aurora.u.uBandIn, V.bandIn); gl.uniform1fv(G.aurora.u.uBandOut, V.bandOut);
       gl.uniform3f(G.aurora.u.uNote, V.noteC[0], V.noteC[1], V.noteC[2]);
@@ -743,7 +766,7 @@ void main(){
       const setDots = function (half) {
         gl.useProgram(G.dots.p);
         gl.uniform2f(u.uView, V.vw, V.vh); gl.uniform2f(u.uCenter, V.cx, V.cy);
-        gl.uniform1f(u.uScale, V.scale); gl.uniform1f(u.uSin, sinI); gl.uniform1f(u.uTilt, roll); gl.uniform1f(u.uPx, V.rs); gl.uniform1f(u.uHalf, half);
+        gl.uniform1f(u.uScale, sceneScale); gl.uniform1f(u.uSin, sinI); gl.uniform1f(u.uTilt, roll); gl.uniform1f(u.uPx, V.rs); gl.uniform1f(u.uHalf, half);
         gl.uniform1f(u.uPhase, V.phase + V.track * 3.1);
         gl.uniform1f(u.uReveal, Lg * 1.4 - 0.1);
         gl.uniform1f(u.uLum, V.L.lum); gl.uniform1f(u.uTime, nowS % 6000);
@@ -760,7 +783,7 @@ void main(){
       const h = G.hor.u;
       gl.useProgram(G.hor.p);
       gl.uniform2f(h.uCanvas, V.W, V.H); gl.uniform1f(h.uPx, V.rs); gl.uniform2f(h.uCenter, V.cx, V.cy);
-      gl.uniform1f(h.uScale, V.scale); gl.uniform1f(h.uHoleR, HOLE_R);
+      gl.uniform1f(h.uScale, sceneScale); gl.uniform1f(h.uHoleR, HOLE_R);
       gl.uniform1f(h.uLevel, Lg); gl.uniform1f(h.uLum, V.L.lum);
       gl.uniform1f(h.uTime, V.haloT); gl.uniform1f(h.uEnergy, V.energy || 0); gl.uniform1f(h.uFlare, V.flare);
       gl.uniform1f(h.uAxis, roll + V.haloT * 0.05); gl.uniform3f(h.uTint, V.tintC[0], V.tintC[1], V.tintC[2]);
