@@ -32,13 +32,14 @@
   };
   const BREATH = {
     periodS: 120, solitudePitch: 66, majestyPitch: 32,
-    solitudeZoom: 0.72, majestyZoom: 1.0
+    solitudeZoom: 0.86, majestyZoom: 1.0
   };
   const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const expK = (dt, tau) => 1 - Math.exp(-dt / tau);
+  const smoother5 = (t) => { t = clamp(t, 0, 1); return t * t * t * (t * (t * 6 - 15) + 10); };
   function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   const reduced = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
@@ -66,7 +67,8 @@
     raw: new Float32Array(12), band: new Float32Array(12), chroma: new Float32Array(12),
     bright: 0.2, db: -90, base: -60, warm: 4, snap: true, fluxBase: 1e-3, fluxR: 1, prevFluxR: 1, centroidR: 0.4, conf: 0, energy: 0,
     silent: true, lastOnset: -9, ok: false, pk: -30, fl: -50, en: 0, src: null,
-    tapped: true, bassAvg: 0, bassPrev: 0, bassBeat: false, lastBass: -9, tAcc: 0, kBass: 1
+    tapped: true, bassAvg: 0, bassPrev: 0, bassBeat: false, lastBass: -9, tAcc: 0, kBass: 1,
+    kLowEnd: 4, kMidEnd: 42, low: 0, mid: 0, high: 0
   };
 
   async function ensureGraph() {
@@ -99,6 +101,9 @@
       A.fE = new Float32Array(anE.frequencyBinCount); A.prevE = new Float32Array(anE.frequencyBinCount);
       A.fS = new Float32Array(anS.frequencyBinCount);
       A.kEHi = Math.min(A.fE.length - 1, Math.floor(9000 / (A.sr / anE.fftSize)));
+      const eBinHz = A.sr / anE.fftSize;
+      A.kLowEnd = clamp(Math.floor(180 / eBinHz), 1, A.kEHi);
+      A.kMidEnd = clamp(Math.floor(2000 / eBinHz), A.kLowEnd + 1, A.kEHi);
       A.kBass = Math.max(1, Math.floor(150 / (A.sr / anE.fftSize)));              // باندِ باس ۲۰–۱۵۰Hz (۳ bin در ۴۸kHz)
       // جدولِ bin → کلاسِ نت (وزنِ مثلثی: ۱ روی نیم‌پردهٔ دقیق، ۰ در وسطِ دو نیم‌پرده)
       const binHz = A.sr / anS.fftSize;
@@ -129,6 +134,12 @@
   function refreshTaps() { tapSet(tapsWanted()); }
   setInterval(function () { if (A.ok) refreshTaps(); }, 3000);
 
+  function spectralLevel(power, count, floorDb, ceilingDb) {
+    const db = 10 * Math.log10(power / Math.max(1, count) + 1e-12);
+    const x = clamp((db - floorDb) / (ceilingDb - floorDb), 0, 1);
+    return x * x * (3 - 2 * x);
+  }
+
   // یک بار در هر فریمِ رندر: انرژی/فلاکس (همیشه) + طیف/کروما (فقط وقتی کهکشان دیده می‌شود)
   function analyze(dt, needSpec) {
     const E = A.anE;
@@ -141,11 +152,17 @@
 
     E.getFloatFrequencyData(A.fE);
     let flux = 0, hi = 0, all = 0;
+    let lowPower = 0, midPower = 0, highPower = 0, lowCount = 0, midCount = 0, highCount = 0;
     const k2k = Math.floor(2000 / (A.sr / A.anE.fftSize));
-    for (let k = 2; k <= A.kEHi; k++) {
+    for (let k = 1; k <= A.kEHi; k++) {
       const m = Math.exp(A.fE[k] * 0.11512925), p = Math.exp(A.prevE[k] * 0.11512925);
-      if (m > p) flux += m - p;
-      all += m; if (k >= k2k) hi += m;
+      if (k >= 2) {
+        if (m > p) flux += m - p;
+        all += m; if (k >= k2k) hi += m;
+      }
+      if (k <= A.kLowEnd) { lowPower += m * m; lowCount++; }
+      else if (k <= A.kMidEnd) { midPower += m * m; midCount++; }
+      else { highPower += m * m; highCount++; }
     }
     A.bright += ((all > 0 ? hi / all : 0) - A.bright) * expK(dt, 0.5);
     A.prevE.set(A.fE);
@@ -177,6 +194,15 @@
     const abs = clamp((A.db + 42) / 24, 0, 1);                       // بلندیِ مطلق: ‑۴۲dBFS→۰ ، ‑۱۸dBFS→۱
     // صداهای ضعیف (abs کم) → شفق جلو؛ صداهای قوی → کهکشان. آهنگِ بلندِ یکنواخت هم همیشه به کهکشان می‌رسد
     A.energy = A.silent ? 0 : clamp(Math.max(A.en * (0.5 + 0.65 * abs), abs * 0.8) * CFG.sens, 0, 1);
+
+    // Three smoothed spectral layers share the existing analyser pass: bass → core,
+    // mids → disk density waves, highs → sparse stellar glints.
+    const lowTarget = A.silent ? 0 : spectralLevel(lowPower, lowCount, -72, -30);
+    const midTarget = A.silent ? 0 : spectralLevel(midPower, midCount, -68, -28);
+    const highTarget = A.silent ? 0 : spectralLevel(highPower, highCount, -78, -38);
+    A.low += (lowTarget - A.low) * expK(dt, lowTarget > A.low ? 0.18 : 0.72);
+    A.mid += (midTarget - A.mid) * expK(dt, midTarget > A.mid ? 0.20 : 0.78);
+    A.high += (highTarget - A.high) * expK(dt, highTarget > A.high ? 0.12 : 0.62);
 
     if (!needSpec) return;
     const S = A.fS; A.anS.getFloatFrequencyData(S);
@@ -226,12 +252,12 @@
     playing: false, stage: 'calm', stageT: 0, hiT: 0, loT: 0, calmT: 0, cool: 0, tPlay: 0,
     L: { aurora: 0, galaxy: 0, lum: 0.4 },
     phase: 0, pulse: { t0: -9, amp: 0 }, tick: 0, tickAcc: 0, time: 0,
-    tilt: 0, tiltT: 0, spiralPh: 0, spiralPhT: 0, seed3: [0.3, 0.6, 0.1], track: 0,
+    tilt: 0, tiltT: 0, spiralPh: 0, spiralPhT: 0, structure: 0, seed3: [0.3, 0.6, 0.1], track: 0,
     bandIn: new Float32Array(12), bandOut: new Float32Array(12), noteC: [0.6, 0.7, 1.0],
     cpuMs: 0, haloT: 0, flare: 0, tintC: [1.0, 0.86, 0.60], grace: 0, synE: 0.5,
     q: 1, slowN: 0, fastN: 0, rich: 0.8,
     rs: 1, W: 0, H: 0, vw: 0, vh: 0, cx: 0, cy: 0, scale: 1, incl: 24, N: 0,
-    breath: { mix: 0, pitch: 50, zoom: 1, ready: false },
+    breath: { mix: 0, pitch: 50, zoom: 1, disk: 0, ready: false },
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
     entrance: { pending: false, active: false, elapsed: 0, duration: 1.02, handoff: 0.28, generation: 0, id: null },
@@ -248,7 +274,7 @@ precision mediump float;
 uniform vec2 uRes; uniform float uTime; uniform float uLevel; uniform vec3 uSeed; uniform float uRich; uniform vec3 uTint;
 uniform vec2 uHole; uniform float uAsp, uBend;
 uniform vec4 uDisk;                       // x: شعاعِ واحدِ کهکشان در واحدِ ارتفاع، y: sin(شیب)، z: چرخش، w: شدتِ پژواکِ حلقه‌ها
-uniform float uChroma[12]; uniform vec3 uPal[12]; uniform float uBandIn[12], uBandOut[12]; uniform vec3 uNote;
+uniform float uChroma[12]; uniform vec3 uPal[12]; uniform float uBandIn[12], uBandOut[12]; uniform vec3 uNote; uniform float uHigh;
 out vec4 o;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -256,7 +282,7 @@ float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
 float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 3; i++){ s += a * vn(p); p = p * 2.02 + 7.1; a *= 0.5; } return s; }
 void main(){
   vec2 uv0 = gl_FragCoord.xy / uRes;
-  // انحنای فضا: پرده‌های شفق به سمتِ سیاه‌چاله کشیده و دورش پیچانده می‌شوند (جاذبه + کشیدگیِ چارچوب)
+  // Keep the existing lensing bend, but build the aurora in the galaxy's own disk coordinates.
   vec2 q = (uv0 - uHole) * vec2(uAsp, 1.0);
   float r = length(q);
   float pull = uBend * 0.016 / (r * r + 0.020);
@@ -264,46 +290,40 @@ void main(){
   float cs = cos(sw), sn = sin(sw);
   vec2 qd = q - (q / max(r, 0.001)) * pull;
   qd = vec2(cs * qd.x - sn * qd.y, sn * qd.x + cs * qd.y);
-  vec2 uv = uHole + qd / vec2(uAsp, 1.0);
-  float t = uTime * 0.05;
-  float x = uv.x * (1.6 + uSeed.x * 0.9) + uSeed.y * 13.0;
-  float warp = fbm(vec2(x * 1.1, t * 0.7 + uSeed.z * 9.0)) * 1.6 + 0.18 * sin(x * 2.3 + t * 2.0);
-  float r1 = pow(abs(sin((x + warp * 1.4) * 4.712)), 6.0);
-  float r2 = pow(abs(sin((x * 1.9 - warp * 0.9 + 3.0) * 3.1416)), 10.0);
-  float ray = r1 * 0.8 + r2 * 0.5;
-  float yc = 0.60 + 0.07 * sin(x * 1.7 + t * 1.3) + 0.05 * (warp - 0.8);
-  float below = smoothstep(yc - 0.22, yc, uv.y);
-  float above = exp(-max(uv.y - yc, 0.0) * 3.4);
-  float n2 = fbm(vec2(x * 2.0 - t * 1.2, uv.y * 2.4 + t));
-  float I = below * above * (0.35 + 0.65 * ray) * (0.55 + 0.9 * n2);
-  I *= smoothstep(0.24, 0.52, uv.y) * (1.0 - smoothstep(0.92, 1.0, uv.y));
-  vec3 lo = vec3(0.02, 0.16, 0.50), mid = vec3(0.10, 0.52, 0.92), hi = vec3(0.46, 0.34, 0.98);
-  vec3 green = vec3(0.10, 0.95, 0.52), teal = vec3(0.05, 0.80, 0.80), magenta = vec3(0.95, 0.25, 0.65);
-  float hy = clamp((uv.y - yc) * 2.4, 0.0, 1.0);
-  vec3 col = mix(mix(mid, lo, hy), hi, smoothstep(0.55, 1.0, hy) * 0.55);
-  float drift = 0.5 + 0.5 * sin(x * 1.3 + t * 3.0 + uSeed.x * 6.0);
-  vec3 warm = mix(green, teal, drift);
-  col = mix(col, warm, uRich * 0.80 * (1.0 - smoothstep(0.0, 0.55, hy)) * (0.45 + 0.55 * ray));
-  col = mix(col, magenta, uRich * 0.50 * smoothstep(0.35, 0.95, hy) * (0.3 + 0.7 * n2));
-  col = mix(col, col * 0.55 + uTint * 0.75, 0.22 * uRich);
-  col = mix(col, col * 0.50 + uNote * 0.85, 0.40 * uDisk.w);          // رنگِ نت‌های در حالِ پخش، شفق را هم رنگ می‌کند
-  col += vec3(0.0, 0.10, 0.10) * ray * below;
-  // سایهٔ سیاه‌چاله + حلقهٔ اینشتین (نورِ شفقِ خم‌شده دورِ لبه)
+  // The dark center and its softly irregular Einstein glow remain clear.
   float shadow = smoothstep(0.05, 0.19, r);
-  float ein = exp(-pow((r - 0.20) / 0.030, 2.0)) * uBend * (0.30 + 0.70 * ray) * 0.55;
-  vec3 outc = col * I * shadow * uLevel * 1.75 + mix(vec3(0.35, 0.65, 1.0), uTint, 0.35) * ein * uLevel;
-  // پژواکِ حلقه‌های نت: همان نوارهای رنگیِ کهکشان (با همان شیب و چرخش) به‌صورتِ کمانِ نرم داخلِ شفق می‌درخشند
+  float t = uTime * 0.012;
+  float ein = exp(-pow((r - 0.20) / 0.030, 2.0)) * uBend * 0.46;
+  vec3 outc = mix(vec3(0.35, 0.65, 1.0), uTint, 0.22) * ein * uLevel;
+  // Sparse short filaments follow selected existing disk bands instead of filling the sky with curtains.
   if (uDisk.w > 0.001) {
     float ct = cos(uDisk.z), st = sin(uDisk.z);
     vec2 qr = vec2(ct * q.x + st * q.y, -st * q.x + ct * q.y);
-    float rr = length(vec2(qr.x, qr.y / uDisk.y)) / uDisk.x;
-    vec3 echo = vec3(0.0);
+    float inclination = max(uDisk.y, 0.25);
+    float ringAngle = atan(qr.y / inclination, qr.x);
+    float radial = length(vec2(qr.x, qr.y / inclination)) / max(uDisk.x, 0.001);
+    float noise = fbm(vec2(ringAngle * 1.65 + uSeed.x * 11.0, radial * 6.0 - t * 0.20 + uSeed.y * 7.0));
+    vec3 filaments = vec3(0.0);
     for (int i = 0; i < 12; i++) {
       float mid = 0.5 * (uBandIn[i] + uBandOut[i]), hw = 0.5 * (uBandOut[i] - uBandIn[i]);
-      float k = exp(-pow((rr - mid) / (hw * 1.5 + 0.015), 2.0));
-      echo += uPal[i] * k * (0.10 + 0.90 * uChroma[i]);
+      float seed = h21(vec2(float(i) * 17.13 + uSeed.x * 31.0, uSeed.y * 27.0 + 5.0));
+      if (seed < 0.70) continue;
+      float center = h21(vec2(float(i) * 9.71 + uSeed.z * 23.0, uSeed.x * 41.0 + 2.0)) * 6.28318;
+      float arcLength = 0.20 + 0.34 * h21(vec2(float(i) * 4.17 + uSeed.y * 19.0, uSeed.z * 37.0 + 8.0));
+      float arcCenter = center + (radial - mid) * 1.8 + 0.035 * sin(radial * 13.0 + uSeed.z * 6.28318);
+      float angleDistance = abs(atan(sin(ringAngle - arcCenter), cos(ringAngle - arcCenter)));
+      float arc = 1.0 - smoothstep(arcLength * 0.55, arcLength, angleDistance);
+      float radialWobble = 0.006 * (noise - 0.5) + 0.003 * sin(ringAngle * 3.0 + uSeed.x * 6.28318);
+      float band = exp(-pow((radial - mid - radialWobble) / (hw * 1.5 + 0.010), 2.0));
+      float texture = 0.62 + 0.38 * noise;
+      float knot = exp(-pow(angleDistance / max(arcLength * 0.20, 0.035), 2.0));
+      vec3 cool = mix(vec3(0.10, 0.66, 0.96), vec3(0.40, 0.36, 0.88), smoothstep(0.67, 0.94, noise + seed * 0.10));
+      float chroma = 0.72 + 0.28 * clamp(uChroma[i], 0.0, 1.0);
+      float slowBreath = 0.90 + 0.10 * sin(t * 0.35 + seed * 6.28318);
+      float highAccent = 1.0 + 0.12 * clamp(uHigh, 0.0, 1.0) * knot;
+      filaments += cool * band * arc * texture * chroma * slowBreath * highAccent * (0.68 + 0.32 * knot);
     }
-    outc += echo * (0.10 + 0.55 * I) * uDisk.w * uLevel * shadow;
+    outc += filaments * uDisk.w * uLevel * shadow * 0.82;
   }
   o = vec4(pow(max(outc, 0.0), vec3(0.92)), 1.0);
 }`;
@@ -319,15 +339,19 @@ precision highp float;
 in vec2 aPolar;   // r, theta0
 in vec4 aMisc;    // seed, size, band (0..11 = pitch class, 12 = inner dust, 13 = outer dust), tier
 in float aU;      // position inside its band, 0..1
-uniform vec2 uView; uniform vec2 uCenter; uniform float uScale, uSin, uTilt, uPx, uHalf;
-uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uConf, uDim;
+uniform vec2 uView; uniform vec2 uCenter; uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath;
+uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uConf, uDim, uMid, uHigh, uStructure;
 uniform float uChroma[12]; uniform vec3 uPal[12];
 uniform sampler2D uAur; uniform float uAurMix;
 out vec4 vCol;
 void main(){
-  float r = aPolar.x, seed = aMisc.x, band = aMisc.z;
-  float omega = pow(r + 0.05, -1.5);
-  float th = aPolar.y + uPhase * omega;
+  float seed = aMisc.x, band = aMisc.z;
+  bool ring = band < 11.5;
+  float baseR = aPolar.x;
+  float r = baseR * (ring ? 1.0 + uDiskBreath * (0.78 + 0.22 * aU) : 1.0);
+  float omega = pow(baseR + 0.05, -1.5);
+  float armWave = sin(aU * 6.28318 * 2.0 - uTime * 0.035 + uStructure * 2.0 + seed * 0.9);
+  float th = aPolar.y + uPhase * omega + (ring ? armWave * (0.026 * uMid + 0.018 * uStructure) : 0.0);
   float side = sin(th);
   // نیمهٔ دورِ حلقه‌ها پشتِ کره، نیمهٔ نزدیک جلوی آن رسم می‌شود (دو پاس)
   if ((uHalf < 0.5) != (side < 0.0)) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); gl_PointSize = 1.0; return; }
@@ -337,7 +361,6 @@ void main(){
   vec2 px = uCenter + p * uScale;
   gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
 
-  bool ring = band < 11.5;
   int ib = int(clamp(band, 0.0, 11.0) + 0.5);
   float e = ring ? uChroma[ib] : 0.0;
   float edge = smoothstep(0.0, 0.14, aU) * (1.0 - smoothstep(0.86, 1.0, aU));     // لبه‌های نرمِ هر نوار
@@ -364,7 +387,8 @@ void main(){
     col = mix(col, normalize(ac + 0.02) * 0.95, clamp(al * 2.0, 0.0, 0.32) * uAurMix);
     lum *= 1.0 + 1.5 * al * uAurMix;
   }
-  lum = (lum * shimmer + pulse * 0.9) * dop * vis * uDim;
+  float highGlint = uHigh * smoothstep(0.91, 0.995, seed) * (0.5 + 0.5 * sin(uTime * (1.8 + seed * 1.3) + seed * 47.0));
+  lum = (lum * shimmer * (1.0 + (ring ? 0.10 * uMid * armWave : 0.0) + 0.32 * highGlint) + pulse * 0.9) * dop * vis * uDim;
   vCol = vec4(col * lum, 0.0);
   float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side);
   gl_PointSize = clamp(sz * uPx, 1.0, 10.0);
@@ -378,7 +402,7 @@ void main(){ vec2 d = gl_PointCoord - 0.5; float q = dot(d, d) * 4.0; float a = 
   const FS_HORIZON = `#version 300 es
 precision highp float;
 uniform vec2 uCanvas; uniform float uPx; uniform vec2 uCenter; uniform float uScale, uHoleR, uLevel, uLum;
-uniform float uTime, uEnergy, uFlare, uAxis; uniform vec3 uTint;
+uniform float uTime, uEnergy, uBass, uFlare, uAxis; uniform vec3 uTint;
 out vec4 o;
 void main(){
   vec2 p = vec2(gl_FragCoord.x, uCanvas.y - gl_FragCoord.y) / uPx - uCenter;
@@ -389,14 +413,21 @@ void main(){
   // نورِ لبه دیگر ثابت نیست: لکه‌های روشنِ هاله مثل مادهٔ در حالِ گردش دورِ سیاه‌چاله می‌چرخند،
   // درونِ هاله تندتر از بیرونش (برشِ کپلری ~ d^-1.5) و با موسیقی شتاب می‌گیرند
   float w = pow(max(d, 1.0), -1.5);
-  float f1 = 0.5 + 0.5 * sin(3.0 * (a - uTime * 0.34 * w) + 1.3 * sin(a * 2.0 + uTime * 0.21));
-  float f2 = 0.5 + 0.5 * sin(5.0 * (a + uTime * 0.23 * w) + 1.7 + 0.8 * sin(a * 3.0 - uTime * 0.17));
-  float flow = 0.50 + 0.52 * f1 + 0.30 * f2;
-  float dop = 1.0 + 0.50 * cos(a - uAxis);                             // سمتِ نزدیک‌شونده روشن‌تر؛ محور آهسته می‌چرخد
-  float breathe = 0.86 + 0.14 * sin(uTime * 0.55);
-  float ring = exp(-pow((d - 1.05) / (0.10 + 0.03 * uEnergy), 2.0)) * (0.34 + 0.22 * uEnergy);
-  float halo = exp(-(d - 1.0) * (5.0 - 2.2 * uEnergy)) * step(1.0, d) * (0.36 + 0.40 * uEnergy);
-  float flare = uFlare * exp(-pow((d - 1.10) / 0.22, 2.0)) * 0.8;       // جرقهٔ کوتاه روی ضربه‌ها
+  float f1 = 0.5 + 0.5 * sin(2.0 * (a - uTime * 0.34 * w) + 1.3 * sin(a * 3.0 + uTime * 0.21));
+  float f2 = 0.5 + 0.5 * sin(7.0 * (a + uTime * 0.16 * w) + 1.7 + 0.8 * sin(a * 4.0 - uTime * 0.17));
+  float flow = 0.86 + 0.12 * (2.0 * f1 - 1.0) + 0.08 * (2.0 * f2 - 1.0)
+             + 0.035 * sin(5.0 * a - uTime * 0.09 + sin(2.0 * a + uTime * 0.04));
+  float dop = 1.0 + 0.38 * cos(a - uAxis);                             // سمتِ نزدیک‌شونده روشن‌تر؛ محور آهسته می‌چرخد
+  float uneven = 0.55 * sin(2.0 * a + uTime * 0.08) + 0.30 * sin(5.0 * a - uTime * 0.053) + 0.15 * sin(9.0 * a + uTime * 0.027);
+  float edge = 1.05 + 0.020 * uneven;
+  float radial = d - edge;
+  float width = 0.115 + 0.025 * uEnergy + 0.010 * uBass;
+  float radialGlow = exp(-pow(abs(radial) / width, 1.55));
+  float brightnessVariation = clamp(0.94 + 0.055 * sin(3.0 * a + uTime * 0.06) + 0.035 * sin(8.0 * a - uTime * 0.035), 0.78, 1.0);
+  float breathe = 0.97 + 0.03 * sin(uTime * 0.22 + 0.4 * uneven);
+  float ring = radialGlow * brightnessVariation * (0.34 + 0.24 * uEnergy + 0.07 * uBass);
+  float halo = exp(-max(d - 1.0, 0.0) * (4.8 - 2.0 * uEnergy)) * smoothstep(0.98, 1.035, d) * (0.36 + 0.44 * uEnergy) * (0.94 + 0.06 * brightnessVariation);
+  float flare = uFlare * exp(-pow(radial / 0.25, 2.0)) * 0.68;          // ضربهٔ کوتاه، هم‌راستا با لبهٔ نامنظمِ هاله
   vec3 cool = vec3(0.55, 0.78, 1.0);
   vec3 rim = mix(uTint, cool, smoothstep(1.0, 1.35, d) * 0.7);
   float I = (ring + halo) * flow * dop * breathe + flare;
@@ -527,10 +558,10 @@ void main(){
       });
 
       G = {};
-      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uRich', 'uTint', 'uHole', 'uAsp', 'uBend', 'uDisk', 'uChroma', 'uPal', 'uBandIn', 'uBandOut', 'uNote']);
+      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uRich', 'uTint', 'uHole', 'uAsp', 'uBend', 'uDisk', 'uChroma', 'uPal', 'uBandIn', 'uBandOut', 'uNote', 'uHigh']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
-      G.dots = program(gl, VS_DOTS, FS_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
-      G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uFlare', 'uAxis', 'uTint']);
+      G.dots = program(gl, VS_DOTS, FS_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
+      G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
     } catch (e) { teardownGL(); V.dead = true; return false; }
     try {
       const gl = V.gl;
@@ -709,6 +740,11 @@ void main(){
     let energy = A.ok ? A.energy : clamp(0.52 + 0.30 * Math.sin(nowS * 0.33) + 0.12 * Math.sin(nowS * 1.1), 0, 1);
     energy = V.energy = (V.energy || 0) + (energy - (V.energy || 0)) * expK(dt, 0.25);
 
+    if (!V.playing) {
+      const k = Math.exp(-dt / 0.55);
+      A.low *= k; A.mid *= k; A.high *= k;
+    }
+
     const soft = 1 - energy;
     const aT = !V.playing ? 0 : (V.stage === 'galaxy' ? 0.30 + 0.24 * soft : 0.46 + 0.50 * Math.pow(soft, 1.2) + 0.06 * energy) * (rm ? 0.6 : 1);
     V.rich += ((V.stage === 'galaxy' ? 0.30 : 0.45 + 0.55 * soft) - V.rich) * expK(dt, 1.2);
@@ -720,6 +756,11 @@ void main(){
 
     // دورانِ دیفرانسیلیِ بسیار نرم (فازِ مشترک؛ سرعتِ هر نقطه از ω(r) در شیدر)
     V.phase += dt * 0.0065 * (1 + 1.0 * energy);
+    // Multi-scale, deterministic drift changes disk density over long sessions without rebuilding geometry.
+    const structureTarget = V.playing && !rm
+      ? 0.56 * Math.sin(nowS * 0.0217 + V.seed3[0] * TAU) + 0.29 * Math.sin(nowS * 0.0081 + V.seed3[1] * TAU) + 0.15 * Math.sin(nowS * 0.0037 + V.seed3[2] * TAU)
+      : 0;
+    V.structure += (structureTarget - V.structure) * expK(dt, V.playing && !rm ? 7.0 : 1.8);
     // هالهٔ سیاه‌چاله: زمانِ جریان (با انرژی تندتر)، جرقهٔ ضربه و رنگِ ملایمِ نتِ غالب (حداکثر ۵۵٪ مخلوط)
     V.haloT += dt * (0.55 + 1.5 * energy);
     {
@@ -743,13 +784,20 @@ void main(){
     V.inclNow = V.incl + 6 * Math.sin(nowS * 0.052);
     V.rollNow = V.tilt + 0.05 * Math.sin(nowS * 0.07 + 1.3);
     // حرکتِ دوربین مستقل از انرژی و ضربانِ صداست؛ reduced-motion آن را متوقف می‌کند.
-    const autoProgress = rm ? 0 : 0.5 - 0.5 * Math.cos(nowS * TAU / BREATH.periodS);
+    const breathPhase = (nowS % BREATH.periodS) / BREATH.periodS;
+    const inhalePart = 0.43;
+    const autoProgress = rm ? 0 : (breathPhase < inhalePart
+      ? smoother5(breathPhase / inhalePart)
+      : 1 - smoother5((breathPhase - inhalePart) / (1 - inhalePart)));
     if (!Number.isFinite(V.breath.pitch)) V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50;
     if (!Number.isFinite(V.breath.zoom)) V.breath.zoom = 1;
     if (!Number.isFinite(V.breath.mix)) V.breath.mix = 0;
+    if (!Number.isFinite(V.breath.disk)) V.breath.disk = 0;
     V.breath.pitch += (lerp(BREATH.solitudePitch, BREATH.majestyPitch, autoProgress) - V.breath.pitch) * expK(dt, 3.5);
     V.breath.zoom += (lerp(BREATH.solitudeZoom, BREATH.majestyZoom, autoProgress) - V.breath.zoom) * expK(dt, 3.5);
     const breathActive = V.playing && VM.isOpen() && !document.hidden && !rm;
+    const diskBreathTarget = breathActive ? autoProgress * (0.07 + 0.03 * clamp(V.energy || 0, 0, 1)) : 0;
+    V.breath.disk += (diskBreathTarget - V.breath.disk) * expK(dt, diskBreathTarget > V.breath.disk ? 1.6 : 2.2);
     if (rm) V.breath.mix = 0;
     else V.breath.mix += ((breathActive ? 1 : 0) - V.breath.mix) * expK(dt, 1.8);
     V.tilt += (V.tiltT - V.tilt) * expK(dt, 2.5);
@@ -764,11 +812,13 @@ void main(){
   /* ---------- رسم ---------- */
   function draw(nowS) {
     const gl = V.gl;
+    const rm = reduced();
     const La = V.L.aurora, Lg = V.L.galaxy;
     const baseIncl = Number.isFinite(V.inclNow) ? V.inclNow : V.incl;
     const mix = Number.isFinite(V.breath.mix) ? clamp(V.breath.mix, 0, 1) : 0;
     const breathPitch = Number.isFinite(V.breath.pitch) ? clamp(V.breath.pitch, 28, 70) : baseIncl;
-    const breathZoom = Number.isFinite(V.breath.zoom) ? clamp(V.breath.zoom, 0.65, 1) : 1;
+    const breathZoom = Number.isFinite(V.breath.zoom) ? clamp(V.breath.zoom, 0.84, 1) : 1;
+    const diskBreath = !rm && Number.isFinite(V.breath.disk) ? clamp(V.breath.disk, 0, 0.10) : 0;
     const cameraPitch = lerp(baseIncl, breathPitch, mix);
     const sinI = Math.sin(cameraPitch * Math.PI / 180);
     const sceneScale = V.scale * lerp(1, breathZoom, mix);
@@ -779,8 +829,8 @@ void main(){
       gl.bindFramebuffer(gl.FRAMEBUFFER, G.fbo); gl.viewport(0, 0, G.aw, G.ah);
       gl.disable(gl.BLEND);
       gl.useProgram(G.aurora.p);
-      gl.uniform2f(G.aurora.u.uRes, G.aw, G.ah); gl.uniform1f(G.aurora.u.uTime, nowS + V.track * 17.0);
-      gl.uniform1f(G.aurora.u.uLevel, La * (0.9 + 0.1 * Math.sin(nowS * 0.7)));
+      gl.uniform2f(G.aurora.u.uRes, G.aw, G.ah); gl.uniform1f(G.aurora.u.uTime, rm ? 0 : nowS + V.track * 17.0);
+      gl.uniform1f(G.aurora.u.uLevel, La);
       gl.uniform3f(G.aurora.u.uSeed, V.seed3[0], V.seed3[1], V.seed3[2]);
       gl.uniform1f(G.aurora.u.uRich, V.rich);
       let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
@@ -788,10 +838,11 @@ void main(){
       gl.uniform2f(G.aurora.u.uHole, V.cx / V.vw, 1 - V.cy / V.vh); gl.uniform1f(G.aurora.u.uAsp, V.vw / V.vh);
       gl.uniform1f(G.aurora.u.uBend, clamp(0.45 + 0.55 * Lg, 0, 1));
       // هویتِ مشترک: همان نوارهای نت، همان شیب/چرخش و رنگِ نت‌ها در شفق هم بازتاب می‌شود
-      gl.uniform4f(G.aurora.u.uDisk, sceneScale / V.vh, sinI, roll, clamp(Lg, 0, 1) * 0.85);
+      gl.uniform4f(G.aurora.u.uDisk, sceneScale * (1 + diskBreath) / V.vh, sinI, roll, clamp(Lg, 0, 1) * 0.85);
       gl.uniform1fv(G.aurora.u.uChroma, A.chroma); gl.uniform3fv(G.aurora.u.uPal, PAL);
       gl.uniform1fv(G.aurora.u.uBandIn, V.bandIn); gl.uniform1fv(G.aurora.u.uBandOut, V.bandOut);
       gl.uniform3f(G.aurora.u.uNote, V.noteC[0], V.noteC[1], V.noteC[2]);
+      gl.uniform1f(G.aurora.u.uHigh, rm ? 0 : A.high);
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.enable(gl.BLEND);
     }
@@ -813,12 +864,14 @@ void main(){
         gl.useProgram(G.dots.p);
         gl.uniform2f(u.uView, V.vw, V.vh); gl.uniform2f(u.uCenter, V.cx, V.cy);
         gl.uniform1f(u.uScale, sceneScale); gl.uniform1f(u.uSin, sinI); gl.uniform1f(u.uTilt, roll); gl.uniform1f(u.uPx, V.rs); gl.uniform1f(u.uHalf, half);
+        gl.uniform1f(u.uDiskBreath, diskBreath);
         gl.uniform1f(u.uPhase, V.phase + V.track * 3.1);
         gl.uniform1f(u.uReveal, Lg * 1.4 - 0.1);
         gl.uniform1f(u.uLum, V.L.lum); gl.uniform1f(u.uTime, nowS % 6000);
         gl.uniform1f(u.uPulseR, 0.12 + 0.95 * pp); gl.uniform1f(u.uPulseA, pp < 1 ? V.pulse.amp * Math.pow(1 - pp, 1.5) : 0);
         gl.uniform1f(u.uConf, A.ok ? A.conf : 0);
         gl.uniform1f(u.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1));
+        gl.uniform1f(u.uMid, rm ? 0 : A.mid); gl.uniform1f(u.uHigh, rm ? 0 : A.high); gl.uniform1f(u.uStructure, rm ? 0 : V.structure);
         gl.uniform1fv(u.uChroma, A.chroma); gl.uniform3fv(u.uPal, PAL);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex); gl.uniform1i(u.uAur, 0);
         gl.uniform1f(u.uAurMix, La > 0.003 ? clamp(La * 1.5, 0, 1) : 0);
@@ -831,7 +884,7 @@ void main(){
       gl.uniform2f(h.uCanvas, V.W, V.H); gl.uniform1f(h.uPx, V.rs); gl.uniform2f(h.uCenter, V.cx, V.cy);
       gl.uniform1f(h.uScale, sceneScale); gl.uniform1f(h.uHoleR, HOLE_R);
       gl.uniform1f(h.uLevel, Lg); gl.uniform1f(h.uLum, V.L.lum);
-      gl.uniform1f(h.uTime, V.haloT); gl.uniform1f(h.uEnergy, V.energy || 0); gl.uniform1f(h.uFlare, V.flare);
+      gl.uniform1f(h.uTime, V.haloT); gl.uniform1f(h.uEnergy, V.energy || 0); gl.uniform1f(h.uBass, rm ? 0 : A.low); gl.uniform1f(h.uFlare, V.flare);
       gl.uniform1f(h.uAxis, roll + V.haloT * 0.05); gl.uniform3f(h.uTint, V.tintC[0], V.tintC[1], V.tintC[2]);
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);     // کرهٔ کامل
       gl.blendFunc(gl.ONE, gl.ONE);
@@ -924,6 +977,7 @@ void main(){
       'stage ' + V.stage + '  t ' + V.stageT.toFixed(1) + 's   fps ' + V.fps.toFixed(0) + '   dots ' + Math.floor(V.N * V.q) + '/' + V.N + '\n' +
       'db ' + A.db.toFixed(1) + '  pk/fl ' + A.pk.toFixed(0) + '/' + A.fl.toFixed(0) + '  en ' + A.en.toFixed(2) + '  E ' + A.energy.toFixed(2) + '  flux x' + A.fluxR.toFixed(2) + '  energy ' + (V.energy || 0).toFixed(2) + '\n' +
       'conf ' + A.conf.toFixed(2) + '  top ' + NOTE[top] + ' ' + A.chroma[top].toFixed(2) + '  centroid ' + A.centroidR.toFixed(2) + '  bright ' + A.bright.toFixed(2) + '\n' +
+      'bands low/mid/high ' + A.low.toFixed(2) + '/' + A.mid.toFixed(2) + '/' + A.high.toFixed(2) + '  structure ' + V.structure.toFixed(2) + '\n' +
       'aurora ' + V.L.aurora.toFixed(2) + '  galaxy ' + V.L.galaxy.toFixed(2) + '  powder ' + (V.powder.on ? V.powder.prog.toFixed(2) + '/T' + V.powder.T.toFixed(1) : '-') + '  ctx ' + (A.ok ? A.ctx.state : A.state) + '  thr ' + CFG.enterDb.toFixed(1) + '/' + CFG.exitDb.toFixed(1);
   }
   function toggleHud() {
@@ -1122,9 +1176,10 @@ void main(){
     debug: toggleHud,
     getStage: function () { return V.stage; },
     getMetrics: function () {
-      return { stage: V.stage, db: A.db, base: A.base, delta: A.db - A.base, fluxR: A.fluxR, energy: V.energy || 0, conf: A.conf, centroidR: A.centroidR,
+      return { stage: V.stage, db: A.db, base: A.base, delta: A.db - A.base, fluxR: A.fluxR, energy: V.energy || 0, audioBands: { low: A.low, mid: A.mid, high: A.high }, structure: V.structure,
+        breath: { disk: V.breath.disk || 0, zoom: V.breath.zoom, pitch: V.breath.pitch, mix: V.breath.mix }, conf: A.conf, centroidR: A.centroidR,
         q: V.q, chroma: Array.prototype.slice.call(A.chroma), L: { aurora: V.L.aurora, galaxy: V.L.galaxy }, powder: { on: V.powder.on, prog: V.powder.prog, n: V.powder.n, T: V.powder.T || 0 },
-        ctx: A.ok ? A.ctx.state : A.state, fps: V.fps, ok: V.ok, N: V.N };
+        ctx: A.ok ? A.ctx.state : A.state, fps: V.fps, cpuMs: V.cpuMs, ok: V.ok, N: V.N };
     },
     config: CFG
   };
