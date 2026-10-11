@@ -6241,6 +6241,9 @@ dot.className = 'ai-dash-dot' + (status === 'near' ? ' is-now' : '') + (isExpire
     toastBox.style.boxShadow = isError ? "0 8px 32px rgba(239, 68, 68, 0.3)" : "0 8px 32px rgba(16, 185, 129, 0.3)";
     toastBox.classList.add('show'); setTimeout(() => { toastBox.classList.remove('show'); }, 2500);
   }
+  window.addEventListener('voidmusic:other-tab-playing', () => {
+    showToastNotification(typeof t === 'function' ? (t('voidMusicAlreadyPlaying') || 'Music is already playing in another tab.') : 'Music is already playing in another tab.');
+  });
 
   const uiToggles = ['ai-todo-toggle', 'ai-search-toggle', 'ai-note-toggle', 'ai-all-toggle', 'ai-collapse-toggle', 'ai-undo-toggle', 'ai-calc-hub-toggle', 'ai-clock-toggle', 'ai-spacing-arc', 'ai-spacing-thumb', 'ai-spacing-value'];
 

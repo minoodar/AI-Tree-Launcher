@@ -228,7 +228,172 @@ function mapNagerHolidays(data, countryCode) {
     });
 }
 
+let musicOwnerTabId = null;
+const MUSIC_OWNER_KEY = 'voidMusicPlaybackOwnerTabId';
+const musicOwnerReady = chrome.storage.session.get(MUSIC_OWNER_KEY).then(async (stored) => {
+  const savedId = stored && stored[MUSIC_OWNER_KEY];
+  if (!Number.isInteger(savedId)) return;
+  try { await chrome.tabs.get(savedId); musicOwnerTabId = savedId; }
+  catch (e) { await chrome.storage.session.remove(MUSIC_OWNER_KEY); }
+}).catch(() => {});
+let musicClaimQueue = musicOwnerReady;
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (musicOwnerTabId === tabId) {
+    musicOwnerTabId = null;
+    musicClaimQueue = musicClaimQueue.then(() => chrome.storage.session.remove(MUSIC_OWNER_KEY)).catch(() => {});
+  }
+});
+
+function isVoidTabUrl(url) {
+  return typeof url === 'string' && url.startsWith(chrome.runtime.getURL('void-tab.html'));
+}
+
+function musicMessageTabId(message, sender) {
+  if (!sender) return null;
+  if (sender.tab && Number.isInteger(sender.tab.id)) {
+    // New Tab overrides may expose the extension document URL on sender.url
+    // while sender.tab.url reflects the browser's new-tab URL.
+    if (isVoidTabUrl(sender.tab.url)) return sender.tab.id;
+    if (sender.id === chrome.runtime.id && isVoidTabUrl(sender.url)) return sender.tab.id;
+    return null;
+  }
+  // Extension-page messages have a sender.url but typically no sender.tab.
+  if (sender.id === chrome.runtime.id && isVoidTabUrl(sender.url) && Number.isInteger(message.tabId)) {
+    return message.tabId;
+  }
+  return null;
+}
+
+function musicCoordLog(event, detail) {
+  try { console.info('[VoidMusicCoord]', new Date().toISOString(), event, detail || ''); } catch (e) {}
+}
+
+function probePlayingMusic(excludeTabId) {
+  return chrome.tabs.query({}).then((tabs) => {
+    const candidates = (tabs || []).filter((tab) => tab.id != null && tab.id !== excludeTabId && isVoidTabUrl(tab.url));
+    return Promise.all(candidates.map((tab) => new Promise((resolve) => {
+      let settled = false;
+      const finish = (playing) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        resolve(playing ? tab.id : null);
+      };
+      const timer = setTimeout(() => finish(false), 1500);
+      try {
+        chrome.tabs.sendMessage(tab.id, { type: 'vm-owner-probe' }, (response) => {
+          const failed = !!chrome.runtime.lastError;
+          finish(!failed && !!(response && response.playing));
+        });
+      } catch (e) { finish(false); }
+    }))).then((owners) => owners.find((id) => id != null) ?? null);
+  });
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message && typeof message.type === 'string' && message.type.startsWith('vm-music-')) {
+    musicCoordLog('message-received', { type: message.type, requestId: message.requestId, senderUrl: sender.url, senderTabUrl: sender.tab && sender.tab.url, senderTabId: sender.tab && sender.tab.id, payloadTabId: message.tabId });
+  }
+  if (message && message.type === 'vm-music-release') {
+    const tabId = musicMessageTabId(message, sender);
+    if (tabId != null && musicOwnerTabId === tabId) {
+      musicOwnerTabId = null;
+      musicClaimQueue = musicClaimQueue.then(() => chrome.storage.session.remove(MUSIC_OWNER_KEY))
+        .then(() => { musicCoordLog('release', { tabId: tabId }); sendResponse({ ok: true }); })
+        .catch(() => sendResponse({ ok: false, error: 'storage_failed' }));
+      return true;
+    }
+    sendResponse({ ok: true });
+    return;
+  }
+
+  if (message && message.type === 'vm-music-claim') {
+    const tabId = musicMessageTabId(message, sender);
+    const senderTabId = sender.tab && sender.tab.id != null ? sender.tab.id : null;
+    const respondClaim = (response, decision, probeRan, probeOwnerTabId, error) => {
+      musicCoordLog('claim-decision', {
+        requestId: message.requestId,
+        tabId: tabId,
+        senderTabId: senderTabId,
+        musicOwnerTabId: musicOwnerTabId,
+        branch: decision,
+        probeRan: probeRan,
+        probeOwnerTabId: probeOwnerTabId,
+        ownership: response && response.granted === true ? 'granted' : 'denied',
+        response: response,
+        error: error ? { name: error.name, message: error.message, stack: error.stack } : null
+      });
+      sendResponse(response);
+    };
+    if (tabId == null) {
+      respondClaim({ ok: false, error: 'invalid_tab' }, 'invalid-tab', false, null, null);
+      return;
+    }
+    // Serialize claims in the service worker and reserve before replying.
+    let probeRan = false;
+    let probeOwnerTabId = null;
+    musicClaimQueue = musicClaimQueue.then(async () => {
+      if (musicOwnerTabId != null) {
+        const result = { ok: true, granted: musicOwnerTabId === tabId, ownerTabId: musicOwnerTabId };
+        respondClaim(result, 'existing-owner', false, null, null);
+        return;
+      }
+      probeRan = true;
+      const ownerTabId = await probePlayingMusic(tabId);
+      probeOwnerTabId = ownerTabId;
+      if (ownerTabId != null) {
+        musicOwnerTabId = ownerTabId;
+        await chrome.storage.session.set({ [MUSIC_OWNER_KEY]: ownerTabId });
+        respondClaim({ ok: true, granted: false, ownerTabId }, 'probe-found-playing-tab', true, ownerTabId, null);
+        return;
+      }
+      // Reserve before replying: another near-simultaneous claim sees this
+      // reservation even if the winning tab has not called audio.play() yet.
+      musicOwnerTabId = tabId;
+      await chrome.storage.session.set({ [MUSIC_OWNER_KEY]: tabId });
+      const result = { ok: true, granted: true, ownerTabId: tabId };
+      respondClaim(result, 'no-other-playing-tab-reserved-requester', true, null, null);
+    }).catch((error) => {
+      const result = { ok: false, granted: false, error: 'probe_failed' };
+      respondClaim(result, 'claim-exception', probeRan, probeOwnerTabId, error);
+    });
+    return true;
+  }
+
+  if (message && message.type === 'vm-music-check') {
+    const tabId = musicMessageTabId(message, sender);
+    if (tabId == null) {
+      sendResponse({ ok: false, error: 'invalid_sender', playing: false });
+      return;
+    }
+    musicClaimQueue = musicClaimQueue.then(async () => {
+      if (musicOwnerTabId != null && musicOwnerTabId !== tabId) {
+        const result = { ok: true, playing: true, ownerTabId: musicOwnerTabId };
+        musicCoordLog('status-response', { tabId: tabId, response: result });
+        sendResponse(result);
+        return;
+      }
+      const ownerTabId = await probePlayingMusic(tabId);
+      if (musicOwnerTabId != null && musicOwnerTabId !== ownerTabId) {
+        sendResponse({ ok: true, playing: true, ownerTabId: musicOwnerTabId });
+        return;
+      }
+      if (ownerTabId != null && musicOwnerTabId !== ownerTabId) {
+        musicOwnerTabId = ownerTabId;
+        await chrome.storage.session.set({ [MUSIC_OWNER_KEY]: ownerTabId });
+      } else if (ownerTabId == null && musicOwnerTabId != null) {
+        // Reconcile an abandoned reservation when no other page is actually playing.
+        musicOwnerTabId = null;
+        await chrome.storage.session.remove(MUSIC_OWNER_KEY);
+      }
+      const result = { ok: true, playing: ownerTabId != null, ownerTabId: ownerTabId };
+      musicCoordLog('status-response', { tabId: tabId, response: result });
+      sendResponse(result);
+    }).catch((error) => { musicCoordLog('status-error', { tabId: tabId, message: error && error.message }); sendResponse({ ok: false, error: 'coordinator_failed', playing: false }); });
+    return true;
+  }
+
   if (!message || !message.action) return;
 
   if (message.action === 'openNotepadTab') {

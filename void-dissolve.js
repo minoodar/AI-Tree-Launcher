@@ -909,6 +909,7 @@
 
     sky.onKey = (e) => {
       if (!sky || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (document.body.classList.contains('void-music-on')) return;
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       const t = e.target, tag = t && t.tagName;
       if (t && (t.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT')) return;

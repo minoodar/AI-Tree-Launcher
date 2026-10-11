@@ -155,7 +155,7 @@
     }
     function updateShootingStar(delta) {
         if (!CONFIG.shootingStars || prefersReducedMotion) return;
-        if (Math.random() < CONFIG.shootingStarChance * delta) createShootingStar();
+        if (!idle && Math.random() < CONFIG.shootingStarChance * delta) createShootingStar();
         if (!shootingStars.length) return;
         for (let i = shootingStars.length - 1; i >= 0; i--) {
             const star = shootingStars[i];
@@ -192,15 +192,66 @@
         canvas.width = Math.floor(width * dpr); canvas.height = Math.floor(height * dpr);
         canvas.style.width = width + "px"; canvas.style.height = height + "px";
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0); rebuildBackground(); createStars(); shootingStars = [];
+        if (idle) renderStill();   // resize بومِ idle را پاک می‌کند؛ یک فریمِ ثابتِ تازه بکش
     }
     window.addEventListener("mousemove", function (e) { targetMouseX = e.clientX; targetMouseY = e.clientY; }, { passive: true });
     window.addEventListener("mouseleave", function () { targetMouseX = width / 2; targetMouseY = height / 2; });
     let animationRunning = true;
+    // ---- Idle (Music Mode): یک فریمِ ثابت، بدونِ حلقهٔ rAF — هزینهٔ ~۰ ----
+    // با رویدادِ voidmusic:mode روشن/خاموش می‌شود (void-music.js). در حالتِ idle و
+    // وقتی موزیک پخش نمی‌شود، هر ۴۰ تا ۱۱۰ ثانیه یک شهابِ بی‌صدا رد می‌شود (حلقه فقط
+    // برای همان ~۲ ثانیه روشن است) و دوباره منجمد می‌شود.
+    let idle = false, musicPlaying = false, rafId = 0, idleTimer = 0, idleBurstUntil = 0;
+    function schedule() { if (rafId) cancelAnimationFrame(rafId); rafId = requestAnimationFrame(render); }
+    function renderStill() {
+        const now = performance.now();
+        drawBackground();
+        ctx.globalAlpha = 1;
+        for (let i = 0; i < stars.length; i++) stars[i].draw(now);
+    }
+    function scheduleIdleMeteor() {
+        clearTimeout(idleTimer); idleTimer = 0;
+        if (!idle || musicPlaying || prefersReducedMotion) return;
+        idleTimer = setTimeout(idleMeteor, 40000 + Math.random() * 70000);
+    }
+    function idleMeteor() {
+        idleTimer = 0;
+        if (idle && !musicPlaying && !document.hidden) {
+            createShootingStar();
+            idleBurstUntil = performance.now() + 700;
+            lastTime = performance.now();
+            schedule();
+        }
+        scheduleIdleMeteor();
+    }
+    function enterIdle() {
+        if (idle) return;
+        idle = true;
+        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+        shootingStars.length = 0;
+        renderStill();
+        scheduleIdleMeteor();
+    }
+    function exitIdle() {
+        if (!idle) return;
+        idle = false;
+        clearTimeout(idleTimer); idleTimer = 0;
+        lastTime = performance.now();
+        if (animationRunning) schedule();
+    }
+    window.addEventListener("voidmusic:mode", function (e) {
+        if (e && e.detail && e.detail.open) enterIdle(); else exitIdle();
+    });
+    window.addEventListener("voidmusic:playing", function (e) {
+        musicPlaying = !!(e && e.detail && e.detail.playing);
+        if (musicPlaying) { clearTimeout(idleTimer); idleTimer = 0; } else scheduleIdleMeteor();
+    });
     document.addEventListener("visibilitychange", function () {
         animationRunning = !document.hidden;
-        if (animationRunning) { lastTime = performance.now(); requestAnimationFrame(render); }
+        if (animationRunning && !idle) { lastTime = performance.now(); schedule(); }
     });
     function render(time) {
+        rafId = 0;
         if (!animationRunning) return;
         let delta = Math.min(time - lastTime, 40); lastTime = time;
         mouseX += (targetMouseX - mouseX) * 0.025; mouseY += (targetMouseY - mouseY) * 0.025;
@@ -212,11 +263,12 @@
         if (goalVolc.starDim < 0.99) ctx.globalAlpha = 1;
         updateShootingStar(delta);
         try { volcDraw(); } catch (e) {}
-        requestAnimationFrame(render);
+        if (idle && !shootingStars.length && time > idleBurstUntil) return;   // شهاب تمام شد → دوباره منجمد
+        schedule();
     }
     function init() {
         targetMouseX = width / 2; targetMouseY = height / 2; mouseX = width / 2; mouseY = height / 2;
-        resize(); window.addEventListener("resize", resize, { passive: true }); requestAnimationFrame(render);
+        resize(); window.addEventListener("resize", resize, { passive: true }); schedule();
     }
     // ------------------------------------------------------------------
     // Meteor sonic accent v2 — UI ONLY (dissolve / restore)

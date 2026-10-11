@@ -2097,6 +2097,7 @@
     }
 
 </style>
+  <link rel="stylesheet" href="void-music.css">
   <link rel="preload" as="image" href="assets/engines/google.svg">
   <link rel="preload" as="image" href="assets/engines/bing.svg">
   <link rel="preload" as="image" href="assets/engines/duckduckgo.svg">
@@ -2109,6 +2110,13 @@
 <div class="space-vignette"></div>
 
 <div id="ai-ntp-quickbar" role="toolbar" aria-label="Page controls">
+  <button type="button" id="ai-ntp-music-btn" title="Music Mode" aria-label="Music Mode">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 17V6.5L18 4.5V15"/><path d="M9 17a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/><path d="M18 15a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0Z"/></svg>
+  </button>
+  <button type="button" id="ai-ntp-fs-btn" title="Full screen" aria-label="Full screen" aria-pressed="false" data-on="0">
+    <svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+    <svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>
+  </button>
   <div id="ai-ntp-menu">
     <button type="button" id="ai-ntp-menu-btn" title="Menu" aria-haspopup="menu" aria-expanded="false">☰</button>
     <div id="ai-ntp-menu-panel" role="menu">
@@ -2147,9 +2155,9 @@
     </button>
     <div id="ai-ntp-apps-panel" role="menu" aria-label="Apps">
       <div id="ai-void-apps" aria-label="App shortcuts"></div>
+      <a id="ai-ntp-account" role="menuitem" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmyaccount.google.com%2F" target="_blank" rel="noopener" title="Switch account">◉</a>
     </div>
   </div>
-  <a id="ai-ntp-account" href="https://accounts.google.com/AccountChooser?continue=https%3A%2F%2Fmyaccount.google.com%2F" target="_blank" rel="noopener" title="Switch account">◉</a>
 </div>
 
 
@@ -2314,6 +2322,8 @@
 
 <script src="void-dissolve.js"></script>
 <script src="void-tab-menu.js"></script>
+<script src="void-music.js"></script>
+<script src="void-music-viz.js"></script>
 <script src="firework-sky.js"></script>
 <script src="void-tab-todo.js"></script>
 <script src="void-tab-memory.js"></script>
