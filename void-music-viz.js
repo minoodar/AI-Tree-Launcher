@@ -234,6 +234,7 @@
     breath: { mix: 0, pitch: 50, zoom: 1, ready: false },
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
+    entrance: { pending: false, active: false, elapsed: 0, duration: 1.02, handoff: 0.28, generation: 0, id: null },
     hud: null, hudOn: false, hudT: 0, frames: 0, fps: 0, fpsT: 0, tint: [1, 0.9, 0.7]
   };
   let G = null;   // منابعِ GL
@@ -406,9 +407,29 @@ void main(){
   const VS_POWDER = `#version 300 es
 precision highp float;
 in vec2 aS; in vec3 aR;
-uniform vec2 uView; uniform vec2 uCenter; uniform float uProg, uApp, uSin, uPx, uBoxX, uBoxW;
+uniform vec2 uView; uniform vec2 uCenter; uniform float uProg, uApp, uSin, uPx, uBoxX, uBoxW, uMode, uEnter, uCoreR, uFade;
 out vec4 vCol;
 void main(){
+  if (uMode > 0.5) {
+    float delay = clamp((aS.x - uBoxX) / max(uBoxW, 1.0), 0.0, 1.0) * 0.15 + aR.x * 0.10;
+    float t = clamp((uEnter - delay) / max(0.01, 1.0 - delay), 0.0, 1.0);
+    vec2 v = aS - uCenter;
+    float dist = length(v);
+    vec2 dir = dist > 0.001 ? v / dist : vec2(cos(aR.y * 6.28318), sin(aR.y * 6.28318));
+    float turn = (aR.y - 0.5) * 0.30;
+    dir = vec2(dir.x * cos(turn) - dir.y * sin(turn), dir.x * sin(turn) + dir.y * cos(turn));
+    float coreR = max(3.0, uCoreR);
+    vec2 p0 = uCenter + dir * coreR;
+    float reach = min(max(coreR + 18.0, dist * 1.12), coreR + 180.0);
+    vec2 p1 = uCenter + dir * mix(coreR + 8.0, reach, 0.72 + 0.28 * aR.z);
+    vec2 pos = p0 * (1.0 - t) * (1.0 - t) + p1 * (2.0 * (1.0 - t) * t) + aS * t * t;
+    float alpha = uApp * uFade * (0.72 + 0.28 * smoothstep(0.0, 0.32, t));
+    vec3 warm = mix(vec3(1.0, 0.78, 0.48), vec3(1.0, 0.94, 0.80), smoothstep(0.05, 0.82, t));
+    vCol = vec4(warm * alpha, 0.0);
+    gl_Position = vec4(pos.x / uView.x * 2.0 - 1.0, 1.0 - pos.y / uView.y * 2.0, 0.0, 1.0);
+    gl_PointSize = max(1.0, (1.35 + 0.9 * aR.z) * uPx * (1.0 + 0.35 * (1.0 - t)));
+    return;
+  }
   float delay = clamp((aS.x - uBoxX) / max(uBoxW, 1.0), 0.0, 1.0) * 0.35 + aR.x * 0.25;
   float p = clamp((uProg - delay) / 0.4, 0.0, 1.0);
   float e = p * p * (3.0 - 2.0 * p);
@@ -513,7 +534,7 @@ void main(){
     } catch (e) { teardownGL(); V.dead = true; return false; }
     try {
       const gl = V.gl;
-      G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW']);
+      G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW', 'uMode', 'uEnter', 'uCoreR', 'uFade']);
       G.emptyVao = gl.createVertexArray();
 
       // هندسهٔ کهکشان (یک بار)
@@ -536,6 +557,7 @@ void main(){
 
   function resizeGL() {
     if (!V.ok) return;
+    if (V.entrance.pending || V.entrance.active) cancelTitleEntrance(true);
     const gl = V.gl;
     V.vw = window.innerWidth; V.vh = window.innerHeight;
     let rs = Math.min(window.devicePixelRatio || 1, 1.25);
@@ -613,6 +635,25 @@ void main(){
     V.powder.n = n; V.powder.box = [minX, Math.max(1, maxX - minX)];
   }
 
+  function cancelTitleEntrance(reveal) {
+    V.entrance.pending = false; V.entrance.active = false; V.entrance.elapsed = 0;
+    if (reveal) VM.setPowder(V.powder.on && V.powder.n > 0);
+  }
+
+  function startTitleEntrance(detail) {
+    if (!detail || !Number.isFinite(detail.generation) || detail.generation === V.entrance.generation) return;
+    V.entrance.generation = detail.generation;
+    V.entrance.id = detail.id;
+    cancelTitleEntrance(true);
+    if (!V.playing || !VM.isOpen() || document.hidden || reduced() || V.powder.on) return;
+    const audio = VM.getAudio();
+    if (!audio || audio.paused || (isFinite(audio.duration) && audio.duration - audio.currentTime <= V.entrance.duration + V.entrance.handoff)) return;
+    if (!V.ok && !initGL()) return;
+    V.powder.key = '';
+    V.entrance.pending = true;
+    if (!V.running && V.playing) startLoop();
+  }
+
   function powderState(rem, dur) {
     if (!(V.playing && V.ok && dur > 0 && isFinite(rem)) || reduced()) return { on: false, appear: 0, prog: 0 };
     // کلِ نمایش T = max(۸ ثانیه، ۱/۲۰ طول × ۱٫۱) تا سقفِ نیمِ آهنگ — برای آهنگِ ۴ دقیقه‌ای ≈ ۱۳٫۲ ثانیه
@@ -653,7 +694,12 @@ void main(){
     const rem = dur ? dur - audio.currentTime : Infinity;
     const pst = powderState(rem, dur);
     V.powder.on = pst.on; V.powder.appear = pst.appear; V.powder.prog = pst.prog; V.powder.T = pst.T || 0;
-    VM.setPowder(pst.on && V.powder.n > 0);
+    if (V.entrance.active || V.entrance.pending) {
+      if (pst.on || !V.playing || !VM.isOpen() || document.hidden || reduced()) cancelTitleEntrance(false);
+      else if (V.entrance.active) V.entrance.elapsed += dt;
+    }
+    VM.setPowder((pst.on && V.powder.n > 0) || (V.entrance.active && V.entrance.elapsed < V.entrance.duration));
+    if (V.entrance.active && V.entrance.elapsed >= V.entrance.duration + V.entrance.handoff) cancelTitleEntrance(false);
 
     const needSpec = V.L.galaxy > 0.02 || V.stage === 'galaxy' || pst.on;
     if (A.ok && V.playing && audio && !audio.paused) analyze(dt, needSpec);
@@ -792,13 +838,17 @@ void main(){
       setDots(1);                                             // نیمهٔ نزدیکِ حلقه‌ها (جلوی کره)
     }
 
-    if (V.powder.on && V.powder.n > 0) {
+    if ((V.powder.on || V.entrance.active) && V.powder.n > 0) {
       const w = G.pow.u;
+      const entering = V.entrance.active && !V.powder.on;
+      const fade = entering ? clamp((V.entrance.duration + V.entrance.handoff - V.entrance.elapsed) / V.entrance.handoff, 0, 1) : 1;
       gl.useProgram(G.pow.p);
       gl.uniform2f(w.uView, V.vw, V.vh); gl.uniform2f(w.uCenter, V.cx, V.cy);
-      gl.uniform1f(w.uProg, V.powder.prog); gl.uniform1f(w.uApp, V.powder.appear);
+      gl.uniform1f(w.uProg, V.powder.prog); gl.uniform1f(w.uApp, entering ? clamp(V.entrance.elapsed / 0.10, 0, 1) : V.powder.appear);
       gl.uniform1f(w.uSin, sinI); gl.uniform1f(w.uPx, V.rs);
       gl.uniform1f(w.uBoxX, V.powder.box[0]); gl.uniform1f(w.uBoxW, V.powder.box[1]);
+      gl.uniform1f(w.uMode, entering ? 1 : 0); gl.uniform1f(w.uEnter, entering ? clamp(V.entrance.elapsed / V.entrance.duration, 0, 1) : 0);
+      gl.uniform1f(w.uCoreR, HOLE_R * sceneScale * 1.05); gl.uniform1f(w.uFade, fade);
       gl.bindVertexArray(V.powder.vao); gl.drawArrays(gl.POINTS, 0, V.powder.n);
     }
     gl.bindVertexArray(null);
@@ -816,12 +866,13 @@ void main(){
     if (V.raf) { cancelAnimationFrame(V.raf); V.raf = 0; }
     if (clear && V.ok) { try { V.gl.bindFramebuffer(V.gl.FRAMEBUFFER, null); V.gl.clearColor(0, 0, 0, 0); V.gl.clear(V.gl.COLOR_BUFFER_BIT); } catch (e) {} }
     VM.setPowder(false);
+    cancelTitleEntrance(false);
   }
   function frame(now) {
     V.raf = 0;
     if (!V.running) return;
     const rm = reduced();
-    const fast = !rm && (V.stage === 'galaxy' || V.L.galaxy > 0.05 || V.powder.on);
+    const fast = !rm && (V.stage === 'galaxy' || V.L.galaxy > 0.05 || V.powder.on || V.entrance.active);
     const minDt = 1000 / (rm ? CFG.reducedFps : (fast ? CFG.galaxyFps : CFG.calmFps));
     const dtMs = now - V.last;
     if (dtMs < minDt - 3) { V.raf = requestAnimationFrame(frame); return; }
@@ -829,7 +880,13 @@ void main(){
     const dt = Math.min(dtMs, 100) / 1000, nowS = now / 1000;
     V.time = nowS;
     // پودر: در صورت نیاز یک بار (برای همین آهنگ/اندازه) نمونه‌برداری کن
-    if (V.powder.on && V.powder.key === '') { V.powder.key = 'x'; buildPowder(); }
+    if ((V.powder.on || V.entrance.pending) && V.powder.key === '') {
+      V.powder.key = 'x'; buildPowder();
+      if (V.entrance.pending) {
+        if (V.powder.n > 0 && V.playing && VM.isOpen() && !document.hidden && !reduced() && !V.powder.on) { V.entrance.pending = false; V.entrance.active = true; V.entrance.elapsed = 0; VM.setPowder(true); }
+        else cancelTitleEntrance(true);
+      }
+    }
     const c0 = performance.now();
     step(dt, nowS);
     if (V.powder.on && V.powder.key === '') { V.powder.key = 'x'; buildPowder(); }
@@ -884,6 +941,7 @@ void main(){
 
   /* ---------- رویدادهای Music Mode ---------- */
   function newTrackLook(seed) {
+    cancelTitleEntrance(true);
     const r = mulberry32((seed ^ V.session) >>> 0);
     V.track++;
     V.tiltT = (r() - 0.5) * 0.35;                // ±۱۰° شیبِ دیسک
@@ -893,6 +951,7 @@ void main(){
     V.powder.key = '';
   }
   window.addEventListener('voidmusic:track', function (e) { newTrackLook((e.detail && e.detail.seed) || Math.random() * 4294967296); });
+  window.addEventListener('voidmusic:title-ready', function (e) { startTitleEntrance(e.detail); });
 
 
   /* ------------------------------------------------------------------ */
@@ -999,11 +1058,12 @@ void main(){
     MINI.raf = requestAnimationFrame(miniFrame);
   }
   window.addEventListener('voidmusic:mini', function () { miniKick(); setTimeout(refreshTaps, 50); });
-  document.addEventListener('visibilitychange', function () { if (!document.hidden) miniKick(); refreshTaps(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) cancelTitleEntrance(true); else miniKick(); refreshTaps(); });
 
   window.addEventListener('voidmusic:playing', async function (e) {
     const playing = !!(e.detail && e.detail.playing);
     V.playing = playing;
+    if (!playing) cancelTitleEntrance(true);
     if (playing && A.ok && A.ctx.state !== 'running') { try { A.ctx.resume(); } catch (er) {} }
     if (playing) {
       V.tPlay = 0; A.snap = true; if (!A.ok) A.tries = Math.min(A.tries, 3);   // هر بار پخش (با ژستِ کاربر) دوباره امتحان کن
@@ -1039,6 +1099,7 @@ void main(){
       }
       return;
     }
+    cancelTitleEntrance(true);
     V.lastStage = V.stage;
     V.playing = false; stopLoop(true);
     clearTimeout(V.tdT); V.tdT = setTimeout(function () { if (!VM.isOpen()) { teardownGL(); V.dead = false; } }, 30000);   // ۳۰ ثانیه نگه می‌داریم؛ بعد آزاد می‌شود

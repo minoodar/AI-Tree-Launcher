@@ -579,7 +579,8 @@
     publishSession(tr, null);
     pushRemote(true);
     try { window.dispatchEvent(new CustomEvent('voidmusic:track', { detail: { id: id, title: tr.title, seed: S.seed } })); } catch (e) {}
-    try { playbackLog('audio-play-invoked', { readyState: a.readyState, paused: a.paused, muted: a.muted, volume: a.volume, hasSource: !!a.currentSrc }); await a.play(); playbackLog('audio-play-resolved', { readyState: a.readyState, paused: a.paused, ended: a.ended, muted: a.muted, volume: a.volume }); S.failures = 0; }
+    let playbackStarted = false;
+    try { playbackLog('audio-play-invoked', { readyState: a.readyState, paused: a.paused, muted: a.muted, volume: a.volume, hasSource: !!a.currentSrc }); await a.play(); playbackStarted = true; playbackLog('audio-play-resolved', { readyState: a.readyState, paused: a.paused, ended: a.ended, muted: a.muted, volume: a.volume }); S.failures = 0; }
     catch (e) {
       playbackLog('audio-play-rejected', { name: e && e.name || 'Error', message: e && e.message || String(e), readyState: a.readyState, paused: a.paused, ended: a.ended, muted: a.muted, volume: a.volume, mediaError: a.error ? { code: a.error.code, message: a.error.message || '' } : null });
       if (a.paused) releasePlayback();
@@ -593,7 +594,10 @@
       if (m.cover) { cu = URL.createObjectURL(m.cover); }
       if (S.coverUrl) { try { URL.revokeObjectURL(S.coverUrl); } catch (e) {} }
       S.coverUrl = cu;
-      setMeta(tr.title, tr.artist, cu);
+      setMeta(tr.title, tr.artist, cu, function () {
+        if (!playbackStarted || tok !== S.token || S.curId !== id || a.paused) return;
+        try { window.dispatchEvent(new CustomEvent('voidmusic:title-ready', { detail: { id: id, title: tr.title, artist: tr.artist, seed: S.seed, generation: tok } })); } catch (e) {}
+      });
       publishSession(tr, cu);
       pushRemote(true);
       renderQueue();
@@ -903,7 +907,7 @@
 
   /* ---- هم‌گام‌سازی نمایش ---- */
   let metaTimer = 0;
-  function setMeta(title, artist, coverUrl) {
+  function setMeta(title, artist, coverUrl, onApplied) {
     const apply = function () {
       els.title.textContent = title || '';
       els.artist.textContent = artist || '';
@@ -912,6 +916,7 @@
       els.meta.classList.toggle('is-blank', !title);
       els.meta.classList.remove('is-out');
       if (title) document.title = '\u266A ' + title;
+      if (typeof onApplied === 'function') onApplied();
     };
     clearTimeout(metaTimer);
     if (!title || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { apply(); return; }
