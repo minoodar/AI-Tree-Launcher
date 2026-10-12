@@ -31,8 +31,8 @@
     powderMinS: 8.0      // پودرِ عنوان: حداقل ۸ ثانیه، و هرگز کمتر از ۱/۲۰ طولِ آهنگ
   };
   const BREATH = {
-    periodS: 120, solitudePitch: 66, majestyPitch: 32,
-    solitudeZoom: 0.86, majestyZoom: 1.0
+    cyclesPerTrack: 3, minCycleS: 36, maxCycleS: 65, fallbackTrackS: 180, openPart: 0.60, rollFadeS: 18,
+    startPitch: 10, endPitch: 68, startZoom: 0.86, endZoom: 1.0, startRoll: 0.35
   };
   const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
 
@@ -253,11 +253,12 @@
     L: { aurora: 0, galaxy: 0, lum: 0.4 },
     phase: 0, pulse: { t0: -9, amp: 0 }, tick: 0, tickAcc: 0, time: 0,
     tilt: 0, tiltT: 0, spiralPh: 0, spiralPhT: 0, structure: 0, seed3: [0.3, 0.6, 0.1], track: 0,
-    bandIn: new Float32Array(12), bandOut: new Float32Array(12), noteC: [0.6, 0.7, 1.0],
+    bandIn: new Float32Array(12), bandOut: new Float32Array(12), auroraStart: 0, auroraN: 0, noteC: [0.6, 0.7, 1.0],
     cpuMs: 0, haloT: 0, flare: 0, tintC: [1.0, 0.86, 0.60], grace: 0, synE: 0.5,
     q: 1, slowN: 0, fastN: 0, rich: 0.8,
     rs: 1, W: 0, H: 0, vw: 0, vh: 0, cx: 0, cy: 0, scale: 1, incl: 24, N: 0,
     breath: { mix: 0, pitch: 50, zoom: 1, disk: 0, ready: false },
+    opening: { started: false, elapsed: 0, progress: 0, cycleS: 60 },
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
     entrance: { pending: false, active: false, elapsed: 0, duration: 1.02, handoff: 0.28, generation: 0, id: null },
@@ -271,10 +272,8 @@ void main(){ vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)
 
   const FS_AURORA = `#version 300 es
 precision mediump float;
-uniform vec2 uRes; uniform float uTime; uniform float uLevel; uniform vec3 uSeed; uniform float uRich; uniform vec3 uTint;
+uniform vec2 uRes; uniform float uTime; uniform float uLevel; uniform vec3 uSeed; uniform vec3 uTint;
 uniform vec2 uHole; uniform float uAsp, uBend;
-uniform vec4 uDisk;                       // x: شعاعِ واحدِ کهکشان در واحدِ ارتفاع، y: sin(شیب)، z: چرخش، w: شدتِ پژواکِ حلقه‌ها
-uniform float uChroma[12]; uniform vec3 uPal[12]; uniform float uBandIn[12], uBandOut[12]; uniform vec3 uNote; uniform float uHigh;
 out vec4 o;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -282,7 +281,7 @@ float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
 float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 3; i++){ s += a * vn(p); p = p * 2.02 + 7.1; a *= 0.5; } return s; }
 void main(){
   vec2 uv0 = gl_FragCoord.xy / uRes;
-  // Keep the existing lensing bend, but build the aurora in the galaxy's own disk coordinates.
+  // Keep a restrained lensing distortion, but leave visible ring structure to the 3D particles.
   vec2 q = (uv0 - uHole) * vec2(uAsp, 1.0);
   float r = length(q);
   float pull = uBend * 0.016 / (r * r + 0.020);
@@ -290,42 +289,13 @@ void main(){
   float cs = cos(sw), sn = sin(sw);
   vec2 qd = q - (q / max(r, 0.001)) * pull;
   qd = vec2(cs * qd.x - sn * qd.y, sn * qd.x + cs * qd.y);
-  // The dark center and its softly irregular Einstein glow remain clear.
-  float shadow = smoothstep(0.05, 0.19, r);
   float t = uTime * 0.012;
-  float ein = exp(-pow((r - 0.20) / 0.030, 2.0)) * uBend * 0.46;
-  vec3 outc = mix(vec3(0.35, 0.65, 1.0), uTint, 0.22) * ein * uLevel;
-  // Sparse short filaments follow selected existing disk bands instead of filling the sky with curtains.
-  if (uDisk.w > 0.001) {
-    float ct = cos(uDisk.z), st = sin(uDisk.z);
-    vec2 qr = vec2(ct * q.x + st * q.y, -st * q.x + ct * q.y);
-    float inclination = max(uDisk.y, 0.25);
-    float ringAngle = atan(qr.y / inclination, qr.x);
-    float radial = length(vec2(qr.x, qr.y / inclination)) / max(uDisk.x, 0.001);
-    float noise = fbm(vec2(ringAngle * 1.65 + uSeed.x * 11.0, radial * 6.0 - t * 0.20 + uSeed.y * 7.0));
-    vec3 filaments = vec3(0.0);
-    for (int i = 0; i < 12; i++) {
-      float mid = 0.5 * (uBandIn[i] + uBandOut[i]), hw = 0.5 * (uBandOut[i] - uBandIn[i]);
-      float seed = h21(vec2(float(i) * 17.13 + uSeed.x * 31.0, uSeed.y * 27.0 + 5.0));
-      if (seed < 0.70) continue;
-      float center = h21(vec2(float(i) * 9.71 + uSeed.z * 23.0, uSeed.x * 41.0 + 2.0)) * 6.28318;
-      float arcLength = 0.20 + 0.34 * h21(vec2(float(i) * 4.17 + uSeed.y * 19.0, uSeed.z * 37.0 + 8.0));
-      float arcCenter = center + (radial - mid) * 1.8 + 0.035 * sin(radial * 13.0 + uSeed.z * 6.28318);
-      float angleDistance = abs(atan(sin(ringAngle - arcCenter), cos(ringAngle - arcCenter)));
-      float arc = 1.0 - smoothstep(arcLength * 0.55, arcLength, angleDistance);
-      float radialWobble = 0.006 * (noise - 0.5) + 0.003 * sin(ringAngle * 3.0 + uSeed.x * 6.28318);
-      float band = exp(-pow((radial - mid - radialWobble) / (hw * 1.5 + 0.010), 2.0));
-      float texture = 0.62 + 0.38 * noise;
-      float knot = exp(-pow(angleDistance / max(arcLength * 0.20, 0.035), 2.0));
-      vec3 cool = mix(vec3(0.10, 0.66, 0.96), vec3(0.40, 0.36, 0.88), smoothstep(0.67, 0.94, noise + seed * 0.10));
-      float chroma = 0.72 + 0.28 * clamp(uChroma[i], 0.0, 1.0);
-      float slowBreath = 0.90 + 0.10 * sin(t * 0.35 + seed * 6.28318);
-      float highAccent = 1.0 + 0.12 * clamp(uHigh, 0.0, 1.0) * knot;
-      filaments += cool * band * arc * texture * chroma * slowBreath * highAccent * (0.68 + 0.32 * knot);
-    }
-    outc += filaments * uDisk.w * uLevel * shadow * 0.82;
-  }
-  o = vec4(pow(max(outc, 0.0), vec3(0.92)), 1.0);
+  float n0 = fbm(qd * 10.0 + uSeed.xy * 13.0 + vec2(t * 0.36, -t * 0.24));
+  float n1 = fbm(qd * 5.0 + uSeed.yz * 7.0 - vec2(t * 0.15, t * 0.11));
+  float cloud = exp(-r * 2.4) * smoothstep(0.045, 0.17, r) * smoothstep(0.24, 0.54, n0 * 0.65 + n1 * 0.35);
+  cloud *= uLevel * uBend * 0.055;
+  vec3 ambient = mix(vec3(0.10, 0.62, 0.94), uTint, 0.14) * cloud;
+  o = vec4(pow(max(ambient, 0.0), vec3(0.92)), 1.0);
 }`;
 
   const FS_BLIT = `#version 300 es
@@ -344,6 +314,8 @@ uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uConf, uDim, uMid,
 uniform float uChroma[12]; uniform vec3 uPal[12];
 uniform sampler2D uAur; uniform float uAurMix;
 out vec4 vCol;
+out vec3 vDiskView;
+out float vPointDiameter;
 void main(){
   float seed = aMisc.x, band = aMisc.z;
   bool ring = band < 11.5;
@@ -354,15 +326,17 @@ void main(){
   float th = aPolar.y + uPhase * omega + (ring ? armWave * (0.026 * uMid + 0.018 * uStructure) : 0.0);
   float side = sin(th);
   // نیمهٔ دورِ حلقه‌ها پشتِ کره، نیمهٔ نزدیک جلوی آن رسم می‌شود (دو پاس)
-  if ((uHalf < 0.5) != (side < 0.0)) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); gl_PointSize = 1.0; return; }
+  if (band > 13.5 || ((uHalf < 0.5) != (side < 0.0))) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); vDiskView = vec3(0.0); vPointDiameter = 0.0; gl_PointSize = 1.0; return; }
   vec2 p = vec2(r * cos(th), r * side * uSin);
   float c = cos(uTilt), s = sin(uTilt);
   p = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
+  // Orthographic view of the inclined disk: screen Y is compressed by sin(i),
+  // while the omitted camera-depth coordinate is the complementary cos(i).
+  float depth = r * side * sqrt(max(0.0, 1.0 - uSin * uSin));
+  vDiskView = vec3(p, depth);
   int ib = int(clamp(band, 0.0, 11.0) + 0.5);
   float e = ring ? uChroma[ib] : 0.0;
   float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side);
-  float pointRadius = clamp(sz * uPx, 1.0, 10.0) / max(uPx, 0.1) * 0.5;
-  if (length(p) <= uHoleR + pointRadius / max(uScale, 1.0)) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); gl_PointSize = 1.0; return; }
   vec2 px = uCenter + p * uScale;
   gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
 
@@ -394,12 +368,119 @@ void main(){
   lum = (lum * shimmer * (1.0 + (ring ? 0.10 * uMid * armWave : 0.0) + 0.32 * highGlint) + pulse * 0.9) * dop * vis * uDim;
   vCol = vec4(col * lum, 0.0);
   gl_PointSize = clamp(sz * uPx, 1.0, 10.0);
+  vPointDiameter = gl_PointSize / max(uPx * uScale, 0.001);
 }`;
 
   const FS_DOTS = `#version 300 es
 precision mediump float;
 in vec4 vCol; out vec4 o;
 void main(){ vec2 d = gl_PointCoord - 0.5; float q = dot(d, d) * 4.0; float a = (exp(-q * 3.0) + 0.30 * exp(-q * 1.1)) * (1.0 - smoothstep(0.75, 1.0, q)); o = vec4(vCol.rgb * a, 0.0); }`;
+
+  const FS_OCCLUDED_DOTS = `#version 300 es
+precision highp float;
+in vec4 vCol;
+in vec3 vDiskView;
+in float vPointDiameter;
+uniform float uHoleR;
+out vec4 o;
+void main(){
+  // Test every covered fragment against the front surface of the spherical hole.
+  // Foreground dots survive only where their view-space depth is in front of it.
+  vec2 fragmentPos = vDiskView.xy + (gl_PointCoord - vec2(0.5)) * vPointDiameter;
+  float rho2 = dot(fragmentPos, fragmentPos);
+  float holeR2 = uHoleR * uHoleR;
+  if (rho2 < holeR2) {
+    float frontSurfaceZ = sqrt(max(holeR2 - rho2, 0.0));
+    if (vDiskView.z <= frontSurfaceZ + 0.0002) discard;
+  }
+  vec2 d = gl_PointCoord - 0.5;
+  float q = dot(d, d) * 4.0;
+  float a = (exp(-q * 3.0) + 0.30 * exp(-q * 1.1)) * (1.0 - smoothstep(0.75, 1.0, q));
+  o = vec4(vCol.rgb * a, 0.0);
+}`;
+
+  const VS_AUR_DOTS = `#version 300 es
+precision highp float;
+in vec2 aPolar;
+in vec4 aMisc;   // seed, size, aurora marker, source band
+in float aU;     // precomputed offset through the disk thickness
+uniform vec2 uView; uniform vec2 uCenter;
+uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath, uPhase, uTime;
+uniform float uLevel, uLum, uLow, uMid, uHigh, uDim;
+uniform float uChroma[12];
+out vec4 vCol;
+out vec3 vViewPos;
+out vec2 vProjected;
+out float vPointDiameter;
+const float CAMERA_DISTANCE = 3.2;
+const float TAU_AUR = 6.2831853;
+void main(){
+  float seed = aMisc.x;
+  float sourceBand = clamp(aMisc.w, 0.0, 11.0);
+  float baseR = aPolar.x;
+  float r = baseR * (1.0 + uDiskBreath * (0.78 + 0.22 * aU));
+  float omega = pow(baseR + 0.05, -1.5);
+  float theta = aPolar.y + uPhase * omega
+    + (0.006 + 0.006 * uMid) * sin(seed * TAU_AUR + uTime * 0.16);
+  float x = r * cos(theta), y = r * sin(theta);
+  float normalOffset = (aU - 0.5) * 0.070
+    + 0.0025 * sin(theta * 3.0 + seed * TAU_AUR + uTime * 0.08);
+  float si = clamp(uSin, 0.15, 0.999);
+  float ci = sqrt(max(0.0, 1.0 - si * si));
+  vec2 view = vec2(x, y * si - normalOffset * ci);
+  float depth = y * ci + normalOffset * si;
+  float cr = cos(uTilt), sr = sin(uTilt);
+  view = vec2(cr * view.x - sr * view.y, sr * view.x + cr * view.y);
+  if ((uHalf < 0.5) != (depth < 0.0)) {
+    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+    vCol = vec4(0.0); vViewPos = vec3(0.0); vProjected = vec2(0.0); vPointDiameter = 0.0;
+    gl_PointSize = 1.0; return;
+  }
+  float perspective = CAMERA_DISTANCE / max(0.25, CAMERA_DISTANCE - depth);
+  vViewPos = vec3(view, depth);
+  vProjected = view * perspective;
+  vec2 px = uCenter + vProjected * uScale;
+  gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
+
+  float chroma = clamp(uChroma[int(sourceBand + 0.5)], 0.0, 1.0);
+  vec3 cyan = vec3(0.08, 0.62, 0.94);
+  vec3 violet = vec3(0.40, 0.38, 0.91);
+  vec3 color = mix(cyan, violet, 0.18 + 0.52 * seed);
+  float depthLight = clamp(0.88 + 0.22 * depth, 0.72, 1.08);
+  float audioGlow = clamp(0.82 + 0.16 * uLow + 0.12 * uMid + 0.04 * uHigh, 0.72, 1.12);
+  float slowActivity = 0.91 + 0.09 * sin(uTime * 0.23 + seed * 39.0 + theta * 0.35);
+  float lum = (0.20 + 0.30 * uLevel) * (0.72 + 0.28 * chroma) * depthLight * audioGlow * slowActivity * uLum * uDim;
+  vCol = vec4(color * lum, 0.0);
+  gl_PointSize = clamp(aMisc.y * uPx * perspective * (0.92 + 0.10 * uMid), 1.0, 3.5);
+  vPointDiameter = gl_PointSize / max(uPx * uScale, 0.001);
+}`;
+
+  const FS_AUR_DOTS = `#version 300 es
+precision highp float;
+in vec4 vCol;
+in vec3 vViewPos;
+in vec2 vProjected;
+in float vPointDiameter;
+uniform float uHoleR;
+out vec4 o;
+const float CAMERA_DISTANCE = 3.2;
+void main(){
+  // Perspective ray/sphere test: discard only when the black hole is before this particle.
+  vec2 projected = vProjected + (gl_PointCoord - vec2(0.5)) * vPointDiameter;
+  vec3 ray = vec3(projected / CAMERA_DISTANCE, -1.0);
+  float qa = dot(ray, ray);
+  float discriminant = CAMERA_DISTANCE * CAMERA_DISTANCE
+    - qa * (CAMERA_DISTANCE * CAMERA_DISTANCE - uHoleR * uHoleR);
+  if (discriminant >= 0.0) {
+    float nearHit = (CAMERA_DISTANCE - sqrt(discriminant)) / qa;
+    float particleT = CAMERA_DISTANCE - vViewPos.z;
+    if (nearHit >= 0.0 && nearHit < particleT - 0.0002) discard;
+  }
+  vec2 d = gl_PointCoord - 0.5;
+  float q = dot(d, d) * 4.0;
+  float a = (exp(-q * 3.0) + 0.30 * exp(-q * 1.1)) * (1.0 - smoothstep(0.75, 1.0, q));
+  o = vec4(vCol.rgb * a, 0.0);
+}`;
 
   const FS_HORIZON = `#version 300 es
 precision highp float;
@@ -417,7 +498,7 @@ void main(){
   float R = uHoleR * uScale;
   float d = length(p) / R;
   float a = atan(p.y, p.x);
-  float body = (1.0 - smoothstep(0.985, 1.0, d)) * (0.55 + 0.45 * smoothstep(0.2, 0.7, uLevel)) * step(0.02, uLevel);   // کرهٔ کامل و سیاه؛ در حالتِ کم‌نور هم هست، فقط کمی در شفق محو
+  float body = (1.0 - smoothstep(0.985, 1.0, d)) * step(0.02, uLevel);   // سطحِ سیاهِ کره تا زمانِ محوشدنِ خودِ کهکشان کاملاً کدر می‌ماند
   float local = haloNoise(a);
   // نورِ لبه دیگر ثابت نیست: لکه‌های روشنِ هاله مثل مادهٔ در حالِ گردش دورِ سیاه‌چاله می‌چرخند،
   // درونِ هاله تندتر از بیرونش (برشِ کپلری ~ d^-1.5) و با موسیقی شتاب می‌گیرند
@@ -442,6 +523,7 @@ void main(){
   vec3 rim = mix(uTint, cool, smoothstep(1.0, 1.35, d) * 0.7);
   float I = (ring + halo) * flow * dop * breathe + flare;
   vec3 col = rim * I * (0.35 + 0.65 * smoothstep(0.0, 0.5, uLevel)) * (0.65 + 0.35 * uLum);
+  col *= 1.0 - body;
   o = vec4(col, body);
 }`;
 
@@ -502,6 +584,7 @@ void main(){
   }
 
   const HOLE_R = 0.11;   // شعاعِ کره (واحدِ R)
+  const AURORA_INNER_R = 0.125; // حدِ داخلیِ Aurora؛ در ۵۰° با انبساطِ حداکثر هنوز داخلِ سیلوئت می‌ماند
   function buildGeometry(N) {
     const rnd = mulberry32(V.session);
     const buf = new Float32Array(N * 7);
@@ -515,10 +598,15 @@ void main(){
       inner.push(cur); cur += wts[b] * unit; outer.push(cur);
       cur += (b === 5 ? CASSINI : GAP) * unit;
     }
-    const nInner = Math.round(N * 0.04), nDust = Math.round(N * 0.08), nRing = N - nInner - nDust;
+    const nInner = Math.round(N * 0.04), nDustTotal = Math.round(N * 0.08);
+    const nAurora = Math.floor(N * 0.04), nDust = nDustTotal - nAurora, nRing = N - nInner - nDustTotal;
     // سهم هر نوار ∝ مساحتِ تقریبی (چگالی ∝ r^-0.5 تا نوارهای درونی خالی نمانند)
     const area = outer.map(function (o, b) { return Math.pow(o, 1.5) - Math.pow(inner[b], 1.5); });
     const asum = area.reduce(function (a, c) { return a + c; }, 0);
+    const auroraInner = inner.slice();
+    auroraInner[0] = AURORA_INNER_R;
+    const auroraArea = outer.map(function (o, b) { return Math.pow(o, 1.5) - Math.pow(auroraInner[b], 1.5); });
+    const auroraAsum = auroraArea.reduce(function (a, c) { return a + c; }, 0);
     const counts = area.map(function (a) { return Math.round(nRing * a / asum); });
     counts[NB - 1] += nRing - counts.reduce(function (a, c) { return a + c; }, 0);
     const th0 = rnd() * TAU;
@@ -542,6 +630,17 @@ void main(){
     }
     for (let k = 0; k < nInner; k++) put(HOLE_R + 0.03 + 0.05 * Math.pow(rnd(), 0.8), 12, rnd(), k % 7);
     for (let k = 0; k < nDust; k++) put(0.82 + 0.18 * Math.pow(rnd(), 1.5), 13, rnd(), 4);
+    V.auroraStart = i; V.auroraN = nAurora;
+    for (let k = 0; k < nAurora; k++) {
+      const pick = rnd() * auroraAsum; let b = 0, acc = auroraArea[0];
+      while (b < NB - 1 && pick > acc) { b++; acc += auroraArea[b]; }
+      const a0 = Math.pow(auroraInner[b], 1.5), a1 = Math.pow(outer[b], 1.5);
+      const r = Math.pow(a0 + (a1 - a0) * rnd(), 1 / 1.5);
+      const o = i * 7, seed = rnd();
+      buf[o] = r; buf[o + 1] = rnd() * TAU;
+      buf[o + 2] = seed; buf[o + 3] = 0.75 + 0.70 * rnd();
+      buf[o + 4] = 14; buf[o + 5] = b; buf[o + 6] = rnd(); i++;
+    }
     V.bandIn = new Float32Array(inner); V.bandOut = new Float32Array(outer);
     return buf;
   }
@@ -568,9 +667,10 @@ void main(){
       });
 
       G = {};
-      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uRich', 'uTint', 'uHole', 'uAsp', 'uBend', 'uDisk', 'uChroma', 'uPal', 'uBandIn', 'uBandOut', 'uNote', 'uHigh']);
+      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
-      G.dots = program(gl, VS_DOTS, FS_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
+      G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
+      G.aurDots = program(gl, VS_AUR_DOTS, FS_AUR_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uTime', 'uLevel', 'uLum', 'uLow', 'uMid', 'uHigh', 'uDim', 'uChroma', 'uHoleR']);
       G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
     } catch (e) { teardownGL(); V.dead = true; return false; }
     try {
@@ -587,6 +687,14 @@ void main(){
       gl.enableVertexAttribArray(l0); gl.vertexAttribPointer(l0, 2, gl.FLOAT, false, 28, 0);
       gl.enableVertexAttribArray(l1); gl.vertexAttribPointer(l1, 4, gl.FLOAT, false, 28, 8);
       gl.enableVertexAttribArray(l2); gl.vertexAttribPointer(l2, 1, gl.FLOAT, false, 28, 24);
+      gl.bindVertexArray(null);
+
+      G.aurVao = gl.createVertexArray(); gl.bindVertexArray(G.aurVao);
+      gl.bindBuffer(gl.ARRAY_BUFFER, G.dotBuf);
+      const a0 = gl.getAttribLocation(G.aurDots.p, 'aPolar'), a1 = gl.getAttribLocation(G.aurDots.p, 'aMisc'), a2 = gl.getAttribLocation(G.aurDots.p, 'aU');
+      gl.enableVertexAttribArray(a0); gl.vertexAttribPointer(a0, 2, gl.FLOAT, false, 28, 0);
+      gl.enableVertexAttribArray(a1); gl.vertexAttribPointer(a1, 4, gl.FLOAT, false, 28, 8);
+      gl.enableVertexAttribArray(a2); gl.vertexAttribPointer(a2, 1, gl.FLOAT, false, 28, 24);
       gl.bindVertexArray(null);
 
       G.tex = gl.createTexture(); G.fbo = gl.createFramebuffer();
@@ -795,19 +903,29 @@ void main(){
     V.inclNow = V.incl + 6 * Math.sin(nowS * 0.052);
     V.rollNow = V.tilt + 0.05 * Math.sin(nowS * 0.07 + 1.3);
     // حرکتِ دوربین مستقل از انرژی و ضربانِ صداست؛ reduced-motion آن را متوقف می‌کند.
-    const breathPhase = (nowS % BREATH.periodS) / BREATH.periodS;
-    const inhalePart = 0.43;
-    const autoProgress = rm ? 0 : (breathPhase < inhalePart
-      ? smoother5(breathPhase / inhalePart)
-      : 1 - smoother5((breathPhase - inhalePart) / (1 - inhalePart)));
+    const openingActive = V.playing && VM.isOpen() && !document.hidden && !rm;
+    if (openingActive && !V.opening.started) startCinematicOpening();
+    if (openingActive && V.opening.started && !V.entrance.pending && !V.entrance.active && !pst.on) {
+      V.opening.elapsed += dt;
+    }
+    const cycleS = Math.max(1, V.opening.cycleS || BREATH.maxCycleS);
+    const cyclePhase = (V.opening.elapsed % cycleS) / cycleS;
+    V.opening.progress = V.opening.started
+      ? (cyclePhase < BREATH.openPart
+        ? smoother5(cyclePhase / BREATH.openPart)
+        : 1 - smoother5((cyclePhase - BREATH.openPart) / (1 - BREATH.openPart)))
+      : 0;
+    const openProgress = V.opening.progress;
     if (!Number.isFinite(V.breath.pitch)) V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50;
     if (!Number.isFinite(V.breath.zoom)) V.breath.zoom = 1;
     if (!Number.isFinite(V.breath.mix)) V.breath.mix = 0;
     if (!Number.isFinite(V.breath.disk)) V.breath.disk = 0;
-    V.breath.pitch += (lerp(BREATH.solitudePitch, BREATH.majestyPitch, autoProgress) - V.breath.pitch) * expK(dt, 3.5);
-    V.breath.zoom += (lerp(BREATH.solitudeZoom, BREATH.majestyZoom, autoProgress) - V.breath.zoom) * expK(dt, 3.5);
+    const pitchTarget = lerp(BREATH.startPitch, BREATH.endPitch, openProgress);
+    const zoomTarget = lerp(BREATH.startZoom, BREATH.endZoom, openProgress);
+    V.breath.pitch += (pitchTarget - V.breath.pitch) * expK(dt, 0.8);
+    V.breath.zoom += (zoomTarget - V.breath.zoom) * expK(dt, 0.8);
     const breathActive = V.playing && VM.isOpen() && !document.hidden && !rm;
-    const diskBreathTarget = breathActive ? autoProgress * (0.07 + 0.03 * clamp(V.energy || 0, 0, 1)) : 0;
+    const diskBreathTarget = breathActive ? openProgress * (0.07 + 0.03 * clamp(V.energy || 0, 0, 1)) : 0;
     V.breath.disk += (diskBreathTarget - V.breath.disk) * expK(dt, diskBreathTarget > V.breath.disk ? 1.6 : 2.2);
     if (rm) V.breath.mix = 0;
     else V.breath.mix += ((breathActive ? 1 : 0) - V.breath.mix) * expK(dt, 1.8);
@@ -827,13 +945,14 @@ void main(){
     const La = V.L.aurora, Lg = V.L.galaxy;
     const baseIncl = Number.isFinite(V.inclNow) ? V.inclNow : V.incl;
     const mix = Number.isFinite(V.breath.mix) ? clamp(V.breath.mix, 0, 1) : 0;
-    const breathPitch = Number.isFinite(V.breath.pitch) ? clamp(V.breath.pitch, 28, 70) : baseIncl;
-    const breathZoom = Number.isFinite(V.breath.zoom) ? clamp(V.breath.zoom, 0.84, 1) : 1;
+    const breathPitch = Number.isFinite(V.breath.pitch) ? clamp(V.breath.pitch, BREATH.startPitch, 70) : baseIncl;
+    const breathZoom = Number.isFinite(V.breath.zoom) ? clamp(V.breath.zoom, BREATH.startZoom, 1.02) : 1;
     const diskBreath = !rm && Number.isFinite(V.breath.disk) ? clamp(V.breath.disk, 0, 0.10) : 0;
     const cameraPitch = lerp(baseIncl, breathPitch, mix);
     const sinI = Math.sin(cameraPitch * Math.PI / 180);
     const sceneScale = V.scale * lerp(1, breathZoom, mix);
-    const roll = V.rollNow || V.tilt;
+    const rollFade = V.opening.started ? smoother5(V.opening.elapsed / BREATH.rollFadeS) : 0;
+    const roll = (V.rollNow || V.tilt) + (rm ? 0 : (1 - rollFade) * BREATH.startRoll);
     gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND);
 
     if (La > 0.003) {
@@ -843,17 +962,10 @@ void main(){
       gl.uniform2f(G.aurora.u.uRes, G.aw, G.ah); gl.uniform1f(G.aurora.u.uTime, rm ? 0 : nowS + V.track * 17.0);
       gl.uniform1f(G.aurora.u.uLevel, La);
       gl.uniform3f(G.aurora.u.uSeed, V.seed3[0], V.seed3[1], V.seed3[2]);
-      gl.uniform1f(G.aurora.u.uRich, V.rich);
       let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
       gl.uniform3f(G.aurora.u.uTint, PAL[top * 3], PAL[top * 3 + 1], PAL[top * 3 + 2]);
       gl.uniform2f(G.aurora.u.uHole, V.cx / V.vw, 1 - V.cy / V.vh); gl.uniform1f(G.aurora.u.uAsp, V.vw / V.vh);
       gl.uniform1f(G.aurora.u.uBend, clamp(0.45 + 0.55 * Lg, 0, 1));
-      // هویتِ مشترک: همان نوارهای نت، همان شیب/چرخش و رنگِ نت‌ها در شفق هم بازتاب می‌شود
-      gl.uniform4f(G.aurora.u.uDisk, sceneScale * (1 + diskBreath) / V.vh, sinI, roll, clamp(Lg, 0, 1) * 0.85);
-      gl.uniform1fv(G.aurora.u.uChroma, A.chroma); gl.uniform3fv(G.aurora.u.uPal, PAL);
-      gl.uniform1fv(G.aurora.u.uBandIn, V.bandIn); gl.uniform1fv(G.aurora.u.uBandOut, V.bandOut);
-      gl.uniform3f(G.aurora.u.uNote, V.noteC[0], V.noteC[1], V.noteC[2]);
-      gl.uniform1f(G.aurora.u.uHigh, rm ? 0 : A.high);
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.enable(gl.BLEND);
     }
@@ -870,7 +982,19 @@ void main(){
 
     if (Lg > 0.004) {
       const u = G.dots.u, n = Math.max(1500, Math.floor(V.N * V.q));
+      const au = G.aurDots.u, aurN = Math.floor(V.auroraN * V.q);
       const pp = clamp((nowS - V.pulse.t0) / 1.7, 0, 1);
+      const setAurDots = function (half) {
+        if (La <= 0.003 || aurN <= 0) return;
+        gl.useProgram(G.aurDots.p);
+        gl.uniform2f(au.uView, V.vw, V.vh); gl.uniform2f(au.uCenter, V.cx, V.cy);
+        gl.uniform1f(au.uScale, sceneScale); gl.uniform1f(au.uSin, sinI); gl.uniform1f(au.uTilt, roll); gl.uniform1f(au.uPx, V.rs); gl.uniform1f(au.uHalf, half);
+        gl.uniform1f(au.uDiskBreath, diskBreath); gl.uniform1f(au.uPhase, rm ? 0 : V.phase + V.track * 3.1); gl.uniform1f(au.uTime, rm ? 0 : nowS % 6000);
+        gl.uniform1f(au.uLevel, La); gl.uniform1f(au.uLum, V.L.lum);
+        gl.uniform1f(au.uLow, rm ? 0 : A.low); gl.uniform1f(au.uMid, rm ? 0 : A.mid); gl.uniform1f(au.uHigh, rm ? 0 : A.high);
+        gl.uniform1f(au.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1)); gl.uniform1fv(au.uChroma, A.chroma); gl.uniform1f(au.uHoleR, HOLE_R);
+        gl.bindVertexArray(G.aurVao); gl.drawArrays(gl.POINTS, V.auroraStart, aurN);
+      };
       const setDots = function (half) {
         gl.useProgram(G.dots.p);
         gl.uniform2f(u.uView, V.vw, V.vh); gl.uniform2f(u.uCenter, V.cx, V.cy);
@@ -889,6 +1013,7 @@ void main(){
         gl.uniform1f(u.uAurMix, La > 0.003 ? clamp(La * 1.5, 0, 1) : 0);
         gl.bindVertexArray(G.dotVao); gl.drawArrays(gl.POINTS, 0, n);
       };
+      setAurDots(0);
       setDots(0);                                             // نیمهٔ دورِ حلقه‌ها (پشتِ کره)
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       const h = G.hor.u;
@@ -900,6 +1025,7 @@ void main(){
       gl.uniform1f(h.uAxis, roll + V.haloT * 0.05); gl.uniform3f(h.uTint, V.tintC[0], V.tintC[1], V.tintC[2]);
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);     // کرهٔ کامل
       gl.blendFunc(gl.ONE, gl.ONE);
+      setAurDots(1);
       setDots(1);                                             // نیمهٔ نزدیکِ حلقه‌ها (جلوی کره)
     }
 
@@ -1126,6 +1252,25 @@ void main(){
   window.addEventListener('voidmusic:mini', function () { miniKick(); setTimeout(refreshTaps, 50); });
   document.addEventListener('visibilitychange', function () { if (document.hidden) cancelTitleEntrance(true); else miniKick(); refreshTaps(); });
 
+  function startCinematicOpening() {
+    if (V.opening.started || reduced() || !V.playing || !VM.isOpen() || document.hidden) return;
+    const audio = VM.getAudio();
+    const duration = audio && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
+    const currentTime = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    const remaining = duration > 0 ? Math.max(0, duration - currentTime) : BREATH.fallbackTrackS;
+    const titleTail = duration > 0
+      ? Math.min(Math.max(CFG.powderMinS, duration / 20 * 1.1), duration * 0.5)
+      : CFG.powderMinS;
+    const reserved = V.entrance.duration + V.entrance.handoff + titleTail;
+    V.opening.cycleS = clamp((remaining - reserved) / BREATH.cyclesPerTrack, BREATH.minCycleS, BREATH.maxCycleS);
+    V.opening.started = true; V.opening.elapsed = 0; V.opening.progress = 0;
+    V.breath.pitch = BREATH.startPitch; V.breath.zoom = BREATH.startZoom; V.breath.mix = 1;
+  }
+  function resetCinematicOpening() {
+    V.opening.started = false; V.opening.elapsed = 0; V.opening.progress = 0; V.opening.cycleS = 60;
+    V.breath.mix = 0; V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50; V.breath.zoom = 1;
+  }
+
   window.addEventListener('voidmusic:playing', async function (e) {
     const playing = !!(e.detail && e.detail.playing);
     V.playing = playing;
@@ -1138,6 +1283,7 @@ void main(){
       if (A.ok && A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (er) {} }
       if (!VM.isOpen()) { miniKick(); return; }       // خارج از Music Mode: فقط صدا + ویژولایزرِ کوچکِ orb
       if (!V.ok && !initGL()) return;
+      startCinematicOpening();
       await ensureGraph();
       if (!V.playing) return;
       if (A.ok && A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (er) {} }
@@ -1158,7 +1304,10 @@ void main(){
         // خطِ پایهٔ بلندی را نگه می‌داریم (قبلاً دوباره «همین‌الان» را پایه می‌گرفت و در بخشِ پرصدا هیچ‌وقت اوجی دیده نمی‌شد)
         V.playing = true; V.tPlay = 0; A.warm = 0;
         if (V.lastStage === 'galaxy') { V.stage = 'galaxy'; V.stageT = 0; V.loT = 0; V.hiT = 0; }
-        if (V.ok || initGL()) ensureGraph().then(function () { if (V.playing && VM.isOpen()) startLoop(); });
+        if (V.ok || initGL()) {
+          startCinematicOpening();
+          ensureGraph().then(function () { if (V.playing && VM.isOpen()) startLoop(); });
+        }
       } else if (VM.getState && VM.getState().current) {
         // آهنگ بارگذاری شده ولی در مکث: ردِ کم‌نورِ سیاه‌چاله همچنان در صحنه باشد
         if (V.ok || initGL()) { V.L.galaxy = CFG.holeRest; V.L.aurora = 0; try { draw(performance.now() / 1000); } catch (er) {} }
@@ -1168,6 +1317,7 @@ void main(){
     cancelTitleEntrance(true);
     V.lastStage = V.stage;
     V.playing = false; stopLoop(true);
+    resetCinematicOpening();
     clearTimeout(V.tdT); V.tdT = setTimeout(function () { if (!VM.isOpen()) { teardownGL(); V.dead = false; } }, 30000);   // ۳۰ ثانیه نگه می‌داریم؛ بعد آزاد می‌شود
     V.dead = false; V.L.aurora = 0; V.L.galaxy = 0; V.stage = 'calm';
     // اگر موزیک هنوز پخش می‌شود، context را معلق نکن (صدا قطع می‌شود)
