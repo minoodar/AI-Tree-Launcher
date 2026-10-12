@@ -34,6 +34,7 @@
     cyclesPerTrack: 3, minCycleS: 36, maxCycleS: 65, fallbackTrackS: 180, openPart: 0.60, rollFadeS: 18,
     startPitch: 10, endPitch: 68, startZoom: 0.86, endZoom: 1.0, startRoll: 0.35
   };
+  const COSMIC_GROUPS = 24, COSMIC_STARS_PER_GROUP = 6;
   const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -259,6 +260,17 @@
     rs: 1, W: 0, H: 0, vw: 0, vh: 0, cx: 0, cy: 0, scale: 1, incl: 24, N: 0,
     breath: { mix: 0, pitch: 50, zoom: 1, disk: 0, ready: false },
     opening: { started: false, elapsed: 0, progress: 0, cycleS: 60 },
+    cosmic: {
+      rng: null, nextAmbientAt: 0, nextInfallAt: 0, lastPeakAt: -100, lastInfallAt: -100, peakCandidateUntil: -100, prevEnergy: 0,
+      wakeStart: -100, wakeUntil: -100, wakeTier: 0, wakeStrength: 0, glow: 0,
+      infallStart: -100, infallDuration: 14, infallTail: 0.22, infallStrength: 0,
+      infallAngles: new Float32Array(3), infallRadii: new Float32Array(3), infallUniforms: new Float32Array(12),
+      reveal: new Float32Array(COSMIC_GROUPS),
+      groupDelay: new Float32Array(COSMIC_GROUPS), sessionActive: false, sessionCount: 0, activeElapsed: 0,
+      revelationStart: 0, revelationAppear: 8, revelationHold: 21, revelationFade: 12,
+      revelationAmount: 0, revelationCenterX: 0.5, revelationCenterY: 0.5, revelationSize: 0.14,
+      revelationAngle: 0, revelationArms: 2, revelationSeed: 0, revelationEnergy: 0
+    },
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
     entrance: { pending: false, active: false, elapsed: 0, duration: 1.02, handoff: 0.28, generation: 0, id: null },
@@ -273,7 +285,8 @@ void main(){ vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)
   const FS_AURORA = `#version 300 es
 precision mediump float;
 uniform vec2 uRes; uniform float uTime; uniform float uLevel; uniform vec3 uSeed; uniform vec3 uTint;
-uniform vec2 uHole; uniform float uAsp, uBend;
+uniform vec2 uHole; uniform float uAsp, uBend; uniform vec4 uInfall[3]; uniform float uInfallTail, uHorizon;
+uniform vec4 uGalaxy; uniform vec4 uGalaxyParams;
 out vec4 o;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -294,8 +307,85 @@ void main(){
   float n1 = fbm(qd * 5.0 + uSeed.yz * 7.0 - vec2(t * 0.15, t * 0.11));
   float cloud = exp(-r * 2.4) * smoothstep(0.045, 0.17, r) * smoothstep(0.24, 0.54, n0 * 0.65 + n1 * 0.35);
   cloud *= uLevel * uBend * 0.055;
-  vec3 ambient = mix(vec3(0.10, 0.62, 0.94), uTint, 0.14) * cloud;
+  vec2 metric = vec2(uAsp, 1.0);
+  float spiralLight = 0.0;
+  float spiralR = length(q);
+  float spiralAngle = atan(q.y, q.x);
+  float horizonRadius = max(uHorizon, 0.001);
+  for (int i = 0; i < 3; i++) {
+    vec4 infall = uInfall[i];
+    if (infall.x >= 0.0 && infall.w > 0.001) {
+      float pathProgress = clamp((infall.z - spiralR) / max(infall.z - horizonRadius, 0.001), 0.0, 1.0);
+      float pathAngle = infall.y + 6.28318 * 1.12 * pathProgress + 0.42 * sin(pathProgress * 3.14159);
+      float angleDelta = abs(mod(spiralAngle - pathAngle + 3.14159, 6.28318) - 3.14159);
+      float crossTrack = angleDelta * max(spiralR, 0.01);
+      float width = 0.0018 + 0.0012 * pathProgress;
+      float tailAge = infall.x - pathProgress;
+      float tailLength = uInfallTail * (1.0 - 0.58 * infall.x);
+      float tail = smoothstep(0.0, 0.035, tailAge) * (1.0 - smoothstep(tailLength - 0.035, tailLength, tailAge));
+      float headWidth = mix(0.018, 0.030, smoothstep(0.65, 0.92, infall.x));
+      float head = exp(-pow(tailAge / headWidth, 2.0));
+      float track = exp(-pow(crossTrack / width, 2.0)) * step(-0.03, tailAge);
+      float approachFade = 1.0 - smoothstep(0.76, 1.0, infall.x);
+      spiralLight += (0.15 * tail + 0.58 * head) * track * smoothstep(0.0, 0.10, infall.x) * approachFade * infall.w;
+    }
+  }
+  vec3 infallColor = mix(vec3(0.76, 0.86, 1.0), uTint, 0.10);
+  vec3 distantGalaxy = vec3(0.0);
+  if (uGalaxyParams.x > 0.001) {
+    vec2 gd = (uv0 - uGalaxy.xy) * metric;
+    float ca = cos(uGalaxy.z), sa = sin(uGalaxy.z);
+    vec2 gq = vec2(ca * gd.x - sa * gd.y, sa * gd.x + ca * gd.y) / max(uGalaxy.w, 0.001);
+    float gr = length(gq);
+    float ga = atan(gq.y, gq.x);
+    float armWave = 0.5 + 0.5 * cos((ga + log(max(gr, 0.045)) * 1.55 + uGalaxyParams.y * 6.28318) * uGalaxyParams.z);
+    float irregular = 0.78 + 0.44 * vn(gq * 5.2 + uSeed.xy * 7.0);
+    float disk = exp(-gr * 3.5) * (1.0 - smoothstep(0.78, 1.12, gr));
+    float arms = smoothstep(0.43, 0.84, armWave) * exp(-pow((gr - 0.38 - 0.16 * (armWave - 0.5)) * 3.2, 2.0));
+    float halo = exp(-gr * 2.6) * smoothstep(0.02, 0.18, gr) * 0.10;
+    float nucleus = exp(-gr * 15.0) * 0.13;
+    vec3 galColor = mix(vec3(0.30, 0.48, 0.82), uTint, 0.12);
+    float galLight = (halo * 0.14 + disk * (0.20 + 0.22 * arms) + arms * 0.21 + nucleus * 0.18) * irregular;
+    // This is a background pass: the main disk and opaque horizon are drawn later.
+    // Do not mask against gd (which is relative to this galaxy's center).
+    distantGalaxy = galColor * galLight * uGalaxyParams.x * (0.92 + 0.16 * uGalaxyParams.w);
+  }
+  vec3 ambient = mix(vec3(0.10, 0.62, 0.94), uTint, 0.14) * cloud + infallColor * spiralLight + distantGalaxy;
   o = vec4(pow(max(ambient, 0.0), vec3(0.92)), 1.0);
+}`;
+
+  const VS_COSMIC_DOTS = `#version 300 es
+precision highp float;
+in vec4 aCosmic; // normalized x/y, seed, cluster index (-1 = quiet baseline)
+uniform vec2 uView; uniform float uPx, uTime, uLevel, uGlow, uAspect; uniform float uReveal[24]; uniform vec3 uPrimary;
+out vec3 vColor; out float vAlpha;
+void main(){
+  float group = floor(aCosmic.w + 0.5);
+  float wake = 0.10;
+  if (group >= -0.5) wake = uReveal[int(clamp(group, 0.0, 23.0))];
+  float phase = aCosmic.z * 91.7;
+  float twinkle = 0.94 + 0.06 * sin(uTime * 0.17 + phase);
+  float tint = step(0.82, fract(aCosmic.z * 13.17));
+  vColor = mix(vec3(0.74, 0.84, 1.0), vec3(1.0, 0.88, 0.70), tint * 0.22);
+  vAlpha = wake * uLevel * (group < -0.5 ? 0.10 + 0.10 * uGlow : 0.40) * twinkle;
+  vec2 p = aCosmic.xy * uView;
+  vec2 screenMetric = vec2(aCosmic.x * uAspect, 1.0 - aCosmic.y);
+  vec2 primaryMetric = vec2(uPrimary.x * uAspect, uPrimary.y);
+  if (distance(screenMetric, primaryMetric) < uPrimary.z) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vAlpha = 0.0; gl_PointSize = 1.0; return; }
+  gl_Position = vec4(p.x / uView.x * 2.0 - 1.0, 1.0 - p.y / uView.y * 2.0, 0.0, 1.0);
+  gl_PointSize = clamp((group < -0.5 ? 1.05 : 1.15 + fract(aCosmic.z * 7.31) * 1.25) * uPx, 1.0, 3.0);
+}`;
+
+  const FS_COSMIC_DOTS = `#version 300 es
+precision mediump float;
+in vec3 vColor; in float vAlpha; out vec4 o;
+void main(){
+  vec2 d = gl_PointCoord - 0.5;
+  float r = dot(d, d) * 4.0;
+  float core = exp(-r * 5.0);
+  float edge = 1.0 - smoothstep(0.55, 1.0, r);
+  float glow = core * edge;
+  o = vec4(vColor * vAlpha * glow, 0.0);
 }`;
 
   const FS_BLIT = `#version 300 es
@@ -583,6 +673,30 @@ void main(){
     return { p: p, u: u };
   }
 
+  function buildCosmicPoints() {
+    const rnd = mulberry32((V.session ^ 0x4C1A7E) >>> 0);
+    const data = new Float32Array(COSMIC_GROUPS * (COSMIC_STARS_PER_GROUP + 1) * 4);
+    let at = 0;
+    for (let group = 0; group < COSMIC_GROUPS; group++) {
+      const angle = (group / COSMIC_GROUPS) * TAU + (rnd() - 0.5) * 0.18;
+      const radius = 0.34 + rnd() * 0.20;
+      const cx = clamp(0.5 + Math.cos(angle) * radius, 0.035, 0.965);
+      const cy = clamp(0.49 + Math.sin(angle) * radius * 0.78, 0.035, 0.965);
+      V.cosmic.groupDelay[group] = rnd() * 3.6;
+      // One dim, fixed star per region preserves a quiet sense of distance.
+      data[at++] = clamp(cx + (rnd() - 0.5) * 0.05, 0.01, 0.99);
+      data[at++] = clamp(cy + (rnd() - 0.5) * 0.05, 0.01, 0.99);
+      data[at++] = rnd(); data[at++] = -1;
+      for (let j = 0; j < COSMIC_STARS_PER_GROUP; j++) {
+        const spread = 0.012 + rnd() * 0.035;
+        data[at++] = clamp(cx + (rnd() - 0.5) * spread * 2.0, 0.01, 0.99);
+        data[at++] = clamp(cy + (rnd() - 0.5) * spread * 1.4, 0.01, 0.99);
+        data[at++] = rnd(); data[at++] = group;
+      }
+    }
+    return data;
+  }
+
   const HOLE_R = 0.11;   // شعاعِ کره (واحدِ R)
   const AURORA_INNER_R = 0.125; // حدِ داخلیِ Aurora؛ در ۵۰° با انبساطِ حداکثر هنوز داخلِ سیلوئت می‌ماند
   function buildGeometry(N) {
@@ -667,8 +781,9 @@ void main(){
       });
 
       G = {};
-      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend']);
+      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uGalaxy', 'uGalaxyParams']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
+      G.cosmic = program(gl, VS_COSMIC_DOTS, FS_COSMIC_DOTS, ['uView', 'uPx', 'uTime', 'uLevel', 'uGlow', 'uAspect', 'uPrimary', 'uReveal[0]']);
       G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
       G.aurDots = program(gl, VS_AUR_DOTS, FS_AUR_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uTime', 'uLevel', 'uLum', 'uLow', 'uMid', 'uHigh', 'uDim', 'uChroma', 'uHoleR']);
       G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
@@ -677,6 +792,15 @@ void main(){
       const gl = V.gl;
       G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW', 'uMode', 'uEnter', 'uCoreR', 'uFade']);
       G.emptyVao = gl.createVertexArray();
+
+      // Sparse distant-star groups are uploaded once; only their reveal weights change per frame.
+      const cosmicData = buildCosmicPoints();
+      G.cosmicVao = gl.createVertexArray(); gl.bindVertexArray(G.cosmicVao);
+      G.cosmicBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, G.cosmicBuf); gl.bufferData(gl.ARRAY_BUFFER, cosmicData, gl.STATIC_DRAW);
+      const cosmicAttr = gl.getAttribLocation(G.cosmic.p, 'aCosmic');
+      gl.enableVertexAttribArray(cosmicAttr); gl.vertexAttribPointer(cosmicAttr, 4, gl.FLOAT, false, 16, 0);
+      G.cosmicCount = cosmicData.length / 4;
+      gl.bindVertexArray(null);
 
       // هندسهٔ کهکشان (یک بار)
       V.N = (window.innerWidth < 700) ? CFG.dotsMobile : CFG.dotsDesktop;
@@ -838,6 +962,170 @@ void main(){
     }
   }
 
+  function cosmicRand() {
+    if (!V.cosmic.rng) V.cosmic.rng = mulberry32((V.session ^ 0x51A7C0) >>> 0);
+    return V.cosmic.rng();
+  }
+  function cosmicPrimaryRadius() {
+    if (!V.vh || !V.scale) return 0.12;
+    // Covers the bright outer rings at maximum disk breathing and camera scale.
+    return V.scale * 0.87 / V.vh + 0.018;
+  }
+  function cosmicPrimaryCenter() { return [V.cx / Math.max(1, V.vw), 1 - V.cy / Math.max(1, V.vh)]; }
+  function cosmicHorizonRadius() { return HOLE_R * V.scale / Math.max(1, V.vh); }
+  function safeRevealPlacement() {
+    const aspect = V.vw / Math.max(1, V.vh), size = 0.12 + cosmicRand() * 0.035;
+    const center = cosmicPrimaryCenter(), cx = center[0] * aspect, cy = center[1];
+    const horizonR = cosmicHorizonRadius() + 0.025;
+    const candidates = [];
+    // This bounded grid is evaluated once per Music Mode session, never per frame.
+    for (let iy = 1; iy < 40; iy++) for (let ix = 1; ix < 40; ix++) {
+      const x = ix / 40, y = iy / 40;
+      if (x * aspect < size + 0.02 || (1 - x) * aspect < size + 0.02 || y < size + 0.02 || 1 - y < size + 0.02) continue;
+      const dx = x * aspect - cx, dy = y - cy, clearance = Math.hypot(dx, dy) - horizonR;
+      if (clearance >= 0.025) candidates.push([x, y, clearance]);
+    }
+    if (candidates.length) {
+      const pick = candidates[Math.floor(cosmicRand() * candidates.length)];
+      return { x: pick[0], y: pick[1], size: size };
+    }
+    // Keep the distant spiral recognizable even in narrow viewports. It remains a
+    // background object, so only the central horizon needs a clear margin.
+    for (let reducedSize = size - 0.005; reducedSize >= 0.09; reducedSize -= 0.005) {
+      let best = null;
+      for (let iy = 1; iy < 40; iy++) for (let ix = 1; ix < 40; ix++) {
+        const x = ix / 40, y = iy / 40;
+        if (x * aspect < reducedSize + 0.02 || (1 - x) * aspect < reducedSize + 0.02 || y < reducedSize + 0.02 || 1 - y < reducedSize + 0.02) continue;
+        const clearance = Math.hypot(x * aspect - cx, y - cy) - horizonR;
+        if (clearance >= 0.02 && (!best || clearance > best[2])) best = [x, y, clearance];
+      }
+      if (best) return { x: best[0], y: best[1], size: reducedSize };
+    }
+    let fallback = [0.95, 0.95, -Infinity];
+    for (let iy = 1; iy < 40; iy++) for (let ix = 1; ix < 40; ix++) {
+      const x = ix / 40, y = iy / 40;
+      const clearance = Math.hypot(x * aspect - cx, y - cy) - horizonR;
+      if (x * aspect >= 0.04 && (1 - x) * aspect >= 0.04 && y >= 0.04 && 1 - y >= 0.04 && clearance > fallback[2]) fallback = [x, y, clearance];
+    }
+    return { x: fallback[0], y: fallback[1], size: Math.max(0.09, size) };
+  }
+  function beginCosmicSession() {
+    const c = V.cosmic;
+    if (c.sessionActive || !V.vw || !V.vh) return;
+    c.sessionActive = true; c.sessionCount++; c.activeElapsed = 0;
+    c.lastInfallAt = -100; c.infallStart = -100; c.infallStrength = 0;
+    c.rng = mulberry32((V.session ^ Math.imul(c.sessionCount, 0x9E3779B9) ^ 0x51A7C0) >>> 0);
+    c.nextAmbientAt = 34 + cosmicRand() * 34;
+    c.nextInfallAt = 4 + cosmicRand() * 3;
+    c.revelationStart = 3 + cosmicRand() * 2;
+    c.revelationAppear = 7 + cosmicRand() * 2;
+    c.revelationHold = 20 + cosmicRand() * 5;
+    c.revelationFade = 11 + cosmicRand() * 3;
+    c.revelationAngle = cosmicRand() * TAU;
+    c.revelationArms = cosmicRand() < 0.68 ? 2.0 : 3.0;
+    c.revelationSeed = cosmicRand(); c.revelationEnergy = 0; c.revelationAmount = 0;
+    const placement = safeRevealPlacement();
+    if (placement) {
+      c.revelationCenterX = placement.x; c.revelationCenterY = placement.y; c.revelationSize = placement.size;
+    } else {
+      // A final edge fallback is safe because the entire revelation is a background pass.
+      c.revelationCenterX = 0.95; c.revelationCenterY = 0.95; c.revelationSize = 0.12;
+    }
+  }
+  function startCosmicInfall(eventTime, strength) {
+    const c = V.cosmic;
+    if (eventTime - c.lastInfallAt < 30) return false;
+    c.infallStart = eventTime; c.infallDuration = 13 + cosmicRand() * 3;
+    c.infallTail = 0.20 + cosmicRand() * 0.05; c.infallStrength = clamp(strength, 0.22, 0.48);
+    const angle = cosmicRand() * TAU;
+    for (let i = 0; i < 3; i++) {
+      c.infallAngles[i] = angle + i * (TAU / 3) + (cosmicRand() - 0.5) * 0.48;
+      c.infallRadii[i] = 0.86 + cosmicRand() * 0.18;
+    }
+    c.lastInfallAt = eventTime;
+    return true;
+  }
+  function awakenDistantGroups(eventTime, tier, strength) {
+    const c = V.cosmic;
+    if (eventTime > c.wakeUntil + 6 || c.wakeTier === 0) c.wakeStart = eventTime;
+    c.wakeTier = Math.max(c.wakeTier, tier);
+    c.wakeStrength = Math.max(c.wakeStrength, strength);
+    c.wakeUntil = Math.max(c.wakeUntil, eventTime + 5 + tier * 2);
+  }
+  function updateCosmic(dt, rm, titleAnimation) {
+    const c = V.cosmic;
+    const active = V.playing && VM.isOpen() && !document.hidden;
+    if (!active) return;
+    if (!c.sessionActive) beginCosmicSession();
+    if (!rm) c.activeElapsed += Math.min(dt, 0.1);
+    const eventTime = c.activeElapsed;
+    if (!c.nextAmbientAt) c.nextAmbientAt = eventTime + 34 + cosmicRand() * 34;
+    if (!rm && eventTime >= c.nextInfallAt) {
+      startCosmicInfall(eventTime, 0.34);
+      c.nextInfallAt = Infinity;
+    }
+    if (!rm && !titleAnimation) {
+      // An irregular quiet-background schedule remains possible during calm passages.
+      if (eventTime >= c.nextAmbientAt) {
+        const musicEnergy = A.ok ? clamp(A.energy, 0, 1) : 0;
+        const chance = 0.42 + 0.34 * musicEnergy;
+        if (cosmicRand() < chance) startCosmicInfall(eventTime, 0.26 + 0.12 * musicEnergy);
+        c.nextAmbientAt = eventTime + 46 + cosmicRand() * 48;
+      }
+      // Use the existing normalized energy and spectral-flux onset; cooldown and hysteresis
+      // prevent a sustained loud passage or individual beats from repeatedly waking the sky.
+      const fluxCross = A.fluxR >= 1.7 && A.prevFluxR < 1.7;
+      if (fluxCross) c.peakCandidateUntil = eventTime + 0.75;
+      const energy = clamp(V.energy || 0, 0, 1);
+      const rising = energy > c.prevEnergy + 0.006 || energy > 0.92;
+      if (A.ok && eventTime <= c.peakCandidateUntil && energy >= 0.68 && rising && eventTime - c.lastPeakAt >= 18) {
+        c.lastPeakAt = eventTime;
+        c.peakCandidateUntil = -100;
+        const exceptional = energy >= 0.90 && A.fluxR >= 2.1;
+        const tier = exceptional ? 3 : (energy >= 0.78 ? 2 : 1);
+        const probability = tier === 3 ? 0.72 : (tier === 2 ? 0.48 : 0.26);
+        if (cosmicRand() < probability) {
+          c.glow = Math.max(c.glow, 0.24 + 0.20 * energy);
+          if (tier >= 2) awakenDistantGroups(eventTime, tier, tier === 3 ? 0.62 : 0.36);
+          if (tier === 1 || cosmicRand() < (tier === 3 ? 0.48 : 0.30)) {
+            startCosmicInfall(eventTime, tier === 3 ? 0.42 : (tier === 2 ? 0.34 : 0.27));
+          }
+        }
+      }
+    }
+    c.prevEnergy = A.ok ? (V.energy || 0) : 0;
+    c.glow *= Math.exp(-dt * (rm ? 1.2 : 0.22));
+    const count = c.wakeTier === 3 ? COSMIC_GROUPS : (c.wakeTier === 2 ? 10 : 4);
+    const fadeAt = c.wakeUntil + 6;
+    const fade = 1 - smoother5((eventTime - c.wakeUntil) / 6);
+    for (let i = 0; i < COSMIC_GROUPS; i++) {
+      let target = 0;
+      if (!rm && i < count && eventTime < fadeAt) {
+        const rise = smoother5((eventTime - c.wakeStart - c.groupDelay[i]) / 2.8);
+        target = c.wakeStrength * rise * fade;
+      }
+      c.reveal[i] += (target - c.reveal[i]) * expK(dt, target > c.reveal[i] ? 1.2 : 3.8);
+    }
+    if (eventTime >= fadeAt) { c.wakeTier = 0; c.wakeStrength = 0; }
+    const revelationAge = eventTime - c.revelationStart;
+    const revelationEnd = c.revelationAppear + c.revelationHold + c.revelationFade;
+    let revelationTarget = 0;
+    if (!rm && revelationAge >= 0 && revelationAge < revelationEnd) {
+      const appear = smoother5(revelationAge / c.revelationAppear);
+      const fadeOut = 1 - smoother5((revelationAge - c.revelationAppear - c.revelationHold) / c.revelationFade);
+      revelationTarget = appear * fadeOut;
+    }
+    c.revelationAmount += (revelationTarget - c.revelationAmount) * expK(dt, revelationTarget > c.revelationAmount ? 1.8 : 2.8);
+    c.revelationEnergy += (clamp(V.energy || 0, 0, 1) - c.revelationEnergy) * expK(dt, 1.6);
+  }
+  function resetCosmicNarrative() {
+    const c = V.cosmic;
+    c.nextAmbientAt = 0; c.nextInfallAt = 0; c.lastPeakAt = -100; c.lastInfallAt = -100; c.peakCandidateUntil = -100; c.prevEnergy = 0;
+    c.wakeStart = -100; c.wakeUntil = -100; c.wakeTier = 0; c.wakeStrength = 0; c.glow = 0;
+    c.infallStart = -100; c.infallDuration = 14; c.infallStrength = 0; c.infallUniforms.fill(0); c.reveal.fill(0);
+    c.sessionActive = false; c.activeElapsed = 0; c.revelationStart = 0; c.revelationAmount = 0; c.revelationEnergy = 0; c.rng = null;
+  }
+
   function step(dt, nowS) {
     const audio = VM.getAudio();
     const dur = audio && isFinite(audio.duration) ? audio.duration : 0;
@@ -858,6 +1146,7 @@ void main(){
     const rm = reduced();
     let energy = A.ok ? A.energy : clamp(0.52 + 0.30 * Math.sin(nowS * 0.33) + 0.12 * Math.sin(nowS * 1.1), 0, 1);
     energy = V.energy = (V.energy || 0) + (energy - (V.energy || 0)) * expK(dt, 0.25);
+    updateCosmic(dt, rm, pst.on || V.entrance.pending || V.entrance.active);
 
     if (!V.playing) {
       const k = Math.exp(-dt / 0.55);
@@ -966,6 +1255,21 @@ void main(){
       gl.uniform3f(G.aurora.u.uTint, PAL[top * 3], PAL[top * 3 + 1], PAL[top * 3 + 2]);
       gl.uniform2f(G.aurora.u.uHole, V.cx / V.vw, 1 - V.cy / V.vh); gl.uniform1f(G.aurora.u.uAsp, V.vw / V.vh);
       gl.uniform1f(G.aurora.u.uBend, clamp(0.45 + 0.55 * Lg, 0, 1));
+      gl.uniform4f(G.aurora.u.uGalaxy, V.cosmic.revelationCenterX, V.cosmic.revelationCenterY, V.cosmic.revelationAngle, V.cosmic.revelationSize);
+      gl.uniform4f(G.aurora.u.uGalaxyParams, rm ? 0 : V.cosmic.revelationAmount, V.cosmic.revelationSeed, V.cosmic.revelationArms, V.cosmic.revelationEnergy);
+      const c = V.cosmic, infall = c.infallUniforms;
+      for (let i = 0; i < 3; i++) {
+        const age = c.activeElapsed - c.infallStart - i * 2.7;
+        const linearProgress = c.infallStart >= 0 && !rm && age >= 0 && age <= c.infallDuration ? clamp(age / c.infallDuration, 0, 1) : -1;
+        const progress = linearProgress < 0 ? -1 : Math.pow(linearProgress, 1.25);
+        const fade = progress < 0 ? 0 : smoother5(progress / 0.10) * (1 - smoother5((progress - 0.74) / 0.26));
+        const o = i * 4;
+        infall[o] = progress; infall[o + 1] = c.infallAngles[i]; infall[o + 2] = c.infallRadii[i];
+        infall[o + 3] = rm ? 0 : c.infallStrength * fade;
+      }
+      gl.uniform4fv(G.aurora.u['uInfall[0]'], infall);
+      gl.uniform1f(G.aurora.u.uInfallTail, c.infallTail);
+      gl.uniform1f(G.aurora.u.uHorizon, cosmicHorizonRadius());
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.enable(gl.BLEND);
     }
@@ -978,6 +1282,19 @@ void main(){
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex);
       gl.uniform1i(G.blit.u.uTex, 0); gl.uniform2f(G.blit.u.uRes, V.W, V.H); gl.uniform1f(G.blit.u.uMix, 1);
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }
+
+    if (La > 0.003 && G.cosmicVao) {
+      const cu = G.cosmic.u;
+      gl.useProgram(G.cosmic.p);
+      gl.uniform2f(cu.uView, V.vw, V.vh); gl.uniform1f(cu.uPx, V.rs);
+      gl.uniform1f(cu.uTime, rm ? 0 : nowS); gl.uniform1f(cu.uLevel, La);
+      gl.uniform1f(cu.uGlow, rm ? 0 : V.cosmic.glow);
+      gl.uniform1f(cu.uAspect, V.vw / Math.max(1, V.vh));
+      const primary = cosmicPrimaryCenter();
+      gl.uniform3f(cu.uPrimary, primary[0], primary[1], cosmicPrimaryRadius());
+      gl.uniform1fv(cu['uReveal[0]'], V.cosmic.reveal);
+      gl.bindVertexArray(G.cosmicVao); gl.drawArrays(gl.POINTS, 0, G.cosmicCount);
     }
 
     if (Lg > 0.004) {
@@ -1283,6 +1600,7 @@ void main(){
       if (A.ok && A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (er) {} }
       if (!VM.isOpen()) { miniKick(); return; }       // خارج از Music Mode: فقط صدا + ویژولایزرِ کوچکِ orb
       if (!V.ok && !initGL()) return;
+      beginCosmicSession();
       startCinematicOpening();
       await ensureGraph();
       if (!V.playing) return;
@@ -1305,6 +1623,7 @@ void main(){
         V.playing = true; V.tPlay = 0; A.warm = 0;
         if (V.lastStage === 'galaxy') { V.stage = 'galaxy'; V.stageT = 0; V.loT = 0; V.hiT = 0; }
         if (V.ok || initGL()) {
+          beginCosmicSession();
           startCinematicOpening();
           ensureGraph().then(function () { if (V.playing && VM.isOpen()) startLoop(); });
         }
@@ -1315,6 +1634,7 @@ void main(){
       return;
     }
     cancelTitleEntrance(true);
+    resetCosmicNarrative();
     V.lastStage = V.stage;
     V.playing = false; stopLoop(true);
     resetCinematicOpening();
