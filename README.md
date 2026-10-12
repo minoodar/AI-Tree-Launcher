@@ -90,7 +90,7 @@ AI Tree Launcher v40.1 是一款纯 **Vanilla JS**、零依赖的扩展程序，
 3. 点击 **加载已解压的扩展程序 (Load unpacked)** 并选择项目文件夹。
 
 #### 💖 支持与贡献
-作为一名身处饱受战争蹂躏的伊朗的独立 AI 开发者，维护这个开源项目很大程度上依赖于社区的支持。
+作为一名身处饱受战争蹂躏的伊朗的独立 AI 开发者，维护这个开源项目很大程度上依赖于社区 Support。
 - **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 - **伊朗里亚尔 (IRR):** [通过 Donito 捐赠](https://donito.me/u-b8wjr)
 
@@ -279,4 +279,199 @@ AI Tree Launcher v40.1 ist eine reines **Vanilla JS** Extension ohne externe Abh
 - **🔎 Standardisierte Suche & KI-Modus-Umschaltung:** Verbesserte Suchleiste mit Unterstützung für KI-Suche auf Google und Bing.
 - **🎵 Dynamische Sound-Engine & Tierkreis-Klangwelten:** Vollständige Integration von Soundeffekten für die 12 Tierkreiszeichen.
 - **✨ Sternbilder & Astronomie-Guide:** Interaktives Modul zum Erlernen von Sternbildern.
-- **👨‍👩‍👧‍👦 Familienmitglieder-Alters
+- **👨‍👩‍👧‍👦 Familienmitglieder-Altersrechner:** Präzise Erfassung von Tag und Monat mit Erkennung von Sonnen- (Jalali) und Gregorianischem Kalender.
+- **🎯 Void Tab & Ziel-Fortschrittsbalken:** Interaktive Fortschrittsbalken für persönliche Ziele auf der Void-Tab-Seite.
+- **🌌 Orbitaler Tresor:** Schwebender Launcher mit unbegrenzten Lesezeichen und 15-Kategorien-Tag-System.
+- **🎙️ Smart Studio & Notizbuch:** Erweitertes Notizbuch mit **100 % Offline-Sprachdiktat**.
+- **📅 Zeit, Aufgaben & Erweiterter Kalender:** Dreifach-Kalender und To-Do-Liste.
+- **🧠 Einheitliche Suche & KI-Tools:** Kombinierte Web- und Lesezeichensuche, Prompt-Bibliothek und Taschenrechner.
+- **🕊️ Global Wisdom Engine:** Tägliche Poesie und Weisheiten.
+- **🛡️ Stabilität & Sicherheit:** Höhere Stabilität beim Tab-Rendering, Fehlerbehebung, Chrome-Sync und JSON-Backups.
+- **🌍 12 Sprachen:** Vollständig in 12 Sprachen lokalisiert.
+
+#### 💻 Installation (Entwicklermodus)
+1. Klone `minoodar/AI-Tree-Launcher` oder lade die ZIP herunter.
+2. Öffne `chrome://extensions/` und aktiviere den **Entwicklermodus**.
+3. Klicke auf **Entpackte Erweiterung laden** und wähle den Projektordner.
+
+#### 💖 Unterstützung & Beitrag
+Als unabhängiger KI-Entwickler hilft Ihr Beitrag, das Projekt am Leben zu erhalten.
+- **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+- **Iranischer Rial (IRR):** [Spenden via Donito](https://donito.me/u-b8wjr)
+
+</details>
+
+<details>
+<summary><strong>🇫🇷 Français</strong></summary>
+
+<br>
+
+### 🚀 L'Espace de Travail Orbital Ultime
+*Le Void Tab a atteint la perfection ultime ! Découvrez le visualiseur de musique galactique Saturne exclusif, le contrôleur de playlist flottant, la roue astronomique du ciel réel à 13 constellations et « L'Écho d'Aujourd'hui ».*
+
+AI Tree Launcher v40.1 est une extension pure en **Vanilla JS**, sans dépendances.
+
+#### 🌟 Fonctionnalités Clés
+- **🪐 Lecteur & Visualiseur de Musique Galactique Saturne :** Intégration musicale ultime ! Comprend un visualiseur audio exclusif aux anneaux de Saturne avec particules lumineuses réactives, la sauvegarde de playlists, un contrôleur flottant pour gérer la musique sur tous les sites web et un mode visualiseur plein écran immersif.
+- **♈ Roue Astronomique à 13 Constellations & Équinoxe de Printemps :** Reconstruite avec les coordonnées réelles RA/Dec incluant Ophiuchus. Roue 3D interactive avec trois orbes d'ancrage (Today, Goals, Echo) et point doré pulsant en temps réel pour l'Équinoxe de Printemps.
+- **🔄 Navigation Fluide Multi-Saisie :** Parcourez les constellations par balayage (swipe), défilement horizontal, touches fléchées (←/→), flèches latérales ou clic direct. Conforme à 100% avec `prefers-reduced-motion`.
+- **✅ To-Do Avancé & Tâches Liées aux Objectifs :** Éditez directement les titres en cliquant sur le texte, remplacez les boutons vides par des étoiles de priorité et liez-les aux objectifs globaux.
+- **🎆 Feux d'Artifice & Célébration des Objectifs :** Effets pyrotechniques dynamiques pour fêter vos réussites de 30% à 100%.
+- **🔎 Recherche Standardisée & Mode IA :** Barre de recherche améliorée prenant en charge la recherche IA pour Google et Bing.
+- **🎵 Moteur Audio Dynamique & Ambiance du Zodiaque :** Effets sonores complets pour les 12 constellations du Zodiaque.
+- **✨ Guide des Constellations et Astronomie :** Module interactif d'apprentissage des constellations.
+- **👨‍👩‍👧‍👦 Compteur d'Âge Familial :** Saisie précise du jour et du mois avec détection des calendriers solaire (Jalali) et grégorien.
+- **🎯 Void Tab & Progression des Objectifs :** Affichage visuel de la progression des objectifs sur la page Void Tab.
+- **🌌 Coffre Orbital :** Lanceur flottant avec favoris illimités et recherche par tags.
+- **🎙️ Studio Intelligent & Bloc-notes :** Bloc-notes avancé avec **dictée 100% hors ligne**.
+- **📅 Temps, Tâches & Calendrier Avancé :** Triple calendrier et liste de tâches.
+- **🧠 Recherche Unifiée & Outils IA :** Recherche combinée, bibliothèque de prompts et calculatrice.
+- **🕊️ Moteur de Sagesse :** Poésie et réflexions quotidiennes.
+- **🛡️ Stabilité & Sécurité :** Amélioration de la stabilité du rendu des onglets, correction de bugs et sauvegardes JSON.
+- **🌍 12 Langues :** Entièrement localisé en 12 langues.
+
+#### 💻 Installation (Mode Développeur)
+1. Clonez `minoodar/AI-Tree-Launcher` ou téléchargez le ZIP.
+2. Allez sur `chrome://extensions/` et activez le **Mode développeur**.
+3. Cliquez sur **Charger l'extension non empaquetée** et sélectionnez le dossier.
+
+#### 💖 Soutien et Contribution
+En tant que développeur IA indépendant basé en Iran, le maintien de ce projet dépend du soutien de la communauté.
+- **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+- **Rial Iranien (IRR):** [Faire un don via Donito](https://donito.me/u-b8wjr)
+
+</details>
+
+<details>
+<summary><strong>🇯🇵 日本語 (Japanese)</strong></summary>
+
+<br>
+
+### 🚀 究極のオービタル・ワークスペース
+*Void Tabが究極の完成度に達しました！独占的なギャラクティック土星ミュージック・ビジュアライザー、フローティング・プレイリストコントローラー、13星座リアル天体ホイールをお楽しみください。*
+
+AI Tree Launcher v40.1 は、ピュアな **Vanilla JS** で構築された外部依存性のない拡張機能です。
+
+#### 🌟 主な機能
+- **🪐 ギャラクティック土星ミュージックプレイヤー＆ビジュアライザー:** 音楽機能の究極進化！反応型光粒子ストリームを備えた土星の環オーディオビジュアライザー、カスタムプレイリスト保存、全Webページで音楽再生をコントロールできるフローティングウィジェット、および全画面ビジュアライザーモードを搭載。
+- **♈ 13星座リアル天体ホイール＆春分点インジケーター:** へびつかい座（Ophiuchus）を含む13黄道星座を実際の赤経/赤緯（RA/Dec）座標で再現。3Dホイール、3つのアンカーオーブ（Today、Goals、Echo）、および12言語に対応した春分点マーカーを搭載。
+- **🔄 スムーズなマルチ入力ナビゲーション:** スワイプ、横スクロール、矢印キー（←/→）、サイド矢印、または直接クリックでスムーズに切替可能。`prefers-reduced-motion`に完全対応。
+- **✅ 高度なTo-Do＆目標連動タスク:** テキストを直接クリックしてインライン編集、星マークで優先度表示、通常タスクと重要タスクを分離し、全体目標に接続して貢献度（%）を設定可能。
+- **🎆 目標達成の花火演出＆マイルストーン:** 進捗が30%から100%に達するにつれて花火の演出が段階的に豪華になり、100%達成時には最高のお祝い演出が表示されます。
+- **🔎 標準化された検索＆AIモード切替:** GoogleおよびBingのAI検索をサポートする高度な検索バー。
+- **🎵 ダイナミック・オーディオエンジン＆黄道十二星座のサウンド:** 12黄道星座と各種アクションに対応したフル効果音。
+- **✨ 星座＆天体ガイド：** オービタル生態系に直接統合されたインタラクティブな星座学習モジュール。
+- **👨‍👩‍👧‍👦 家族の年齢トラッカー:** 太陽暦（ジャラリー）とグレゴリオ暦を自動判別し、月・日単位で正確に年齢をカウント。
+- **🎯 Void Tab & 目標進捗バー:** Void Tab ページで個人目標の進捗状況をプログレスバーで視覚表示。
+- **🌌 オービタル・ボールト:** 無制限のリンクと15カテゴリのタグ検索を備えたフローティングランチャー。
+- **🎙️ スマートスタジオ & メモ帳:** **100%オフラインの音声入力**を備えた高度なメモ帳。
+- **📅 時間、タスク、高度なカレンダー:** トリプルカレンダーとTo-Doリスト。
+- **🧠 統合検索 & AIツール:** Web統合検索、プロンプト・ライブラリ、電卓。
+- **🕊️ グローバル・ウィズダム:** 世界の詩や伝統的な知恵を毎日配信。
+- **🛡️ 安定性とセキュリティ:** タブ描画の安定性向上、軽微なバグ修正、同期、JSONバックアップ。
+- **🌍 12言語対応:** 12の言語に完全ローカライズ。
+
+#### 💻 インストール方法 (デベロッパーモード)
+1. `minoodar/AI-Tree-Launcher` をクローンするか、ZIP をダウンロードします。
+2. `chrome://extensions/` を開き、**デベロッパーモード** を有効にします。
+3. **パッケージ化されていない拡張機能を読み込む** をクリックし、フォルダを選択します。
+
+#### 💖 サポートと寄付
+戦争の影響を受けるイランを拠点とする独立したAI開発者として、このプロジェクトの維持はコミュニティのサポートに依存しています。
+- **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+- **イラン・リアル (IRR):** [Donitoで寄付する](https://donito.me/u-b8wjr)
+
+</details>
+
+<details>
+<summary><strong>🇷🇺 Русский (Russian)</strong></summary>
+
+<br>
+
+### 🚀 Ультимативное Орбитальное Пространство
+*Вкладка Void Tab достигла абсолютного совершенства! Эксклюзивный галактический музыкальный визуализатор Сатурна, плавающий контроллер плейлистов, колесо 13 созвездий реального неба и «Эхо сегодня».*
+
+AI Tree Launcher v40.1 — это расширение на чистом **Vanilla JS** без внешних зависимостей.
+
+#### 🌟 Ключевые особенности
+- **🪐 Галактический музыкальный плеер и визуализатор Сатурна:** Максимальная музыкальная интеграция! Эксклюзивный аудиовизуализатор с кольцами Сатурна и световыми частицами, сохранение плейлистов, плавающий виджет для управления музыкой на любых сайтах и полноэкранный режим визуализатора.
+- **♈ Колесо 13 созвездий реального неба и индикатор Равноденствия:** Создано на основе реальных координат RA/Dec с 13 зодиакальными созвездиями. Интерактивное 3D-колесо с тремя якорями (Today, Goals, Echo) и золотой точкой Точки Весеннего Равноденствия.
+- **🔄 Плавная навигация любым способом:** Переключайтесь с помощью свайпов, горизонтальной прокрутки, клавиш-стрелок (←/→), боковых стрелок или клика по соседним созвездиям. Полное соответствие `prefers-reduced-motion`.
+- **✅ Продвинутый To-Do и задачи с привязкой к целям:** Редактируйте названия кликом по тексту, заменяйте пустые переключатели звездочками приоритета, разделяйте обычные и важные задачи и привязывайте их к общим целям.
+- **🎆 Фейерверки и празднование целей:** Динамические фейерверки в честь ваших достижений с нарастающей интенсивностью от 30% до 100%.
+- **🔎 Стандартизированный поиск и переключение AI:** Улучшенная поисковая строка с поддержкой ИИ-поиска в Google и Bing.
+- **🎵 Динамический звуковой движок и звуки Знаков Зодиака:** Полная звуковая интеграция для 12 созвездий и действий лаунчера.
+- **✨ Гид по созвездиям и астрономии:** Интерактивный модуль изучения созвездий и звездного неба.
+- **👨‍👩‍👧‍👦 Счетчик возраста членов семьи:** Точный ввод дня и месяца с автоматическим определением солнечного (джалали) и григорианского календарей.
+- **🎯 Void Tab и прогресс целей:** Визуальное отображение прогресса целей на странице Void Tab.
+- **🌌 Орбитальное хранилище:** Плавающий лаунчер с неограниченным числом закладок и 15 категориями тегов.
+- **🎙️ Smart Studio и Блокнот:** Продвинутый блокнот со **100% офлайн голосовым вводом**.
+- **📅 Время, Задачи и Расширенный календарь:** Тройной календарь и список задач.
+- **🧠 Единый Поиск и ИИ-инструменты:** Объединенный поиск, библиотека промптов и калькулятор.
+- **🕊️ Движок Мудрости:** Ежедневная поэзия и мудрости со всего мира.
+- **🛡️ Стабильность и Безопасность:** Повышенная стабильность рендеринга вкладок, исправление ошибок и JSON-бэкапы.
+- **🌍 12 Языков:** Полностью локализован на 12 языков.
+
+</details>
+
+<details>
+<summary><strong>🇸🇦 العربية (Arabic)</strong></summary>
+
+<br>
+
+<div dir="rtl">
+
+### 🚀 مساحة العمل المدارية المطلقة
+*وصلت علامة التبويب Void Tab إلى الكمال المطلق! استمتع بمُشغل ومشهد زحل المجري التفاعلي الحصري للموسيقى، أداة التحكم العائمة بقوائم التشغيل، عجلة السماء الحقيقية لـ 13 برجًا، و"صدى اليوم".*
+
+AI Tree Launcher الإصدار v40.1 هو إضافة مبنية بالكامل بلغة **Vanilla JS** بدون أي مكتبات خارجية.
+
+#### 🌟 أبرز الميزات الأساسية
+- **🪐 مشغل ومؤثر بصري مجري بنمط زحل للموسيقى:** التكامل الموسيقي الأقصى! يتضمن مشهدًا بصريًا تفاعليًا لحلقات زحل مع جزيئات ضوئية متفاعلة، إمكانية حفظ قوائم التشغيل، أداة عائمة للتحكم بالموسيقى أثناء تصفح أي موقع، ومود العرض الممتد ملء الشاشة.
+- **♈ عجلة السماء الحقيقية لـ 13 برجًا ومؤشر الاعتدال الربيعي:** إعادة بناء كاملة ببيانات الفلك الحقيقية RA/Dec وتضم 13 برجًا بما فيها حواء (Ophiuchus). عجلة ثلاثية الأبعاد تفاعلية، ثلاثة كواكب مرساة (Today, Goals, Echo)، ونقطة ذكية ذهبية ناطقة للاعتدال الربيعي بـ 12 لغة.
+- **🔄 تنقل سلس ومتعدد الوسائط:** تنقل بين الكوكبات بالسحب (Swipe)، التمرير الأفقي، أسهم اللوحة (←/→)، الأسهم الجانبية، أو النقر المباشر. متوافقة 100% مع معايير `prefers-reduced-motion`.
+- **✅ قائمة مهام متقدمة ومرتبطة بالأهداف:** تعديل العناوين مباشرة بالنقر على النص، استبدال المفاتيح الفارغة بنجوم الأولوية، فصل المهام العادية عن الممتازة بنجمة، وربط المهام بالأهداف الكلية.
+- **🎆 ألعاب نارية واحتفال بتحقيق الأهداف:** مؤثرات بصرية حية واحتفالات متدرجة عند التقدم من 30% إلى 100% من إنجاز الأهداف.
+- **🔎 بحث معياري وتبديل محركات الذكاء الاصطناعي:** شريط بحث محسّن يدعم وضع البحث الذكي لـ Google وBing.
+- **🎵 محرك صوتي ديناميكي وأصوات الأبراج:** تفاعل صوتي برمجي عند فتح وإغلاق القوائم الثلاثية - يولد نغمات فريدة مرتبطة بـ 12 برجًا فلكيًا.
+- **👨‍👩‍👧‍👦 متتبع أعمار العائلة:** تتبع أعمار أفراد العائلة بدقة يومية وشهرية، مع الكشف التلقائي الذكي للتقويمين الهجري الشمسي (الجلالي) والميلادي.
+- **🌌 الخزنة المدارية:** مشغل عائم قابل للسحب يحتوي على إشارات مرجعية غير محدودة عبر 4 مراكز، وشبكة وسوم قابلة للبحث بـ 15 تصنيفًا.
+- **🎙️ استوديو ذكي ومفكرة:** مفكرة متقدمة تضم **إملاء صوتيًا يعمل دون اتصال بالإنترنت 100%** (نموذج Whisper محلي).
+- **📅 الوقت، المهام والتقويم المتقدم:** تقويم ثلاثي (ميلادي، هجري شمسي، هجري قمري) وقائمة مهام محسّنة.
+- **🧠 البحث الموحد وأدوات الذكاء الاصطناعي:** محرك بحث مدمج للويب والإشارات المرجعية، مكتبة مطالبات شاملة، وآلة حاسبة.
+- **🕊️ محرك الحكمة العالمي:** شعر وأقوال يومية مترجمة مستوحاة من التقاليد الروحية العالمية.
+- **🛡️ أمان وموثوقية عالية:** تحسين استقرار عرض علامات التبويب، إصلاح الأخطاء، مزامنة Chrome، نسخة احتياطية كاملة بصيغة JSON بنقرة واحدة.
+- **🌍 12 لغة:** معربة بالكامل بـ 12 لغة عالمية.
+
+#### 💻 طريقة التثبيت (وضع المطور)
+1. قم بعمل Clone لمستودع `minoodar/AI-Tree-Launcher` أو قم بتنزيل ملف ZIP.
+2. توجه إلى `chrome://extensions/` وفعل **وضع المطور (Developer mode)**.
+3. انقر على **تحميل الإضافة غير المعبأة (Load unpacked)** واختر مجلد المشروع.
+
+#### 💖 الدعم والمساهمة
+كمطور مستقل للذكاء الاصطناعي مقيم في إيران التي تعاني من آثار الحرب، فإن الحفاظ على هذا المشروع مفتوح المصدر يعتمد بشكل كبير على دعم المجتمع.
+- **Bitcoin (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+- **التبرع بالريال الإيراني (IRR):** [عبر موقع Donito](https://donito.me/u-b8wjr)
+
+</div>
+
+</details>
+
+<details>
+<summary><strong>⚖️ License, Attribution & AI-Assisted Development</strong></summary>
+
+<br>
+
+This project is an original concept initiated and directed by the project creator, who served as the **idea creator, product designer, and creative director**.
+
+Development was conducted with AI-assisted workflows:
+- **ChatGPT:** Creative direction, UI/UX ideation, visual concepts, and problem-solving.
+- **Google Gemini:** Initial core implementation.
+- **Claude:** Code development, refinement, debugging, and completion.
+- **Grok:** Parallel development, review, debugging, and final refinement.
+
+The project also incorporates or uses third-party technologies, including **Firecrawl AnyDoc** ([MIT License](https://github.com/firecrawl/anydoc)), **Google Translate**, and **Google Speech-to-Text**.
+
+All third-party software, services, trademarks, and copyrights remain subject to their respective licenses and terms. No ownership is claimed over third-party components or services.
+
+</details>
