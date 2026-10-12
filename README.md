@@ -493,4 +493,31 @@ AI Tree Launcher نسخه v40.1 یک افزونه مبتنی بر **Vanilla JS**
 #### 💻 آموزش نصب (Developer Mode)
 ۱. مخزن `minoodar/AI-Tree-Launcher` را کلون کرده یا فایل ZIP آن را دانلود کنید.
 ۲. در مرورگر خود به آدرس `chrome://extensions/` رفته و حالت **Developer mode** را روشن کنید.
-۳. روی دکمه **Load unpacked** کلیک کرده و پوشه اصلی
+۳. روی دکمه **Load unpacked** کلیک کرده و پوشه اصلی پروژه را انتخاب کنید.
+
+#### 💖 حمایت و پشتیبانی
+به عنوان یک توسعه‌دهنده و فعال مستقل هوش مصنوعی در ایرانِ تحت شرایط جنگی و تحریم، نگهداری و توسعه مستمر این پروژه متن‌باز به صورت کاملاً رایگان، عمیقاً به حمایت جامعه کاربری وابسته است. با حمایت خود به باز ماندن سورس کدها و زنده ماندن این مسیر کمک کنید.
+- **بیت‌کوین (شبکه BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
+- **حمایت ریالی:** [پرداخت از طریق دونی‌تو](https://donito.me/u-b8wjr)
+
+</div>
+</details>
+
+<details>
+<summary><strong>⚖️ License, Attribution & AI-Assisted Development</strong></summary>
+
+<br>
+
+This project is an original concept initiated and directed by the project creator, who served as the **idea creator, product designer, and creative director**.
+
+Development was conducted with AI-assisted workflows:
+* **ChatGPT:** Creative direction, UI/UX ideation, visual concepts, and problem-solving.
+* **Google Gemini:** Initial core implementation.
+* **Claude:** Code development, refinement, debugging, and completion.
+* **Grok:** Parallel development, review, debugging, and final refinement.
+
+The project also incorporates or uses third-party technologies, including **Firecrawl AnyDoc** ([MIT License](https://github.com/firecrawl/anydoc)), **Google Translate**, and **Google Speech-to-Text**.
+
+All third-party software, services, trademarks, and copyrights remain subject to their respective licenses and terms. No ownership is claimed over third-party components or services.
+
+</details>
