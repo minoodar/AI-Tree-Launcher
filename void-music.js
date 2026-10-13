@@ -42,6 +42,9 @@
     voidMusicFullscreen: 'Full screen', voidMusicExitFullscreen: 'Exit full screen',
     voidMusicShowWidget: 'Show extension widget', voidMusicHideWidget: 'Hide extension widget'
   };
+  // پیش‌فرض انگلیسیِ کلیدهای جستجو/شافل (ترجمهٔ ۱۲ زبانه در i18n.js است)
+  EN.voidMusicSearch = 'Search tracks'; EN.voidMusicSearchClear = 'Clear search'; EN.voidMusicNoResults = 'No matching tracks';
+  EN.voidMusicShuffle = 'Shuffle'; EN.voidMusicShuffleOn = 'Shuffle on'; EN.voidMusicShuffleOff = 'Shuffle off';
   function L(key) {
     try {
       if (typeof t === 'function') { const v = t(key); if (v && v !== key) return v; }
@@ -62,8 +65,12 @@
     dragging: false, dragFrac: 0,
     vol: 0.8, muted: false, outGain: null,
     mini: null, fsByUs: false, widgetShown: false, ptrDown: false,
-    roots: new Map(), permCache: new Map(), copyMode: false, copyDone: 0, copyTotal: 0, swept: []
+    roots: new Map(), permCache: new Map(), copyMode: false, copyDone: 0, copyTotal: 0, swept: [],
+    shuffle: false, query: ''
   };
+  // پخش تصادفی: پیش‌فرض خاموش (ترتیبِ فهرست). برای برگرداندنِ رفتارِ قدیمی (همیشه تصادفی) این را true کن.
+  const SHUFFLE_DEFAULT = false, SHUF_KEY = 'voidMusic.shuffle';
+  try { const sv = localStorage.getItem(SHUF_KEY); S.shuffle = sv === null ? SHUFFLE_DEFAULT : sv === '1'; } catch (e) { S.shuffle = SHUFFLE_DEFAULT; }
   let root, dock, els = {};
 
   /* ------------------------------------------------------------------ */
@@ -87,6 +94,16 @@
     return String(name || '').replace(/\.[^.]+$/, '').replace(/^\s*\d{1,3}\s*[-._)]\s*/, '').replace(/[_]+/g, ' ').replace(/\s+/g, ' ').trim() || name;
   }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  // نرمال‌سازیِ جستجو: حروف کوچک، بدون اعراب/کشیده/نیم‌فاصله، «ي ك» عربی ← «ی ک» فارسی، ارقامِ فارسی/عربی ← لاتین
+  function normQ(str) {
+    let x = String(str || '').toLowerCase();
+    try { x = x.normalize('NFKD'); } catch (e) {}
+    return x.replace(/[\u0300-\u036f\u064b-\u065f\u0670\u0640\u200c\u200d]/g, '')
+      .replace(/[\u064a\u0649]/g, '\u06cc').replace(/\u0643/g, '\u06a9').replace(/\u0629/g, '\u0647')
+      .replace(/[\u06f0-\u06f9]/g, function (d) { return String(d.charCodeAt(0) - 0x06f0); })
+      .replace(/[\u0660-\u0669]/g, function (d) { return String(d.charCodeAt(0) - 0x0660); })
+      .replace(/[_\-.]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
   function el(tag, cls, attrs) {
     const n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -329,7 +346,7 @@
       const db = await idb();
       await new Promise(function (res, rej) {
         const tx = db.transaction('lib', 'readwrite');
-        tx.objectStore('lib').put({ id: track.id, name: track.name, handle: track.rootId ? null : track.handle, rootId: track.rootId || null, path: track.path || null, copy: track.copy || null });
+        tx.objectStore('lib').put({ id: track.id, name: track.name, handle: track.rootId ? null : track.handle, rootId: track.rootId || null, path: track.path || null, copy: track.copy || null, ts: track.ts || 0 });
         tx.oncomplete = res; tx.onerror = function () { rej(tx.error); };
       });
       db.close();
@@ -425,8 +442,9 @@
     return { handle: fh, copy: fname };
   }
 
-  async function addEntries(entries) {
-    let added = 0, firstNew = null;
+  async function addEntries(entries, opts) {
+    opts = opts || {};
+    let added = 0, firstNew = null, firstTarget = null, dupTr = null;
     S.copyDone = 0; S.copyTotal = S.copyMode ? entries.length : 0;
     for (const en of entries) {
       let f = en.file || null, h = en.handle || null;
@@ -434,12 +452,12 @@
       if (!isAudioName(name, f)) continue;
       let dup = false;
       for (const tr of S.tracks) {
-        if (en.root && tr.rootId === en.root.id && tr.path && tr.path.join('/') === en.path.join('/')) { dup = true; break; }
-        if (!en.root && h && tr.handle && !tr.copy) { try { if (await tr.handle.isSameEntry(h)) { dup = true; break; } } catch (e) {} }
-        else if (f && tr.file && tr.file.name === f.name && tr.file.size === f.size && tr.file.lastModified === f.lastModified) { dup = true; break; }
+        if (en.root && tr.rootId === en.root.id && tr.path && tr.path.join('/') === en.path.join('/')) { dup = true; dupTr = tr; break; }
+        if (!en.root && h && tr.handle && !tr.copy) { try { if (await tr.handle.isSameEntry(h)) { dup = true; dupTr = tr; break; } } catch (e) {} }
+        else if (f && tr.file && tr.file.name === f.name && tr.file.size === f.size && tr.file.lastModified === f.lastModified) { dup = true; dupTr = tr; break; }
       }
-      if (dup) continue;
-      const tr = { id: uid(), name: name, title: nameToTitle(name), artist: '', file: f, handle: h, bad: false, rootId: en.root ? en.root.id : null, path: en.root ? en.path : null, copy: null };
+      if (dup) { if (!firstTarget) firstTarget = dupTr; continue; }
+      const tr = { ts: Date.now() + added, id: uid(), name: name, title: nameToTitle(name), artist: '', file: f, handle: h, bad: false, rootId: en.root ? en.root.id : null, path: en.root ? en.path : null, copy: null };
       if (S.copyMode) {
         // «نسخهٔ خصوصی»: فایل یک بار در OPFS کپی می‌شود؛ از آن به بعد هیچ مجوزی لازم نیست
         try {
@@ -455,11 +473,20 @@
       S.bag.splice(randInt(S.bag.length + 1), 0, tr.id);
       if (tr.rootId || tr.copy || (h && !f)) dbPut(tr);
       if (!firstNew) firstNew = tr;
+      if (!firstTarget) firstTarget = tr;
       added++;
     }
     renderQueue();
     syncEmpty();
-    if (added && (!S.audio || S.audio.paused) && S.curId === null) { playbackLog('auto-start-after-add', { added: added, readyState: S.audio ? S.audio.readyState : 0 }); playId(S.bag.pop() || firstNew.id); }
+    // فایلِ تکی (یا انتخابِ صریحِ فایل از دکمهٔ «افزودن فایل»): همان فایل بلافاصله پخش شود، حتی اگر آهنگ دیگری جاری باشد.
+    // اگر فایلِ انتخابی از قبل در فهرست بود، همان ردیفِ موجود پخش می‌شود.
+    if (firstTarget && (entries.length === 1 || opts.playFirst)) {
+      if (!(firstTarget.id === S.curId && S.audio && !S.audio.paused)) { playbackLog('play-now-after-pick', { added: added, picked: entries.length }); firstTarget.bad = false; playId(firstTarget.id); }
+    } else if (added && (!S.audio || S.audio.paused) && S.curId === null) {
+      // افزودنِ گروهی (پوشه/چندفایلِ رها‌شده): فقط وقتی هیچ آهنگی جاری نیست خودکار شروع شود
+      playbackLog('auto-start-after-add', { added: added, readyState: S.audio ? S.audio.readyState : 0 });
+      playId(S.shuffle ? (S.bag.pop() || firstNew.id) : firstNew.id);
+    }
     return added;
   }
 
@@ -468,7 +495,7 @@
       try {
         const hs = await window.showOpenFilePicker({ multiple: true, types: PICKER_TYPES });
         playbackLog('file-picker-resolved', { count: hs.length });
-        await addEntries(hs.map(function (h) { return { handle: h }; }));
+        await addEntries(hs.map(function (h) { return { handle: h }; }), { playFirst: true });
         return;
       } catch (e) { playbackLog('file-picker-error', { name: e && e.name || 'Error', message: e && e.message || String(e) }); if (e && e.name === 'AbortError') return; }
     }
@@ -539,10 +566,31 @@
     return await h.getFile();
   }
 
+  // ترتیبِ فهرست (وقتی شافل خاموش است): آهنگِ بعد از جاری، خرابها را رد می‌کند و در انتها به اول برمی‌گردد
+  function seqNext() {
+    const n = S.tracks.length;
+    let i = -1;
+    for (let k = 0; k < n; k++) if (S.tracks[k].id === S.curId) { i = k; break; }
+    for (let step = 1; step <= n; step++) {
+      const tr = S.tracks[(i + step) % n];
+      if (!tr.bad) return tr.id;
+    }
+    return S.tracks[(i + 1) % n].id;
+  }
+  function setShuffle(on, announce) {
+    S.shuffle = !!on;
+    try { localStorage.setItem(SHUF_KEY, S.shuffle ? '1' : '0'); } catch (e) {}
+    if (S.shuffle) S.bag = shuffled(S.tracks.map(function (t) { return t.id; }).filter(function (id) { return id !== S.curId; }));
+    relabel();
+    if (announce) toast(L(S.shuffle ? 'voidMusicShuffleOn' : 'voidMusicShuffleOff'));
+    // با روشن‌کردنِ شافل وقتی چیزی پخش نمی‌شود، همان لحظه یک آهنگِ تصادفی شروع شود
+    if (announce && S.shuffle && S.tracks.length && !(S.audio && !S.audio.paused)) { const id = drawNext(); if (id) playId(id); }
+  }
   function drawNext() {
     const n = S.tracks.length;
     if (!n) return null;
     if (n === 1) return S.tracks[0].id;
+    if (!S.shuffle) return seqNext();
     if (!S.bag.length) {
       S.bag = shuffled(S.tracks.map(function (t) { return t.id; }));
       // هرگز آهنگِ جاری بلافاصله تکرار نشود
@@ -781,7 +829,19 @@
     els.copyChip = el('button', 'vm-chip vm-copy', { type: 'button', 'aria-pressed': 'false' });
     head.append(els.addFiles, els.addFolder, els.copyChip);
     els.list = el('ul', 'vm-list');
-    els.queuePop.append(head, els.list);
+    els.shuffleChip = el('button', 'vm-chip vm-shuffle', { type: 'button', 'aria-pressed': 'false' });
+    head.insertBefore(els.shuffleChip, els.copyChip);
+    // جستجو در فهرست (عنوان، هنرمند، نام فایل؛ فارسی/عربی/اعراب‌دار هم‌ارز)
+    els.searchRow = el('div', 'vm-search-row', { hidden: '' });
+    const swrap = el('div', 'vm-search-wrap');
+    els.search = el('input', 'vm-search', { type: 'text', autocomplete: 'off', spellcheck: 'false', inputmode: 'search', enterkeyhint: 'search', dir: 'auto' });
+    els.searchX = el('button', 'vm-search-x', { type: 'button', hidden: '' });
+    els.searchX.appendChild(icon(ICON.close));
+    els.searchCount = el('span', 'vm-search-count');
+    swrap.append(els.search, els.searchX);
+    els.searchRow.append(swrap, els.searchCount);
+    els.queuePop.append(head, els.searchRow, els.list);
+    injectSearchCss();
 
     els.toast = el('div', 'vm-toast', { role: 'status' });
     els.corner = el('div', 'vm-corner');
@@ -807,6 +867,25 @@
     relabel();
   }
 
+  function injectSearchCss() {
+    if (document.getElementById('void-music-search-css')) return;
+    const st = document.createElement('style'); st.id = 'void-music-search-css';
+    st.textContent =
+      '.vm-search-row{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding:4px 2px 8px}' +
+      '.vm-search-row[hidden],.vm-search-x[hidden]{display:none!important}' +
+      '.vm-search-wrap{position:relative;flex:1;min-width:0}' +
+      '.vm-search{width:100%;box-sizing:border-box;font:inherit;font-size:13px;color:inherit;background:rgba(255,255,255,.07);border:1px solid rgba(199,210,254,.22);border-radius:10px;padding:7px 28px;padding-inline:10px 28px;outline:none;transition:border-color .15s,background .15s}' +
+      '.vm-search:focus{border-color:rgba(199,210,254,.6);background:rgba(255,255,255,.1)}' +
+      '.vm-search::placeholder{color:inherit;opacity:.5}' +
+      '.vm-search-x{position:absolute;top:50%;inset-inline-end:5px;transform:translateY(-50%);width:20px;height:20px;padding:0;display:flex;align-items:center;justify-content:center;background:transparent;border:0;border-radius:50%;color:inherit;opacity:.6;cursor:pointer}' +
+      '.vm-search-x:hover,.vm-search-x:focus-visible{opacity:1;background:rgba(255,255,255,.12)}' +
+      '.vm-search-x .vm-ico{width:12px;height:12px}' +
+      '.vm-search-count{font-size:11px;opacity:.6;white-space:nowrap;font-variant-numeric:tabular-nums}' +
+      '.vm-shuffle[aria-pressed="true"]{background:rgba(199,210,254,.2);border-color:rgba(199,210,254,.6);color:#fff}' +
+      '.vm-empty{list-style:none;padding:14px 8px;text-align:center;font-size:12px;opacity:.6}';
+    document.head.appendChild(st);
+  }
+
   function relabel() {
     refreshMenuLabel();                       // دکمهٔ نوارِ بالا و منو حتی پیش از ساخته‌شدنِ پلیر
     if (!S.built) return;
@@ -824,6 +903,10 @@
     els.addFiles.textContent = L('voidMusicAddFiles');
     els.addFolder.textContent = L('voidMusicAddFolder');
     els.copyChip.textContent = L('voidMusicKeepCopy');
+    els.shuffleChip.textContent = L('voidMusicShuffle');
+    els.shuffleChip.setAttribute('aria-pressed', S.shuffle ? 'true' : 'false');
+    els.search.placeholder = L('voidMusicSearch'); els.search.setAttribute('aria-label', L('voidMusicSearch'));
+    els.searchX.setAttribute('aria-label', L('voidMusicSearchClear')); els.searchX.title = L('voidMusicSearchClear');
     els.copyChip.setAttribute('aria-pressed', S.copyMode ? 'true' : 'false');
     els.queuePop.setAttribute('aria-label', L('voidMusicQueue'));
     els.volPop.setAttribute('aria-label', L('voidMusicVolume'));
@@ -1001,10 +1084,21 @@
     }, 2600);
   }
 
+  function setQuery(q) {
+    S.query = q || '';
+    if (S.built) { els.search.value = S.query; renderQueue(); }
+  }
   function renderQueue() {
     if (!S.built) return;
+    const toks = normQ(S.query).split(' ').filter(Boolean);
     els.list.textContent = '';
+    let shown = 0;
     S.tracks.forEach(function (tr) {
+      if (toks.length) {
+        const hay = normQ(tr.title + ' ' + tr.artist + ' ' + tr.name);
+        for (let k = 0; k < toks.length; k++) if (hay.indexOf(toks[k]) < 0) return;
+      }
+      shown++;
       const li = el('li', 'vm-row' + (tr.id === S.curId ? ' is-cur' : '') + (tr.bad ? ' is-bad' : ''));
       const main = el('button', 'vm-row-main', { type: 'button' });
       main.appendChild(el('span', 'dot'));
@@ -1017,6 +1111,10 @@
       li.append(main, x);
       els.list.appendChild(li);
     });
+    if (!shown && S.tracks.length) { const em = el('li', 'vm-empty'); em.textContent = L('voidMusicNoResults'); els.list.appendChild(em); }
+    els.searchRow.hidden = !S.tracks.length;                       // بدون آهنگ، جستجو لازم نیست
+    els.searchX.hidden = !S.query;
+    els.searchCount.textContent = !S.tracks.length ? '' : (toks.length ? shown + ' / ' + S.tracks.length : String(S.tracks.length));
   }
   function removeTrack(id) {
     const wasCur = id === S.curId;
@@ -1214,6 +1312,10 @@
     const btn = which === 'vol' ? els.vol : els.queueBtn;
     pop.classList.toggle('is-open', on);
     btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+    if (which === 'queue') {
+      if (!on && S.query) setQuery('');                            // بستنِ فهرست = پاک‌شدنِ جستجو (فهرست کامل برمی‌گردد)
+      if (on) { const cur = els.list.querySelector('.is-cur'); if (cur && cur.scrollIntoView) { try { cur.scrollIntoView({ block: 'nearest' }); } catch (e) {} } }
+    }
     if (on) armPop(); else if (!anyPop()) { clearTimeout(popTimer); popTimer = 0; }
   }
   function closePops() { setPop('vol', false); setPop('queue', false); }
@@ -1239,13 +1341,31 @@
     els.volRange.addEventListener('pointerup', function () { try { els.volRange.blur(); } catch (e) {} });   // فوکوسِ ماوس نباید پاپ‌اور را باز نگه دارد
     els.addFiles.addEventListener('click', pickFiles);
     els.addFolder.addEventListener('click', pickFolder);
+    els.shuffleChip.addEventListener('click', function () { setShuffle(!S.shuffle, true); armPop(); });
+    els.search.addEventListener('input', function () { S.query = els.search.value; renderQueue(); armPop(); });
+    els.search.addEventListener('keydown', function (e) {
+      e.stopPropagation();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (els.search.value) setQuery('');
+        else { closePops(); els.queueBtn.focus({ preventScroll: true }); }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const first = els.list.querySelector('.vm-row-main');
+        if (first) first.click();                                 // اولین نتیجه پخش شود
+      } else if (e.key === 'ArrowDown') {
+        const r = els.list.querySelector('.vm-row-main');
+        if (r) { e.preventDefault(); r.focus(); }
+      }
+    });
+    els.searchX.addEventListener('click', function () { setQuery(''); els.search.focus(); });
     els.copyChip.addEventListener('click', function () {
       S.copyMode = !S.copyMode;
       try { localStorage.setItem('voidMusic.copy', S.copyMode ? '1' : '0'); } catch (e) {}
       if (S.copyMode && navigator.storage && navigator.storage.persist) { navigator.storage.persist().catch(function () {}); }
       relabel(); armPop();
     });
-    els.file.addEventListener('change', function () { addEntries(Array.prototype.map.call(els.file.files, function (f) { return { file: f }; })); });
+    els.file.addEventListener('change', function () { addEntries(Array.prototype.map.call(els.file.files, function (f) { return { file: f }; }), { playFirst: true }); });
     els.folder.addEventListener('change', function () {
       addEntries(Array.prototype.filter.call(els.folder.files, function (f) { return EXT.test(f.name); }).slice(0, MAX_FOLDER_FILES).map(function (f) { return { file: f }; }));
     });
@@ -1549,11 +1669,11 @@
     S.libLoaded = true;
     const roots = await dbRoot('all');
     (roots || []).forEach(function (r) { if (r && r.handle) S.roots.set(r.id, { id: r.id, name: r.name, handle: r.handle }); });
-    const rows = await dbAll();
+    const rows = (await dbAll()).slice().sort(function (a, b) { return ((a && a.ts) || 0) - ((b && b.ts) || 0); });   // ترتیبِ افزودن (برای پخشِ پشت‌سرهم)
     let n = 0;
     rows.forEach(function (r) {
       if (!r || trackById(r.id) || (!r.handle && !(r.rootId && S.roots.has(r.rootId)))) return;
-      S.tracks.push({ id: r.id, name: r.name, title: nameToTitle(r.name), artist: '', file: null, handle: r.handle || null, bad: false, rootId: r.rootId || null, path: r.path || null, copy: r.copy || null });
+      S.tracks.push({ id: r.id, name: r.name, title: nameToTitle(r.name), artist: '', file: null, handle: r.handle || null, bad: false, rootId: r.rootId || null, path: r.path || null, copy: r.copy || null, ts: r.ts || 0 });
       S.bag.push(r.id); n++;
     });
     if (n) { S.bag = shuffled(S.bag); renderQueue(); syncEmpty(); }
