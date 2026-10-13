@@ -35,6 +35,16 @@
     startPitch: 10, endPitch: 68, startZoom: 0.86, endZoom: 1.0, startRoll: 0.35
   };
   const COSMIC_GROUPS = 24, COSMIC_STARS_PER_GROUP = 6;
+  // راه شیری پس‌زمینه + دنباله‌دارها. همهٔ اعدادِ قابل‌تنظیم اینجاست.
+  const MW = {
+    base: 0.40,                       // نوردهیِ پایه: نوار همیشه کم‌نور حاضر است (هرگز صفر نمی‌شود)
+    firstS: 2.0,                      // اولین «نمایان‌شدن» ۲ تا ۴ ثانیه بعد از شروع
+    appearS: 8, holdS: 26, fadeS: 12, // مدت‌ها (هرکدام + بخشِ تصادفی کوچک)
+    restMin: 48, restRand: 34,        // فاصلهٔ دو نمایان‌شدن (ثانیه)
+    starsDesktop: 2600, starsMobile: 1000,
+    cometGapS: 5.5, cometGapRand: 7.5, // فاصلهٔ دو دنباله‌دار؛ بدونِ وابستگی به اوج
+    cometStrength: 0.62
+  };
   const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -261,15 +271,17 @@
     breath: { mix: 0, pitch: 50, zoom: 1, disk: 0, ready: false },
     opening: { started: false, elapsed: 0, progress: 0, cycleS: 60 },
     cosmic: {
-      rng: null, nextAmbientAt: 0, nextInfallAt: 0, lastPeakAt: -100, lastInfallAt: -100, peakCandidateUntil: -100, prevEnergy: 0,
+      rng: null, nextCometAt: 0, lastPeakAt: -100, peakCandidateUntil: -100, prevEnergy: 0,
       wakeStart: -100, wakeUntil: -100, wakeTier: 0, wakeStrength: 0, glow: 0,
-      infallStart: -100, infallDuration: 14, infallTail: 0.22, infallStrength: 0,
-      infallAngles: new Float32Array(3), infallRadii: new Float32Array(3), infallUniforms: new Float32Array(12),
+      infallTail: 0.22,
+      slotStart: new Float32Array(3).fill(-100), slotDur: new Float32Array(3).fill(14),
+      slotAngle: new Float32Array(3), slotRadius: new Float32Array(3), slotStrength: new Float32Array(3),
+      infallUniforms: new Float32Array(12),
       reveal: new Float32Array(COSMIC_GROUPS),
       groupDelay: new Float32Array(COSMIC_GROUPS), sessionActive: false, sessionCount: 0, activeElapsed: 0,
-      revelationStart: 0, revelationAppear: 8, revelationHold: 21, revelationFade: 12,
-      revelationAmount: 0, revelationCenterX: 0.5, revelationCenterY: 0.5, revelationSize: 0.14,
-      revelationAngle: 0, revelationArms: 2, revelationSeed: 0, revelationEnergy: 0
+      revelationStart: 0, revelationAppear: 8, revelationHold: 26, revelationFade: 12, revelationRest: 60,
+      revelationAmount: 0, revelationSeed: 0, revelationEnergy: 0,
+      bandAngle: 0.4, bandOffset: 0.25, bandBulge: 0.3, bandWidth: 0.19, bandDirty: true
     },
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
@@ -283,15 +295,16 @@
 void main(){ vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)); gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
 
   const FS_AURORA = `#version 300 es
-precision mediump float;
+precision highp float;
 uniform vec2 uRes; uniform float uTime; uniform float uLevel; uniform vec3 uSeed; uniform vec3 uTint;
 uniform vec2 uHole; uniform float uAsp, uBend; uniform vec4 uInfall[3]; uniform float uInfallTail, uHorizon;
-uniform vec4 uGalaxy; uniform vec4 uGalaxyParams;
+uniform vec4 uBand; uniform vec4 uBandP; uniform float uBandLow;
 out vec4 o;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y); }
 float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 3; i++){ s += a * vn(p); p = p * 2.02 + 7.1; a *= 0.5; } return s; }
+float fbm5(vec2 p){ float a = 0.5, s = 0.0; for (int i = 0; i < 5; i++){ s += a * vn(p); p = p * 2.03 + 11.7; a *= 0.5; } return s; }
 void main(){
   vec2 uv0 = gl_FragCoord.xy / uRes;
   // Keep a restrained lensing distortion, but leave visible ring structure to the 3D particles.
@@ -319,7 +332,7 @@ void main(){
       float pathAngle = infall.y + 6.28318 * 1.12 * pathProgress + 0.42 * sin(pathProgress * 3.14159);
       float angleDelta = abs(mod(spiralAngle - pathAngle + 3.14159, 6.28318) - 3.14159);
       float crossTrack = angleDelta * max(spiralR, 0.01);
-      float width = 0.0018 + 0.0012 * pathProgress;
+      float width = max(0.0018 + 0.0012 * pathProgress, 1.1 / uRes.y);   // هرگز باریک‌تر از ~۱ پیکسلِ بافتِ ¼-رزولوشن (وگرنه کم‌رنگ و ناپایدار می‌شد)
       float tailAge = infall.x - pathProgress;
       float tailLength = uInfallTail * (1.0 - 0.58 * infall.x);
       float tail = smoothstep(0.0, 0.035, tailAge) * (1.0 - smoothstep(tailLength - 0.035, tailLength, tailAge));
@@ -327,40 +340,60 @@ void main(){
       float head = exp(-pow(tailAge / headWidth, 2.0));
       float track = exp(-pow(crossTrack / width, 2.0)) * step(-0.03, tailAge);
       float approachFade = 1.0 - smoothstep(0.76, 1.0, infall.x);
-      spiralLight += (0.15 * tail + 0.58 * head) * track * smoothstep(0.0, 0.10, infall.x) * approachFade * infall.w;
+      spiralLight += (0.20 * tail + 0.66 * head) * track * smoothstep(0.0, 0.10, infall.x) * approachFade * infall.w;
     }
   }
   vec3 infallColor = mix(vec3(0.76, 0.86, 1.0), uTint, 0.10);
   vec3 distantGalaxy = vec3(0.0);
-  if (uGalaxyParams.x > 0.001) {
-    vec2 gd = (uv0 - uGalaxy.xy) * metric;
-    float ca = cos(uGalaxy.z), sa = sin(uGalaxy.z);
-    vec2 gq = vec2(ca * gd.x - sa * gd.y, sa * gd.x + ca * gd.y) / max(uGalaxy.w, 0.001);
-    float gr = length(gq);
-    float ga = atan(gq.y, gq.x);
-    float armWave = 0.5 + 0.5 * cos((ga + log(max(gr, 0.045)) * 1.55 + uGalaxyParams.y * 6.28318) * uGalaxyParams.z);
-    float irregular = 0.78 + 0.44 * vn(gq * 5.2 + uSeed.xy * 7.0);
-    float disk = exp(-gr * 3.5) * (1.0 - smoothstep(0.78, 1.12, gr));
-    float arms = smoothstep(0.43, 0.84, armWave) * exp(-pow((gr - 0.38 - 0.16 * (armWave - 0.5)) * 3.2, 2.0));
-    float halo = exp(-gr * 2.6) * smoothstep(0.02, 0.18, gr) * 0.10;
-    float nucleus = exp(-gr * 15.0) * 0.13;
-    vec3 galColor = mix(vec3(0.30, 0.48, 0.82), uTint, 0.12);
-    float galLight = (halo * 0.14 + disk * (0.20 + 0.22 * arms) + arms * 0.21 + nucleus * 0.18) * irregular;
-    // This is a background pass: the main disk and opaque horizon are drawn later.
-    // Do not mask against gd (which is relative to this galaxy's center).
-    distantGalaxy = galColor * galLight * uGalaxyParams.x * (0.92 + 0.16 * uGalaxyParams.w);
+  float bandDens = 0.0;
+  if (uBandP.x > 0.001) {
+    // راه شیری: نواری مورب با برآمدگی گرم، شیارِ تاریکِ غبار و ابرهای ستاره‌ای (نه مارپیچِ روبه‌رو)
+    vec2 rel = uv0 * metric - 0.5 * metric;
+    vec2 dir = vec2(cos(uBand.x), sin(uBand.x));
+    vec2 nrm = vec2(-dir.y, dir.x);
+    float s = dot(rel, dir);
+    float d0 = dot(rel, nrm) - uBand.y;
+    float w = uBand.w;
+    float sd = uBandP.y * 41.0;
+    float tb = uTime * 0.0016;
+    float d = d0 + (fbm(vec2(s * 1.6 + sd, 3.7)) - 0.5) * 0.55 * w + (fbm5(vec2(s * 4.0 + sd, d0 * 3.0 + 5.0)) - 0.5) * 0.30 * w;
+    float core = exp(-pow(d / w, 2.0));
+    float halo = exp(-abs(d) / (w * 2.4)) * 0.22;
+    float bulge = exp(-pow((s - uBand.z) / 0.34, 2.0));
+    float bulgeW = exp(-pow(d / (w * 1.25), 2.0));
+    float clouds = fbm5(vec2(s * 5.0 + tb, d * 10.0) + sd);
+    float fine = fbm5(vec2(s * 17.0, d * 34.0) + sd * 1.7);
+    float dens = (core * (0.50 + 0.95 * clouds) + halo * (0.60 + 0.80 * clouds)) * (0.62 + 0.55 * fine);
+    dens += bulge * bulgeW * 0.85 * (0.70 + 0.50 * clouds);
+    // شیارِ بزرگِ غبار (Great Rift): باریک، کمی خارج از مرکز، با لکه‌های غبارِ پراکنده
+    float laneC = (fbm(vec2(s * 2.3, 1.9) + sd * 0.3) - 0.5) * 0.70 * w;
+    float lane = exp(-pow((d - laneC - 0.10 * w) / (0.20 * w), 2.0));
+    float dpatch = smoothstep(0.38, 0.70, fbm5(vec2(s * 6.0 + tb, d * 14.0) + sd * 2.3));
+    float dust = clamp(lane * (0.55 + 0.75 * dpatch) + 0.40 * dpatch * core, 0.0, 1.0);
+    dens *= 1.0 - 0.80 * dust * (1.0 - 0.35 * bulge);
+    bandDens = clamp(dens * 0.6, 0.0, 1.0);
+    // رنگ: مرکزِ کهربایی، حاشیهٔ آبی-سفید؛ موسیقیِ روشن‌تر کمی سردتر، گرم و کم‌فرکانس گرم‌تر
+    float warmMix = clamp(0.10 + 0.85 * bulge * bulgeW + 0.30 * (1.0 - uBandP.w), 0.0, 1.0);
+    vec3 col = mix(vec3(0.50, 0.66, 1.0), vec3(1.0, 0.76, 0.50), warmMix);
+    col = mix(col, uTint, 0.08);
+    float expo = uBandP.x * (0.86 + 0.26 * uBandP.z) * (1.0 + 0.22 * uBandLow * bulge);
+    float dimNear = 1.0 - 0.50 * exp(-pow(r / 0.30, 2.0));          // کنتراستِ سیاه‌چالهٔ مرکزی حفظ می‌شود
+    vec3 lum = col * dens * expo * 0.48 * dimNear;
+    distantGalaxy = lum / (1.0 + 0.9 * lum);
   }
   vec3 ambient = mix(vec3(0.10, 0.62, 0.94), uTint, 0.14) * cloud + infallColor * spiralLight + distantGalaxy;
-  o = vec4(pow(max(ambient, 0.0), vec3(0.92)), 1.0);
+  o = vec4(pow(max(ambient, 0.0), vec3(0.92)), bandDens);   // آلفا = چگالیِ نوار (فقط برای ستاره‌های نوار؛ blit آن را صفر می‌کند)
 }`;
 
   const VS_COSMIC_DOTS = `#version 300 es
 precision highp float;
-in vec4 aCosmic; // normalized x/y, seed, cluster index (-1 = quiet baseline)
+in vec4 aCosmic; // normalized x/y, seed, cluster index (-1 = quiet baseline, -2 = Milky Way band star)
 uniform vec2 uView; uniform float uPx, uTime, uLevel, uGlow, uAspect; uniform float uReveal[24]; uniform vec3 uPrimary;
+uniform sampler2D uBandTex; uniform float uBandAmt, uBandHigh;
 out vec3 vColor; out float vAlpha;
 void main(){
   float group = floor(aCosmic.w + 0.5);
+  bool bandStar = group < -1.5;
   float wake = 0.10;
   if (group >= -0.5) wake = uReveal[int(clamp(group, 0.0, 23.0))];
   float phase = aCosmic.z * 91.7;
@@ -368,12 +401,25 @@ void main(){
   float tint = step(0.82, fract(aCosmic.z * 13.17));
   vColor = mix(vec3(0.74, 0.84, 1.0), vec3(1.0, 0.88, 0.70), tint * 0.22);
   vAlpha = wake * uLevel * (group < -0.5 ? 0.10 + 0.10 * uGlow : 0.40) * twinkle;
+  float size = group < -0.5 ? 1.05 : 1.15 + fract(aCosmic.z * 7.31) * 1.25;
   vec2 p = aCosmic.xy * uView;
   vec2 screenMetric = vec2(aCosmic.x * uAspect, 1.0 - aCosmic.y);
   vec2 primaryMetric = vec2(uPrimary.x * uAspect, uPrimary.y);
-  if (distance(screenMetric, primaryMetric) < uPrimary.z) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vAlpha = 0.0; gl_PointSize = 1.0; return; }
+  float pd = distance(screenMetric, primaryMetric) / max(uPrimary.z, 0.001);
+  if (bandStar) {
+    // ستاره‌های نوار: چگالی/شیارِ غبار از آلفای بافتِ شفق خوانده می‌شود، پس همیشه با ابرهای نوار هم‌خوان‌اند
+    float mag = fract(aCosmic.z * 7.31);
+    float dn = textureLod(uBandTex, vec2(aCosmic.x, 1.0 - aCosmic.y), 0.0).a;
+    float tw = 0.82 + 0.18 * sin(uTime * (0.25 + mag * 0.9) + phase);
+    float spark = 1.0 + uBandHigh * 0.9 * step(0.86, fract(aCosmic.z * 17.3));
+    float warm = step(0.7, fract(aCosmic.z * 5.13));
+    vColor = mix(vec3(0.72, 0.82, 1.0), vec3(1.0, 0.84, 0.62), warm * 0.55);
+    vAlpha = uBandAmt * smoothstep(0.05, 0.34, dn) * (0.14 + 0.86 * mag * mag) * tw * spark
+           * smoothstep(0.10, 0.45, pd) * (0.55 + 0.45 * smoothstep(0.45, 1.0, pd));
+    size = 1.0 + 1.7 * mag * mag * mag;
+  } else if (pd < 1.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vAlpha = 0.0; gl_PointSize = 1.0; return; }
   gl_Position = vec4(p.x / uView.x * 2.0 - 1.0, 1.0 - p.y / uView.y * 2.0, 0.0, 1.0);
-  gl_PointSize = clamp((group < -0.5 ? 1.05 : 1.15 + fract(aCosmic.z * 7.31) * 1.25) * uPx, 1.0, 3.0);
+  gl_PointSize = clamp(size * uPx, 1.0, 3.0);
 }`;
 
   const FS_COSMIC_DOTS = `#version 300 es
@@ -697,6 +743,34 @@ void main(){
     return data;
   }
 
+  // ستاره‌های نوارِ راه شیری: موقعیت‌ها با seedِ نشست و هندسهٔ نوار ساخته می‌شوند (نه هر فریم)؛
+  // فقط وقتی نشست عوض شود یا اندازهٔ پنجره تغییر کند دوباره آپلود می‌شوند.
+  function uploadBandStars() {
+    const c = V.cosmic;
+    if (!G || !G.bandBuf || !V.vw || !V.vh) return;
+    c.bandDirty = false;
+    const gl = V.gl, aspect = V.vw / V.vh;
+    const rnd = mulberry32((V.session ^ Math.imul(c.sessionCount + 3, 0x85EBCA6B) ^ 0xB4D5) >>> 0);
+    const N = V.vw < 700 ? MW.starsMobile : MW.starsDesktop;
+    const dx = Math.cos(c.bandAngle), dy = Math.sin(c.bandAngle), nx = -dy, ny = dx;
+    const halfLen = Math.hypot(aspect, 1) * 0.55;
+    const data = new Float32Array(N * 4);
+    let n = 0, guard = 0;
+    while (n < N && guard++ < N * 40) {
+      const s = (rnd() * 2 - 1) * halfLen;
+      const bulge = Math.exp(-Math.pow((s - c.bandBulge) / 0.34, 2));
+      if (rnd() > 0.40 + 0.60 * bulge) continue;
+      const d = (rnd() + rnd() + rnd() + rnd() - 2) * 1.56 * c.bandWidth + c.bandOffset;
+      const mx = 0.5 * aspect + dx * s + nx * d, my = 0.5 + dy * s + ny * d;
+      const x = mx / aspect, y = 1 - my;
+      if (x < 0.005 || x > 0.995 || y < 0.005 || y > 0.995) continue;
+      const o = n * 4; data[o] = x; data[o + 1] = y; data[o + 2] = rnd(); data[o + 3] = -2; n++;
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, G.bandBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, data.subarray(0, n * 4), gl.STATIC_DRAW);
+    G.bandCount = n;
+  }
+
   const HOLE_R = 0.11;   // شعاعِ کره (واحدِ R)
   const AURORA_INNER_R = 0.125; // حدِ داخلیِ Aurora؛ در ۵۰° با انبساطِ حداکثر هنوز داخلِ سیلوئت می‌ماند
   function buildGeometry(N) {
@@ -781,9 +855,9 @@ void main(){
       });
 
       G = {};
-      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uGalaxy', 'uGalaxyParams']);
+      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uBand', 'uBandP', 'uBandLow']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
-      G.cosmic = program(gl, VS_COSMIC_DOTS, FS_COSMIC_DOTS, ['uView', 'uPx', 'uTime', 'uLevel', 'uGlow', 'uAspect', 'uPrimary', 'uReveal[0]']);
+      G.cosmic = program(gl, VS_COSMIC_DOTS, FS_COSMIC_DOTS, ['uView', 'uPx', 'uTime', 'uLevel', 'uGlow', 'uAspect', 'uPrimary', 'uReveal[0]', 'uBandTex', 'uBandAmt', 'uBandHigh']);
       G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
       G.aurDots = program(gl, VS_AUR_DOTS, FS_AUR_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uTime', 'uLevel', 'uLum', 'uLow', 'uMid', 'uHigh', 'uDim', 'uChroma', 'uHoleR']);
       G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
@@ -800,6 +874,11 @@ void main(){
       const cosmicAttr = gl.getAttribLocation(G.cosmic.p, 'aCosmic');
       gl.enableVertexAttribArray(cosmicAttr); gl.vertexAttribPointer(cosmicAttr, 4, gl.FLOAT, false, 16, 0);
       G.cosmicCount = cosmicData.length / 4;
+      gl.bindVertexArray(null);
+      G.bandVao = gl.createVertexArray(); gl.bindVertexArray(G.bandVao);
+      G.bandBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, G.bandBuf); gl.bufferData(gl.ARRAY_BUFFER, 16, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(cosmicAttr); gl.vertexAttribPointer(cosmicAttr, 4, gl.FLOAT, false, 16, 0);
+      G.bandCount = 0; V.cosmic.bandDirty = true;
       gl.bindVertexArray(null);
 
       // هندسهٔ کهکشان (یک بار)
@@ -854,6 +933,7 @@ void main(){
     V.scale = portrait ? V.vw * 0.92 : Math.min(V.vw * 0.44, V.vh * 0.95);
     V.cx = V.vw / 2; V.cy = V.vh * (portrait ? 0.40 : 0.45);
     V.powder.key = '';    // پودر باید دوباره نمونه‌برداری شود
+    V.cosmic.bandDirty = true;   // نسبتِ تصویر عوض شده؛ ستاره‌های نوار دوباره چیده شوند
   }
 
   function teardownGL() {
@@ -973,76 +1053,46 @@ void main(){
   }
   function cosmicPrimaryCenter() { return [V.cx / Math.max(1, V.vw), 1 - V.cy / Math.max(1, V.vh)]; }
   function cosmicHorizonRadius() { return HOLE_R * V.scale / Math.max(1, V.vh); }
-  function safeRevealPlacement() {
-    const aspect = V.vw / Math.max(1, V.vh), size = 0.12 + cosmicRand() * 0.035;
-    const center = cosmicPrimaryCenter(), cx = center[0] * aspect, cy = center[1];
-    const horizonR = cosmicHorizonRadius() + 0.025;
-    const candidates = [];
-    // This bounded grid is evaluated once per Music Mode session, never per frame.
-    for (let iy = 1; iy < 40; iy++) for (let ix = 1; ix < 40; ix++) {
-      const x = ix / 40, y = iy / 40;
-      if (x * aspect < size + 0.02 || (1 - x) * aspect < size + 0.02 || y < size + 0.02 || 1 - y < size + 0.02) continue;
-      const dx = x * aspect - cx, dy = y - cy, clearance = Math.hypot(dx, dy) - horizonR;
-      if (clearance >= 0.025) candidates.push([x, y, clearance]);
-    }
-    if (candidates.length) {
-      const pick = candidates[Math.floor(cosmicRand() * candidates.length)];
-      return { x: pick[0], y: pick[1], size: size };
-    }
-    // Keep the distant spiral recognizable even in narrow viewports. It remains a
-    // background object, so only the central horizon needs a clear margin.
-    for (let reducedSize = size - 0.005; reducedSize >= 0.09; reducedSize -= 0.005) {
-      let best = null;
-      for (let iy = 1; iy < 40; iy++) for (let ix = 1; ix < 40; ix++) {
-        const x = ix / 40, y = iy / 40;
-        if (x * aspect < reducedSize + 0.02 || (1 - x) * aspect < reducedSize + 0.02 || y < reducedSize + 0.02 || 1 - y < reducedSize + 0.02) continue;
-        const clearance = Math.hypot(x * aspect - cx, y - cy) - horizonR;
-        if (clearance >= 0.02 && (!best || clearance > best[2])) best = [x, y, clearance];
-      }
-      if (best) return { x: best[0], y: best[1], size: reducedSize };
-    }
-    let fallback = [0.95, 0.95, -Infinity];
-    for (let iy = 1; iy < 40; iy++) for (let ix = 1; ix < 40; ix++) {
-      const x = ix / 40, y = iy / 40;
-      const clearance = Math.hypot(x * aspect - cx, y - cy) - horizonR;
-      if (x * aspect >= 0.04 && (1 - x) * aspect >= 0.04 && y >= 0.04 && 1 - y >= 0.04 && clearance > fallback[2]) fallback = [x, y, clearance];
-    }
-    return { x: fallback[0], y: fallback[1], size: Math.max(0.09, size) };
-  }
   function beginCosmicSession() {
     const c = V.cosmic;
     if (c.sessionActive || !V.vw || !V.vh) return;
     c.sessionActive = true; c.sessionCount++; c.activeElapsed = 0;
-    c.lastInfallAt = -100; c.infallStart = -100; c.infallStrength = 0;
     c.rng = mulberry32((V.session ^ Math.imul(c.sessionCount, 0x9E3779B9) ^ 0x51A7C0) >>> 0);
-    c.nextAmbientAt = 34 + cosmicRand() * 34;
-    c.nextInfallAt = 4 + cosmicRand() * 3;
-    c.revelationStart = 3 + cosmicRand() * 2;
-    c.revelationAppear = 7 + cosmicRand() * 2;
-    c.revelationHold = 20 + cosmicRand() * 5;
-    c.revelationFade = 11 + cosmicRand() * 3;
-    c.revelationAngle = cosmicRand() * TAU;
-    c.revelationArms = cosmicRand() < 0.68 ? 2.0 : 3.0;
+    c.slotStart.fill(-100); c.nextCometAt = 2.5 + cosmicRand() * 1.5; c.infallTail = 0.21 + cosmicRand() * 0.05;
+    c.lastPeakAt = -100; c.peakCandidateUntil = -100;
+    // نمایان‌شدنِ راه شیری: اولین چرخه کوتاه و تضمین‌شده؛ بعد از آن به‌صورت دوره‌ای تکرار می‌شود
+    c.revelationStart = MW.firstS + cosmicRand() * 2;
+    c.revelationAppear = MW.appearS + cosmicRand() * 2;
+    c.revelationHold = MW.holdS + cosmicRand() * 8;
+    c.revelationFade = MW.fadeS + cosmicRand() * 4;
+    c.revelationRest = MW.restMin + cosmicRand() * MW.restRand;
     c.revelationSeed = cosmicRand(); c.revelationEnergy = 0; c.revelationAmount = 0;
-    const placement = safeRevealPlacement();
-    if (placement) {
-      c.revelationCenterX = placement.x; c.revelationCenterY = placement.y; c.revelationSize = placement.size;
-    } else {
-      // A final edge fallback is safe because the entire revelation is a background pass.
-      c.revelationCenterX = 0.95; c.revelationCenterY = 0.95; c.revelationSize = 0.12;
-    }
+    // هندسهٔ نوار (ثابت در کلِ نشست): زاویهٔ ۱۷–۳۵°، فاصله از مرکز تا سیاه‌چاله روی نوارِ روشن نیفتد، برآمدگی روی یک سمت
+    c.bandAngle = (cosmicRand() < 0.5 ? -1 : 1) * (0.30 + cosmicRand() * 0.32);
+    c.bandOffset = (cosmicRand() < 0.5 ? -1 : 1) * (0.20 + cosmicRand() * 0.12);
+    c.bandBulge = (cosmicRand() < 0.5 ? -1 : 1) * (0.25 + cosmicRand() * 0.30);
+    c.bandWidth = 0.17 + cosmicRand() * 0.05;
+    c.bandDirty = true;
   }
-  function startCosmicInfall(eventTime, strength) {
+  // دنباله‌دار: هر کدام یک «اسلات» مستقل (حداکثر ۳ هم‌زمان) با پارامترهای قطعی در طولِ عمرش
+  function spawnComet(eventTime, boost) {
     const c = V.cosmic;
-    if (eventTime - c.lastInfallAt < 30) return false;
-    c.infallStart = eventTime; c.infallDuration = 13 + cosmicRand() * 3;
-    c.infallTail = 0.20 + cosmicRand() * 0.05; c.infallStrength = clamp(strength, 0.22, 0.48);
-    const angle = cosmicRand() * TAU;
-    for (let i = 0; i < 3; i++) {
-      c.infallAngles[i] = angle + i * (TAU / 3) + (cosmicRand() - 0.5) * 0.48;
-      c.infallRadii[i] = 0.86 + cosmicRand() * 0.18;
+    let slot = -1;
+    for (let i = 0; i < 3; i++) if (eventTime > c.slotStart[i] + c.slotDur[i] + 0.5) { slot = i; break; }
+    if (slot < 0) return false;
+    let best = 0, bestScore = -1;
+    for (let k = 0; k < 6; k++) {                       // زاویه‌ای انتخاب شود که از دنباله‌دارهای فعال دور باشد
+      const a = cosmicRand() * TAU; let score = 3.2;
+      for (let j = 0; j < 3; j++) {
+        if (j === slot || eventTime > c.slotStart[j] + c.slotDur[j]) continue;
+        const dlt = Math.abs(((a - c.slotAngle[j]) % TAU + TAU + Math.PI) % TAU - Math.PI);
+        if (dlt < score) score = dlt;
+      }
+      if (score > bestScore) { bestScore = score; best = a; }
     }
-    c.lastInfallAt = eventTime;
+    c.slotAngle[slot] = best; c.slotRadius[slot] = 0.88 + cosmicRand() * 0.18;
+    c.slotDur[slot] = 12.5 + cosmicRand() * 4; c.slotStart[slot] = eventTime;
+    c.slotStrength[slot] = clamp(MW.cometStrength + cosmicRand() * 0.14 + boost, 0.55, 0.95);
     return true;
   }
   function awakenDistantGroups(eventTime, tier, strength) {
@@ -1055,25 +1105,18 @@ void main(){
   function updateCosmic(dt, rm, titleAnimation) {
     const c = V.cosmic;
     const active = V.playing && VM.isOpen() && !document.hidden;
-    if (!active) return;
+    if (!active) return;                       // مکث/پنهان‌بودن: زمانِ رویدادها منجمد می‌ماند و بعد از ازسرگیری همان وضعیت ادامه می‌یابد
     if (!c.sessionActive) beginCosmicSession();
     if (!rm) c.activeElapsed += Math.min(dt, 0.1);
     const eventTime = c.activeElapsed;
-    if (!c.nextAmbientAt) c.nextAmbientAt = eventTime + 34 + cosmicRand() * 34;
-    if (!rm && eventTime >= c.nextInfallAt) {
-      startCosmicInfall(eventTime, 0.34);
-      c.nextInfallAt = Infinity;
+    const energyNow = A.ok ? clamp(A.energy, 0, 1) : 0.4;
+    // دنباله‌دارها دیگر منتظر اوج نمی‌مانند: زمان‌بندِ پایه، موسیقی فقط فاصله را کمی کوتاه می‌کند
+    if (!rm && eventTime >= c.nextCometAt) {
+      if (spawnComet(eventTime, 0.10 * energyNow)) c.nextCometAt = eventTime + (MW.cometGapS + cosmicRand() * MW.cometGapRand) * (1.15 - 0.5 * energyNow);
+      else c.nextCometAt = eventTime + 1.5;     // هر سه اسلات مشغول است؛ کمی بعد دوباره امتحان کن
     }
     if (!rm && !titleAnimation) {
-      // An irregular quiet-background schedule remains possible during calm passages.
-      if (eventTime >= c.nextAmbientAt) {
-        const musicEnergy = A.ok ? clamp(A.energy, 0, 1) : 0;
-        const chance = 0.42 + 0.34 * musicEnergy;
-        if (cosmicRand() < chance) startCosmicInfall(eventTime, 0.26 + 0.12 * musicEnergy);
-        c.nextAmbientAt = eventTime + 46 + cosmicRand() * 48;
-      }
-      // Use the existing normalized energy and spectral-flux onset; cooldown and hysteresis
-      // prevent a sustained loud passage or individual beats from repeatedly waking the sky.
+      // اوج‌های واقعی (انرژیِ نرمال + شارِ طیفی) با هیسترزیس و دورهٔ بازیابی؛ حالا دنباله‌دارِ اضافه/درخشان‌تر و بیدارشدنِ ستاره‌ها
       const fluxCross = A.fluxR >= 1.7 && A.prevFluxR < 1.7;
       if (fluxCross) c.peakCandidateUntil = eventTime + 0.75;
       const energy = clamp(V.energy || 0, 0, 1);
@@ -1087,9 +1130,7 @@ void main(){
         if (cosmicRand() < probability) {
           c.glow = Math.max(c.glow, 0.24 + 0.20 * energy);
           if (tier >= 2) awakenDistantGroups(eventTime, tier, tier === 3 ? 0.62 : 0.36);
-          if (tier === 1 || cosmicRand() < (tier === 3 ? 0.48 : 0.30)) {
-            startCosmicInfall(eventTime, tier === 3 ? 0.42 : (tier === 2 ? 0.34 : 0.27));
-          }
+          if (tier === 1 || cosmicRand() < (tier === 3 ? 0.48 : 0.30)) spawnComet(eventTime, tier === 3 ? 0.22 : (tier === 2 ? 0.16 : 0.10));
         }
       }
     }
@@ -1107,22 +1148,23 @@ void main(){
       c.reveal[i] += (target - c.reveal[i]) * expK(dt, target > c.reveal[i] ? 1.2 : 3.8);
     }
     if (eventTime >= fadeAt) { c.wakeTier = 0; c.wakeStrength = 0; }
-    const revelationAge = eventTime - c.revelationStart;
-    const revelationEnd = c.revelationAppear + c.revelationHold + c.revelationFade;
-    let revelationTarget = 0;
-    if (!rm && revelationAge >= 0 && revelationAge < revelationEnd) {
-      const appear = smoother5(revelationAge / c.revelationAppear);
-      const fadeOut = 1 - smoother5((revelationAge - c.revelationAppear - c.revelationHold) / c.revelationFade);
-      revelationTarget = appear * fadeOut;
+    // راه شیری: نوردهیِ پایهٔ همیشگی + چرخه‌های دوره‌ایِ «نمایان‌شدن» (ظهور ← شکوه ← محو تا نوردهیِ پایه). به شدتِ موسیقی وابسته نیست.
+    const cycleLen = c.revelationAppear + c.revelationHold + c.revelationFade;
+    const age = eventTime - c.revelationStart;
+    let env = 0;
+    if (!rm && age >= 0) {
+      const a = age % (cycleLen + c.revelationRest);
+      if (a < cycleLen) env = smoother5(a / c.revelationAppear) * (1 - smoother5((a - c.revelationAppear - c.revelationHold) / c.revelationFade));
     }
-    c.revelationAmount += (revelationTarget - c.revelationAmount) * expK(dt, revelationTarget > c.revelationAmount ? 1.8 : 2.8);
+    const target = rm ? MW.base * 0.8 : MW.base + (1 - MW.base) * env;
+    c.revelationAmount += (target - c.revelationAmount) * expK(dt, 1.2);
     c.revelationEnergy += (clamp(V.energy || 0, 0, 1) - c.revelationEnergy) * expK(dt, 1.6);
   }
   function resetCosmicNarrative() {
     const c = V.cosmic;
-    c.nextAmbientAt = 0; c.nextInfallAt = 0; c.lastPeakAt = -100; c.lastInfallAt = -100; c.peakCandidateUntil = -100; c.prevEnergy = 0;
+    c.nextCometAt = 0; c.lastPeakAt = -100; c.peakCandidateUntil = -100; c.prevEnergy = 0;
     c.wakeStart = -100; c.wakeUntil = -100; c.wakeTier = 0; c.wakeStrength = 0; c.glow = 0;
-    c.infallStart = -100; c.infallDuration = 14; c.infallStrength = 0; c.infallUniforms.fill(0); c.reveal.fill(0);
+    c.slotStart.fill(-100); c.infallUniforms.fill(0); c.reveal.fill(0);
     c.sessionActive = false; c.activeElapsed = 0; c.revelationStart = 0; c.revelationAmount = 0; c.revelationEnergy = 0; c.rng = null;
   }
 
@@ -1243,6 +1285,9 @@ void main(){
     const rollFade = V.opening.started ? smoother5(V.opening.elapsed / BREATH.rollFadeS) : 0;
     const roll = (V.rollNow || V.tilt) + (rm ? 0 : (1 - rollFade) * BREATH.startRoll);
     gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND);
+    if (V.cosmic.bandDirty && G.bandBuf) uploadBandStars();
+    // نوار با سطحِ شفق محو می‌شود تا وقتی پخش متوقف می‌شود ناگهان نپرد
+    const bandAmt = V.cosmic.revelationAmount * clamp(La * 3.0, 0, 1);
 
     if (La > 0.003) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, G.fbo); gl.viewport(0, 0, G.aw, G.ah);
@@ -1255,17 +1300,19 @@ void main(){
       gl.uniform3f(G.aurora.u.uTint, PAL[top * 3], PAL[top * 3 + 1], PAL[top * 3 + 2]);
       gl.uniform2f(G.aurora.u.uHole, V.cx / V.vw, 1 - V.cy / V.vh); gl.uniform1f(G.aurora.u.uAsp, V.vw / V.vh);
       gl.uniform1f(G.aurora.u.uBend, clamp(0.45 + 0.55 * Lg, 0, 1));
-      gl.uniform4f(G.aurora.u.uGalaxy, V.cosmic.revelationCenterX, V.cosmic.revelationCenterY, V.cosmic.revelationAngle, V.cosmic.revelationSize);
-      gl.uniform4f(G.aurora.u.uGalaxyParams, rm ? 0 : V.cosmic.revelationAmount, V.cosmic.revelationSeed, V.cosmic.revelationArms, V.cosmic.revelationEnergy);
       const c = V.cosmic, infall = c.infallUniforms;
+      const bandTemp = clamp((A.centroidR - 0.2) / 0.5, 0, 1);
+      gl.uniform4f(G.aurora.u.uBand, c.bandAngle, c.bandOffset, c.bandBulge, c.bandWidth);
+      gl.uniform4f(G.aurora.u.uBandP, bandAmt, c.revelationSeed, c.revelationEnergy, bandTemp);
+      gl.uniform1f(G.aurora.u.uBandLow, rm ? 0 : A.low);
       for (let i = 0; i < 3; i++) {
-        const age = c.activeElapsed - c.infallStart - i * 2.7;
-        const linearProgress = c.infallStart >= 0 && !rm && age >= 0 && age <= c.infallDuration ? clamp(age / c.infallDuration, 0, 1) : -1;
+        const age = c.activeElapsed - c.slotStart[i];
+        const linearProgress = !rm && age >= 0 && age <= c.slotDur[i] ? clamp(age / c.slotDur[i], 0, 1) : -1;
         const progress = linearProgress < 0 ? -1 : Math.pow(linearProgress, 1.25);
         const fade = progress < 0 ? 0 : smoother5(progress / 0.10) * (1 - smoother5((progress - 0.74) / 0.26));
         const o = i * 4;
-        infall[o] = progress; infall[o + 1] = c.infallAngles[i]; infall[o + 2] = c.infallRadii[i];
-        infall[o + 3] = rm ? 0 : c.infallStrength * fade;
+        infall[o] = progress; infall[o + 1] = c.slotAngle[i]; infall[o + 2] = c.slotRadius[i];
+        infall[o + 3] = rm ? 0 : c.slotStrength[i] * fade;
       }
       gl.uniform4fv(G.aurora.u['uInfall[0]'], infall);
       gl.uniform1f(G.aurora.u.uInfallTail, c.infallTail);
@@ -1294,7 +1341,10 @@ void main(){
       const primary = cosmicPrimaryCenter();
       gl.uniform3f(cu.uPrimary, primary[0], primary[1], cosmicPrimaryRadius());
       gl.uniform1fv(cu['uReveal[0]'], V.cosmic.reveal);
+      gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex); gl.uniform1i(cu.uBandTex, 0);
+      gl.uniform1f(cu.uBandAmt, bandAmt); gl.uniform1f(cu.uBandHigh, rm ? 0 : A.high);
       gl.bindVertexArray(G.cosmicVao); gl.drawArrays(gl.POINTS, 0, G.cosmicCount);
+      if (G.bandCount > 0 && bandAmt > 0.003) { gl.bindVertexArray(G.bandVao); gl.drawArrays(gl.POINTS, 0, G.bandCount); }
     }
 
     if (Lg > 0.004) {

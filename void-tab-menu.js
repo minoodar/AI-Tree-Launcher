@@ -107,19 +107,45 @@
     });
   }
 
+  // تنظیمات: همان «کرکره»ی نوار ابزار (popup.html).
+  //  - اگر کرکره همین الان باز است، کلیک دوباره آن را می‌بندد (قبلاً openPopup رد می‌شد و مسیر جایگزین اجرا می‌شد).
+  //  - اگر Chrome اجازهٔ بازکردنش را ندهد، یک پنجرهٔ کوچکِ جدا (نه تب) باز می‌شود؛ و اگر همان پنجره از قبل باز است فقط فوکوس می‌گیرد.
+  let settingsWinId = null, lastSettingsClick = 0;
+  try { chrome.windows.onRemoved.addListener((id) => { if (id === settingsWinId) settingsWinId = null; }); } catch (e) {}
+  function openPopupViews() {
+    try { return (chrome.extension && chrome.extension.getViews) ? chrome.extension.getViews({ type: 'popup' }) : []; } catch (e) { return []; }
+  }
+  function openSettingsFallback() {
+    const url = chrome.runtime.getURL('popup.html');
+    try {
+      if (settingsWinId != null) {
+        const id = settingsWinId;
+        chrome.windows.update(id, { focused: true }, () => {
+          if (chrome.runtime.lastError) { settingsWinId = null; setTimeout(openSettingsFallback, 0); }
+        });
+        return;
+      }
+      chrome.windows.create({ url, type: 'popup', width: 400, height: 660, focused: true }, (w) => {
+        if (chrome.runtime.lastError || !w) { window.open(url, '_blank'); return; }
+        settingsWinId = w.id;
+      });
+    } catch (e) {
+      window.open(url, '_blank');
+    }
+  }
   if (itemSettings) {
     itemSettings.addEventListener('click', () => {
-      try {
-        if (chrome.action && chrome.action.openPopup) {
-          chrome.action.openPopup().catch(() => {
-            window.open(chrome.runtime.getURL('popup.html'), '_blank');
-          });
-        } else {
-          window.open(chrome.runtime.getURL('popup.html'), '_blank');
-        }
-      } catch (e) {
-        window.open(chrome.runtime.getURL('popup.html'), '_blank');
-      }
+      const now = Date.now();
+      if (now - lastSettingsClick < 400) return;       // دابل‌کلیک
+      lastSettingsClick = now;
+      menu.classList.remove('open');
+      try { menuBtn.setAttribute('aria-expanded', 'false'); } catch (err) {}
+      const open = openPopupViews();
+      if (open.length) { open.forEach((v) => { try { v.close(); } catch (e) {} }); return; }   // کرکره باز است ← ببند
+      let p = null;
+      try { p = chrome.action && chrome.action.openPopup ? chrome.action.openPopup() : null; } catch (e) { p = null; }
+      if (p && typeof p.then === 'function') p.then(null, openSettingsFallback);
+      else if (!p) openSettingsFallback();
     });
   }
 
