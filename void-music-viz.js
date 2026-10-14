@@ -82,6 +82,111 @@
     kLowEnd: 4, kMidEnd: 42, low: 0, mid: 0, high: 0
   };
 
+  /* ------------------------------------------------------------------ */
+  /* تنظیمات صدا: اکولایزر ۱۰ باند + محدودکننده + حالتِ پس‌زمینه + کیفیتِ تصویر */
+  /* ------------------------------------------------------------------ */
+  const SND_KEY = 'voidMusic.sound';
+  const EQ_HZ = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+  const EQ_PRESETS = {
+    flat: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    bass: [6, 5, 4, 2, 0, 0, 0, 0, 0, 0],
+    treble: [0, 0, 0, 0, 0, 0, 2, 4, 5, 6],
+    vocal: [-2, -2, -1, 1, 3, 4, 3, 1, 0, -1],
+    rock: [5, 4, 2, -1, -2, -1, 2, 4, 5, 5],
+    pop: [-1, 1, 3, 4, 2, 0, -1, -1, 1, 2],
+    jazz: [3, 2, 1, 2, -2, -2, 0, 1, 2, 3],
+    classical: [3, 2, 1, 1, 0, 0, 0, -1, -2, -3],
+    electronic: [5, 4, 1, 0, -2, 2, 1, 1, 4, 5],
+    lounge: [-3, -1, 0, 1, 3, 2, 0, -1, 2, 1]
+  };
+  const SND = { on: true, preset: 'flat', bands: EQ_PRESETS.flat.slice(), pre: 0, auto: true, limiter: true, bg: 'audio', vq: 'auto' };
+  function sndSanitize(o) {
+    if (!o || typeof o !== 'object') return;
+    const num = function (v, d) { v = Number(v); return isFinite(v) ? clamp(Math.round(v * 2) / 2, -12, 12) : d; };
+    if ('on' in o) SND.on = !!o.on;
+    if ('auto' in o) SND.auto = !!o.auto;
+    if ('limiter' in o) SND.limiter = !!o.limiter;
+    if ('pre' in o) SND.pre = num(o.pre, 0);
+    if (Array.isArray(o.bands) && o.bands.length === 10) {
+      SND.bands = o.bands.map(function (v) { return num(v, 0); });
+      if (!('preset' in o)) SND.preset = 'custom';
+    }
+    if ('preset' in o) SND.preset = (o.preset === 'custom' || EQ_PRESETS[o.preset]) ? o.preset : 'custom';
+    if (o.bg === 'audio' || o.bg === 'live') SND.bg = o.bg;
+    if (o.vq === 'auto' || o.vq === 'low' || o.vq === 'high') SND.vq = o.vq;
+  }
+  try { const raw = localStorage.getItem(SND_KEY); if (raw) sndSanitize(JSON.parse(raw)); } catch (e) {}
+  function sndSave() { try { localStorage.setItem(SND_KEY, JSON.stringify(SND)); } catch (e) {} }
+
+  const SNDE = { nodes: null };
+  function buildSoundChain(ctx, src, outGain) {
+    const pre = ctx.createGain();
+    const filters = EQ_HZ.map(function (hz, i) {
+      const f = ctx.createBiquadFilter();
+      f.type = i === 0 ? 'lowshelf' : (i === 9 ? 'highshelf' : 'peaking');
+      f.frequency.value = hz; if (f.type === 'peaking') f.Q.value = 1.1; f.gain.value = 0;
+      return f;
+    });
+    const comp = ctx.createDynamicsCompressor();
+    pre.connect(filters[0]);
+    for (let i = 0; i < 9; i++) filters[i].connect(filters[i + 1]);
+    filters[9].connect(comp); comp.connect(outGain);
+    SNDE.nodes = { ctx: ctx, src: src, pre: pre, filters: filters, comp: comp, out: outGain, mode: '', anV: null, anVon: false, tap: null, vbuf: null };
+    applySound(true);
+  }
+  function retapSpectrum() {
+    const N = SNDE.nodes; if (!N || !N.anV) return;
+    if (N.tap) { try { N.tap.disconnect(N.anV); } catch (e) {} N.tap = null; }
+    if (N.anVon) { N.tap = N.mode === 'fx' ? N.comp : N.src; try { N.tap.connect(N.anV); } catch (e) {} }
+  }
+  function applySound(immediate) {
+    const N = SNDE.nodes; if (!N) return;
+    const t = N.ctx.currentTime, tc = immediate ? 0.001 : 0.04;
+    const maxUp = Math.max(0, Math.max.apply(null, SND.bands));
+    const preDb = SND.on ? SND.pre - (SND.auto ? maxUp * 0.6 : 0) : 0;
+    N.pre.gain.setTargetAtTime(Math.pow(10, preDb / 20), t, tc);
+    N.filters.forEach(function (f, i) { f.gain.setTargetAtTime(SND.on ? SND.bands[i] : 0, t, tc); });
+    const lim = SND.limiter;
+    N.comp.threshold.setTargetAtTime(lim ? -3 : 0, t, tc); N.comp.knee.setTargetAtTime(lim ? 6 : 0, t, tc);
+    N.comp.ratio.setTargetAtTime(lim ? 20 : 1, t, tc); N.comp.attack.setTargetAtTime(0.003, t, tc); N.comp.release.setTargetAtTime(0.12, t, tc);
+    const mode = (SND.on || lim) ? 'fx' : 'bypass';       // هر دو خاموش ⇒ مسیرِ مستقیم (کمترین پردازش)
+    if (mode !== N.mode) {
+      try { N.src.disconnect(N.pre); } catch (e) {}
+      try { N.src.disconnect(N.out); } catch (e) {}
+      try { N.src.connect(mode === 'fx' ? N.pre : N.out); } catch (e) {}
+      N.mode = mode; retapSpectrum();
+    }
+  }
+  const SPEC_BARS = 32;
+  const soundApi = {
+    hz: EQ_HZ, presets: EQ_PRESETS,
+    get: function () { return { on: SND.on, preset: SND.preset, bands: SND.bands.slice(), pre: SND.pre, auto: SND.auto, limiter: SND.limiter, bg: SND.bg, vq: SND.vq }; },
+    set: function (patch) { sndSanitize(patch); sndSave(); applySound(false); try { refreshTaps(); if (document.hidden && SND.bg === 'live') bgKick(); } catch (e) {} },
+    preset: function (name) { if (EQ_PRESETS[name]) soundApi.set({ preset: name, bands: EQ_PRESETS[name].slice() }); },
+    reset: function () { soundApi.set({ on: true, preset: 'flat', bands: EQ_PRESETS.flat.slice(), pre: 0, auto: true, limiter: true }); },
+    ready: function () { return !!SNDE.nodes; },
+    // طیفِ زنده برای نمایشگرِ اکولایزر: فقط وقتی پنل باز است تحلیل‌گر وصل می‌شود
+    watch: function (on) {
+      const N = SNDE.nodes; if (!N) return;
+      if (on) {
+        if (!N.anV) { N.anV = N.ctx.createAnalyser(); N.anV.fftSize = 1024; N.anV.smoothingTimeConstant = 0.72; N.anV.minDecibels = -88; N.anV.maxDecibels = -20; N.vbuf = new Uint8Array(N.anV.frequencyBinCount); }
+        N.anVon = true; retapSpectrum();
+      } else if (N.anV) { N.anVon = false; retapSpectrum(); }
+    },
+    spectrum: function (out) {
+      const N = SNDE.nodes; if (!N || !N.anV || !N.anVon) return false;
+      N.anV.getByteFrequencyData(N.vbuf);
+      const hzPerBin = N.ctx.sampleRate / N.anV.fftSize, M = out.length;
+      for (let i = 0; i < M; i++) {
+        const f0 = 40 * Math.pow(16000 / 40, i / M), f1 = 40 * Math.pow(16000 / 40, (i + 1) / M);
+        const k0 = Math.max(1, Math.floor(f0 / hzPerBin)), k1 = Math.min(N.vbuf.length - 1, Math.max(k0, Math.ceil(f1 / hzPerBin)));
+        let m = 0; for (let k = k0; k <= k1; k++) if (N.vbuf[k] > m) m = N.vbuf[k];
+        out[i] = m / 255;
+      }
+      return true;
+    }
+  };
+
   async function ensureGraph() {
     if (A.ok) { if (A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (e) {} } return true; }
     if (A.tries >= 6) return false;
@@ -99,7 +204,8 @@
       const anE = ctx.createAnalyser(); anE.fftSize = 1024; anE.smoothingTimeConstant = 0;
       const anS = ctx.createAnalyser(); anS.fftSize = 4096; anS.smoothingTimeConstant = 0.3; anS.minDecibels = -110; anS.maxDecibels = -10;
       const gain = ctx.createGain();
-      src.connect(anE); src.connect(anS); src.connect(gain); gain.connect(ctx.destination);
+      src.connect(anE); src.connect(anS);
+      buildSoundChain(ctx, src, gain); gain.connect(ctx.destination);
       VM.setOutputGain(gain);
       // پایداری: اگر مرورگر context را وسطِ پخش معلق کرد (سیاست‌های خودکار/سیستم)، صدا قطع می‌شود؛ بلافاصله ادامه بده
       ctx.onstatechange = function () {
@@ -140,6 +246,7 @@
   function tapsWanted() {
     const a = VM.getAudio();
     if (!(a && !a.paused)) return false;
+    if (document.hidden && SND.bg !== 'live') return false;     // تبِ پنهان: فقط صدا (تحلیلگرها جدا می‌شوند)
     return VM.isOpen() || !!(VM.isMiniVisible && VM.isMiniVisible() && !document.hidden) || !!(VM.remoteWanted && VM.remoteWanted());
   }
   function refreshTaps() { tapSet(tapsWanted()); }
@@ -385,6 +492,36 @@ void main(){
   o = vec4(pow(max(ambient, 0.0), vec3(0.92)), bandDens);   // آلفا = چگالیِ نوار (فقط برای ستاره‌های نوار؛ blit آن را صفر می‌کند)
 }`;
 
+  /* دنباله‌دارها: روبانِ نرم در فضای صفحه (نه رسمِ پیکسل‌به‌پیکسل در بافتِ ¼-رزولوشن) + سرِ درخشان/ستاره‌ای */
+  const VS_COMET = `#version 300 es
+precision highp float;
+in vec2 aPos; in vec2 aUV; in vec2 aKA; in vec3 aCol;
+uniform vec2 uView;
+out vec2 vUV; out float vA; out float vK; out vec3 vC;
+void main(){
+  gl_Position = vec4(aPos.x / uView.x * 2.0 - 1.0, 1.0 - aPos.y / uView.y * 2.0, 0.0, 1.0);
+  vUV = aUV; vA = aKA.y; vK = aKA.x; vC = aCol;
+}`;
+  const FS_COMET = `#version 300 es
+precision mediump float;
+in vec2 vUV; in float vA; in float vK; in vec3 vC;
+out vec4 o;
+void main(){
+  float r2 = dot(vUV, vUV);
+  float I;
+  if (vK < 0.5) { I = exp(-vUV.x * vUV.x * 3.0); }
+  else if (vK < 1.5) { I = exp(-r2 * 4.0) + 0.25 * exp(-r2 * 1.2); }
+  else {
+    float ax = abs(vUV.x), ay = abs(vUV.y);
+    float core = exp(-r2 * 10.0);
+    float spikes = exp(-ax * 20.0) * exp(-ay * 2.4) + exp(-ay * 20.0) * exp(-ax * 2.4);
+    I = core + 0.7 * spikes + 0.18 * exp(-r2 * 1.6);
+  }
+  float edge = (vK < 0.5) ? 1.0 : (1.0 - smoothstep(0.72, 1.0, max(abs(vUV.x), abs(vUV.y))));
+  vec3 col = mix(vC, vec3(1.0), clamp(0.5 * I * I, 0.0, 0.6));
+  o = vec4(col * I * edge * vA, 0.0);
+}`;
+
   const VS_COSMIC_DOTS = `#version 300 es
 precision highp float;
 in vec4 aCosmic; // normalized x/y, seed, cluster index (-1 = quiet baseline, -2 = Milky Way band star)
@@ -447,7 +584,7 @@ in vec4 aMisc;    // seed, size, band (0..11 = pitch class, 12 = inner dust, 13 
 in float aU;      // position inside its band, 0..1
 uniform vec2 uView; uniform vec2 uCenter; uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath, uHoleR;
 uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uConf, uDim, uMid, uHigh, uStructure;
-uniform float uChroma[12]; uniform vec3 uPal[12];
+uniform float uChroma[12]; uniform vec3 uPal[12]; uniform float uTint[12];   // uTint: «لمسِ رنگ» هر لایه (۰ = سفید، ۱ = رنگِ کاملِ نت)
 uniform sampler2D uAur; uniform float uAurMix;
 out vec4 vCol;
 out vec3 vDiskView;
@@ -485,11 +622,11 @@ void main(){
   if (ring) {
     // هفت رینگِ نخست طیفِ ثابت دارند؛ رینگ‌های بعدی سفیدند.
     lum = (0.88 + 1.55 * e * (0.40 + 0.60 * uLum)) * (0.52 + 0.48 * edge);
-    col = ib < 7 ? uPal[ib] : vec3(0.88, 0.90, 0.96);
+    col = ib < 7 ? mix(vec3(0.88, 0.90, 0.96), uPal[ib], clamp(uTint[ib], 0.0, 1.0)) : vec3(0.88, 0.90, 0.96);
   } else if (band < 12.5) {
     // رنگِ ذراتِ نزدیکِ افق از هندسهٔ ساخته‌شده می‌آید، نه از محاسبهٔ فریمی.
     int hue = int(clamp(aMisc.w, 0.0, 6.0) + 0.5);
-    lum = 0.85; col = uPal[hue];
+    lum = 0.85; col = mix(vec3(0.88, 0.90, 0.96), uPal[hue], clamp(uTint[hue], 0.0, 1.0));
   } else {
     lum = 0.46 * (1.0 - smoothstep(0.80, 1.0, r)); col = vec3(0.82, 0.86, 0.96);
   }
@@ -543,7 +680,7 @@ in float aU;     // precomputed offset through the disk thickness
 uniform vec2 uView; uniform vec2 uCenter;
 uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath, uPhase, uTime;
 uniform float uLevel, uLum, uLow, uMid, uHigh, uDim;
-uniform float uChroma[12];
+uniform float uChroma[12]; uniform float uTint[12];
 out vec4 vCol;
 out vec3 vViewPos;
 out vec2 vProjected;
@@ -581,7 +718,7 @@ void main(){
   float chroma = clamp(uChroma[int(sourceBand + 0.5)], 0.0, 1.0);
   vec3 cyan = vec3(0.08, 0.62, 0.94);
   vec3 violet = vec3(0.40, 0.38, 0.91);
-  vec3 color = mix(cyan, violet, 0.18 + 0.52 * seed);
+  vec3 color = mix(vec3(0.86, 0.88, 0.95), mix(cyan, violet, 0.18 + 0.52 * seed), clamp(uTint[int(sourceBand + 0.5)], 0.0, 1.0));
   float depthLight = clamp(0.88 + 0.22 * depth, 0.72, 1.08);
   float audioGlow = clamp(0.82 + 0.16 * uLow + 0.12 * uMid + 0.04 * uHigh, 0.72, 1.12);
   float slowActivity = 0.91 + 0.09 * sin(uTime * 0.23 + seed * 39.0 + theta * 0.35);
@@ -858,14 +995,21 @@ void main(){
       G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uBand', 'uBandP', 'uBandLow']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
       G.cosmic = program(gl, VS_COSMIC_DOTS, FS_COSMIC_DOTS, ['uView', 'uPx', 'uTime', 'uLevel', 'uGlow', 'uAspect', 'uPrimary', 'uReveal[0]', 'uBandTex', 'uBandAmt', 'uBandHigh']);
-      G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix']);
-      G.aurDots = program(gl, VS_AUR_DOTS, FS_AUR_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uTime', 'uLevel', 'uLum', 'uLow', 'uMid', 'uHigh', 'uDim', 'uChroma', 'uHoleR']);
+      G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix', 'uTint']);
+      G.aurDots = program(gl, VS_AUR_DOTS, FS_AUR_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uTime', 'uLevel', 'uLum', 'uLow', 'uMid', 'uHigh', 'uDim', 'uChroma', 'uHoleR', 'uTint']);
       G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
     } catch (e) { teardownGL(); V.dead = true; return false; }
     try {
       const gl = V.gl;
       G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW', 'uMode', 'uEnter', 'uCoreR', 'uFade']);
       G.emptyVao = gl.createVertexArray();
+      G.comet = program(gl, VS_COMET, FS_COMET, ['uView']);
+      G.cometVao = gl.createVertexArray(); gl.bindVertexArray(G.cometVao);
+      G.cometBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, G.cometBuf); gl.bufferData(gl.ARRAY_BUFFER, CM.buf.byteLength, gl.DYNAMIC_DRAW);
+      [['aPos', 2, 0], ['aUV', 2, 8], ['aKA', 2, 16], ['aCol', 3, 24]].forEach(function (a) {
+        const loc = gl.getAttribLocation(G.comet.p, a[0]); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, a[1], gl.FLOAT, false, 36, a[2]);
+      });
+      gl.bindVertexArray(null);
 
       // Sparse distant-star groups are uploaded once; only their reveal weights change per frame.
       const cosmicData = buildCosmicPoints();
@@ -1058,7 +1202,7 @@ void main(){
     if (c.sessionActive || !V.vw || !V.vh) return;
     c.sessionActive = true; c.sessionCount++; c.activeElapsed = 0;
     c.rng = mulberry32((V.session ^ Math.imul(c.sessionCount, 0x9E3779B9) ^ 0x51A7C0) >>> 0);
-    c.slotStart.fill(-100); c.nextCometAt = 2.5 + cosmicRand() * 1.5; c.infallTail = 0.21 + cosmicRand() * 0.05;
+    c.slotStart.fill(-100); COMETS.length = 0; c.nextCometAt = 2.5 + cosmicRand() * 1.5; c.infallTail = 0.21 + cosmicRand() * 0.05;
     c.lastPeakAt = -100; c.peakCandidateUntil = -100;
     // نمایان‌شدنِ راه شیری: اولین چرخه کوتاه و تضمین‌شده؛ بعد از آن به‌صورت دوره‌ای تکرار می‌شود
     c.revelationStart = MW.firstS + cosmicRand() * 2;
@@ -1074,27 +1218,125 @@ void main(){
     c.bandWidth = 0.17 + cosmicRand() * 0.05;
     c.bandDirty = true;
   }
-  // دنباله‌دار: هر کدام یک «اسلات» مستقل (حداکثر ۳ هم‌زمان) با پارامترهای قطعی در طولِ عمرش
-  function spawnComet(eventTime, boost) {
-    const c = V.cosmic;
-    let slot = -1;
-    for (let i = 0; i < 3; i++) if (eventTime > c.slotStart[i] + c.slotDur[i] + 0.5) { slot = i; break; }
-    if (slot < 0) return false;
-    let best = 0, bestScore = -1;
-    for (let k = 0; k < 6; k++) {                       // زاویه‌ای انتخاب شود که از دنباله‌دارهای فعال دور باشد
-      const a = cosmicRand() * TAU; let score = 3.2;
-      for (let j = 0; j < 3; j++) {
-        if (j === slot || eventTime > c.slotStart[j] + c.slotDur[j]) continue;
-        const dlt = Math.abs(((a - c.slotAngle[j]) % TAU + TAU + Math.PI) % TAU - Math.PI);
-        if (dlt < score) score = dlt;
-      }
-      if (score > bestScore) { bestScore = score; best = a; }
+  /* ---------- دنباله‌دارها ---------- */
+  // ring: دنباله‌دارِ رنگی از بیرونِ صحنه، مارپیچ‌وار به حلقهٔ هم‌رنگِ خود (۱۲ نتِ کهکشان) می‌رسد، کمی روی آن می‌لغزد و محو می‌شود.
+  // star: ستارهٔ امتیازِ آهنگ که از زیرِ عنوان کنده می‌شود و در صفحهٔ کهکشان به سیاه‌چاله فرو می‌رود.
+  const COMETS = [];
+  V.colorLevel = 0; V.tint = new Float32Array(12);   // رنگ: پیش‌فرض سفید؛ فقط با پخشِ فعال لمسِ رنگ می‌گیرد
+  const CM = { N: 34, MAXC: 12, buf: null, px: null, py: null, ds: [], dc: [], POL: [0, 0], xy: [0, 0] };
+  CM.buf = new Float32Array(CM.MAXC * (2 * CM.N + 4) * 9); CM.px = new Float32Array(CM.N); CM.py = new Float32Array(CM.N);
+  const STAR_RGB = [1.0, 0.84, 0.52];
+  function cometPolar(m, q) {
+    const P = CM.POL;
+    if (m.kind === 'ring') {
+      const qA = 0.76;
+      // شعاع: شروعِ آرام ← شتابِ میانه ← فرودِ نرم روی حلقه (سرعتِ شعاعی در رسیدن صفر است، پس شکستگی نیست)
+      if (q <= qA) { const u = q / qA, f = -1.5 * u * u * u + 2 * u * u + 0.5 * u; P[0] = m.rStart + (m.rRing - m.rStart) * f; P[1] = m.th0 + m.dir * m.turns * TAU * Math.pow(u, 1.2); return; }
+      // روی حلقه: سرعتِ زاویه‌ای همان سرعتِ لحظهٔ رسیدن است و نرم کند می‌شود
+      const t = (q - qA) / (1 - qA), arc = m.turns * TAU * 1.2 * (1 - qA) / (2 * qA);
+      P[0] = m.rRing; P[1] = m.th0 + m.dir * m.turns * TAU + m.dir * arc * (1 - Math.pow(1 - t, 2));
+      return;
     }
-    c.slotAngle[slot] = best; c.slotRadius[slot] = 0.88 + cosmicRand() * 0.18;
-    c.slotDur[slot] = 12.5 + cosmicRand() * 4; c.slotStart[slot] = eventTime;
-    c.slotStrength[slot] = clamp(MW.cometStrength + cosmicRand() * 0.14 + boost, 0.55, 0.95);
+    const u = clamp(q, 0, 1);
+    P[0] = m.r0 + (m.rEnd - m.r0) * Math.pow(u, 1.55) + m.bulge * Math.sin(Math.PI * Math.pow(u, 0.7));   // ابتدا کمی به بیرون می‌چرخد، بعد مارپیچِ رو به مرکز
+    P[1] = m.th0 + m.dir * m.turns * TAU * Math.pow(u, 1.1);
+  }
+  function cometXY(m, q, sc, sI, cs, sn) {
+    cometPolar(m, q);
+    const r = CM.POL[0], th = CM.POL[1], x = r * Math.cos(th), y = r * Math.sin(th) * sI;
+    CM.xy[0] = V.cx + (cs * x - sn * y) * sc; CM.xy[1] = V.cy + (sn * x + cs * y) * sc;
+  }
+  function cometAlpha(m, q) {
+    if (m.kind === 'ring') return smoother5(q / 0.07) * (1 - smoother5((q - 0.88) / 0.12)) * (q > 0.74 ? 1.12 : 1);
+    return smoother5(q / 0.06) * (1 - smoother5((q - 0.84) / 0.16));
+  }
+  function cometInitStar(m, sc, sI, cs, sn) {
+    const dx = (m.sx - V.cx) / sc, dy = (m.sy - V.cy) / sc;
+    const ux = cs * dx + sn * dy, uy = (-sn * dx + cs * dy) / sI;      // وارونِ تصویرِ صفحهٔ کهکشان
+    m.th0 = Math.atan2(uy, ux); m.rEnd = HOLE_R * 0.85;
+    m.r0 = Math.max(m.rEnd + 0.12, Math.hypot(ux, uy));
+    m.dir = cosmicRand() < 0.5 ? -1 : 1; m.turns = 1.05 + cosmicRand() * 0.3; m.bulge = 0.2 + cosmicRand() * 0.12; m.ready = true;
+  }
+  function spawnComet(eventTime, boost) {                                // دنباله‌دارِ رنگیِ حلقه‌ای (ثابت در طولِ عمر، قطعی)
+    const c = V.cosmic;
+    let active = 0; for (let i = 0; i < COMETS.length; i++) if (COMETS[i].kind === 'ring' && eventTime < COMETS[i].born + COMETS[i].dur) active++;
+    if (active >= 3 || COMETS.length >= CM.MAXC) return false;
+    let idx = Math.floor(cosmicRand() * 12);
+    if (A.ok) {                                                          // رنگ = نتِ غالبِ همین لحظه (اغلب)؛ حلقهٔ همان نت در کهکشان
+      let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
+      if (A.chroma[top] > 0.12 && cosmicRand() < 0.75) idx = top;
+    }
+    for (let k = 0; k < COMETS.length && k < 12; k++) if (COMETS[k].kind === 'ring' && COMETS[k].idx === idx && eventTime < COMETS[k].born + COMETS[k].dur) { idx = (idx + 5) % 12; break; }
+    const rRing = V.bandIn && V.bandOut ? (V.bandIn[idx] + V.bandOut[idx]) * 0.5 : 0.2 + 0.05 * idx;
+    COMETS.push({ kind: 'ring', idx: idx, born: eventTime, dur: 9 + cosmicRand() * 3, th0: cosmicRand() * TAU, dir: cosmicRand() < 0.5 ? -1 : 1,
+      turns: 0.85 + cosmicRand() * 0.5, rStart: 2.05 + cosmicRand() * 0.45, rRing: rRing, tail: 0.30 + cosmicRand() * 0.10, str: clamp(0.85 + boost * 1.2, 0.8, 1.15) });
     return true;
   }
+  function cancelStarFlight() { for (let i = COMETS.length - 1; i >= 0; i--) if (COMETS[i].kind === 'star') COMETS.splice(i, 1); }
+  function startStarFlight() {
+    if (reduced() || !VM.getStarRects) return;
+    const rects = VM.getStarRects();
+    if (!rects || !rects.length) return;
+    const c = V.cosmic; if (!c.sessionActive) beginCosmicSession();
+    cancelStarFlight();
+    const t0 = c.activeElapsed;
+    for (let k = 0; k < rects.length && COMETS.length < CM.MAXC; k++) {
+      COMETS.push({ kind: 'star', k: k, idx: -1, born: t0 + 0.12 + k * 0.95, dur: 3.7 + cosmicRand() * 0.5, sx: rects[k].x, sy: rects[k].y, ready: false, gone: false,
+        tail: 0.55, str: 1.0, th0: 0, dir: 1, turns: 1.1, r0: 0.4, rEnd: HOLE_R * 0.85, bulge: 0.25 });
+    }
+  }
+  function tickComets(eventTime) {
+    for (let i = COMETS.length - 1; i >= 0; i--) {
+      const m = COMETS[i];
+      if (m.kind === 'star' && !m.gone && eventTime >= m.born) { m.gone = true; try { VM.setStarState && VM.setStarState(m.k, 'gone'); } catch (e) {} }
+      if (eventTime > m.born + m.dur) COMETS.splice(i, 1);
+    }
+  }
+  function drawComets(sc, sinI, roll, La) {
+    const gl = V.gl; if (!G.comet || !G.cometVao || !COMETS.length) return;
+    const c = V.cosmic, t = c.activeElapsed, N = CM.N, buf = CM.buf, px = CM.px, py = CM.py;
+    const cs = Math.cos(roll), sn = Math.sin(roll), sI = Math.max(0.25, sinI), life = clamp(La * 2.5, 0, 1);
+    let o = 0, nd = 0;
+    for (let mi = 0; mi < COMETS.length; mi++) {
+      const m = COMETS[mi], age = t - m.born;
+      if (age < 0 || age > m.dur) continue;
+      const q = age / m.dur;
+      if (m.kind === 'star' && !m.ready) cometInitStar(m, sc, sI, cs, sn);
+      const headA = cometAlpha(m, q) * m.str * life;
+      if (headA < 0.004) continue;
+      let r, g, b;
+      if (m.kind === 'ring') { r = PAL[m.idx * 3] * 0.9 + 0.1; g = PAL[m.idx * 3 + 1] * 0.9 + 0.1; b = PAL[m.idx * 3 + 2] * 0.9 + 0.1; }
+      else { r = STAR_RGB[0]; g = STAR_RGB[1]; b = STAR_RGB[2]; }
+      const tailQ = m.tail * (m.kind === 'ring' && q > 0.76 ? 1 - 0.7 * ((q - 0.76) / 0.24) : 1);
+      for (let j = 0; j < N; j++) { cometXY(m, Math.max(0, q - tailQ * j / (N - 1)), sc, sI, cs, sn); px[j] = CM.xy[0]; py[j] = CM.xy[1]; }
+      const hw = m.kind === 'star' ? 4.6 : 4.4, start = o / 9;
+      for (let j = 0; j < N; j++) {
+        const j0 = j > 0 ? j - 1 : 0, j1 = j < N - 1 ? j + 1 : N - 1;
+        let tx = px[j0] - px[j1], ty = py[j0] - py[j1]; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
+        const nx = -ty, ny = tx, fr = j / (N - 1);
+        const w = hw * (1 - 0.82 * fr) + 0.6;
+        const a = headA * Math.pow(1 - fr, 1.6) * smoother5((q - tailQ * fr) / 0.03);
+        for (let side = -1; side <= 1; side += 2) {
+          buf[o++] = px[j] + nx * w * side; buf[o++] = py[j] + ny * w * side; buf[o++] = side; buf[o++] = 0;
+          buf[o++] = 0; buf[o++] = a; buf[o++] = r; buf[o++] = g; buf[o++] = b;
+        }
+      }
+      CM.ds[nd] = start; CM.dc[nd] = 2 * N; nd++;
+      const hs = (m.kind === 'star' ? 22 : 13) * (m.kind === 'star' ? (1 - 0.6 * smoother5((q - 0.7) / 0.3)) : 1), hk = m.kind === 'star' ? 2 : 1, hx = px[0], hy = py[0];
+      const hStart = o / 9;
+      for (let k = 0; k < 4; k++) {
+        const u = (k & 1) ? 1 : -1, v = (k & 2) ? 1 : -1;
+        buf[o++] = hx + u * hs; buf[o++] = hy + v * hs; buf[o++] = u; buf[o++] = v; buf[o++] = hk; buf[o++] = headA; buf[o++] = r; buf[o++] = g; buf[o++] = b;
+      }
+      CM.ds[nd] = hStart; CM.dc[nd] = 4; nd++;
+    }
+    if (!nd) return;
+    gl.useProgram(G.comet.p); gl.uniform2f(G.comet.u.uView, V.vw, V.vh);
+    gl.bindVertexArray(G.cometVao); gl.bindBuffer(gl.ARRAY_BUFFER, G.cometBuf);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, buf.subarray(0, o));
+    for (let i = 0; i < nd; i++) gl.drawArrays(gl.TRIANGLE_STRIP, CM.ds[i], CM.dc[i]);
+  }
+
   function awakenDistantGroups(eventTime, tier, strength) {
     const c = V.cosmic;
     if (eventTime > c.wakeUntil + 6 || c.wakeTier === 0) c.wakeStart = eventTime;
@@ -1109,6 +1351,7 @@ void main(){
     if (!c.sessionActive) beginCosmicSession();
     if (!rm) c.activeElapsed += Math.min(dt, 0.1);
     const eventTime = c.activeElapsed;
+    tickComets(eventTime);
     const energyNow = A.ok ? clamp(A.energy, 0, 1) : 0.4;
     // دنباله‌دارها دیگر منتظر اوج نمی‌مانند: زمان‌بندِ پایه، موسیقی فقط فاصله را کمی کوتاه می‌کند
     if (!rm && eventTime >= c.nextCometAt) {
@@ -1164,7 +1407,7 @@ void main(){
     const c = V.cosmic;
     c.nextCometAt = 0; c.lastPeakAt = -100; c.peakCandidateUntil = -100; c.prevEnergy = 0;
     c.wakeStart = -100; c.wakeUntil = -100; c.wakeTier = 0; c.wakeStrength = 0; c.glow = 0;
-    c.slotStart.fill(-100); c.infallUniforms.fill(0); c.reveal.fill(0);
+    c.slotStart.fill(-100); c.infallUniforms.fill(0); c.reveal.fill(0); COMETS.length = 0;
     c.sessionActive = false; c.activeElapsed = 0; c.revelationStart = 0; c.revelationAmount = 0; c.revelationEnergy = 0; c.rng = null;
   }
 
@@ -1178,7 +1421,7 @@ void main(){
       if (pst.on || !V.playing || !VM.isOpen() || document.hidden || reduced()) cancelTitleEntrance(false);
       else if (V.entrance.active) V.entrance.elapsed += dt;
     }
-    if (V.entrance.active && V.entrance.elapsed >= V.entrance.duration + V.entrance.handoff) cancelTitleEntrance(false);
+    if (V.entrance.active && V.entrance.elapsed >= V.entrance.duration + V.entrance.handoff) { startStarFlight(); cancelTitleEntrance(false); }
     VM.setPowder((pst.on && V.powder.n > 0) || (V.entrance.active && V.entrance.elapsed < V.entrance.duration + V.entrance.handoff));
 
     const needSpec = V.L.galaxy > 0.02 || V.stage === 'galaxy' || pst.on;
@@ -1229,6 +1472,16 @@ void main(){
     if (!A.ok) {                                                  // جایگزینِ تزئینی وقتی آنالیز در دسترس نیست
       for (let i = 0; i < 12; i++) { const s = 0.5 + 0.5 * Math.sin(nowS * 0.9 - i * 0.62); A.chroma[i] = 0.62 * s * s; }
       A.conf = 0.5;
+    }
+    // رنگ: تصویرِ آغازین و لحظه‌های مکث/بی‌صدایی سفیدِ واقع‌گرایانه است؛ با پخش، هر لایه (نتِ خودش) به‌اندازهٔ انرژیِ همان لحظه لمسِ رنگ می‌گیرد
+    {
+      const e = clamp(V.energy || 0, 0, 1);
+      const colTarget = V.playing ? clamp(0.30 + 1.4 * e, 0, 1) * smoother5((e - 0.012) / 0.05) : 0;
+      V.colorLevel += (colTarget - V.colorLevel) * expK(dt, colTarget > V.colorLevel ? 2.0 : 1.3);
+      for (let b = 0; b < 12; b++) {
+        const want = V.colorLevel * (0.22 + 0.78 * smoother5((A.chroma[b] - 0.04) / 0.5));
+        V.tint[b] += (want - V.tint[b]) * expK(dt, want > V.tint[b] ? 0.30 : 1.0);
+      }
     }
     // دوربین: شیبِ دیسک و رولِ بسیار کند — حسِ شناور بودن در فضا (دوره‌ها ≈ ۱۲۰ و ۹۰ ثانیه)
     V.inclNow = V.incl + 6 * Math.sin(nowS * 0.052);
@@ -1305,15 +1558,7 @@ void main(){
       gl.uniform4f(G.aurora.u.uBand, c.bandAngle, c.bandOffset, c.bandBulge, c.bandWidth);
       gl.uniform4f(G.aurora.u.uBandP, bandAmt, c.revelationSeed, c.revelationEnergy, bandTemp);
       gl.uniform1f(G.aurora.u.uBandLow, rm ? 0 : A.low);
-      for (let i = 0; i < 3; i++) {
-        const age = c.activeElapsed - c.slotStart[i];
-        const linearProgress = !rm && age >= 0 && age <= c.slotDur[i] ? clamp(age / c.slotDur[i], 0, 1) : -1;
-        const progress = linearProgress < 0 ? -1 : Math.pow(linearProgress, 1.25);
-        const fade = progress < 0 ? 0 : smoother5(progress / 0.10) * (1 - smoother5((progress - 0.74) / 0.26));
-        const o = i * 4;
-        infall[o] = progress; infall[o + 1] = c.slotAngle[i]; infall[o + 2] = c.slotRadius[i];
-        infall[o + 3] = rm ? 0 : c.slotStrength[i] * fade;
-      }
+      infall.fill(0);                                                   // دنباله‌دارها حالا با روبانِ جدا رسم می‌شوند (drawComets)
       gl.uniform4fv(G.aurora.u['uInfall[0]'], infall);
       gl.uniform1f(G.aurora.u.uInfallTail, c.infallTail);
       gl.uniform1f(G.aurora.u.uHorizon, cosmicHorizonRadius());
@@ -1347,6 +1592,8 @@ void main(){
       if (G.bandCount > 0 && bandAmt > 0.003) { gl.bindVertexArray(G.bandVao); gl.drawArrays(gl.POINTS, 0, G.bandCount); }
     }
 
+    if (La > 0.003 && COMETS.length) drawComets(sceneScale, sinI, roll, La);
+
     if (Lg > 0.004) {
       const u = G.dots.u, n = Math.max(1500, Math.floor(V.N * V.q));
       const au = G.aurDots.u, aurN = Math.floor(V.auroraN * V.q);
@@ -1359,7 +1606,7 @@ void main(){
         gl.uniform1f(au.uDiskBreath, diskBreath); gl.uniform1f(au.uPhase, rm ? 0 : V.phase + V.track * 3.1); gl.uniform1f(au.uTime, rm ? 0 : nowS % 6000);
         gl.uniform1f(au.uLevel, La); gl.uniform1f(au.uLum, V.L.lum);
         gl.uniform1f(au.uLow, rm ? 0 : A.low); gl.uniform1f(au.uMid, rm ? 0 : A.mid); gl.uniform1f(au.uHigh, rm ? 0 : A.high);
-        gl.uniform1f(au.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1)); gl.uniform1fv(au.uChroma, A.chroma); gl.uniform1f(au.uHoleR, HOLE_R);
+        gl.uniform1f(au.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1)); gl.uniform1fv(au.uChroma, A.chroma); gl.uniform1fv(au.uTint, V.tint); gl.uniform1f(au.uHoleR, HOLE_R);
         gl.bindVertexArray(G.aurVao); gl.drawArrays(gl.POINTS, V.auroraStart, aurN);
       };
       const setDots = function (half) {
@@ -1375,7 +1622,7 @@ void main(){
         gl.uniform1f(u.uConf, A.ok ? A.conf : 0);
         gl.uniform1f(u.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1));
         gl.uniform1f(u.uMid, rm ? 0 : A.mid); gl.uniform1f(u.uHigh, rm ? 0 : A.high); gl.uniform1f(u.uStructure, rm ? 0 : V.structure);
-        gl.uniform1fv(u.uChroma, A.chroma); gl.uniform3fv(u.uPal, PAL);
+        gl.uniform1fv(u.uChroma, A.chroma); gl.uniform1fv(u.uTint, V.tint); gl.uniform3fv(u.uPal, PAL);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex); gl.uniform1i(u.uAur, 0);
         gl.uniform1f(u.uAurMix, La > 0.003 ? clamp(La * 1.5, 0, 1) : 0);
         gl.bindVertexArray(G.dotVao); gl.drawArrays(gl.POINTS, 0, n);
@@ -1431,7 +1678,7 @@ void main(){
     if (!V.running) return;
     const rm = reduced();
     const fast = !rm && (V.stage === 'galaxy' || V.L.galaxy > 0.05 || V.powder.on || V.entrance.active);
-    const minDt = 1000 / (rm ? CFG.reducedFps : (fast ? CFG.galaxyFps : CFG.calmFps));
+    const minDt = 1000 / (rm ? CFG.reducedFps : (fast ? CFG.galaxyFps * (SND.vq === 'low' ? 0.8 : 1) : CFG.calmFps));
     const dtMs = now - V.last;
     if (dtMs < minDt - 3) { V.raf = requestAnimationFrame(frame); return; }
     V.last = now;
@@ -1455,9 +1702,10 @@ void main(){
     V.frames++; V.fpsT += dt;
     if (V.fpsT >= 1) {
       V.fps = V.frames / V.fpsT; V.frames = 0; V.fpsT = 0;
+      if (SND.vq === 'low' && V.q > 0.55) V.q = 0.55;
       if (V.L.galaxy > 0.6 && !document.hidden && now > V.grace) {
         const tgt = rm ? CFG.reducedFps : CFG.galaxyFps;
-        if (V.fps < tgt * 0.7 || V.cpuMs > 12) { V.fastN = 0; if (++V.slowN >= 2) { V.q = Math.max(0.3, V.q * 0.72); V.slowN = 0; } }
+        if (V.fps < tgt * 0.7 || V.cpuMs > 12) { V.fastN = 0; if (++V.slowN >= 2) { V.q = Math.max(SND.vq === 'high' ? 0.8 : 0.3, V.q * 0.72); V.slowN = 0; } }
         else if (V.fps >= tgt * 0.93 && V.cpuMs < 8) { V.slowN = 0; if (++V.fastN >= 6 && V.q < 1) { V.q = Math.min(1, V.q * 1.15); V.fastN = 0; } }
         else { V.slowN = 0; V.fastN = 0; }
       }
@@ -1509,7 +1757,7 @@ void main(){
     A.warm = 1.5; A.snap = true;
     V.powder.key = '';
   }
-  window.addEventListener('voidmusic:track', function (e) { newTrackLook((e.detail && e.detail.seed) || Math.random() * 4294967296); });
+  window.addEventListener('voidmusic:track', function (e) { cancelStarFlight(); newTrackLook((e.detail && e.detail.seed) || Math.random() * 4294967296); });
   window.addEventListener('voidmusic:title-ready', function (e) { startTitleEntrance(e.detail); });
 
 
@@ -1530,12 +1778,13 @@ void main(){
     if (bgT) return;
     bgT = setInterval(function () {
       const a = VM.getAudio();
-      if (!document.hidden || !(a && !a.paused) || !(VM.remoteWanted && VM.remoteWanted())) { if (!document.hidden || !(a && !a.paused)) { clearInterval(bgT); bgT = 0; } return; }
+      if (SND.bg !== 'live' || !document.hidden || !(a && !a.paused)) { clearInterval(bgT); bgT = 0; return; }
+      if (!(VM.remoteWanted && VM.remoteWanted())) return;
       if (!A.ok) return;
       try { analyze(0.17, true); pushVizNow(); } catch (e) {}
     }, 170);
   }
-  document.addEventListener('visibilitychange', function () { if (document.hidden) bgKick(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden) { if (SND.bg === 'live') bgKick(); } else refreshTaps(); });
   const MINI = { raf: 0, last: 0, tick: 0, boot: false };
   function miniActive() {
     const a = VM.getAudio();
@@ -1713,6 +1962,7 @@ void main(){
         q: V.q, chroma: Array.prototype.slice.call(A.chroma), L: { aurora: V.L.aurora, galaxy: V.L.galaxy }, powder: { on: V.powder.on, prog: V.powder.prog, n: V.powder.n, T: V.powder.T || 0 },
         ctx: A.ok ? A.ctx.state : A.state, fps: V.fps, cpuMs: V.cpuMs, ok: V.ok, N: V.N };
     },
-    config: CFG
+    config: CFG,
+    sound: soundApi
   };
 })();
