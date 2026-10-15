@@ -74,7 +74,7 @@
     vol: 0.8, muted: false, outGain: null,
     mini: null, fsByUs: false, widgetShown: false, widgetWasVisible: true, ptrDown: false,
     roots: new Map(), permCache: new Map(), copyMode: false, copyDone: 0, copyTotal: 0, swept: [],
-    shuffle: false, query: '', starsFor: null, flownId: null
+    shuffle: false, query: '', starsFor: null, flownId: null, starsTimer: 0
   };
   // پخش تصادفی: پیش‌فرض خاموش (ترتیبِ فهرست). برای برگرداندنِ رفتارِ قدیمی (همیشه تصادفی) این را true کن.
   const SHUFFLE_DEFAULT = false, SHUF_KEY = 'voidMusic.shuffle';
@@ -904,6 +904,8 @@
       '.vm-stars[hidden]{display:none!important}' +
       '.vm-star{font-size:19px;line-height:1;color:#ffd68c;text-shadow:0 0 10px rgba(255,200,120,.65),0 0 2px rgba(255,255,255,.7);transition:opacity .35s,transform .35s}' +
       '.vm-star.is-gone{opacity:0;transform:scale(.3)}' +
+      '.vm-stars{transition:opacity .6s ease}' +
+      '.is-quiet .vm-stars{opacity:0}' +                                  // با خودکارپنهانِ رابط (همان رفتارِ عنوان) ستاره‌ها هم محو می‌شوند
       '.is-powder .vm-stars{opacity:0;transition:none}' +
       '.vm-sound-pop{width:min(440px,calc(100vw - 24px));box-sizing:border-box;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;max-height:min(78vh,580px);overflow:auto}' +
       '.vm-sound-pop.is-unavailable .vm-eq-bands,.vm-sound-pop.is-unavailable .vm-snd-spec{opacity:.4;pointer-events:none}' +
@@ -1299,6 +1301,19 @@
     els.stars.hidden = !n;
     els.stars.setAttribute('aria-label', n ? L('voidMusicRateN').replace('{n}', String(n)) : '');
     placeStars();
+    scheduleStarsAutoHide();
+  }
+  // نمایشِ ستاره‌ها خودکار تمام می‌شود: اگر پروازِ دنباله‌دارها انجام نشد (مثلاً بدونِ پودرِ ورودی، مکث، یا امتیازدهیِ دستی)، پس از چند ثانیه محو می‌شوند
+  const STAR_SHOW_MS = 10000;
+  function scheduleStarsAutoHide() {
+    clearTimeout(S.starsTimer); S.starsTimer = 0;
+    if (!S.built || els.stars.hidden || S.flownId === S.curId) return;
+    S.starsTimer = setTimeout(function () {
+      S.starsTimer = 0;
+      if (!S.built) return;
+      Array.prototype.forEach.call(els.stars.children, function (c) { c.classList.add('is-gone'); });
+      S.flownId = S.curId;
+    }, STAR_SHOW_MS);
   }
 
   function setQuery(q) {
@@ -1963,6 +1978,7 @@
     S.open = false;
     clearTimeout(idleTimer); clearTimeout(popTimer);
     watchStrays(false);
+    clearTimeout(S.starsTimer); S.starsTimer = 0;
     restoreWidgetAfterExit();
     root.classList.remove('is-quiet'); document.body.classList.remove('vm-quiet');
     closePops();
