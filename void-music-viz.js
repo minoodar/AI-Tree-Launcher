@@ -41,8 +41,8 @@
     firstS: 2.0,                      // اولین «نمایان‌شدن» ۲ تا ۴ ثانیه بعد از شروع
     appearS: 8, holdS: 26, fadeS: 12, // مدت‌ها (هرکدام + بخشِ تصادفی کوچک)
     restMin: 48, restRand: 34,        // فاصلهٔ دو نمایان‌شدن (ثانیه)
-    starsDesktop: 2600, starsMobile: 1000,
-    cometGapS: 5.5, cometGapRand: 7.5, // فاصلهٔ دو دنباله‌دار؛ بدونِ وابستگی به اوج
+    starsDesktop: 1500, starsMobile: 600,
+    cometGapS: 10, cometGapRand: 12, // فاصلهٔ دو دنباله‌دار؛ بدونِ وابستگی به اوج
     cometStrength: 0.62
   };
   const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
@@ -388,7 +388,7 @@
       groupDelay: new Float32Array(COSMIC_GROUPS), sessionActive: false, sessionCount: 0, activeElapsed: 0,
       revelationStart: 0, revelationAppear: 8, revelationHold: 26, revelationFade: 12, revelationRest: 60,
       revelationAmount: 0, revelationSeed: 0, revelationEnergy: 0,
-      bandAngle: 0.4, bandOffset: 0.25, bandBulge: 0.3, bandWidth: 0.19, bandDirty: true
+      bandAngle: 0.4, bandOffset: 0.25, bandBulge: 0.3, bandWidth: 0.19, bandDirty: true, nextBloomAt: 0
     },
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
@@ -405,7 +405,7 @@ void main(){ vec2 p = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2)
 precision highp float;
 uniform vec2 uRes; uniform float uTime; uniform float uLevel; uniform vec3 uSeed; uniform vec3 uTint;
 uniform vec2 uHole; uniform float uAsp, uBend; uniform vec4 uInfall[3]; uniform float uInfallTail, uHorizon;
-uniform vec4 uBand; uniform vec4 uBandP; uniform float uBandLow;
+uniform vec4 uBand; uniform vec4 uBandP; uniform float uBandLow; uniform vec4 uBloom[3];
 out vec4 o;
 float h21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
@@ -478,19 +478,80 @@ void main(){
     float dpatch = smoothstep(0.38, 0.70, fbm5(vec2(s * 6.0 + tb, d * 14.0) + sd * 2.3));
     float dust = clamp(lane * (0.55 + 0.75 * dpatch) + 0.40 * dpatch * core, 0.0, 1.0);
     dens *= 1.0 - 0.80 * dust * (1.0 - 0.35 * bulge);
+    // کنتراستِ موضعی هم‌گام با اوج‌ها: ابرها روشن‌تر، غبار عمیق‌تر (تنها در بخشی از افق)
+    float loc = 0.0;
+    for (int bi = 0; bi < 3; bi++) loc += uBloom[bi].z * exp(-pow((s - uBloom[bi].x) / max(uBloom[bi].y, 0.05), 2.0));
+    loc = clamp(loc, 0.0, 1.4);
+    dens *= (1.0 + 1.5 * loc * smoothstep(0.25, 0.85, clouds)) * (1.0 - 0.45 * loc * dust);
     bandDens = clamp(dens * 0.6, 0.0, 1.0);
     // رنگ: مرکزِ کهربایی، حاشیهٔ آبی-سفید؛ موسیقیِ روشن‌تر کمی سردتر، گرم و کم‌فرکانس گرم‌تر
     float warmMix = clamp(0.10 + 0.85 * bulge * bulgeW + 0.30 * (1.0 - uBandP.w), 0.0, 1.0);
     vec3 col = mix(vec3(0.50, 0.66, 1.0), vec3(1.0, 0.76, 0.50), warmMix);
     col = mix(col, uTint, 0.08);
-    float expo = uBandP.x * (0.86 + 0.26 * uBandP.z) * (1.0 + 0.22 * uBandLow * bulge);
+    float expo = uBandP.x * (0.86 + 0.26 * uBandP.z) * (1.0 + 0.22 * uBandLow * bulge) * (1.0 + 0.35 * loc);
     float dimNear = 1.0 - 0.50 * exp(-pow(r / 0.30, 2.0));          // کنتراستِ سیاه‌چالهٔ مرکزی حفظ می‌شود
     vec3 lum = col * dens * expo * 0.48 * dimNear;
     distantGalaxy = lum / (1.0 + 0.9 * lum);
   }
   vec3 ambient = mix(vec3(0.10, 0.62, 0.94), uTint, 0.14) * cloud + infallColor * spiralLight + distantGalaxy;
+  ambient *= smoothstep(0.05, 0.22, uv0.y) * (1.0 - smoothstep(0.78, 0.95, uv0.y));   // لبهٔ بالا و پایینِ تصویر سیاه
   o = vec4(pow(max(ambient, 0.0), vec3(0.92)), bandDens);   // آلفا = چگالیِ نوار (فقط برای ستاره‌های نوار؛ blit آن را صفر می‌کند)
 }`;
+
+  /* ستاره‌هایی که از بازوها جدا می‌شوند: مارپیچِ طلاییِ کم‌عمر. همه‌چیز روی GPU از زمان محاسبه می‌شود (بدون به‌روزرسانیِ بافر) */
+  const VS_EJECTA = `#version 300 es
+precision highp float;
+in vec4 aA; in vec4 aB;
+uniform vec2 uView; uniform vec2 uCenter;
+uniform float uScale, uSin, uTilt, uTime, uRate, uPx, uPhase, uTh0, uK, uArms;
+out float vA; out float vW;
+float h1(float x){ return fract(sin(x * 127.1 + 311.7) * 43758.5453); }
+void main(){
+  float t = uTime - aA.w;
+  float cyc = floor(t / aA.z);
+  float age = t - cyc * aA.z;
+  float life = aA.z * 0.72;
+  float hv = h1(cyc * 7.31 + aB.x * 91.7);
+  float gate = smoothstep(hv, hv + 0.14, uRate);
+  if (cyc < 0.0 || age > life || gate < 0.01) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vA = 0.0; vW = 0.0; gl_PointSize = 1.0; return; }
+  float u = age / life;
+  float arm = floor(h1(cyc * 3.17 + aB.x * 17.0) * uArms);
+  float r = aA.x * (0.94 + 0.12 * h1(cyc + aB.x * 5.0)) + aB.y * pow(u, 1.25);
+  float scatter = (h1(cyc * 1.91 + aB.x * 29.0) - 0.5) * 0.30;
+  float th = uTh0 + arm * 6.2831853 / uArms + uK * log(r / 0.19) + scatter;
+  th -= uPhase * (0.10 * pow(r + 0.05, -1.5) + 1.53);
+  float side = sin(th);
+  vec2 p = vec2(r * cos(th), r * side * uSin);
+  float c = cos(uTilt), s = sin(uTilt);
+  p = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
+  vec2 px = uCenter + p * uScale;
+  gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
+  float env = pow(sin(3.14159265 * u), 1.3);
+  vA = env * gate * 0.85; vW = u;
+  gl_PointSize = clamp(aB.z * (0.8 + 0.5 * env) * uPx, 1.0, 7.0);
+}`;
+  const FS_EJECTA = `#version 300 es
+precision mediump float;
+in float vA; in float vW;
+out vec4 o;
+void main(){
+  vec2 d = gl_PointCoord - 0.5; float q = dot(d, d) * 4.0;
+  if (q > 1.0) discard;
+  float a = exp(-q * 3.0) + 0.25 * exp(-q * 1.1);
+  vec3 col = mix(vec3(1.0, 0.78, 0.40), vec3(1.0, 0.93, 0.78), vW);
+  o = vec4(col * a * vA, 0.0);
+}`;
+  const EJ = { M: 180, data: null };
+  function buildEjecta() {
+    const rnd = mulberry32((V.session ^ 0xE1EC7A) >>> 0), d = new Float32Array(EJ.M * 8);
+    for (let i = 0; i < EJ.M; i++) {
+      const o = i * 8, per = 5.5 + rnd() * 4.5;
+      d[o] = 0.20 + 0.52 * Math.pow(rnd(), 1.35); d[o + 1] = rnd(); d[o + 2] = per; d[o + 3] = rnd() * per;
+      d[o + 4] = rnd(); d[o + 5] = 0.16 + 0.22 * rnd(); d[o + 6] = 1.4 + 1.8 * rnd(); d[o + 7] = 0;
+    }
+    return d;
+  }
+  V.ejRate = 0; V.ejBurst = 0;
 
   /* دنباله‌دارها: روبانِ نرم در فضای صفحه (نه رسمِ پیکسل‌به‌پیکسل در بافتِ ¼-رزولوشن) + سرِ درخشان/ستاره‌ای */
   const VS_COMET = `#version 300 es
@@ -511,6 +572,7 @@ void main(){
   float I;
   if (vK < 0.5) { I = exp(-vUV.x * vUV.x * 4.2); }
   else if (vK < 1.5) { I = exp(-r2 * 5.0) + 0.10 * exp(-r2 * 1.4); }
+  else if (vK > 2.5) { I = 0.80 * exp(-r2 * 3.0) + 0.50 * exp(-r2 * 14.0); }   // هات‌اسپاتِ مرکزی
   else {
     float ax = abs(vUV.x), ay = abs(vUV.y);
     float core = exp(-r2 * 10.0);
@@ -556,6 +618,8 @@ void main(){
     size = 1.0 + 1.7 * mag * mag * mag;
   } else if (pd < 1.0) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vAlpha = 0.0; gl_PointSize = 1.0; return; }
   gl_Position = vec4(p.x / uView.x * 2.0 - 1.0, 1.0 - p.y / uView.y * 2.0, 0.0, 1.0);
+  float ym = 1.0 - aCosmic.y;
+  vAlpha *= smoothstep(0.05, 0.22, ym) * (1.0 - smoothstep(0.78, 0.95, ym));   // ستاره‌ها هم در لبهٔ بالا/پایین محو می‌شوند
   gl_PointSize = clamp(size * uPx, 1.0, 3.0);
 }`;
 
@@ -595,9 +659,10 @@ void main(){
   bool ring = band < 11.5;
   float baseR = aPolar.x;
   float r = baseR * (ring ? 1.0 + uDiskBreath * (0.78 + 0.22 * aU) : 1.0);
-  float omega = pow(baseR + 0.05, -1.5);
+  float omega = 0.10 * pow(baseR + 0.05, -1.5) + 1.53;   // تقریباً دورانِ الگو (بازوها نپیچند)، با کمی تفاضل
   float armWave = sin(aU * 6.28318 * 2.0 - uTime * 0.035 + uStructure * 2.0 + seed * 0.9);
-  float th = aPolar.y + uPhase * omega + (ring ? armWave * (0.026 * uMid + 0.018 * uStructure) : 0.0);
+  float th = aPolar.y - uPhase * omega + (ring ?     // پادساعت‌گرد روی صفحه: زاویه با زمان کم می‌شود
+   armWave * (0.026 * uMid + 0.018 * uStructure) : 0.0);
   float side = sin(th);
   // نیمهٔ دورِ حلقه‌ها پشتِ کره، نیمهٔ نزدیک جلوی آن رسم می‌شود (دو پاس)
   if (band > 13.5 || ((uHalf < 0.5) != (side < 0.0))) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); vDiskView = vec3(0.0); vPointDiameter = 0.0; gl_PointSize = 1.0; return; }
@@ -611,12 +676,15 @@ void main(){
   int ib = int(clamp(band, 0.0, 11.0) + 0.5);
   float e = ring ? uChroma[ib] : 0.0;
   // رنگِ پیش‌فرض: خاکستری‌های روشن و تیره (هر ذره درخششِ خودش را دارد)؛ نزدیکِ افق کمی گرم، دورتر سردتر؛ پرنورها هاله دارند
-  float gS = 0.26 + 0.74 * pow(seed, 2.2);
+  float gS = 0.40 + 0.26 * pow(seed, 2.2);                    // مرحلهٔ اول: خاکستریِ کم‌کنتراست و یکنواخت‌تر (دامنهٔ ۰٫۴۰…۰٫۶۶)
   float warmK = 1.0 - smoothstep(0.16, 0.62, baseR);
   vec3 neutral = gS * mix(vec3(0.84, 0.89, 1.0), vec3(1.0, 0.90, 0.76), 0.62 * warmK);
-  float halo = smoothstep(0.76, 0.98, seed);
+  // مرحلهٔ دوم: لایه‌ای که لمسِ رنگ می‌گیرد (tA) ارزشِ بصریِ بیشتری دارد: روشن‌تر، کمی درشت‌تر و با هالهٔ پررنگ‌تر؛ بقیه کم‌اهمیت می‌مانند
+  int hueI = int(clamp(aMisc.w, 0.0, 6.0) + 0.5);
+  float tA = ring ? (ib < 7 ? clamp(uTint[ib], 0.0, 1.0) : 0.0) : (band < 12.5 ? clamp(uTint[hueI], 0.0, 1.0) : 0.0);
+  float halo = smoothstep(0.76, 0.98, seed) * (0.45 + 0.90 * tA);
   vHalo = halo;
-  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side) * (1.0 + 0.85 * halo);
+  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side) * (1.0 + 0.60 * halo) * (1.0 + 0.30 * tA);
   vec2 px = uCenter + p * uScale;
   gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
 
@@ -637,6 +705,7 @@ void main(){
   } else {
     lum = 0.46 * (1.0 - smoothstep(0.80, 1.0, r)); col = neutral * 0.92;
   }
+  lum *= mix(0.78, 1.9, tA);                                  // بی‌رنگ ۰٫۷۸×، رنگی تا ۱٫۹× ⇒ رنگ‌ها «ارزش» پیدا می‌کنند
   // نورِ مشترک: ذره‌ها از شفقِ پشتِ خودشان نور و رنگ می‌گیرند (هویتِ یکپارچه)
   vec3 ac = textureLod(uAur, vec2(px.x / uView.x, 1.0 - px.y / uView.y), 0.0).rgb;
   float al = dot(ac, vec3(0.30, 0.55, 0.15));
@@ -700,8 +769,8 @@ void main(){
   float sourceBand = clamp(aMisc.w, 0.0, 11.0);
   float baseR = aPolar.x;
   float r = baseR * (1.0 + uDiskBreath * (0.78 + 0.22 * aU));
-  float omega = pow(baseR + 0.05, -1.5);
-  float theta = aPolar.y + uPhase * omega
+  float omega = 0.10 * pow(baseR + 0.05, -1.5) + 1.53;
+  float theta = aPolar.y - uPhase * omega
     + (0.006 + 0.006 * uMid) * sin(seed * TAU_AUR + uTime * 0.16);
   float x = r * cos(theta), y = r * sin(theta);
   float normalOffset = (aU - 0.5) * 0.070
@@ -726,7 +795,7 @@ void main(){
   float chroma = clamp(uChroma[int(sourceBand + 0.5)], 0.0, 1.0);
   vec3 cyan = vec3(0.08, 0.62, 0.94);
   vec3 violet = vec3(0.40, 0.38, 0.91);
-  vec3 color = mix(vec3(0.80, 0.83, 0.90) * (0.40 + 0.60 * seed * seed), mix(cyan, violet, 0.18 + 0.52 * seed), clamp(uTint[int(sourceBand + 0.5)], 0.0, 1.0));
+  vec3 color = mix(vec3(0.80, 0.83, 0.90) * (0.30 + 0.22 * seed * seed), mix(cyan, violet, 0.18 + 0.52 * seed), clamp(uTint[int(sourceBand + 0.5)], 0.0, 1.0));
   float depthLight = clamp(0.88 + 0.22 * depth, 0.72, 1.08);
   float audioGlow = clamp(0.82 + 0.16 * uLow + 0.12 * uMid + 0.04 * uHigh, 0.72, 1.12);
   float slowActivity = 0.91 + 0.09 * sin(uTime * 0.23 + seed * 39.0 + theta * 0.35);
@@ -927,7 +996,7 @@ void main(){
     const R0 = 0.19, R1 = 0.78, NB = 12;
     const wts = []; let wsum = 0;
     for (let b = 0; b < NB; b++) { const x = 1 + (rnd() - 0.5) * 0.36; wts.push(x); wsum += x; }
-    const GAP = 0.16, CASSINI = 0.95;                 // شکافِ بزرگ بینِ نیمهٔ گرم (C…E) و سرد (F…B)
+    const GAP = 0.05, CASSINI = 0.40;                 // شکافِ بزرگ بینِ نیمهٔ گرم (C…E) و سرد (F…B)
     const unit = (R1 - R0) / (wsum + 10 * GAP + CASSINI);
     const inner = [], outer = []; let cur = R0;
     for (let b = 0; b < NB; b++) {
@@ -946,10 +1015,18 @@ void main(){
     const counts = area.map(function (a) { return Math.round(nRing * a / asum); });
     counts[NB - 1] += nRing - counts.reduce(function (a, c) { return a + c; }, 0);
     const th0 = rnd() * TAU;
+    // بازوهای مارپیچِ لگاریتمی (دنباله‌دار نسبت به چرخشِ پادساعت‌گرد)؛ ~۲۶٪ ذرات پس‌زمینهٔ بین‌بازوهاست
+    const ARMS = 3, KPITCH = 1.8;
+    V.armTh0 = th0; V.armK = KPITCH; V.armN = ARMS;
+    const armAngle = function (r) {
+      if (rnd() > 0.74) return rnd() * TAU;
+      const k = Math.floor(rnd() * ARMS), sg = 0.26 + 0.34 * ((r - R0) / (R1 - R0)), g = (rnd() + rnd() + rnd() - 1.5) * 1.6;
+      return th0 + k * TAU / ARMS + KPITCH * Math.log(r / R0) + g * sg;
+    };
     let i = 0;
-    const put = function (r, band, uu, tier) {
+    const put = function (r, band, uu, tier, thA) {
       const o = i * 7, seed = rnd();
-      buf[o] = r; buf[o + 1] = i * GOLDEN + th0; buf[o + 2] = seed; buf[o + 3] = 1.25 * (0.55 + 0.9 * seed);
+      buf[o] = r; buf[o + 1] = thA !== undefined ? thA : i * GOLDEN + th0; buf[o + 2] = seed; buf[o + 3] = 1.25 * (0.55 + 0.9 * seed);
       buf[o + 4] = band; buf[o + 5] = tier; buf[o + 6] = uu; i++;
     };
     for (let b = 0; b < NB; b++) {
@@ -959,9 +1036,9 @@ void main(){
         for (let t = 0; t < 8; t++) {                                  // رینگلت‌های ریز (کم‌چگالی و پرچگالی) داخلِ هر نوار
           r = Math.pow(a0 + (a1 - a0) * rnd(), 1 / 1.5);
           u = (r - inner[b]) / (outer[b] - inner[b]);
-          if (rnd() < 0.55 + 0.45 * (0.5 + 0.5 * Math.cos(TAU * (rl * u + ph)))) break;
+          if (rnd() < 0.86 + 0.14 * (0.5 + 0.5 * Math.cos(TAU * (rl * u + ph)))) break;
         }
-        put(r, b, u, 3);
+        put(r, b, u, 3, armAngle(r));
       }
     }
     for (let k = 0; k < nInner; k++) put(HOLE_R + 0.03 + 0.05 * Math.pow(rnd(), 0.8), 12, rnd(), k % 7);
@@ -1003,7 +1080,7 @@ void main(){
       });
 
       G = {};
-      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uBand', 'uBandP', 'uBandLow']);
+      G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uBand', 'uBandP', 'uBandLow', 'uBloom[0]']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
       G.cosmic = program(gl, VS_COSMIC_DOTS, FS_COSMIC_DOTS, ['uView', 'uPx', 'uTime', 'uLevel', 'uGlow', 'uAspect', 'uPrimary', 'uReveal[0]', 'uBandTex', 'uBandAmt', 'uBandHigh']);
       G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix', 'uTint']);
@@ -1014,6 +1091,11 @@ void main(){
       const gl = V.gl;
       G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW', 'uMode', 'uEnter', 'uCoreR', 'uFade', 'uHasStars']);
       G.emptyVao = gl.createVertexArray();
+      G.ejecta = program(gl, VS_EJECTA, FS_EJECTA, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uTime', 'uRate', 'uPx', 'uPhase', 'uTh0', 'uK', 'uArms']);
+      G.ejectaVao = gl.createVertexArray(); gl.bindVertexArray(G.ejectaVao);
+      G.ejectaBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, G.ejectaBuf); gl.bufferData(gl.ARRAY_BUFFER, buildEjecta(), gl.STATIC_DRAW);
+      [['aA', 4, 0], ['aB', 4, 16]].forEach(function (a) { const loc = gl.getAttribLocation(G.ejecta.p, a[0]); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, a[1], gl.FLOAT, false, 32, a[2]); });
+      gl.bindVertexArray(null);
       G.comet = program(gl, VS_COMET, FS_COMET, ['uView']);
       G.cometVao = gl.createVertexArray(); gl.bindVertexArray(G.cometVao);
       G.cometBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, G.cometBuf); gl.bufferData(gl.ARRAY_BUFFER, CM.buf.byteLength, gl.DYNAMIC_DRAW);
@@ -1229,7 +1311,7 @@ void main(){
     if (c.sessionActive || !V.vw || !V.vh) return;
     c.sessionActive = true; c.sessionCount++; c.activeElapsed = 0;
     c.rng = mulberry32((V.session ^ Math.imul(c.sessionCount, 0x9E3779B9) ^ 0x51A7C0) >>> 0);
-    c.slotStart.fill(-100); COMETS.length = 0; c.nextCometAt = 2.5 + cosmicRand() * 1.5; c.infallTail = 0.21 + cosmicRand() * 0.05;
+    c.slotStart.fill(-100); COMETS.length = 0; c.nextCometAt = 4 + cosmicRand() * 3; c.infallTail = 0.21 + cosmicRand() * 0.05;
     c.lastPeakAt = -100; c.peakCandidateUntil = -100;
     // نمایان‌شدنِ راه شیری: اولین چرخه کوتاه و تضمین‌شده؛ بعد از آن به‌صورت دوره‌ای تکرار می‌شود
     c.revelationStart = MW.firstS + cosmicRand() * 2;
@@ -1239,16 +1321,34 @@ void main(){
     c.revelationRest = MW.restMin + cosmicRand() * MW.restRand;
     c.revelationSeed = cosmicRand(); c.revelationEnergy = 0; c.revelationAmount = 0;
     // هندسهٔ نوار (ثابت در کلِ نشست): زاویهٔ ۱۷–۳۵°، فاصله از مرکز تا سیاه‌چاله روی نوارِ روشن نیفتد، برآمدگی روی یک سمت
-    c.bandAngle = (cosmicRand() < 0.5 ? -1 : 1) * (0.30 + cosmicRand() * 0.32);
-    c.bandOffset = (cosmicRand() < 0.5 ? -1 : 1) * (0.20 + cosmicRand() * 0.12);
+    c.bandAngle = (cosmicRand() < 0.5 ? -1 : 1) * (0.06 + cosmicRand() * 0.12);      // افقِ کهکشانی: تقریباً افقی
+    c.bandOffset = (cosmicRand() < 0.5 ? -1 : 1) * (0.20 + cosmicRand() * 0.08);     // در ثلثِ بالا یا پایین؛ لبه‌ها سیاه‌اند
     c.bandBulge = (cosmicRand() < 0.5 ? -1 : 1) * (0.25 + cosmicRand() * 0.30);
-    c.bandWidth = 0.17 + cosmicRand() * 0.05;
+    c.bandWidth = 0.15 + cosmicRand() * 0.04;
+    BLOOMS.length = 0; c.nextBloomAt = 7 + cosmicRand() * 5;
     c.bandDirty = true;
   }
   /* ---------- دنباله‌دارها ---------- */
   // ring: دنباله‌دارِ رنگی از بیرونِ صحنه، مارپیچ‌وار به حلقهٔ هم‌رنگِ خود (۱۲ نتِ کهکشان) می‌رسد، کمی روی آن می‌لغزد و محو می‌شود.
   // star: ستارهٔ امتیازِ آهنگ که از زیرِ عنوان کنده می‌شود و در صفحهٔ کهکشان به سیاه‌چاله فرو می‌رود.
   const COMETS = [];
+  const BLOOMS = [];
+  function spawnBloom(t, amp) {
+    if (BLOOMS.length && t - BLOOMS[BLOOMS.length - 1].born < 3) return;     // پشت‌سرهم نشود
+    if (BLOOMS.length >= 3) BLOOMS.shift();
+    BLOOMS.push({ s: (cosmicRand() * 2 - 1) * 0.75, w: 0.14 + cosmicRand() * 0.12, amp: amp, born: t, dur: 4.5 + cosmicRand() * 2.5 });
+  }
+  const BLU = new Float32Array(12);
+  function bloomUniform(t) {
+    BLU.fill(0);
+    for (let i = 0; i < BLOOMS.length && i < 3; i++) {
+      const b = BLOOMS[i], age = t - b.born; if (age < 0 || age > b.dur) continue;
+      const env = smoother5(age / 1.4) * (1 - smoother5((age - (b.dur - 2.2)) / 2.2));
+      BLU[i * 4] = b.s; BLU[i * 4 + 1] = b.w; BLU[i * 4 + 2] = b.amp * env;
+    }
+    return BLU;
+  }
+
   const COMET_LOOK = { width: 0.72, alpha: 0.68, head: 0.5 };   // ضریب‌های ظاهر: ضخامتِ دم / شفافیت / اندازهٔ نقطهٔ سر (۱ = پیش‌فرضِ ظریف)
   V.colorLevel = 0; V.tint = new Float32Array(12);   // رنگ: پیش‌فرض سفید؛ فقط با پخشِ فعال لمسِ رنگ می‌گیرد
   const CM = { N: 34, MAXC: 12, buf: null, px: null, py: null, ds: [], dc: [], POL: [0, 0], xy: [0, 0] };
@@ -1288,7 +1388,7 @@ void main(){
   function spawnComet(eventTime, boost) {                                // دنباله‌دارِ رنگیِ حلقه‌ای (ثابت در طولِ عمر، قطعی)
     const c = V.cosmic;
     let active = 0; for (let i = 0; i < COMETS.length; i++) if (COMETS[i].kind === 'ring' && eventTime < COMETS[i].born + COMETS[i].dur) active++;
-    if (active >= 3 || COMETS.length >= CM.MAXC) return false;
+    if (active >= 2 || COMETS.length >= CM.MAXC) return false;
     let idx = Math.floor(cosmicRand() * 12);
     if (A.ok) {                                                          // رنگ = نتِ غالبِ همین لحظه (اغلب)؛ حلقهٔ همان نت در کهکشان
       let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
@@ -1297,7 +1397,7 @@ void main(){
     for (let k = 0; k < COMETS.length && k < 12; k++) if (COMETS[k].kind === 'ring' && COMETS[k].idx === idx && eventTime < COMETS[k].born + COMETS[k].dur) { idx = (idx + 5) % 12; break; }
     const rRing = V.bandIn && V.bandOut ? (V.bandIn[idx] + V.bandOut[idx]) * 0.5 : 0.2 + 0.05 * idx;
     COMETS.push({ kind: 'ring', idx: idx, born: eventTime, dur: 9 + cosmicRand() * 3, th0: cosmicRand() * TAU, dir: cosmicRand() < 0.5 ? -1 : 1,
-      turns: 0.85 + cosmicRand() * 0.5, rStart: 2.05 + cosmicRand() * 0.45, rRing: rRing, tail: 0.36 + cosmicRand() * 0.10, str: clamp(0.55 + boost * 0.8, 0.5, 0.78) });
+      turns: 0.85 + cosmicRand() * 0.5, rStart: 2.05 + cosmicRand() * 0.45, rRing: rRing, tail: 0.17 + cosmicRand() * 0.05, str: clamp(0.55 + boost * 0.8, 0.5, 0.78) });
     return true;
   }
   function cancelStarFlight() { for (let i = COMETS.length - 1; i >= 0; i--) if (COMETS[i].kind === 'star') COMETS.splice(i, 1); }
@@ -1310,7 +1410,7 @@ void main(){
     const t0 = c.activeElapsed;
     for (let k = 0; k < rects.length && COMETS.length < CM.MAXC; k++) {
       COMETS.push({ kind: 'star', k: k, idx: -1, born: t0 + 0.12 + k * 0.95, dur: 3.7 + cosmicRand() * 0.5, sx: rects[k].x, sy: rects[k].y, ready: false, gone: false,
-        tail: 0.62, str: 0.8, th0: 0, dir: 1, turns: 1.1, r0: 0.4, rEnd: HOLE_R * 0.85, bulge: 0.25 });
+        tail: 0.30, str: 0.8, th0: 0, dir: 1, turns: 1.1, r0: 0.4, rEnd: HOLE_R * 0.85, bulge: 0.25 });
     }
   }
   function tickComets(eventTime) {
@@ -1319,6 +1419,30 @@ void main(){
       if (m.kind === 'star' && !m.gone && eventTime >= m.born) { m.gone = true; try { VM.setStarState && VM.setStarState(m.k, 'gone'); } catch (e) {} }
       if (eventTime > m.born + m.dur) COMETS.splice(i, 1);
     }
+  }
+  function drawHotSpot(sc, Lg) {
+    const gl = V.gl; if (!G.comet || !G.cometVao) return;
+    const e = clamp(V.energy || 0, 0, 1), bass = V.playing ? clamp(A.low || 0, 0, 1) : 0;
+    const a = Lg * (0.10 + 0.18 * V.colorLevel * (0.4 + e) + 0.16 * bass);
+    if (a < 0.003) return;
+    const hs = sc * HOLE_R * (4.6 + 1.2 * bass), buf = CM.buf; let o = 0;
+    for (let k = 0; k < 4; k++) {
+      const u = (k & 1) ? 1 : -1, v = (k & 2) ? 1 : -1;
+      buf[o++] = V.cx + u * hs; buf[o++] = V.cy + v * hs; buf[o++] = u; buf[o++] = v; buf[o++] = 3; buf[o++] = a; buf[o++] = 1.0; buf[o++] = 0.76; buf[o++] = 0.42;
+    }
+    gl.useProgram(G.comet.p); gl.uniform2f(G.comet.u.uView, V.vw, V.vh);
+    gl.bindVertexArray(G.cometVao); gl.bindBuffer(gl.ARRAY_BUFFER, G.cometBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, buf.subarray(0, o));
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+  function drawEjecta(sc, sinI, roll, nowS, rm) {
+    const gl = V.gl; if (!G.ejecta || !V.armN) return;
+    const rate = clamp(V.ejRate + V.ejBurst, 0, 0.95); if (rate < 0.01) return;
+    const u = G.ejecta.u;
+    gl.useProgram(G.ejecta.p); gl.bindVertexArray(G.ejectaVao);
+    gl.uniform2f(u.uView, V.vw, V.vh); gl.uniform2f(u.uCenter, V.cx, V.cy); gl.uniform1f(u.uScale, sc); gl.uniform1f(u.uSin, sinI); gl.uniform1f(u.uTilt, roll);
+    gl.uniform1f(u.uTime, rm ? 0 : nowS % 6000); gl.uniform1f(u.uRate, rate); gl.uniform1f(u.uPx, V.rs || 1);
+    gl.uniform1f(u.uPhase, V.phase + V.track * 3.1); gl.uniform1f(u.uTh0, V.armTh0); gl.uniform1f(u.uK, V.armK); gl.uniform1f(u.uArms, V.armN);
+    gl.drawArrays(gl.POINTS, 0, EJ.M);
   }
   function drawComets(sc, sinI, roll, La) {
     const gl = V.gl; if (!G.comet || !G.cometVao || !COMETS.length) return;
@@ -1380,6 +1504,8 @@ void main(){
     if (!rm) c.activeElapsed += Math.min(dt, 0.1);
     const eventTime = c.activeElapsed;
     tickComets(eventTime);
+    for (let bi = BLOOMS.length - 1; bi >= 0; bi--) if (eventTime > BLOOMS[bi].born + BLOOMS[bi].dur) BLOOMS.splice(bi, 1);
+    if (!rm && eventTime >= c.nextBloomAt) { spawnBloom(eventTime, 0.55 + 0.30 * (A.ok ? clamp(A.energy, 0, 1) : 0.4)); c.nextBloomAt = eventTime + 13 + cosmicRand() * 14; }
     const energyNow = A.ok ? clamp(A.energy, 0, 1) : 0.4;
     // دنباله‌دارها دیگر منتظر اوج نمی‌مانند: زمان‌بندِ پایه، موسیقی فقط فاصله را کمی کوتاه می‌کند
     if (!rm && eventTime >= c.nextCometAt) {
@@ -1400,6 +1526,8 @@ void main(){
         const probability = tier === 3 ? 0.72 : (tier === 2 ? 0.48 : 0.26);
         if (cosmicRand() < probability) {
           c.glow = Math.max(c.glow, 0.24 + 0.20 * energy);
+          V.ejBurst = Math.min(0.5, V.ejBurst + (tier === 3 ? 0.40 : (tier === 2 ? 0.28 : 0.16)));
+          spawnBloom(eventTime, tier === 3 ? 1.0 : (tier === 2 ? 0.8 : 0.6));
           if (tier >= 2) awakenDistantGroups(eventTime, tier, tier === 3 ? 0.62 : 0.36);
           if (tier === 1 || cosmicRand() < (tier === 3 ? 0.48 : 0.30)) spawnComet(eventTime, tier === 3 ? 0.22 : (tier === 2 ? 0.16 : 0.10));
         }
@@ -1435,7 +1563,7 @@ void main(){
     const c = V.cosmic;
     c.nextCometAt = 0; c.lastPeakAt = -100; c.peakCandidateUntil = -100; c.prevEnergy = 0;
     c.wakeStart = -100; c.wakeUntil = -100; c.wakeTier = 0; c.wakeStrength = 0; c.glow = 0;
-    c.slotStart.fill(-100); c.infallUniforms.fill(0); c.reveal.fill(0); COMETS.length = 0;
+    c.slotStart.fill(-100); c.infallUniforms.fill(0); c.reveal.fill(0); COMETS.length = 0; BLOOMS.length = 0;
     c.sessionActive = false; c.activeElapsed = 0; c.revelationStart = 0; c.revelationAmount = 0; c.revelationEnergy = 0; c.rng = null;
   }
 
@@ -1510,6 +1638,11 @@ void main(){
         const want = V.colorLevel * (0.22 + 0.78 * smoother5((A.chroma[b] - 0.04) / 0.5));
         V.tint[b] += (want - V.tint[b]) * expK(dt, want > V.tint[b] ? 0.30 : 1.0);
       }
+    }
+    {   // نرخِ جداشدنِ ستاره‌ها از بازوها: با انرژیِ موسیقی؛ اوج‌ها فوران می‌دهند و سریع فرو می‌نشینند (صحنه شلوغ نمی‌شود)
+      const e2 = clamp(V.energy || 0, 0, 1), rt = V.playing ? clamp(0.10 + 0.50 * e2, 0, 0.7) : 0;
+      V.ejRate += (rt - V.ejRate) * expK(dt, rt > V.ejRate ? 1.6 : 1.2);
+      V.ejBurst = Math.max(0, V.ejBurst - dt * 0.5);
     }
     // دوربین: شیبِ دیسک و رولِ بسیار کند — حسِ شناور بودن در فضا (دوره‌ها ≈ ۱۲۰ و ۹۰ ثانیه)
     V.inclNow = V.incl + 6 * Math.sin(nowS * 0.052);
@@ -1586,6 +1719,7 @@ void main(){
       gl.uniform4f(G.aurora.u.uBand, c.bandAngle, c.bandOffset, c.bandBulge, c.bandWidth);
       gl.uniform4f(G.aurora.u.uBandP, bandAmt, c.revelationSeed, c.revelationEnergy, bandTemp);
       gl.uniform1f(G.aurora.u.uBandLow, rm ? 0 : A.low);
+      gl.uniform4fv(G.aurora.u['uBloom[0]'], bloomUniform(c.activeElapsed));
       infall.fill(0);                                                   // دنباله‌دارها حالا با روبانِ جدا رسم می‌شوند (drawComets)
       gl.uniform4fv(G.aurora.u['uInfall[0]'], infall);
       gl.uniform1f(G.aurora.u.uInfallTail, c.infallTail);
@@ -1621,6 +1755,7 @@ void main(){
     }
 
     if (La > 0.003 && COMETS.length) drawComets(sceneScale, sinI, roll, La);
+    if (Lg > 0.004) { drawHotSpot(sceneScale, Lg); drawEjecta(sceneScale, sinI, roll, nowS, rm); }
 
     if (Lg > 0.004) {
       const u = G.dots.u, n = Math.max(1500, Math.floor(V.N * V.q));
