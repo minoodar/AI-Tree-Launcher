@@ -509,16 +509,16 @@ out vec4 o;
 void main(){
   float r2 = dot(vUV, vUV);
   float I;
-  if (vK < 0.5) { I = exp(-vUV.x * vUV.x * 3.0); }
-  else if (vK < 1.5) { I = exp(-r2 * 4.0) + 0.25 * exp(-r2 * 1.2); }
+  if (vK < 0.5) { I = exp(-vUV.x * vUV.x * 4.2); }
+  else if (vK < 1.5) { I = exp(-r2 * 5.0) + 0.10 * exp(-r2 * 1.4); }
   else {
     float ax = abs(vUV.x), ay = abs(vUV.y);
     float core = exp(-r2 * 10.0);
     float spikes = exp(-ax * 20.0) * exp(-ay * 2.4) + exp(-ay * 20.0) * exp(-ax * 2.4);
-    I = core + 0.7 * spikes + 0.18 * exp(-r2 * 1.6);
+    I = core + 0.45 * spikes + 0.08 * exp(-r2 * 1.8);
   }
   float edge = (vK < 0.5) ? 1.0 : (1.0 - smoothstep(0.72, 1.0, max(abs(vUV.x), abs(vUV.y))));
-  vec3 col = mix(vC, vec3(1.0), clamp(0.5 * I * I, 0.0, 0.6));
+  vec3 col = mix(vC, vec3(1.0), clamp(0.35 * I * I, 0.0, 0.4));
   o = vec4(col * I * edge * vA, 0.0);
 }`;
 
@@ -589,6 +589,7 @@ uniform sampler2D uAur; uniform float uAurMix;
 out vec4 vCol;
 out vec3 vDiskView;
 out float vPointDiameter;
+out float vHalo;
 void main(){
   float seed = aMisc.x, band = aMisc.z;
   bool ring = band < 11.5;
@@ -609,7 +610,13 @@ void main(){
   vDiskView = vec3(p, depth);
   int ib = int(clamp(band, 0.0, 11.0) + 0.5);
   float e = ring ? uChroma[ib] : 0.0;
-  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side);
+  // رنگِ پیش‌فرض: خاکستری‌های روشن و تیره (هر ذره درخششِ خودش را دارد)؛ نزدیکِ افق کمی گرم، دورتر سردتر؛ پرنورها هاله دارند
+  float gS = 0.26 + 0.74 * pow(seed, 2.2);
+  float warmK = 1.0 - smoothstep(0.16, 0.62, baseR);
+  vec3 neutral = gS * mix(vec3(0.84, 0.89, 1.0), vec3(1.0, 0.90, 0.76), 0.62 * warmK);
+  float halo = smoothstep(0.76, 0.98, seed);
+  vHalo = halo;
+  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side) * (1.0 + 0.85 * halo);
   vec2 px = uCenter + p * uScale;
   gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
 
@@ -622,13 +629,13 @@ void main(){
   if (ring) {
     // هفت رینگِ نخست طیفِ ثابت دارند؛ رینگ‌های بعدی سفیدند.
     lum = (0.88 + 1.55 * e * (0.40 + 0.60 * uLum)) * (0.52 + 0.48 * edge);
-    col = ib < 7 ? mix(vec3(0.88, 0.90, 0.96), uPal[ib], clamp(uTint[ib], 0.0, 1.0)) : vec3(0.88, 0.90, 0.96);
+    col = ib < 7 ? mix(neutral, uPal[ib], clamp(uTint[ib], 0.0, 1.0)) : neutral;
   } else if (band < 12.5) {
     // رنگِ ذراتِ نزدیکِ افق از هندسهٔ ساخته‌شده می‌آید، نه از محاسبهٔ فریمی.
     int hue = int(clamp(aMisc.w, 0.0, 6.0) + 0.5);
-    lum = 0.85; col = mix(vec3(0.88, 0.90, 0.96), uPal[hue], clamp(uTint[hue], 0.0, 1.0));
+    lum = 0.85; col = mix(neutral, uPal[hue], clamp(uTint[hue], 0.0, 1.0));
   } else {
-    lum = 0.46 * (1.0 - smoothstep(0.80, 1.0, r)); col = vec3(0.82, 0.86, 0.96);
+    lum = 0.46 * (1.0 - smoothstep(0.80, 1.0, r)); col = neutral * 0.92;
   }
   // نورِ مشترک: ذره‌ها از شفقِ پشتِ خودشان نور و رنگ می‌گیرند (هویتِ یکپارچه)
   vec3 ac = textureLod(uAur, vec2(px.x / uView.x, 1.0 - px.y / uView.y), 0.0).rgb;
@@ -654,6 +661,7 @@ precision highp float;
 in vec4 vCol;
 in vec3 vDiskView;
 in float vPointDiameter;
+in float vHalo;
 uniform float uHoleR;
 out vec4 o;
 void main(){
@@ -668,7 +676,7 @@ void main(){
   }
   vec2 d = gl_PointCoord - 0.5;
   float q = dot(d, d) * 4.0;
-  float a = (exp(-q * 3.0) + 0.30 * exp(-q * 1.1)) * (1.0 - smoothstep(0.75, 1.0, q));
+  float a = (exp(-q * 3.0) + (0.30 + 0.80 * vHalo) * exp(-q * 1.1)) * (1.0 - smoothstep(0.75, 1.0, q));   // هالهٔ نرمِ ستاره‌ای برای ذره‌های پرنور
   o = vec4(vCol.rgb * a, 0.0);
 }`;
 
@@ -718,7 +726,7 @@ void main(){
   float chroma = clamp(uChroma[int(sourceBand + 0.5)], 0.0, 1.0);
   vec3 cyan = vec3(0.08, 0.62, 0.94);
   vec3 violet = vec3(0.40, 0.38, 0.91);
-  vec3 color = mix(vec3(0.86, 0.88, 0.95), mix(cyan, violet, 0.18 + 0.52 * seed), clamp(uTint[int(sourceBand + 0.5)], 0.0, 1.0));
+  vec3 color = mix(vec3(0.80, 0.83, 0.90) * (0.40 + 0.60 * seed * seed), mix(cyan, violet, 0.18 + 0.52 * seed), clamp(uTint[int(sourceBand + 0.5)], 0.0, 1.0));
   float depthLight = clamp(0.88 + 0.22 * depth, 0.72, 1.08);
   float audioGlow = clamp(0.82 + 0.16 * uLow + 0.12 * uMid + 0.04 * uHigh, 0.72, 1.12);
   float slowActivity = 0.91 + 0.09 * sin(uTime * 0.23 + seed * 39.0 + theta * 0.35);
@@ -802,12 +810,12 @@ void main(){
 
   const VS_POWDER = `#version 300 es
 precision highp float;
-in vec2 aS; in vec3 aR;
-uniform vec2 uView; uniform vec2 uCenter; uniform float uProg, uApp, uSin, uPx, uBoxX, uBoxW, uMode, uEnter, uCoreR, uFade;
+in vec2 aS; in vec3 aR; in float aG;   // aG: ۰ = عنوان/هنرمند، ۱ = ستارهٔ امتیاز
+uniform vec2 uView; uniform vec2 uCenter; uniform float uProg, uApp, uSin, uPx, uBoxX, uBoxW, uMode, uEnter, uCoreR, uFade, uHasStars;
 out vec4 vCol;
 void main(){
   if (uMode > 0.5) {
-    float delay = clamp((aS.x - uBoxX) / max(uBoxW, 1.0), 0.0, 1.0) * 0.15 + aR.x * 0.10;
+    float delay = clamp((aS.x - uBoxX) / max(uBoxW, 1.0), 0.0, 1.0) * 0.15 + aR.x * 0.10 + aG * 0.10;   // ستاره‌ها کمی بعد از عنوان
     float t = clamp((uEnter - delay) / max(0.01, 1.0 - delay), 0.0, 1.0);
     vec2 v = aS - uCenter;
     float dist = length(v);
@@ -821,13 +829,16 @@ void main(){
     vec2 pos = p0 * (1.0 - t) * (1.0 - t) + p1 * (2.0 * (1.0 - t) * t) + aS * t * t;
     float alpha = uApp * uFade * (0.72 + 0.28 * smoothstep(0.0, 0.32, t));
     vec3 warm = mix(vec3(1.0, 0.78, 0.48), vec3(1.0, 0.94, 0.80), smoothstep(0.05, 0.82, t));
+    warm = mix(warm, vec3(1.0, 0.88, 0.60), aG * 0.6);
     vCol = vec4(warm * alpha, 0.0);
     gl_Position = vec4(pos.x / uView.x * 2.0 - 1.0, 1.0 - pos.y / uView.y * 2.0, 0.0, 1.0);
     gl_PointSize = max(1.0, (1.35 + 0.9 * aR.z) * uPx * (1.0 + 0.35 * (1.0 - t)));
     return;
   }
-  float delay = clamp((aS.x - uBoxX) / max(uBoxW, 1.0), 0.0, 1.0) * 0.35 + aR.x * 0.25;
-  float p = clamp((uProg - delay) / 0.4, 0.0, 1.0);
+  // با ستاره: اول تمامِ عنوان/هنرمند (تا ۰٫۴۸) و بعد ستاره‌ها از چپ به راست (از ۰٫۵۰ تا ۰٫۹۲) به سیاه‌چاله می‌روند
+  bool st = uHasStars > 0.5;
+  float delay = clamp((aS.x - uBoxX) / max(uBoxW, 1.0), 0.0, 1.0) * (st ? 0.14 : 0.35) + aR.x * (st ? 0.08 : 0.25) + (st ? aG * 0.50 : 0.0);
+  float p = clamp((uProg - delay) / (st ? 0.26 : 0.4), 0.0, 1.0);
   float e = p * p * (3.0 - 2.0 * p);
   vec2 v = aS - uCenter;
   float rad = length(v) * pow(1.0 - e, 1.4);
@@ -836,7 +847,7 @@ void main(){
   pos.y = uCenter.y + (pos.y - uCenter.y) * mix(1.0, uSin, e);
   pos += (aR.xy - 0.5) * 26.0 * sin(3.14159 * p);
   float alpha = uApp * (1.0 - smoothstep(0.55, 1.0, p)) * (0.75 + 0.25 * aR.z);
-  vec3 warm = vec3(1.0, 0.94, 0.80);
+  vec3 warm = mix(vec3(1.0, 0.94, 0.80), vec3(1.0, 0.88, 0.60), aG * 0.6);
   vCol = vec4(warm * alpha, 0.0);
   gl_Position = vec4(pos.x / uView.x * 2.0 - 1.0, 1.0 - pos.y / uView.y * 2.0, 0.0, 1.0);
   gl_PointSize = max(1.0, (1.3 + 1.0 * aR.z) * uPx);
@@ -1001,7 +1012,7 @@ void main(){
     } catch (e) { teardownGL(); V.dead = true; return false; }
     try {
       const gl = V.gl;
-      G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW', 'uMode', 'uEnter', 'uCoreR', 'uFade']);
+      G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW', 'uMode', 'uEnter', 'uCoreR', 'uFade', 'uHasStars']);
       G.emptyVao = gl.createVertexArray();
       G.comet = program(gl, VS_COMET, FS_COMET, ['uView']);
       G.cometVao = gl.createVertexArray(); gl.bindVertexArray(G.cometVao);
@@ -1094,6 +1105,7 @@ void main(){
     if (!info || !info.title) { V.powder.n = 0; return; }
     const items = [info.title, info.artist].filter(Boolean);
     const pts = [];
+    const starPts = [];
     items.forEach(function (it) {
       const pad = 4, sc = 2, w = Math.ceil(it.w) + pad * 2, h = Math.ceil(it.h) + pad * 2;
       const c = document.createElement('canvas'); c.width = w * sc; c.height = h * sc;
@@ -1108,26 +1120,41 @@ void main(){
         if (d[(y * W + x) * 4 + 3] > 110) pts.push(it.x - pad + x / sc, it.y - pad + y / sc);
       }
     });
+    // ستاره‌های امتیاز: هر ستاره با همان قلم/اندازهٔ DOM نمونه‌برداری می‌شود تا پودر دقیقاً روی ستارهٔ واقعی بنشیند
+    (info.stars || []).forEach(function (st) {
+      const sz = st.size || 19, sc = 3, w = Math.ceil(sz * 1.7), h = Math.ceil(sz * 1.7);
+      const c = document.createElement('canvas'); c.width = w * sc; c.height = h * sc;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      g.scale(sc, sc); g.font = (st.font || (sz + 'px sans-serif')); g.textBaseline = 'middle'; g.textAlign = 'center'; g.fillStyle = '#fff';
+      g.fillText('\u2605', w / 2, h / 2);
+      const d = g.getImageData(0, 0, c.width, c.height).data, W = c.width;
+      for (let y = 0; y < c.height; y += 3) for (let x = 0; x < W; x += 3) {
+        if (d[(y * W + x) * 4 + 3] > 110) starPts.push(st.x - w / 2 + x / sc, st.y - h / 2 + y / sc);
+      }
+    });
     let n = pts.length / 2;
     const cap = V.N < 6000 ? 520 : 900;
     const rnd = mulberry32((V.session ^ V.track) >>> 0);
     const idx = []; for (let i = 0; i < n; i++) idx.push(i);
     if (n > cap) { for (let i = n - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; } idx.length = cap; n = cap; }
-    const data = new Float32Array(n * 5);
+    const ns = starPts.length / 2, tot = n + ns;
+    const data = new Float32Array(tot * 6);
     let minX = 1e9, maxX = -1e9;
-    for (let i = 0; i < n; i++) {
-      const s = idx[i];
-      const x = pts[s * 2], y = pts[s * 2 + 1];
-      data[i * 5] = x; data[i * 5 + 1] = y; data[i * 5 + 2] = rnd(); data[i * 5 + 3] = rnd(); data[i * 5 + 4] = rnd();
+    for (let i = 0; i < tot; i++) {
+      const isStar = i >= n, s = isStar ? i - n : idx[i];
+      const x = isStar ? starPts[s * 2] : pts[s * 2], y = isStar ? starPts[s * 2 + 1] : pts[s * 2 + 1];
+      data[i * 6] = x; data[i * 6 + 1] = y; data[i * 6 + 2] = rnd(); data[i * 6 + 3] = rnd(); data[i * 6 + 4] = rnd(); data[i * 6 + 5] = isStar ? 1 : 0;
       if (x < minX) minX = x; if (x > maxX) maxX = x;
     }
+    V.powder.hasStars = ns > 0; n = tot;
     if (!V.powder.vao) V.powder.vao = gl.createVertexArray();
     if (!V.powder.buf) V.powder.buf = gl.createBuffer();
     gl.bindVertexArray(V.powder.vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, V.powder.buf); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-    const a0 = gl.getAttribLocation(G.pow.p, 'aS'), a1 = gl.getAttribLocation(G.pow.p, 'aR');
-    gl.enableVertexAttribArray(a0); gl.vertexAttribPointer(a0, 2, gl.FLOAT, false, 20, 0);
-    gl.enableVertexAttribArray(a1); gl.vertexAttribPointer(a1, 3, gl.FLOAT, false, 20, 8);
+    const a0 = gl.getAttribLocation(G.pow.p, 'aS'), a1 = gl.getAttribLocation(G.pow.p, 'aR'), a2 = gl.getAttribLocation(G.pow.p, 'aG');
+    gl.enableVertexAttribArray(a0); gl.vertexAttribPointer(a0, 2, gl.FLOAT, false, 24, 0);
+    gl.enableVertexAttribArray(a1); gl.vertexAttribPointer(a1, 3, gl.FLOAT, false, 24, 8);
+    gl.enableVertexAttribArray(a2); gl.vertexAttribPointer(a2, 1, gl.FLOAT, false, 24, 20);
     gl.bindVertexArray(null);
     V.powder.n = n; V.powder.box = [minX, Math.max(1, maxX - minX)];
   }
@@ -1222,10 +1249,11 @@ void main(){
   // ring: دنباله‌دارِ رنگی از بیرونِ صحنه، مارپیچ‌وار به حلقهٔ هم‌رنگِ خود (۱۲ نتِ کهکشان) می‌رسد، کمی روی آن می‌لغزد و محو می‌شود.
   // star: ستارهٔ امتیازِ آهنگ که از زیرِ عنوان کنده می‌شود و در صفحهٔ کهکشان به سیاه‌چاله فرو می‌رود.
   const COMETS = [];
+  const COMET_LOOK = { width: 0.72, alpha: 0.68, head: 0.5 };   // ضریب‌های ظاهر: ضخامتِ دم / شفافیت / اندازهٔ نقطهٔ سر (۱ = پیش‌فرضِ ظریف)
   V.colorLevel = 0; V.tint = new Float32Array(12);   // رنگ: پیش‌فرض سفید؛ فقط با پخشِ فعال لمسِ رنگ می‌گیرد
   const CM = { N: 34, MAXC: 12, buf: null, px: null, py: null, ds: [], dc: [], POL: [0, 0], xy: [0, 0] };
   CM.buf = new Float32Array(CM.MAXC * (2 * CM.N + 4) * 9); CM.px = new Float32Array(CM.N); CM.py = new Float32Array(CM.N);
-  const STAR_RGB = [1.0, 0.84, 0.52];
+  const STAR_RGB = [1.0, 0.92, 0.74];
   function cometPolar(m, q) {
     const P = CM.POL;
     if (m.kind === 'ring') {
@@ -1269,7 +1297,7 @@ void main(){
     for (let k = 0; k < COMETS.length && k < 12; k++) if (COMETS[k].kind === 'ring' && COMETS[k].idx === idx && eventTime < COMETS[k].born + COMETS[k].dur) { idx = (idx + 5) % 12; break; }
     const rRing = V.bandIn && V.bandOut ? (V.bandIn[idx] + V.bandOut[idx]) * 0.5 : 0.2 + 0.05 * idx;
     COMETS.push({ kind: 'ring', idx: idx, born: eventTime, dur: 9 + cosmicRand() * 3, th0: cosmicRand() * TAU, dir: cosmicRand() < 0.5 ? -1 : 1,
-      turns: 0.85 + cosmicRand() * 0.5, rStart: 2.05 + cosmicRand() * 0.45, rRing: rRing, tail: 0.30 + cosmicRand() * 0.10, str: clamp(0.85 + boost * 1.2, 0.8, 1.15) });
+      turns: 0.85 + cosmicRand() * 0.5, rStart: 2.05 + cosmicRand() * 0.45, rRing: rRing, tail: 0.36 + cosmicRand() * 0.10, str: clamp(0.55 + boost * 0.8, 0.5, 0.78) });
     return true;
   }
   function cancelStarFlight() { for (let i = COMETS.length - 1; i >= 0; i--) if (COMETS[i].kind === 'star') COMETS.splice(i, 1); }
@@ -1282,7 +1310,7 @@ void main(){
     const t0 = c.activeElapsed;
     for (let k = 0; k < rects.length && COMETS.length < CM.MAXC; k++) {
       COMETS.push({ kind: 'star', k: k, idx: -1, born: t0 + 0.12 + k * 0.95, dur: 3.7 + cosmicRand() * 0.5, sx: rects[k].x, sy: rects[k].y, ready: false, gone: false,
-        tail: 0.55, str: 1.0, th0: 0, dir: 1, turns: 1.1, r0: 0.4, rEnd: HOLE_R * 0.85, bulge: 0.25 });
+        tail: 0.62, str: 0.8, th0: 0, dir: 1, turns: 1.1, r0: 0.4, rEnd: HOLE_R * 0.85, bulge: 0.25 });
     }
   }
   function tickComets(eventTime) {
@@ -1302,27 +1330,27 @@ void main(){
       if (age < 0 || age > m.dur) continue;
       const q = age / m.dur;
       if (m.kind === 'star' && !m.ready) cometInitStar(m, sc, sI, cs, sn);
-      const headA = cometAlpha(m, q) * m.str * life;
+      const headA = cometAlpha(m, q) * m.str * life * COMET_LOOK.alpha;
       if (headA < 0.004) continue;
       let r, g, b;
-      if (m.kind === 'ring') { r = PAL[m.idx * 3] * 0.9 + 0.1; g = PAL[m.idx * 3 + 1] * 0.9 + 0.1; b = PAL[m.idx * 3 + 2] * 0.9 + 0.1; }
+      if (m.kind === 'ring') { r = PAL[m.idx * 3] * 0.62 + 0.38; g = PAL[m.idx * 3 + 1] * 0.62 + 0.38; b = PAL[m.idx * 3 + 2] * 0.62 + 0.38; }
       else { r = STAR_RGB[0]; g = STAR_RGB[1]; b = STAR_RGB[2]; }
       const tailQ = m.tail * (m.kind === 'ring' && q > 0.76 ? 1 - 0.7 * ((q - 0.76) / 0.24) : 1);
       for (let j = 0; j < N; j++) { cometXY(m, Math.max(0, q - tailQ * j / (N - 1)), sc, sI, cs, sn); px[j] = CM.xy[0]; py[j] = CM.xy[1]; }
-      const hw = m.kind === 'star' ? 4.6 : 4.4, start = o / 9;
+      const hw = (m.kind === 'star' ? 2.4 : 2.0) * COMET_LOOK.width, start = o / 9;          // ظریف: روبانِ باریک
       for (let j = 0; j < N; j++) {
         const j0 = j > 0 ? j - 1 : 0, j1 = j < N - 1 ? j + 1 : N - 1;
         let tx = px[j0] - px[j1], ty = py[j0] - py[j1]; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;
         const nx = -ty, ny = tx, fr = j / (N - 1);
-        const w = hw * (1 - 0.82 * fr) + 0.6;
-        const a = headA * Math.pow(1 - fr, 1.6) * smoother5((q - tailQ * fr) / 0.03);
+        const w = hw * (1 - 0.88 * fr) + 0.5;
+        const a = headA * Math.pow(1 - fr, 2.0) * smoother5((q - tailQ * fr) / 0.03);   // دمِ شفاف‌تر (افتِ تندتر)
         for (let side = -1; side <= 1; side += 2) {
           buf[o++] = px[j] + nx * w * side; buf[o++] = py[j] + ny * w * side; buf[o++] = side; buf[o++] = 0;
           buf[o++] = 0; buf[o++] = a; buf[o++] = r; buf[o++] = g; buf[o++] = b;
         }
       }
       CM.ds[nd] = start; CM.dc[nd] = 2 * N; nd++;
-      const hs = (m.kind === 'star' ? 22 : 13) * (m.kind === 'star' ? (1 - 0.6 * smoother5((q - 0.7) / 0.3)) : 1), hk = m.kind === 'star' ? 2 : 1, hx = px[0], hy = py[0];
+      const hs = (m.kind === 'star' ? 11 : 6) * COMET_LOOK.head * (m.kind === 'star' ? (1 - 0.6 * smoother5((q - 0.7) / 0.3)) : 1), hk = m.kind === 'star' ? 2 : 1, hx = px[0], hy = py[0];
       const hStart = o / 9;
       for (let k = 0; k < 4; k++) {
         const u = (k & 1) ? 1 : -1, v = (k & 2) ? 1 : -1;
@@ -1653,7 +1681,7 @@ void main(){
       gl.uniform1f(w.uSin, sinI); gl.uniform1f(w.uPx, V.rs);
       gl.uniform1f(w.uBoxX, V.powder.box[0]); gl.uniform1f(w.uBoxW, V.powder.box[1]);
       gl.uniform1f(w.uMode, entering ? 1 : 0); gl.uniform1f(w.uEnter, entering ? clamp(V.entrance.elapsed / V.entrance.duration, 0, 1) : 0);
-      gl.uniform1f(w.uCoreR, HOLE_R * sceneScale * 1.05); gl.uniform1f(w.uFade, fade);
+      gl.uniform1f(w.uCoreR, HOLE_R * sceneScale * 1.05); gl.uniform1f(w.uFade, fade); gl.uniform1f(w.uHasStars, V.powder.hasStars ? 1 : 0);
       gl.bindVertexArray(V.powder.vao); gl.drawArrays(gl.POINTS, 0, V.powder.n);
     }
     gl.bindVertexArray(null);

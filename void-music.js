@@ -904,6 +904,7 @@
       '.vm-stars[hidden]{display:none!important}' +
       '.vm-star{font-size:19px;line-height:1;color:#ffd68c;text-shadow:0 0 10px rgba(255,200,120,.65),0 0 2px rgba(255,255,255,.7);transition:opacity .35s,transform .35s}' +
       '.vm-star.is-gone{opacity:0;transform:scale(.3)}' +
+      '.is-powder .vm-stars{opacity:0;transition:none}' +
       '.vm-sound-pop{width:min(440px,calc(100vw - 24px));box-sizing:border-box;padding:12px 14px 14px;display:flex;flex-direction:column;gap:10px;max-height:min(78vh,580px);overflow:auto}' +
       '.vm-sound-pop.is-unavailable .vm-eq-bands,.vm-sound-pop.is-unavailable .vm-snd-spec{opacity:.4;pointer-events:none}' +
       '.vm-snd-head{display:flex;align-items:center;gap:8px}.vm-snd-title{flex:1;font-size:13px;letter-spacing:.04em}' +
@@ -1293,8 +1294,9 @@
     if (S.starsFor !== S.curId) { S.starsFor = S.curId; S.flownId = null; }
     const tr = curTrack(), n = tr ? (tr.stars || 0) : 0;
     els.stars.textContent = '';
-    for (let i = 0; i < n; i++) { const sp = el('span', 'vm-star'); sp.textContent = '\u2605'; els.stars.appendChild(sp); }
-    els.stars.hidden = !n || S.flownId === S.curId;
+    const flown = S.flownId === S.curId;
+    for (let i = 0; i < n; i++) { const sp = el('span', 'vm-star' + (flown ? ' is-gone' : '')); sp.textContent = '\u2605'; els.stars.appendChild(sp); }
+    els.stars.hidden = !n;
     els.stars.setAttribute('aria-label', n ? L('voidMusicRateN').replace('{n}', String(n)) : '');
     placeStars();
   }
@@ -2098,7 +2100,7 @@
     setPowder: function (on) { if (S.built) root.classList.toggle('is-powder', !!on); },
     // ستاره‌های امتیازِ آهنگِ جاری (زیرِ عنوان): مرکزِ هر ستاره برای شروعِ پروازِ دنباله‌دار، و پنهان‌کردنِ هر ستاره هم‌زمان با زادنِ دنباله‌دارش
     getStarRects: function () {
-      if (!S.built || els.stars.hidden) return [];
+      if (!S.built || els.stars.hidden || S.flownId === S.curId) return [];
       return Array.prototype.map.call(els.stars.children, function (c) { const r = c.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
     },
     setStarState: function (k, st) {
@@ -2116,7 +2118,14 @@
         const w = Math.min(b.width, nb.width || b.width);
         return { x: b.left, y: b.top, w: w, h: b.height, text: node.textContent, font: getComputedStyle(node).font };
       };
-      return { title: rect(els.title), artist: rect(els.artist) };
+      // مرکزِ هر ستارهٔ امتیاز (حتی بعد از پروازشان) برای ساختنِ پودرِ ستاره‌ها همراهِ عنوان
+      let stars = [];
+      if (!els.stars.hidden && els.stars.children.length) {
+        const cs = getComputedStyle(els.stars.firstChild);
+        const size = parseFloat(cs.fontSize) || 19, font = size + 'px ' + (cs.fontFamily || 'sans-serif');
+        stars = Array.prototype.map.call(els.stars.children, function (c) { const r = c.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, size: size, font: font }; });
+      }
+      return { title: rect(els.title), artist: rect(els.artist), stars: stars };
     },
     getState: function () { return { tracks: S.tracks.length, current: S.curId, playing: !!(S.audio && !S.audio.paused), bag: S.bag.length, history: S.history.length, vol: S.vol, muted: S.muted, quiet: !!(root && root.classList.contains('is-quiet')), popOpen: !!(S.built && anyPop()), widget: S.widgetShown, mini: !!(S.miniWrap && S.miniWrap.classList.contains('is-on')) }; }
   };
