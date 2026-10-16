@@ -61,7 +61,7 @@
     const f = function (n) { const k = (n + h * 12) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
     return [f(0), f(8), f(4)];
   }
-  const WARM = [1.0, 0.86, 0.60];
+  const WARM = [1.0, 0.64, 0.30];   // نارنجیِ گرمِ پایهٔ هاله
   const PAL = new Float32Array(36);
   for (let i = 0; i < 12; i++) {
     const c = i < RAINBOW_HUES.length ? hsl(RAINBOW_HUES[i], 0.78, 0.62) : [0.88, 0.90, 0.96];
@@ -866,13 +866,31 @@ void main(){
   float radialGlow = radial < 0.0 ? innerGlow : outerGlow;
   float brightnessVariation = clamp(0.78 + 0.20 * local + 0.035 * sin(3.0 * a + uTime * 0.06), 0.70, 1.0);
   float breathe = 0.97 + 0.03 * sin(uTime * 0.22 + 0.4 * uneven);
-  float ring = radialGlow * brightnessVariation * (0.34 + 0.24 * uEnergy + 0.07 * uBass);
-  float halo = exp(-max(d - 1.0, 0.0) * (4.8 - 2.0 * uEnergy)) * smoothstep(0.98, 1.035, d) * (0.36 + 0.44 * uEnergy) * (0.94 + 0.06 * brightnessVariation);
+  float ring = radialGlow * brightnessVariation * (0.19 + 0.13 * uEnergy + 0.04 * uBass);   // نرم‌تر: هاله دیگر بر ذرات غلبه نمی‌کند
+  float halo = exp(-max(d - 1.0, 0.0) * (4.8 - 2.0 * uEnergy)) * smoothstep(0.98, 1.035, d) * (0.17 + 0.22 * uEnergy) * (0.94 + 0.06 * brightnessVariation);
   float flare = uFlare * exp(-pow(radial / 0.25, 2.0)) * 0.68;          // ضربهٔ کوتاه، هم‌راستا با لبهٔ نامنظمِ هاله
-  vec3 cool = vec3(0.55, 0.78, 1.0);
-  vec3 rim = mix(uTint, cool, smoothstep(1.0, 1.35, d) * 0.7);
-  float I = (ring + halo) * flow * dop * breathe + flare;
+  // پالتِ گرمِ هارمونیک: لبهٔ داخلی طلایی-کهربایی، بیرون نارنجیِ عمیق و در انتها کمی سرخ‌وش؛ موسیقی فقط رنگ را آرام جابه‌جا می‌کند
+  float t = max(d - 1.0, 0.0);
+  vec3 gold   = vec3(1.00, 0.80, 0.46);
+  vec3 orange = vec3(1.00, 0.50, 0.16);
+  vec3 ember  = vec3(0.86, 0.26, 0.20);
+  vec3 warm = mix(gold, orange, smoothstep(0.0, 0.16, t));
+  warm = mix(warm, ember, smoothstep(0.12, 0.55, t) * 0.55);
+  vec3 rim = mix(warm, uTint, 0.30);                                   // uTint = گرمِ پایه + لمسِ ملایمِ نتِ غالب
+  float I = (ring + halo) * flow * dop * breathe + flare * 0.7;
   vec3 col = rim * I * (0.35 + 0.65 * smoothstep(0.0, 0.5, uLevel)) * (0.65 + 0.35 * uLum);
+
+  // دنبالهٔ کیهانی: رشتهٔ نرمِ خمیده در سمتِ دورشونده که مثل غبارِ در حالِ فرار به بیرون می‌خزد
+  float da = a - (uAxis + 3.14159265 + 0.85 * pow(t, 0.8));            // با فاصله به یک سمت خم می‌شود
+  da = atan(sin(da), cos(da));
+  float spread = 0.20 + 0.34 * pow(t, 0.75);
+  float lateral = exp(-(da * da) / (spread * spread));
+  float reach = smoothstep(0.015, 0.20, t) * exp(-t * 0.95) * (1.0 - smoothstep(2.2, 3.3, t));
+  float strands = 0.62 + 0.26 * sin(da * 15.0 / (0.6 + t) - t * 6.0 + uTime * 0.55)
+                       + 0.12 * sin(da * 31.0 + t * 9.0 - uTime * 0.8);
+  float tailI = lateral * reach * strands * (0.10 + 0.14 * uEnergy + 0.05 * uBass) * (0.7 + 0.3 * breathe);
+  vec3 tailCol = mix(mix(orange, uTint, 0.25), mix(ember, vec3(0.55, 0.30, 0.65), 0.35), smoothstep(0.1, 1.6, t));
+  col += tailCol * tailI * (0.35 + 0.65 * smoothstep(0.0, 0.5, uLevel));
   col *= 1.0 - body;
   o = vec4(col, body);
 }`;
@@ -1621,8 +1639,8 @@ void main(){
     V.flare *= Math.exp(-dt * 2.2);
     {
       let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
-      const mixW = A.ok ? clamp(A.conf * Math.min(1, A.chroma[top] * 1.2), 0, 1) * 0.55 : 0;
-      const k = expK(dt, 0.4);
+      const mixW = A.ok ? clamp(A.conf * Math.min(1, A.chroma[top] * 1.2), 0, 1) * 0.22 : 0;   // حداکثر ۲۲٪ رنگ نت: هارمونی، نه وحشی
+      const k = expK(dt, 0.25);
       for (let c = 0; c < 3; c++) V.tintC[c] += ((WARM[c] * (1 - mixW) + PAL[top * 3 + c] * mixW) - V.tintC[c]) * k;
     }
     if (!A.ok) {                                                  // جایگزینِ تزئینی وقتی آنالیز در دسترس نیست
