@@ -1,4 +1,4 @@
-# 🌌 AI Tree Launcher (V40.1)
+# 🌌 AI Tree Launcher (V41.0)
 
 <div align="center">
 
@@ -6,7 +6,7 @@
 ![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-3B82F6?style=for-the-badge&logo=javascript)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=for-the-badge&logo=javascript)
 
-**Floating Orbital Workspace · Galactic Saturn Music Player · 13-Constellation Real-Sky Wheel · Fuzzy Bookmark & Prompt Manager**
+**Floating Orbital Workspace · Galactic Saturn & Cloud Music Engine · 13-Constellation Real-Sky Wheel · Fuzzy Bookmark & Prompt Manager**
 
 ### 🎥 Watch the Demonstration
 [![AI Tree Launcher Demonstration](https://img.youtube.com/vi/KwHp3kiX7DU/maxresdefault.jpg)](https://youtu.be/KwHp3kiX7DU)
@@ -23,21 +23,24 @@
 
 <div dir="rtl">
 
-### 🚀 فضای کاری مدار و شناور نهایی
-*تب نو (Void Tab) به اوج کمال رسیده است! تجربه‌ای بی‌نظیر از مشهدساز و پخش‌کننده موسیقی کهکشانی زحل، چرخ نجومی ۱۳ صورت فلکی آسمان واقعی، نشانگر پالس‌دار اعتدال بهاری، و مدیریت پیشرفته بوکمارک‌ها و پرامپت‌ها.*
+### 🚀 فضای کاری مدار و شناور نهایی (نسخه v41.0)
+*تب نو (Void Tab) به اوج کمال رسیده است! تجربه‌ای بی‌نظیر از ویژوالایزر ارتقایافته زحل، اتصال هوشمند به حساب‌های SoundCloud و پخش‌کننده‌های موسیقی آنلاین پشتیبانی‌شده، کنترل سطح کیفیت گرافیکی کهکشان، چرخ نجومی ۱۳ صورت فلکی، و مدیریت پیشرفته بوکمارک‌ها و پرامپت‌ها.*
 
-افزونه AI Tree Launcher نسخه 40.1 یک اکوسیستم بهره‌وری شناور و خالص مبتنی بر **Vanilla JS** (بدون وابستگی خارجی) است که مرورگر شما را متحول می‌کند.
+افزونه AI Tree Launcher نسخه 41.0 یک اکوسیستم بهره‌وری شناور و خالص مبتنی بر **Vanilla JS** (بدون وابستگی خارجی) است که مرورگر شما را متحول می‌کند.
 
-#### 🌟 امکانات و ویژگی‌های اصلی
-- **🪐 پخش‌کننده و ویژوالایزر موسیقی کهکشانی زحل:** ادغام موسیقی پیشرفته! شامل ویژوالایزر صوتی حلقه‌های زحل با ذرات نورانی واکنش‌گرا، ذخیره لیست‌های پخش سفارشی، کنترل‌گر شناور سراسری و حالت تمام‌صفحه همه‌جانبه.
-- **♈ چرخ نجومی ۱۳ صورت فلکی و نشانگر اعتدال بهاری:** طراحی‌شده بر اساس مختصات واقعی ستاره‌ای RA/Dec با ۱۳ صورت فلکی دایره‌البروجی (شامل مارافسای/Ophiuchus)، چرخ سه‌بعدی تعاملی، سه گوی لنگر (امروز، اهداف، صدو) و نشانگر اعتدال بهاری با قابلیت ترجمه به ۱۲ زبان.
-- **📚 سیستم پیشرفته مدیریت و جستجوی فازی بوکمارک‌ها:** مدیریت حرفه‌ای بوکمارک‌ها با قابلیت ستاره‌گذاری، ارزیابی کیفیت، دسته‌بندی دقیق، جستجوی هوشمند فازی و امکان جستجو و بازیابی سریع بر اساس محتوای بوکمارک‌شده.
-- **🧠 مدیریت هوشمند و دسته‌بندی پرامپت‌های هوش مصنوعی:** بخش اختصاصی برای ذخیره، سازماندهی و مدیریت دسته‌بندی‌شده پرامپت‌های کاربردی هوش مصنوعی.
-- **🎙️ استودیو هوشمند، حافظه دوم و یادداشت‌برداری صوتی:** یک دفترچه یادداشت کارآمد به‌عنوان «حافظه دوم» مجهز به **تبدیل صوت به متن آفلاین و رایگان** (با استفاده از قابلیت داخلی Whisper) به همراه غلط‌گیر پیشرفته متن انگلیسی و غلط‌گیر پایه فارسی.
-- **✅ کارهای پیشرفته و اهداف متصل:** ویرایش خطی عناوین، نشانگرهای ستاره‌دار اولویت‌دار، تفکیک کارهای عادی از ستاره‌دار، و اتصال مستقیم تسک‌ها به اهداف کلان با وزن‌های تأثیرگذاری درصدی.
+#### 🌟 امکانات و ویژگی‌های جدید و اصلی
+- **🪐 موتور پخش موسیقی و ویژوالایزر کهکشانی ارتقایافته (v41.0):**
+  - **پشتیبانی هوشمند از SoundCloud و سایر پلتفرم‌ها:** با ورود به حساب کاربری SoundCloud یا پخش‌کننده‌های وب، کلیدهای کنترلی به‌صورت هوشمند شناسایی شده و امکان پخش، کنترل و مشاهده هم‌زمان موسیقی با ویژوالایزر اختصاصی فراهم می‌شود.
+  - **حرکات و انیمیشن‌های جدید ویژوالایزر:** افکت‌های بصری واکنش‌گرا و حرکات موزون جدید برای حلقه‌های زحل و ذرات کهکشانی.
+  - **تنظیم سطح کیفیت و مصرف منابع:** قابلیت کنترل سطح کیفیت نمایش کهکشان برای بهینه‌سازی مصرف CPU/GPU متناسب با سخت‌افزار سیستم.
+- **♈ چرخ نجومی ۱۳ صورت فلکی و نشانگر اعتدال بهاری:** طراحی‌شده بر اساس مختصات واقعی ستاره‌ای RA/Dec با ۱۳ صورت فلکی دایره‌البروجی (شامل Ophiuchus)، چرخ سه‌بعدی تعاملی، گوی‌های لنگر و نشانگر پالس‌دار اعتدال بهاری.
+- **📚 سیستم پیشرفته مدیریت و جستجوی فازی بوکمارک‌ها:** مدیریت حرفه‌ای بوکمارک‌ها با قابلیت ستاره‌گذاری، ارزیابی کیفیت، دسته‌بندی دقیق، جستجوی هوشمند فازی و امکان جستجو بر اساس محتوا.
+- **🧠 مدیریت هوشمند و دسته‌بندی پرامپت‌های هوش مصنوعی:** بخش اختصاصی برای ذخیره، سازماندهی و دسته‌بندی پرامپت‌های کاربردی هوش مصنوعی.
+- **🎙️ استودیو هوشمند، حافظه دوم و یادداشت‌برداری صوتی:** دفترچه یادداشت کارآمد به‌عنوان «حافظه دوم» مجهز به **تبدیل صوت به متن آفلاین و رایگان** (با مدل داخلی Whisper)، غلط‌گیر پیشرفته انگلیسی و غلط‌گیر پایه فارسی.
+- **✅ کارهای پیشرفته و اهداف متصل:** ویرایش خطی عناوین، اولویت‌بندی ستاره‌دار، و اتصال مستقیم تسک‌ها به اهداف کلان با وزن‌های درصدی.
 - **🎆 آتش‌بازی تعاملی اهداف:** جشن‌های پیروزی پویا از پیشرفت ۳۰٪ تا ۱۰۰٪ با جلوه‌های آتش‌بازی مقیاس‌پذیر.
 - **👨‍👩‍👧‍👦 متتبع سن خانواده:** پیگیری دقیق سن اعضا با دقت روز و ماه و تشخیص هوشمند تقویم‌های هجری شمسی (جلالی) و میلادی.
-- **🛡️ امن، مطمئن و زبان‌ها:** پشتیبانی از ۱۲ زبان زنده دنیا، پشتیبان‌گیری/بازیابی تک‌کلیکی JSON و همگام‌سازی کروم.
+- **🛡️ امن، مطمئن و ۱۲ زبانه:** پشتیبانی کامل از ۱۲ زبان زنده دنیا، پشتیبان‌گیری/بازیابی تک‌کلیکی JSON و همگام‌سازی کروم.
 
 #### 💻 نحوه نصب (حالت توسعه‌دهنده)
 1. کلون کردن مخزن `minoodar/AI-Tree-Launcher` یا دانلود فایل ZIP.
@@ -45,7 +48,7 @@
 3. کلیک روی **Load unpacked** و انتخاب پوشه پروژه.
 
 #### 💖 حمایت و مشارکت
-به‌عنوان یک توسعه‌دهنده مستقل هوش مصنوعی در ایرانِ جنگ‌زده، نگهداری و توسعه این پروژه منبع‌باز به شدت به حمایت جامعه وابسته است.
+به‌عنوان یک توسعه‌دهنده مستقل هوش مصنوعی در ایران، نگهداری و توسعه این پروژه منبع‌باز به شدت به حمایت جامعه وابسته است.
 - **بیت‌کوین (BSC/BEP20):** `0x3C9e8a1Ae29755154516695683d82e5e02589346`
 - **ریال ایران:** [حمایت از طریق دونیتو](https://donito.me/u-b8wjr)
 
@@ -58,17 +61,20 @@
 
 <br>
 
-### 🚀 The Ultimate Orbital Workspace
-*The Void Tab has reached ultimate perfection! Experience the exclusive Galactic Saturn Music Visualizer, persistent floating playlist controller, 13-constellation real-sky astronomical wheel, fuzzy bookmark search engine, AI prompt vault, and offline voice dictation memo.*
+### 🚀 The Ultimate Orbital Workspace (v41.0)
+*The Void Tab has reached ultimate perfection! Experience the upgraded Saturn & SoundCloud Galactic Music Engine, customizable galaxy rendering quality, dynamic visualizer physics, 13-constellation real-sky astronomical wheel, fuzzy bookmark search engine, AI prompt vault, and offline voice dictation memo.*
 
-AI Tree Launcher v40.1 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
+AI Tree Launcher v41.0 is a pure **Vanilla JS**, zero-dependency extension that transforms your browser into a floating productivity ecosystem. 
 
-#### 🌟 Core Features
-- **🪐 Galactic Saturn Music Player & Visualizer:** Ultimate music integration! Features an exclusive Saturn-ring audio visualizer with reactive luminous particle streams, custom playlist saving, floating global playback controller, and immersive full-screen mode.
+#### 🌟 Core & New Features
+- **🪐 Next-Gen Galactic Saturn & SoundCloud Music Engine (v41.0):**
+  - **Smart Web Player & SoundCloud Sync:** Automatically detects playback controls when logged into SoundCloud or supported web players, allowing seamless audio visualizer syncing and full control inside the dedicated music tab.
+  - **Enhanced Visualizer Motion & Physics:** Smooth new particle orbits, reactive luminous ring waves, and improved camera breathing motion.
+  - **Custom Galaxy Rendering Quality:** Adjustable graphic fidelity levels to optimize performance according to system resources (GPU/CPU).
 - **♈ 13-Constellation Real-Sky Wheel & Vernal Equinox Indicator:** Built using actual RA/Dec star coordinates with 13 zodiac constellations including Ophiuchus. Features an interactive 3D wheel with anchor orbs (Today, Goals, Echo) and pulsing Vernal Equinox markers translated into 12 languages.
 - **📚 Advanced Fuzzy Bookmark Manager & Quality Rating:** Professional bookmark organization featuring star ratings, quality assessment, category grouping, advanced fuzzy searching, and content-based lookup capabilities.
 - **🧠 AI Prompt Vault & Categorization:** A dedicated, organized repository for storing, categorizing, and quickly accessing your master AI prompts.
-- **🎙️ Smart Studio, Second Brain & Voice Notepad:** An efficient second-brain notepad featuring **100% free built-in offline voice-to-text dictation** (powered by local Whisper), complete English spell/grammar checking, and baseline Persian proofreading. Opens seamlessly next to the launcher.
+- **🎙️ Smart Studio, Second Brain & Voice Notepad:** An efficient second-brain notepad featuring **100% free built-in offline voice-to-text dictation** (powered by local Whisper), complete English spell/grammar checking, and baseline Persian proofreading.
 - **✅ Advanced To-Do & Goal-Linked Tasks:** Inline title editing, Starred priority markers, task separation, and direct link to master goals with percentage impact weights.
 - **🎆 Interactive Goal Fireworks & Milestones:** Dynamic pyrotechnics celebrate your achievements scaling from 30% to 100% completion.
 - **👨‍👩‍👧‍👦 Family Age Tracker:** Track family ages with exact day/month precision, auto-detecting Jalali and Gregorian calendars.
@@ -91,19 +97,18 @@ As an independent AI developer based in war-torn Iran, maintaining and expanding
 
 <br>
 
-### 🚀 终极轨道工作区
-*Void Tab 现已臻至完美！体验独家土星环银河音乐可视化、浮动播放列表控制器、13 黄道星座真实星空罗盘、模糊书签搜索、AI 提示词库及离线语音备忘录。*
+### 🚀 终极轨道工作区 (v41.0)
+*Void Tab 现已臻至完美！体验全新升级的土星与 SoundCloud 银河音乐引擎、可调 Galaxy 画质渲染、13 黄道星座真实星空罗盘、模糊书签搜索、AI 提示词库及离线语音备忘录。*
 
-AI Tree Launcher v40.1 是一款纯 **Vanilla JS**、零依赖的扩展程序，可将您的浏览器转变为悬浮的生产力生态系统。
+AI Tree Launcher v41.0 是一款纯 **Vanilla JS**、零依赖的扩展程序。
 
-#### 🌟 核心功能
-- **🪐 银河土星音乐播放器与可视化：** 独家土星环音频可视化，搭配发光粒子流与自定义播放列表。
+#### 🌟 核心与全新功能
+- **🪐 银河土星与 SoundCloud 音乐引擎 (v41.0)：** 智能识别 SoundCloud 等在线播放器控制键，开启音乐标签页即可联动土星环粒子可视化；支持 Galaxy 画质调节以适应不同系统配置。
 - **♈ 13 星座真实星空罗盘：** 基于真实赤经/赤纬坐标，包含 13 个黄道星座及春分点指示器。
-- **📚 模糊书签管理与质量评估：** 专业书签组织，支持星标评级、分类、高级模糊搜索及基于内容的检索。
+- **📚 模糊书签管理与质量评估：** 支持星标评级、分类、高级模糊搜索及基于内容的检索。
 - **🧠 AI 提示词库与分类：** 专为存储、分类和快速调用 AI 提示词打造的知识库。
-- **🎙️ 智能工作室与语音记事本：** 高效的“第二大脑”记事本，内含 **100% 免费离线语音转文字**（基于本地 Whisper），并支持完整的英文纠错及基础波斯语校对。
-- **✅ 进阶待办事项与目标关联：** 在线编辑标题、星标置顶、任务分离及目标百分比权重绑定。
-- **👨‍👩‍👧‍👦 家庭成员年龄追踪器：** 精确记录公历与波斯历的家庭成员年龄。
+- **🎙️ 智能工作室与语音记事本：** 高效“第二大脑”，内置 **100% 免费离线语音转文字**（基于 Whisper），支持英文纠错及波斯语基础校对。
+- **✅ 进阶待办事项与目标关联：** 在线编辑标题、星标置顶、目标百分比权重绑定。
 - **🌍 12 种语言支持：** 包含英语、波斯语、简体中文等 12 种完全本地化语言。
 
 #### 💻 安装指南 (开发者模式)
@@ -122,19 +127,18 @@ AI Tree Launcher v40.1 是一款纯 **Vanilla JS**、零依赖的扩展程序，
 
 <br>
 
-### 🚀 終極軌道工作區
-*Void Tab 現已臻至完美！體驗獨家土星環銀河音樂視覺化、浮動播放列表控制器、13 黃道星座真實星空羅盤、模糊書籤搜尋、AI 提示詞庫及離線語音記事本。*
+### 🚀 終極軌道工作區 (v41.0)
+*Void Tab 現已臻至完美！體驗全新升級的土星與 SoundCloud 銀河音樂引擎、可調 Galaxy 畫質渲染、13 黃道星座真實星空羅盤、模糊書籤搜尋、AI 提示詞庫及離線語音記事本。*
 
-AI Tree Launcher v40.1 是一款純 **Vanilla JS**、零依賴的擴充功能，可將您的瀏覽器轉變為懸浮的生產力生態系統。
+AI Tree Launcher v41.0 是一款純 **Vanilla JS**、零依賴的擴充功能。
 
-#### 🌟 核心功能
-- **🪐 銀河土星音樂播放器與視覺化：** 獨家土星環音訊視覺化，搭配發光粒子流與自訂播放列表。
+#### 🌟 核心與全新功能
+- **🪐 銀河土星與 SoundCloud 音樂引擎 (v41.0)：** 智能識別 SoundCloud 等線上播放器控制鍵，開啟音樂分頁即可連動土星環粒子視覺化；支援 Galaxy 畫質調節以適應不同系統配置。
 - **♈ 13 星座真實星空羅盤：** 基於真實赤經/赤緯座標，包含 13 個黃道星座及春分點指示器。
-- **📚 模糊書籤管理與質量評估：** 專業書籤組織，支援星標評級、分類、進階模糊搜尋及基於內容的檢索。
+- **📚 模糊書籤管理與質量評估：** 支援星標評級、分類、進階模糊搜尋及基於內容的檢索。
 - **🧠 AI 提示詞庫與分類：** 專為儲存、分類和快速呼叫 AI 提示詞打造的知識庫。
-- **🎙️ 智能工作室與語音記事本：** 高效的「第二大腦」記事本，內含 **100% 免費離線語音轉文字**（基於本地 Whisper），並支援完整的英文糾錯及基礎波斯語校對。
-- **✅ 進階待辦事項與目標關聯：** 在線編輯標題、星標置頂、任務分離及目標百分比權重綁定。
-- **👨‍👩‍👧‍👦 家庭成員年齡追蹤器：** 精確記錄公曆與波斯曆的家庭成員年齡。
+- **🎙️ 智能工作室與語音記事本：** 高效「第二大腦」，內建 **100% 免費離線語音轉文字**（基於 Whisper），支援英文糾錯及波斯語基礎校對。
+- **✅ 進階待辦事項與目標關聯：** 在線編輯標題、星標置頂、目標百分比權重綁定。
 - **🌍 12 種語言支援：** 包含英語、波斯語、繁體中文等 12 種完全在地化語言。
 
 #### 💻 安裝指南 (開發者模式)
@@ -153,19 +157,18 @@ AI Tree Launcher v40.1 是一款純 **Vanilla JS**、零依賴的擴充功能，
 
 <br>
 
-### 🚀 O Espaço de Trabalho Orbital Definitivo
-*A Void Tab atingiu a perfeição absoluta! Experimente o Visualizador de Música Galáctico de Saturno, roda astronômica de 13 constelações, gerenciamento avançado de favoritos com busca fuzzy, banco de prompts de IA e bloco de notas com ditado offline.*
+### 🚀 O Espaço de Trabalho Orbital Definitivo (v41.0)
+*A Void Tab atingiu a perfeição absoluta! Experimente o novo motor musical Galáctico de Saturno & SoundCloud, qualidade de renderização ajustável, roda astronômica de 13 constelações, gerenciamento de favoritos com busca fuzzy e ditado por voz offline.*
 
-AI Tree Launcher v40.1 é uma extensão pura em **Vanilla JS**, sem dependências.
+AI Tree Launcher v41.0 é uma extensão pura em **Vanilla JS**.
 
-#### 🌟 Características Principais
-- **🪐 Reprodutor & Visualizador de Música Galáctico de Saturno.**
+#### 🌟 Recursos Principais
+- **🪐 Motor de Música Galáctico de Saturno & SoundCloud (v41.0):** Detecção inteligente de controles em contas do SoundCloud e players web compatíveis, com sincronização em tempo real do visualizador de áudio e controle de qualidade gráfica para otimização do sistema.
 - **♈ Roda Astronômica de 13 Constelações & Indicador do Equinócio.**
-- **📚 Gerenciador Avançado de Favoritos com Busca Fuzzy:** Organização profissional de favoritos com avaliação por estrelas, categorias e pesquisa baseada em conteúdo.
-- **🧠 Banco de Prompts de IA:** Repositório organizado para armazenar, categorizar e acessar prompts rapidamente.
-- **🎙️ Estúdio Inteligente & Bloco de Notas com Voz:** Bloco de notas "segundo cérebro" com **ditado de voz offline 100% gratuito** (Whisper local), verificação ortográfica em inglês e suporte básico em persa.
-- **✅ Tarefas Conectadas a Metas & To-Do Avançado.**
-- **🌍 12 Idiomas:** Suporte totalmente localizado, incluindo persa, inglês, português, etc.
+- **📚 Gerenciador Avançado de Favoritos com Busca Fuzzy e Avaliação.**
+- **🧠 Banco de Prompts de IA e Categorização.**
+- **🎙️ Estúdio Inteligente e Bloco de Notas por Voz (Whisper offline 100% gratuito).**
+- **🌍 12 Idiomas:** Suporte totalmente localizado incluindo persa, inglês, português, etc.
 
 #### 💻 Instalação (Modo Desenvolvedor)
 1. Clone `minoodar/AI-Tree-Launcher` ou baixe o ZIP.
@@ -183,19 +186,18 @@ AI Tree Launcher v40.1 é uma extensão pura em **Vanilla JS**, sem dependência
 
 <br>
 
-### 🚀 Nihai Yörünge Çalışma Alanı
-*Void Tab nihai mükemmelliğe ulaştı! Galaktik Satürn Müzik Görselleştiricisi, 13 takımyıldızlı gökyüzü çarkı, bulanık (fuzzy) yer imi arama motoru, Yapay Zeka prompt kasası ve çevrimdışı sesli not defteri ile tanışın.*
+### 🚀 Nihai Yörünge Çalışma Alanı (v41.0)
+*Void Tab nihai mükemmelliğe ulaştı! Yeni Satürn ve SoundCloud Müzik Motoru, ayarlanabilir galaksi grafik kalitesi, 13 takımyıldızlı gökyüzü çarkı, bulanık (fuzzy) yer imi arama motoru ve çevrimdışı sesli not defteri.*
 
-AI Tree Launcher v40.1, saf **Vanilla JS** ile yazılmış eklentidir.
+AI Tree Launcher v41.0, saf **Vanilla JS** ile yazılmış eklentidir.
 
-#### 🌟 Temel Özellikler
-- **🪐 Galaktik Satürn Müzik Çalar ve Görselleştirici.**
+#### 🌟 Temel ve Yeni Özellikler
+- **🪐 Galaktik Satürn & SoundCloud Müzik Motoru (v41.0):** SoundCloud ve desteklenen web oynatıcılarında otomatik denetim algılama, özel müzik sekmesinde canlı ses görselleştirici ve sistem kaynaklarına göre ayarlanabilir galaksi grafik kalitesi.
 - **♈ 13 Takımyıldızlı Gerçek Gökyüzü Çarkı ve Ekinoks Göstergesi.**
-- **📚 Bulanık Arama ve Yıldız Dereceli Gelişmiş Yer İmi Yöneticisi:** Yıldız derecelendirmesi, kalite değerlendirmesi, kategori gruplandırma ve içerik tabanlı arama özellikleriyle profesyonel yer imi organizasyonu.
-- **🧠 Yapay Zeka Prompt Kasası ve Kategorilendirme:** Promptlarınızı saklamak ve yönetmek için özel depo.
-- **🎙️ Akıllı Stüdyo, İkinci Beyin ve Sesli Not Defteri:** Yerel Whisper modeli destekli **%100 ücretsiz çevrimdışı sesle yazdırma**, gelişmiş İngilizce imla denetimi ve Farsça temel düzeltme özelliklerine sahip akıllı not defteri.
-- **✅ Gelişmiş To-Do ve Hedef Bağlantılı Görevler.**
-- **🌍 12 Dil Desteği:** Farsça, İngilizce ve Türkçe dahil tamamen yerelleştirilmiş 12 dil.
+- **📚 Bulanık Arama ve Derecelendirmeli Yer İmi Yöneticisi.**
+- **🧠 Yapay Zeka Prompt Kasası ve Kategorilendirme.**
+- **🎙️ Akıllı Stüdyo ve Sesli Not Defteri (%100 ücretsiz çevrimdışı Whisper).**
+- **🌍 12 Dil Desteği:** Farsça, İngilizce, Türkçe ve diğer diller.
 
 #### 💻 Kurulum (Geliştirici Modu)
 1. `minoodar/AI-Tree-Launcher` deposunu klonlayın veya ZIP indirin.
@@ -213,18 +215,17 @@ AI Tree Launcher v40.1, saf **Vanilla JS** ile yazılmış eklentidir.
 
 <br>
 
-### 🚀 El Espacio de Trabajo Orbital Definitivo
-*¡La Void Tab ha alcanzado la perfección absoluta! Visualizador de Saturno, rueda de 13 constelaciones, motor de búsqueda fuzzy para marcadores, bóveda de prompts de IA y bloc de notas con voz offline.*
+### 🚀 El Espacio de Trabajo Orbital Definitivo (v41.0)
+*¡La Void Tab ha alcanzado la perfección! Motor Galáctico de Saturno y SoundCloud, calidad de renderizado ajustable, rueda de 13 constelaciones, búsqueda fuzzy de marcadores y dictado de voz offline.*
 
-AI Tree Launcher v40.1 es una extensión en **Vanilla JS** puro.
+AI Tree Launcher v41.0 es una extensión en **Vanilla JS** puro.
 
 #### 🌟 Características Principales
-- **🪐 Reproductor y Visualizador de Música Galáctico de Saturno.**
-- **♈ Rueda Astronómica de 13 Constelaciones e Indicador del Equinoccio.**
-- **📚 Gestor Avanzado de Marcadores con Búsqueda Fuzzy y Calificación:** Organización profesional de marcadores con estrellas, categorías y búsqueda basada en contenido.
-- **🧠 Bóveda de Prompts de IA:** Repositorio organizado para almacenar y categorizar tus prompts maestros.
-- **🎙️ Estudio Inteligente, Segundo Cerebro y Bloc de Notas de Voz:** Bloc de notas avanzado con **dictado de voz offline 100% gratuito** (Whisper), revisión ortográfica en inglés y soporte básico en persa.
-- **✅ Tareas Avanzadas y Objetivos Vinculados.**
+- **🪐 Motor de Música Galáctico de Saturno y SoundCloud (v41.0):** Detección inteligente de controles en SoundCloud y reproductores web compatibles con visualizador dinámico y control de calidad gráfica según el rendimiento del sistema.
+- **♈ Rueda Astronómica de 13 Constellations e Indicador del Equinoccio.**
+- **📚 Gestor Avanzado de Marcadores con Búsqueda Fuzzy.**
+- **🧠 Bóveda de Prompts de IA y Categorización.**
+- **🎙️ Estudio Inteligente y Bloc de Notas de Voz (Whisper offline 100% gratis).**
 - **🌍 12 Idiomas:** Completamente localizado en persa, inglés, español y más.
 
 #### 💻 Instalación (Modo Desarrollador)
@@ -243,18 +244,17 @@ AI Tree Launcher v40.1 es una extensión en **Vanilla JS** puro.
 
 <br>
 
-### 🚀 Der Ultimative Orbitale Workspace
-*Der Void Tab hat die ultimative Perfektion erreicht! Saturn-Musikvisualisierer, 13-Sternbilder-Himmelsrad, erweiterter Fuzzy-Lesezeichenmanager, KI-Prompt-Tresor und Offline-Sprachnotizbuch.*
+### 🚀 Der Ultimative Orbitale Workspace (v41.0)
+*Der Void Tab hat die ultimative Perfektion erreicht! Neues Saturn- & SoundCloud-Musik-Engine, einstellbare Galaxie-Renderqualität, 13-Sternbilder-Himmelsrad, Fuzzy-Lesezeichenmanager und Offline-Sprachnotizbuch.*
 
-AI Tree Launcher v40.1 ist eine reines **Vanilla JS** Extension.
+AI Tree Launcher v41.0 ist eine reines **Vanilla JS** Extension.
 
 #### 🌟 Hauptmerkmale
-- **🪐 Galaktischer Saturn-Musikplayer & Visualisierer.**
+- **🪐 Galaktischer Saturn- & SoundCloud-Musik-Engine (v41.0):** Automatische Steuerungserkennung für SoundCloud und unterstützte Web-Player, integrierter Audio-Visualisierer und einstellbare Grafikqualität.
 - **♈ 13-Sternbilder-Himmelsrad & Frühlingsgleiche-Anzeige.**
-- **📚 Erweiterter Fuzzy-Lesezeichenmanager mit Bewertung:** Professionelle Lesezeichenverwaltung mit Sterne-Bewertung, Kategorisierung und inhaltsbasierter Suche.
-- **🧠 KI-Prompt-Tresor & Kategorisierung:** Organisiertes Repository für Master-Prompts.
-- **🎙️ Smart Studio, Second Brain & Sprachnotizbuch:** Effizientes Notizbuch mit **100 % kostenlosem, offline Sprachdiktat** (Whisper), englischer Rechtschreibprüfung und persischer Grundprüfung.
-- **✅ Erweiterte Aufgaben & Zielverknüpfung.**
+- **📚 Erweiterter Fuzzy-Lesezeichenmanager.**
+- **🧠 KI-Prompt-Tresor & Kategorisierung.**
+- **🎙️ Smart Studio & Sprachnotizbuch (100% kostenloses Offline-Whisper).**
 - **🌍 12 Sprachen:** Vollständig lokalisiert in Persisch, Englisch, Deutsch u.v.m.
 
 #### 💻 Installation (Entwicklermodus)
@@ -273,18 +273,17 @@ AI Tree Launcher v40.1 ist eine reines **Vanilla JS** Extension.
 
 <br>
 
-### 🚀 L'Espace de Travail Orbital Ultime
-*Le Void Tab a atteint la perfection ultime ! Visualiseur de Saturne, roue à 13 constellations, gestionnaire de favoris fuzzy, coffre de prompts IA et bloc-notes vocal hors ligne.*
+### 🚀 L'Espace de Travail Orbital Ultime (v41.0)
+*Le Void Tab a atteint la perfection ultime ! Moteur de musique Galactique Saturne & SoundCloud, qualité de rendu ajustable, roue à 13 constellations, recherche fuzzy de favoris et bloc-notes vocal hors ligne.*
 
-AI Tree Launcher v40.1 est une extension en **Vanilla JS** pur.
+AI Tree Launcher v41.0 est une extension en **Vanilla JS** pur.
 
 #### 🌟 Fonctionnalités Clés
-- **🪐 Lecteur & Visualiseur de Musique Galactique Saturne.**
+- **🪐 Moteur de Musique Galactique Saturne & SoundCloud (v41.0) :** Détection intelligente des commandes SoundCloud et lecteurs web compatibles, visualiseur audio synchronisé et contrôle de la qualité graphique.
 - **♈ Roue Astronomique à 13 Constellations & Équinoxe de Printemps.**
-- **📚 Gestionnaire de Favoris Fuzzy Avancé avec Évaluation:** Organisation professionnelle avec étoiles, catégories et recherche contextuelle.
+- **📚 Gestionnaire de Favoris Fuzzy Avancé.**
 - **🧠 Coffre de Prompts IA & Catégorisation.**
-- **🎙️ Studio Intelligent, Second Cerveau & Bloc-notes Vocal:** Bloc-notes avancé avec **dictée vocale hors ligne 100% gratuite** (Whisper), correction orthographique anglaise et persane de base.
-- **✅ Tâches Avancées & Objectifs Liés.**
+- **🎙️ Studio Intelligent & Bloc-notes Vocal (Whisper hors ligne 100% gratuit).**
 - **🌍 12 Langues :** Localisé en persan, anglais, français et plus.
 
 #### 💻 Installation (Mode Développeur)
@@ -303,18 +302,17 @@ AI Tree Launcher v40.1 est une extension en **Vanilla JS** pur.
 
 <br>
 
-### 🚀 究極のオービタル・ワークスペース
-*Void Tabが究極の完成度に達しました！土星ミュージック・ビジュアライザー、13星座リアル天体ホイール、あいまい検索付き高度ブックマークマネージャー、AIプロンプト金庫、オフライン音声メモパッドを搭載。*
+### 🚀 究極のオービタル・ワークスペース (v41.0)
+*Void Tabが究極の完成度に達しました！土星＆SoundCloudギャラクティック・ミュージックエンジン、調整可能な銀河レンダリング画質、13星座リアル天体ホイール、あいまい検索ブックマークマネージャー、オフライン音声メモを搭載。*
 
-AI Tree Launcher v40.1 はピュアな **Vanilla JS** 拡張機能です。
+AI Tree Launcher v41.0 はピュアな **Vanilla JS** 拡張機能です。
 
 #### 🌟 主な機能
-- **🪐 ギャラクティック土星ミュージックプレイヤー＆ビジュアライザー。**
+- **🪐 ギャラクティック土星＆SoundCloudミュージックエンジン (v41.0):** SoundCloud等のコントロールを自動検知し、専用タブでビジュアライザーと連動。システム負荷に応じたグラフィック画質調整機能を搭載。
 - **♈ 13星座リアル天体ホイール＆春分点インジケーター。**
-- **📚 あいまい検索＆品質評価付き高度ブックマークマネージャー:** 星評価、カテゴリ分類、高度なあいまい検索を備えたプロ仕様のブックマーク整理。
-- **🧠 AIプロンプト金庫＆カテゴリ管理:** マスタープロンプトを整理して保存・素早くアクセス。
-- **🎙️ スマートスタジオ、セカンドブレイン＆音声メモ:** **100%無料のオフライン音声入力**（ローカルWhisper）、英語の高度なスペルチェック、ペルシャ語の基礎校正機能を備えた効率的なメモ帳。
-- **✅ 高度なTo-Do＆目標連動タスク。**
+- **📚 あいまい検索＆品質評価付き高度ブックマークマネージャー。**
+- **🧠 AIプロンプト金庫＆カテゴリ管理。**
+- **🎙️ スマートスタジオ＆音声メモ（100%無料のローカルWhisper）。**
 - **🌍 12言語対応:** ペルシャ語、英語、日本語を含む12言語に完全ローカライズ。
 
 #### 💻 インストール方法 (デベロッパーモード)
@@ -333,18 +331,17 @@ AI Tree Launcher v40.1 はピュアな **Vanilla JS** 拡張機能です。
 
 <br>
 
-### 🚀 Ультимативное Орбитальное Пространство
-*Вкладка Void Tab достигла абсолютного совершенства! Визуализатор Сатурна, колесо 13 созвездий, расширенный менеджер закладок с нечетким (fuzzy) поиском, хранилище ИИ-промптов и блокнот с офлайн-голосовым вводом.*
+### 🚀 Ультимативное Орбитальное Пространство (v41.0)
+*Вкладка Void Tab достигла абсолютного совершенства! Музыкальный движок Сатурна и SoundCloud, настраиваемое качество графики галактики, колесо 13 созвездий, менеджер закладок с нечетким поиском и голосовой блокнот.*
 
-AI Tree Launcher v40.1 — это расширение на чистом **Vanilla JS**.
+AI Tree Launcher v41.0 — это расширение на чистом **Vanilla JS**.
 
 #### 🌟 Ключевые особенности
-- **🪐 Галактический музыкальный плеер и визуализатор Сатурна.**
+- **🪐 Галактический музыкальный плеер Сатурна и SoundCloud (v41.0):** Автоматическое определение элементов управления SoundCloud и поддерживаемых веб-плееров, живой визуализатор и настройка качества графики.
 - **♈ Колесо 13 созвездий реального неба и индикатор Равноденствия.**
-- **📚 Продвинутый менеджер закладок с нечетким поиском и оценкой:** Профессиональная организация с рейтингом по звездам, категориями и поиском на основе содержимого.
-- **🧠 Хранилище ИИ-промптов и категорий:** Организованный репозиторий для ваших промптов.
-- **🎙️ Смарт-студия, Второй мозг и Голосовой блокнот:** Эффективный блокнот со **100% бесплатным офлайн распознаванием речи** (Whisper), проверкой орфографии английского и базовой корректурой персидского.
-- **✅ Продвинутый To-Do и задачи с привязкой к целям.**
+- **📚 Продвинутый менеджер закладок с нечетким поиском.**
+- **🧠 Хранилище ИИ-промптов и категорий.**
+- **🎙️ Смарт-студия и Голосовой блокнот (100% бесплатный офлайн Whisper).**
 - **🌍 12 Языков:** Полностью локализован на персидский, английский, русский и др.
 
 #### 💻 Установка (Режим разработчика)
@@ -365,18 +362,17 @@ AI Tree Launcher v40.1 — это расширение на чистом **Vanil
 
 <div dir="rtl">
 
-### 🚀 مساحة العمل المدارية المطلقة
-*وصلت علامة التبويب Void Tab إلى الكمال المطلق! مشغل موسيقى زحل المجري، عجلة 13 برجًا، مدير إشارات مرجعية متقدم مع بحث تقريبي (Fuzzy)، خزنة مطالبات الذكاء الاصطناعي، ومفكرة صوتية غير متصلة بالإنترنت.*
+### 🚀 مساحة العمل المدارية المطلقة (v41.0)
+*وصلت علامة التبويب Void Tab إلى الكمال المطلق! محرك موسيقى زحل المجري وSoundCloud المطور، التحكم في جودة عرض المجرة، عجلة 13 برجًا، بحث تقريبي للإشارات المرجعية، ومفكرة صوتية.*
 
-AI Tree Launcher الإصدار v40.1 هو إضافة مبنية بالكامل بلغة **Vanilla JS**.
+AI Tree Launcher الإصدار v41.0 هو إضافة مبنية بالكامل بلغة **Vanilla JS**.
 
-#### 🌟 أبرز الميزات الأساسية
-- **🪐 مشغل ومؤثر بصري مجري بنمط زحل للموسيقى.**
+#### 🌟 أبرز الميزات الأساسية والجديدة
+- **🪐 محرك موسيقى زحل المجري وSoundCloud المطور (v41.0):** التعرف الذكي على مفاتيح التحكم عند تسجيل الدخول إلى SoundCloud أو مشغلات الويب المدعومة، مع عرض المؤثرات البصرية وتنسيق جودة العرض لتتناسب مع موارد الجهاز.
 - **♈ عجلة السماء الحقيقية لـ 13 برجًا ومؤشر الاعتدال الربيعي.**
-- **📚 مدير متقدم للإشارات المرجعية مع بحث تقريبي (Fuzzy) وتقييم الجودة:** تنظيم احترافي للإشارات مع نجوم الأولوية، التصنيفات، والبحث القائم على محتوى العلامات المرجعية.
-- **🧠 خزنة مطالبات الذكاء الاصطناعي والتصنيف:** مستودع مخصص لتخزين وتنظيم واستدعاء مطالبات الذكاء الاصطناعي بسهولة.
-- **🎙️ الاستوديو الذكي، العقل الثاني والمفكرة الصوتية:** مفكرة فعالة تعمل كـ "عقل ثانٍ" تضم **إملاءً صوتياً مجانياً 100% بدون إنترنت** (مدعوم بنموذج Whisper المحلي)، مع تدقيق إملائي متقدم للإنجليزية وتدقيق أساسي للفارسية.
-- **✅ قائمة مهام متقدمة ومرتبطة بالأهداف.**
+- **📚 مدير متتقدم للإشارات المرجعية مع بحث تقريبي (Fuzzy).**
+- **🧠 خزنة مطالبات الذكاء الاصطناعي والتصنيف.**
+- **🎙️ الاستوديو الذكي والمفكرة الصوتية (إملاء مجاني 100% بدون إنترنت مع Whisper).**
 - **🌍 12 لغة عالمية:** معربة بالكامل بما في ذلك الفارسية، الإنجليزية، العربية وغيرها.
 
 #### 💻 طريقة التثبيت (وضع المطور)
