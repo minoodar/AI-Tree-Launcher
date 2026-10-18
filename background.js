@@ -632,3 +632,64 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
+
+
+/* ======================================================================
+   Void Music — Universal Audio Bridge (لایهٔ ۲): صدای واقعیِ تبِ موسیقی → Void Tab
+   کاربر روی تبِ موسیقی میانبرِ «Alt+Shift+V» را می‌زند (این «فراخوانیِ افزونه» است و activeTab را برای همان تب می‌دهد).
+   SW فقط شناسهٔ استریم را می‌گیرد و به Void Tab می‌دهد؛ دریافتِ صدا و تحلیل در خودِ Void Tab انجام می‌شود
+   (consumerTabId)، پس نه offscreen لازم است نه صدایی از SW عبور می‌کند. هیچ صدایی ضبط/ذخیره/ارسال نمی‌شود.
+   ====================================================================== */
+(function () {
+  var capTarget = null;
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  async function findVoidTab() {
+    try {
+      var base = chrome.runtime.getURL('void-tab.html');
+      var ctxs = await chrome.runtime.getContexts({ contextTypes: ['TAB'] });
+      var hit = ctxs.filter(function (c) { return c.documentUrl && c.documentUrl.indexOf(base) === 0 && c.tabId >= 0; });
+      return hit.length ? hit[hit.length - 1].tabId : null;
+    } catch (e) { return null; }
+  }
+  async function ensureVoidTab() {
+    var id = await findVoidTab();
+    if (id != null) return id;
+    try { await chrome.tabs.create({ url: 'chrome://newtab/', active: false }); } catch (e) { return null; }
+    for (var i = 0; i < 40; i++) { await sleep(150); id = await findVoidTab(); if (id != null) return id; }
+    return null;
+  }
+  async function sendWithRetry(tabId, msg) {
+    for (var i = 0; i < 25; i++) {
+      try {
+        var r = await chrome.tabs.sendMessage(tabId, msg);
+        if (r && r.ok !== undefined) return r.ok;
+      } catch (e) { /* صفحه هنوز گوش نمی‌دهد */ }
+      await sleep(250);
+    }
+    return false;
+  }
+  chrome.commands.onCommand.addListener(async function (command, tab) {
+    if (command !== 'vm-capture-tab') return;
+    if (!tab || tab.id == null) { try { tab = (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0]; } catch (e) {} }
+    if (!tab || tab.id == null) return;
+    var voidId = await ensureVoidTab();
+    if (voidId == null || voidId === tab.id) return;
+    if (capTarget === tab.id) {                                   // بار دوم روی همان تب = قطع
+      capTarget = null;
+      try { await chrome.tabs.sendMessage(voidId, { type: 'vm-capture-stop' }); } catch (e) {}
+      return;
+    }
+    var streamId;
+    try { streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id, consumerTabId: voidId }); }
+    catch (e) { return; }                                         // صفحه‌های محدود (chrome://، فروشگاه) اجازه نمی‌دهند
+    capTarget = tab.id;
+    var host = ''; try { host = new URL(tab.url || '').hostname.replace(/^www\./, ''); } catch (e) {}
+    try { var vt = await chrome.tabs.get(voidId); await chrome.windows.update(vt.windowId, { focused: true }); await chrome.tabs.update(voidId, { active: true }); } catch (e) {}
+    var ok = await sendWithRetry(voidId, { type: 'vm-capture-start', streamId: streamId, tabId: tab.id, host: host, title: tab.title || '' });
+    if (!ok) capTarget = null;
+  });
+  chrome.runtime.onMessage.addListener(function (m) { if (m && m.type === 'vm-capture-ended') capTarget = null; });
+  chrome.tabs.onRemoved.addListener(function (id) {
+    if (capTarget === id) { capTarget = null; findVoidTab().then(function (v) { if (v != null) chrome.tabs.sendMessage(v, { type: 'vm-capture-stop' }).catch(function () {}); }); }
+  });
+})();

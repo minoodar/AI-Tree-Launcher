@@ -12,6 +12,15 @@
    و روشن/خاموش‌شدنش یک hash قطعی از (نقطه، زمانِ گسسته) است. هیچ ذره‌ای ساخته/نابود نمی‌شود.
 
    تازگیِ بی‌تکرار: هر نشست هندسهٔ تازه (seed تصادفی)، هر آهنگ شیب/فازِ مارپیچ/شفقِ تازه.
+
+   روایتِ دوربین: بیشترِ چرخه، حرکتِ آرامِ «لبه‌ای → دیدِ بالا» است. در پایانِ هر چرخه
+   یک «رویدادِ تونل» می‌آید: حلقه‌های بی‌نهایت از نزدیکِ افق می‌زایند، بزرگ می‌شوند،
+   از کادر بیرون می‌روند و بعد همان حرکت معکوس می‌شود. هیچ سیاهیِ تمام‌صفحه‌ای وجود
+   ندارد؛ حلقه‌های رنگی و مارپیچی و فورانِ ستارگان اصلِ ماجرایند. زمان‌بندی در DIVE است.
+
+   منابع: سه پلهٔ کیفیت (نقاط/رزولوشن/نرخِ شفق) + مقیاسِ رندرِ پویا + شفقِ زمانی +
+   scissor افق؛ مدیرِ کیفیت با fps/CPU و هیسترزیس جابه‌جا می‌شود تا افکت روان بماند.
+   پلهٔ اولیه از دستگاه (موبایل/هسته/حافظه) و تنظیمِ «کیفیت تصویر» تعیین می‌شود.
    ====================================================================== */
 (function () {
   'use strict';
@@ -31,9 +40,44 @@
     powderMinS: 8.0      // پودرِ عنوان: حداقل ۸ ثانیه، و هرگز کمتر از ۱/۲۰ طولِ آهنگ
   };
   const BREATH = {
-    cyclesPerTrack: 3, minCycleS: 36, maxCycleS: 65, fallbackTrackS: 180, openPart: 0.60, rollFadeS: 18,
-    startPitch: 10, endPitch: 68, startZoom: 0.86, endZoom: 1.0, startRoll: 0.35
+    cyclesPerTrack: 2, minCycleS: 24, maxCycleS: 180, fallbackTrackS: 180, rollFadeS: 18,
+    startPitch: 10, endPitch: 80, startZoom: 0.86, endZoom: 1.0, startRoll: 0.35, maxPitch: 88
   };
+  // روایتِ دوربین: بیشترِ چرخه، حرکتِ آرامِ «لبه‌ای → دیدِ بالا» است. در پایانِ هر چرخه،
+  // یک «رویدادِ تونل» می‌آید: حلقه‌ها بی‌نهایت از نزدیکِ افق می‌زایند، بزرگ می‌شوند و از کادر
+  // بیرون می‌روند؛ بعد همان حرکت معکوس می‌شود. هیچ سیاهیِ تمام‌صفحه‌ای وجود ندارد.
+  //   trackShare  سهم هر رویداد از طول آهنگ (۰٫۱۰ = ۱۰٪)؛ پیش‌فرض دو رویداد در هر آهنگ
+  //   forwardPart  سهمِ حرکت به داخل از کلِ رویداد (بقیه برگشت است)
+  //   loopTravel   چند «دورِ حلقه» در اوجِ رویداد طی شود
+  //   airMin      کمینهٔ نورِ پس‌زمینه؛ صفحه هرگز کامل سیاه نمی‌شود
+  const DIVE = {
+    trackShare: 0.10, minEventS: 8, maxEventS: 34,
+    forwardPart: 0.65, loopTravel: 2.2,
+    tauIn: 0.35, tauOut: 0.55, pitch: 8, airMin: 0.45
+  };
+  // سه پلهٔ کیفیت: ۰ کم، ۱ متوسط، ۲ زیاد. مدیرِ کیفیت با توجه به fps/CPU بین این‌ها
+  // جابه‌جا می‌شود: تعداد نقاط، بودجهٔ پیکسل (رزولوشنِ داخلی)، نرخِ به‌روزرسانیِ شفق و
+  // تعداد ستاره‌های دور را کم/زیاد می‌کند. ظاهر کلی و همان افکت حفظ می‌شود.
+  const QLV = [
+    { q: 0.58, budget: 0.95e6, aurora: 2, band: 0.65, calm: 15 },
+    { q: 0.80, budget: 1.55e6, aurora: 2, band: 0.85, calm: 18 },
+    { q: 1.00, budget: 2.30e6, aurora: 1, band: 1.00, calm: 20 }
+  ];
+  function detectTier() {
+    const cores = navigator.hardwareConcurrency || 4;
+    const mobile = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || innerWidth < 700;
+    let t = mobile ? 1 : 2;
+    if (cores <= 4) t = Math.min(t, 1);
+    if (mobile && cores <= 4) t = 0;
+    if (navigator.deviceMemory && navigator.deviceMemory <= 4) t = Math.min(t, 1);
+    return t;
+  }
+  const Q = {
+    tier: 2, autoTier: 2, budget: 2.3e6, auroraEvery: 1, band: 1, calm: 20,
+    scaleDirty: false, scaleCooldown: 0, tierCooldown: 0, grace: 0,
+    fpsEma: 0, msEma: 0, slow: 0, fast: 0, auroraFrame: 0, lastUpAt: 0, upBlockedUntil: 0
+  };
+  Q.autoTier = detectTier(); Q.tier = Q.autoTier;
   const COSMIC_GROUPS = 24, COSMIC_STARS_PER_GROUP = 6;
   // راه شیری پس‌زمینه + دنباله‌دارها. همهٔ اعدادِ قابل‌تنظیم اینجاست.
   const MW = {
@@ -61,7 +105,7 @@
     const f = function (n) { const k = (n + h * 12) % 12; return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); };
     return [f(0), f(8), f(4)];
   }
-  const WARM = [1.0, 0.80, 0.52];   // گرمِ پایهٔ هاله (فقط وقتی نت مشخصی غالب نیست)
+  const WARM = [1.0, 0.86, 0.60];
   const PAL = new Float32Array(36);
   for (let i = 0; i < 12; i++) {
     const c = i < RAINBOW_HUES.length ? hsl(RAINBOW_HUES[i], 0.78, 0.62) : [0.88, 0.90, 0.96];
@@ -161,7 +205,13 @@
   const soundApi = {
     hz: EQ_HZ, presets: EQ_PRESETS,
     get: function () { return { on: SND.on, preset: SND.preset, bands: SND.bands.slice(), pre: SND.pre, auto: SND.auto, limiter: SND.limiter, bg: SND.bg, vq: SND.vq }; },
-    set: function (patch) { sndSanitize(patch); sndSave(); applySound(false); try { refreshTaps(); if (document.hidden && SND.bg === 'live') bgKick(); } catch (e) {} },
+    set: function (patch) {
+      sndSanitize(patch); sndSave(); applySound(false);
+      try {
+        refreshTaps(); if (document.hidden && SND.bg === 'live') bgKick();
+        if (patch && typeof patch === 'object' && 'vq' in patch) syncQualityMode();
+      } catch (e) {}
+    },
     preset: function (name) { if (EQ_PRESETS[name]) soundApi.set({ preset: name, bands: EQ_PRESETS[name].slice() }); },
     reset: function () { soundApi.set({ on: true, preset: 'flat', bands: EQ_PRESETS.flat.slice(), pre: 0, auto: true, limiter: true }); },
     ready: function () { return !!SNDE.nodes; },
@@ -187,11 +237,41 @@
     }
   };
 
+  /* ---- صدای واقعیِ تبِ دیگر (chrome.tabCapture → getUserMedia در Void Tab) ---- */
+  const EXT = { stream: null, src: null };
+  function swapSource(newSrc) {
+    const N = SNDE.nodes; if (!A.ok || !N || !newSrc) return;
+    try { if (A.src) A.src.disconnect(); } catch (e) {}
+    A.src = newSrc; N.src = newSrc;
+    try { newSrc.connect(A.anE); newSrc.connect(A.anS); } catch (e) {}
+    N.mode = ''; applySound(true);                       // مسیرِ EQ/محدودکننده از نو به منبعِ تازه وصل می‌شود
+  }
+  function releaseStream() {
+    const old = EXT.src; EXT.stream = null; EXT.src = null;
+    try { if (old) old.disconnect(); } catch (e) {}
+    if (old && A.ok && A.src === old) {
+      let el = A.elSrc;
+      if (!el) { const a = VM.getLocalAudio && VM.getLocalAudio(); if (a) { try { el = A.elSrc = A.ctx.createMediaElementSource(a); } catch (e) { el = null; } } }
+      if (el) swapSource(el); else A.src = null;
+    }
+  }
+  const webApi = {
+    useStream: function (stream) {
+      if (EXT.stream && EXT.stream !== stream) releaseStream();
+      EXT.stream = stream;
+      if (A.ok && A.ctx) { EXT.src = A.ctx.createMediaStreamSource(stream); swapSource(EXT.src); }
+      else { A.tries = 0; ensureGraph(); }
+    },
+    releaseStream: releaseStream,
+    active: function () { return !!EXT.stream; }
+  };
+
   async function ensureGraph() {
     if (A.ok) { if (A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (e) {} } return true; }
     if (A.tries >= 6) return false;
     const audio = VM.getAudio();
     if (!audio) return false;
+    if (audio.__web && !EXT.stream) return false;     // منبعِ وب بدونِ صدای واقعیِ تب: تحلیل نداریم (حالتِ محیطیِ دکوراتیو)؛ شمارندهٔ تلاش را هم نمی‌سوزاند
     A.tries++;
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
@@ -200,7 +280,8 @@
       try { await ctx.resume(); } catch (e) {}
       // اگر context اجرا نشد، المنتِ صدا را «نمی‌دزدیم» تا پخش بی‌صدا نشود؛ دفعهٔ بعد (با یک کلیکِ دیگر) دوباره امتحان می‌شود
       if (ctx.state !== 'running') return false;
-      const src = A.src || (A.src = ctx.createMediaElementSource(audio));      // نبایدِ دوبار ساخته شود
+      const web = !!audio.__web;
+      const src = A.src || (A.src = web ? (EXT.src = ctx.createMediaStreamSource(EXT.stream)) : (A.elSrc = ctx.createMediaElementSource(audio)));      // منبعِ المنت نباید دوبار ساخته شود
       const anE = ctx.createAnalyser(); anE.fftSize = 1024; anE.smoothingTimeConstant = 0;
       const anS = ctx.createAnalyser(); anS.fftSize = 4096; anS.smoothingTimeConstant = 0.3; anS.minDecibels = -110; anS.maxDecibels = -10;
       const gain = ctx.createGain();
@@ -246,6 +327,7 @@
   function tapsWanted() {
     const a = VM.getAudio();
     if (!(a && !a.paused)) return false;
+    if (a.__web && !EXT.stream) return false;
     if (document.hidden && SND.bg !== 'live') return false;     // تبِ پنهان: فقط صدا (تحلیلگرها جدا می‌شوند)
     return VM.isOpen() || !!(VM.isMiniVisible && VM.isMiniVisible() && !document.hidden) || !!(VM.remoteWanted && VM.remoteWanted());
   }
@@ -376,7 +458,8 @@
     q: 1, slowN: 0, fastN: 0, rich: 0.8,
     rs: 1, W: 0, H: 0, vw: 0, vh: 0, cx: 0, cy: 0, scale: 1, incl: 24, N: 0,
     breath: { mix: 0, pitch: 50, zoom: 1, disk: 0, ready: false },
-    opening: { started: false, elapsed: 0, progress: 0, cycleS: 60 },
+    dive: 0,
+    opening: { started: false, elapsed: 0, progress: 0, cycleS: 60, eventS: 12, returnS: 6 },
     cosmic: {
       rng: null, nextCometAt: 0, lastPeakAt: -100, peakCandidateUntil: -100, prevEnergy: 0,
       wakeStart: -100, wakeUntil: -100, wakeTier: 0, wakeStrength: 0, glow: 0,
@@ -393,9 +476,72 @@
     session: (crypto.getRandomValues(new Uint32Array(1))[0] || 1),
     powder: { on: false, appear: 0, prog: 0, key: '', n: 0, buf: null, vao: null, box: [0, 1] },
     entrance: { pending: false, active: false, elapsed: 0, duration: 1.02, handoff: 0.28, generation: 0, id: null },
-    hud: null, hudOn: false, hudT: 0, frames: 0, fps: 0, fpsT: 0, tint: [1, 0.9, 0.7]
+    hud: null, hudOn: false, hudT: 0, frames: 0, fps: 0, fpsT: 0, tint: [1, 0.9, 0.7], retimeT: 0
   };
   let G = null;   // منابعِ GL
+
+  /* ---------- مدیرِ کیفیت/منابع ---------- */
+  function tierCfg(t) { return QLV[Math.max(0, Math.min(2, t | 0))]; }
+  function minTier() { return SND.vq === 'high' ? 1 : 0; }
+  function maxTier() { return SND.vq === 'low' ? 0 : 2; }
+  function applyTier(t, now) {
+    t = Math.max(minTier(), Math.min(maxTier(), t | 0));
+    const prev = Q.tier;
+    // اگر پلهٔ کیفیت تازه بالا رفته بود و به‌سرعت مجبور به پایین‌آمدن شدیم،
+    // تا مدتی دوباره بالا نرویم تا صحنه بین دو کیفیت پمپ نشود.
+    if (t < prev && Q.lastUpAt && now - Q.lastUpAt < 20000) { Q.upBlockedUntil = now + 180000; Q.lastUpAt = 0; }
+    if (t > prev) Q.lastUpAt = now;
+    const cfg = tierCfg(t);
+    Q.tier = t;
+    Q.budget = cfg.budget; Q.auroraEvery = cfg.aurora; Q.band = cfg.band; Q.calm = cfg.calm;
+    if (V.q > cfg.q) V.q = cfg.q;              // پایین‌آمدن فوری؛ بالا رفتن تدریجی
+    Q.scaleDirty = true;
+    Q.tierCooldown = now + 2500;
+    Q.slow = 0; Q.fast = 0;
+  }
+  function syncQualityMode() {
+    const now = performance.now();
+    Q.upBlockedUntil = 0; Q.lastUpAt = 0;      // تغییرِ دستیِ تنظیم، قفلِ آزمونِ کیفیت را باز می‌کند
+    if (SND.vq === 'low') applyTier(0, now);
+    else if (SND.vq === 'high') { applyTier(2, now); V.q = 1; }
+    else { Q.tier = Q.autoTier; applyTier(Q.tier, now); }
+  }
+  function pickScale() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    let rs = dpr;
+    while (V.vw * V.vh * rs * rs > Q.budget && rs > 0.35) rs -= 0.05;
+    return Math.max(0.35, rs);
+  }
+  function applyRenderScale(now) {
+    if (!V.ok || !Q.scaleDirty || now < Q.scaleCooldown) return;
+    Q.scaleDirty = false;
+    const rs = pickScale();
+    if (Math.abs(rs - V.rs) < 0.035) { Q.scaleCooldown = now + 1200; return; }
+    sizeTarget(rs);
+    Q.scaleCooldown = now + 3000;
+    Q.grace = Math.max(Q.grace, now + 1500);
+    V.grace = Math.max(V.grace, now + 1500);
+  }
+  function updateQuality(now) {
+    if (!V.playing || reduced() || document.hidden || now < Q.grace || now < V.grace) return;
+    Q.fpsEma = Q.fpsEma > 0 ? Q.fpsEma + (V.fps - Q.fpsEma) * 0.35 : V.fps;
+    Q.msEma = Q.msEma > 0 ? Q.msEma + (V.cpuMs - Q.msEma) * 0.35 : V.cpuMs;
+    const active = V.stage === 'galaxy' || V.dive > 0.05 || V.powder.on || V.entrance.active;
+    if (!active) { Q.slow = 0; Q.fast = 0; return; }
+    const tgt = CFG.galaxyFps;
+    if (Q.fpsEma < tgt * 0.88 || Q.msEma > 10) {
+      Q.slow++; Q.fast = 0;
+      const floor = SND.vq === 'high' ? 0.60 : 0.40;
+      if (V.q > floor) V.q = Math.max(floor, V.q - 0.045);
+    } else if (Q.fpsEma > tgt * 0.97 && Q.msEma < 6) {
+      Q.fast++; Q.slow = 0;
+      const target = QLV[Q.tier].q;
+      if (V.q < target) V.q = Math.min(target, V.q + 0.030);
+    } else { Q.slow = 0; Q.fast = 0; }
+    if (now < Q.tierCooldown) return;
+    if (Q.slow >= 2 && Q.tier > minTier()) applyTier(Q.tier - 1, now);
+    else if (Q.fast >= 6 && Q.tier < maxTier() && now > Q.upBlockedUntil) applyTier(Q.tier + 1, now);
+  }
 
   /* ---------- GL ---------- */
   const VS_TRI = `#version 300 es
@@ -648,6 +794,7 @@ in vec4 aMisc;    // seed, size, band (0..11 = pitch class, 12 = inner dust, 13 
 in float aU;      // position inside its band, 0..1
 uniform vec2 uView; uniform vec2 uCenter; uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath, uHoleR;
 uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uConf, uDim, uMid, uHigh, uStructure;
+uniform float uDive, uTravel, uCull;   // شیرجه: uDive ۰..۱، مسافتِ حرکت، و خاموش‌کردنِ برشِ نیمهٔ دیسک
 uniform float uChroma[12]; uniform vec3 uPal[12]; uniform float uTint[12];   // uTint: «لمسِ رنگ» هر لایه (۰ = سفید، ۱ = رنگِ کاملِ نت)
 uniform sampler2D uAur; uniform float uAurMix;
 out vec4 vCol;
@@ -664,15 +811,29 @@ void main(){
   float th = aPolar.y - uPhase * omega + (ring ?     // پادساعت‌گرد روی صفحه: زاویه با زمان کم می‌شود
    armWave * (0.026 * uMid + 0.018 * uStructure) : 0.0);
   float side = sin(th);
+  float warp = clamp(uDive, 0.0, 1.0);
   // نیمهٔ دورِ حلقه‌ها پشتِ کره، نیمهٔ نزدیک جلوی آن رسم می‌شود (دو پاس)
-  if (band > 13.5 || ((uHalf < 0.5) != (side < 0.0))) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); vDiskView = vec3(0.0); vPointDiameter = 0.0; gl_PointSize = 1.0; return; }
+  if (band > 13.5 || (uCull > 0.5 && ((uHalf < 0.5) != (side < 0.0)))) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); vDiskView = vec3(0.0); vPointDiameter = 0.0; gl_PointSize = 1.0; return; }
   vec2 p = vec2(r * cos(th), r * side * uSin);
   float c = cos(uTilt), s = sin(uTilt);
   p = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
   // Orthographic view of the inclined disk: screen Y is compressed by sin(i),
   // while the omitted camera-depth coordinate is the complementary cos(i).
-  float depth = r * side * sqrt(max(0.0, 1.0 - uSin * uSin));
-  vDiskView = vec3(p, depth);
+  float diskDepth = r * side * sqrt(max(0.0, 1.0 - uSin * uSin));
+  // حلقه‌های بی‌نهایت: شعاعِ هر ذره در بازهٔ [R_MIN,R_MAX] می‌چرخد؛ حلقه‌ای که از لبه
+  // بیرون می‌رود، محو می‌شود و همان لحظه حلقهٔ تازه‌ای نزدیکِ افق می‌زاید. در uTravel=۰
+  // دقیقاً همان دیسکِ اولیه است، پس گذار از کهکشان به تونل و برگشت بدونِ پرش است.
+  const float R_MIN = 0.13, R_MAX = 1.42, SPAN = R_MAX - R_MIN;
+  // هر گروه (۱۲ نوار + دو غبار) با یک آفستِ ثابت در طولِ تونل پخش می‌شود تا همیشه
+  // حلقه‌هایی در مرکز، میانه و لبه‌ها حاضر باشند؛ نه اینکه همه با هم به لبه برسند.
+  float bandOff = warp * (band / 14.0) * SPAN;
+  float rLoop = R_MIN + mod(r - R_MIN + uTravel + bandOff, SPAN);
+  float depth = clamp((rLoop - R_MIN) / SPAN, 0.0, 1.0);
+  float loopFade = smoothstep(R_MIN, R_MIN + 0.10, rLoop) * (1.0 - smoothstep(R_MAX - 0.24, R_MAX, rLoop));
+  vec2 pt = vec2(cos(th), sin(th)) * rLoop;
+  pt = vec2(c * pt.x - s * pt.y, s * pt.x + c * pt.y);
+  p = mix(p, pt, warp);
+  vDiskView = vec3(p, mix(diskDepth, depth, warp));
   int ib = int(clamp(band, 0.0, 11.0) + 0.5);
   float e = ring ? uChroma[ib] : 0.0;
   // رنگِ پیش‌فرض: خاکستری‌های روشن و تیره (هر ذره درخششِ خودش را دارد)؛ نزدیکِ افق کمی گرم، دورتر سردتر؛ پرنورها هاله دارند
@@ -684,7 +845,8 @@ void main(){
   float tA = ring ? (ib < 7 ? clamp(uTint[ib], 0.0, 1.0) : 0.0) : (band < 12.5 ? clamp(uTint[hueI], 0.0, 1.0) : 0.0);
   float halo = smoothstep(0.76, 0.98, seed) * (0.45 + 0.90 * tA);
   vHalo = halo;
-  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * (0.92 + 0.22 * side) * (1.0 + 0.60 * halo) * (1.0 + 0.30 * tA);
+  float sz = aMisc.y * 1.30 * (1.0 + 1.10 * e * uLum) * mix(0.92 + 0.22 * side, 1.0, warp) * (1.0 + 0.60 * halo) * (1.0 + 0.30 * tA);
+  sz *= mix(1.0, 0.65 + 1.55 * depth, warp);   // هرچه به لبهٔ خروج نزدیک‌تر، درشت‌تر
   vec2 px = uCenter + p * uScale;
   gl_Position = vec4(px.x / uView.x * 2.0 - 1.0, 1.0 - px.y / uView.y * 2.0, 0.0, 1.0);
 
@@ -714,9 +876,14 @@ void main(){
     lum *= 1.0 + 1.5 * al * uAurMix;
   }
   float highGlint = uHigh * smoothstep(0.91, 0.995, seed) * (0.5 + 0.5 * sin(uTime * (1.8 + seed * 1.3) + seed * 47.0));
-  lum = (lum * shimmer * (1.0 + (ring ? 0.10 * uMid * armWave : 0.0) + 0.32 * highGlint) + pulse * 0.9) * dop * vis * uDim;
+  float depthGlow = mix(1.0, 0.88 + 1.20 * depth, warp);          // ستاره‌های نزدیک به خروج، روشن‌تر و درشت‌تر
+  float tunnelDop = mix(dop, 1.0, warp);
+  float fade = mix(1.0, loopFade, warp);
+  float spark = smoothstep(0.55, 1.0, depth) * warp;             // فورانِ سفید-گرم در لبهٔ خروج
+  col = mix(col, vec3(1.0, 0.95, 0.85), 0.50 * spark);
+  lum = (lum * shimmer * (1.0 + (ring ? 0.10 * uMid * armWave : 0.0) + 0.32 * highGlint) + pulse * 0.9) * tunnelDop * vis * uDim * depthGlow * fade;
   vCol = vec4(col * lum, 0.0);
-  gl_PointSize = clamp(sz * uPx, 1.0, 10.0);
+  gl_PointSize = clamp(sz * uPx, 1.0, mix(10.0, 14.0, warp));
   vPointDiameter = gl_PointSize / max(uPx * uScale, 0.001);
 }`;
 
@@ -731,14 +898,16 @@ in vec4 vCol;
 in vec3 vDiskView;
 in float vPointDiameter;
 in float vHalo;
-uniform float uHoleR;
+uniform float uHoleR, uOccl;
 out vec4 o;
 void main(){
   // Test every covered fragment against the front surface of the spherical hole.
   // Foreground dots survive only where their view-space depth is in front of it.
+  // During the dive the tunnel is drawn as one full pass, so this test is switched off (uOccl = 0).
   vec2 fragmentPos = vDiskView.xy + (gl_PointCoord - vec2(0.5)) * vPointDiameter;
   float rho2 = dot(fragmentPos, fragmentPos);
-  float holeR2 = uHoleR * uHoleR;
+  float hr = uHoleR * uOccl;
+  float holeR2 = hr * hr;
   if (rho2 < holeR2) {
     float frontSurfaceZ = sqrt(max(holeR2 - rho2, 0.0));
     if (vDiskView.z <= frontSurfaceZ + 0.0002) discard;
@@ -866,16 +1035,13 @@ void main(){
   float radialGlow = radial < 0.0 ? innerGlow : outerGlow;
   float brightnessVariation = clamp(0.78 + 0.20 * local + 0.035 * sin(3.0 * a + uTime * 0.06), 0.70, 1.0);
   float breathe = 0.97 + 0.03 * sin(uTime * 0.22 + 0.4 * uneven);
-  float ring = radialGlow * brightnessVariation * (0.105 + 0.065 * uEnergy + 0.022 * uBass);   // نرم‌تر: هاله دیگر بر ذرات غلبه نمی‌کند
-  float halo = exp(-max(d - 1.0, 0.0) * (4.8 - 2.0 * uEnergy)) * smoothstep(0.98, 1.035, d) * (0.085 + 0.10 * uEnergy) * (0.94 + 0.06 * brightnessVariation);
-  float flare = uFlare * exp(-pow(radial / 0.25, 2.0)) * 0.68;          // ضربهٔ کوتاه، هم‌راستا با لبهٔ نامنظمِ هاله
-  // رنگِ هاله از تمِ رنگیِ موسیقی می‌آید (uTint = گرمِ پایه + نتِ غالب): لبهٔ داخلی روشن‌تر، بیرون عمیق‌تر و اشباع‌تر از همان تم
-  float t = max(d - 1.0, 0.0);
-  vec3 inner = mix(uTint, vec3(1.0, 0.93, 0.80), 0.30);
-  vec3 outer = pow(uTint, vec3(1.5)) * 0.95;
-  vec3 rim = mix(inner, outer, smoothstep(0.0, 0.40, t));
-  float I = (ring + halo) * flow * dop * breathe + flare * 0.4;
-  vec3 col = rim * I * (0.35 + 0.65 * smoothstep(0.0, 0.5, uLevel)) * (0.65 + 0.35 * uLum);
+  float ring = radialGlow * brightnessVariation * (0.18 + 0.12 * uEnergy + 0.035 * uBass);
+  float halo = exp(-max(d - 1.0, 0.0) * (4.8 - 2.0 * uEnergy)) * smoothstep(0.98, 1.035, d) * (0.18 + 0.22 * uEnergy) * (0.94 + 0.06 * brightnessVariation);
+  float flare = uFlare * exp(-pow(radial / 0.25, 2.0)) * 0.38;          // ضربهٔ کوتاه، هم‌راستا با لبهٔ نامنظمِ هاله
+  vec3 cool = vec3(0.55, 0.78, 1.0);
+  vec3 rim = mix(uTint, cool, smoothstep(1.0, 1.35, d) * 0.7);
+  float I = (ring + halo) * flow * dop * breathe + flare;
+  vec3 col = rim * I * (0.35 + 0.65 * smoothstep(0.0, 0.5, uLevel)) * (0.65 + 0.35 * uLum) * 0.78;
   col *= 1.0 - body;
   o = vec4(col, body);
 }`;
@@ -1083,10 +1249,11 @@ void main(){
       });
 
       G = {};
+      G.auroraValid = false;
       G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uBand', 'uBandP', 'uBandLow', 'uBloom[0]']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
       G.cosmic = program(gl, VS_COSMIC_DOTS, FS_COSMIC_DOTS, ['uView', 'uPx', 'uTime', 'uLevel', 'uGlow', 'uAspect', 'uPrimary', 'uReveal[0]', 'uBandTex', 'uBandAmt', 'uBandHigh']);
-      G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix', 'uTint']);
+      G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix', 'uTint', 'uDive', 'uTravel', 'uCull', 'uOccl']);
       G.aurDots = program(gl, VS_AUR_DOTS, FS_AUR_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uTime', 'uLevel', 'uLum', 'uLow', 'uMid', 'uHigh', 'uDim', 'uChroma', 'uHoleR', 'uTint']);
       G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
     } catch (e) { teardownGL(); V.dead = true; return false; }
@@ -1142,22 +1309,18 @@ void main(){
 
       G.tex = gl.createTexture(); G.fbo = gl.createFramebuffer();
       V.ok = true;
+      syncQualityMode();
       resizeGL();
       return true;
     } catch (e) { teardownGL(); V.dead = true; return false; }
   }
 
-  function resizeGL() {
-    if (!V.ok) return;
-    if (V.entrance.pending || V.entrance.active) cancelTitleEntrance(true);
-    const gl = V.gl;
-    V.vw = window.innerWidth; V.vh = window.innerHeight;
-    let rs = Math.min(window.devicePixelRatio || 1, 1.25);
-    while (V.vw * V.vh * rs * rs > 2.3e6 && rs > 0.6) rs -= 0.1;
+  // فقط هدفِ رندر (بوم/بافتِ شفق) را با مقیاسِ تازه می‌سازد؛ چیدمان و پودر دست‌نخورده می‌مانند.
+  function sizeTarget(rs) {
+    const gl = V.gl; if (!gl || !G) return;
     V.rs = rs;
     V.W = Math.max(2, Math.floor(V.vw * rs)); V.H = Math.max(2, Math.floor(V.vh * rs));
     V.canvas.width = V.W; V.canvas.height = V.H;
-    // شفق: بافتِ ¼-رزولوشن
     G.aw = Math.max(2, Math.ceil(V.W / 4)); G.ah = Math.max(2, Math.ceil(V.H / 4));
     gl.bindTexture(gl.TEXTURE_2D, G.tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, G.aw, G.ah, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -1166,6 +1329,17 @@ void main(){
     gl.bindFramebuffer(gl.FRAMEBUFFER, G.fbo);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, G.tex, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    G.auroraValid = false;
+  }
+
+  function resizeGL() {
+    if (!V.ok) return;
+    if (V.entrance.pending || V.entrance.active) cancelTitleEntrance(true);
+    V.vw = window.innerWidth; V.vh = window.innerHeight;
+    sizeTarget(pickScale());
+    Q.scaleDirty = false;
+    Q.scaleCooldown = performance.now() + 1500;
+    Q.grace = performance.now() + 2500;
     // هندسهٔ صفحه: سیاه‌چاله کمی بالاتر از وسط؛ در پرتره دیسک «رو به‌تر» می‌شود
     const portrait = V.vw / V.vh < 0.8;
     V.incl = portrait ? 62 : 50;     // زاویهٔ ارتفاعِ دوربین نسبت به صفحهٔ دیسک؛ در step() آرام نوسان می‌کند
@@ -1437,9 +1611,9 @@ void main(){
     gl.bindVertexArray(G.cometVao); gl.bindBuffer(gl.ARRAY_BUFFER, G.cometBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, buf.subarray(0, o));
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
-  function drawEjecta(sc, sinI, roll, nowS, rm) {
+  function drawEjecta(sc, sinI, roll, nowS, rm, air) {
     const gl = V.gl; if (!G.ejecta || !V.armN) return;
-    const rate = clamp(V.ejRate + V.ejBurst, 0, 0.95); if (rate < 0.01) return;
+    const rate = clamp((V.ejRate + V.ejBurst) * (air === undefined ? 1 : air), 0, 0.95); if (rate < 0.01) return;
     const u = G.ejecta.u;
     gl.useProgram(G.ejecta.p); gl.bindVertexArray(G.ejectaVao);
     gl.uniform2f(u.uView, V.vw, V.vh); gl.uniform2f(u.uCenter, V.cx, V.cy); gl.uniform1f(u.uScale, sc); gl.uniform1f(u.uSin, sinI); gl.uniform1f(u.uTilt, roll);
@@ -1624,8 +1798,8 @@ void main(){
     V.flare *= Math.exp(-dt * 2.2);
     {
       let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
-      const mixW = A.ok ? clamp(A.conf * Math.min(1, A.chroma[top] * 1.2), 0, 1) * 0.65 : 0;   // تمِ رنگیِ هاله از نتِ غالب می‌آید، با تغییرِ نرم
-      const k = expK(dt, 0.35);
+      const mixW = A.ok ? clamp(A.conf * Math.min(1, A.chroma[top] * 1.2), 0, 1) * 0.55 : 0;
+      const k = expK(dt, 0.4);
       for (let c = 0; c < 3; c++) V.tintC[c] += ((WARM[c] * (1 - mixW) + PAL[top * 3 + c] * mixW) - V.tintC[c]) * k;
     }
     if (!A.ok) {                                                  // جایگزینِ تزئینی وقتی آنالیز در دسترس نیست
@@ -1657,23 +1831,41 @@ void main(){
       V.opening.elapsed += dt;
     }
     const cycleS = Math.max(1, V.opening.cycleS || BREATH.maxCycleS);
-    const cyclePhase = (V.opening.elapsed % cycleS) / cycleS;
-    V.opening.progress = V.opening.started
-      ? (cyclePhase < BREATH.openPart
-        ? smoother5(cyclePhase / BREATH.openPart)
-        : 1 - smoother5((cyclePhase - BREATH.openPart) / (1 - BREATH.openPart)))
-      : 0;
-    const openProgress = V.opening.progress;
+    const eventS = Math.max(1, V.opening.eventS || 12);
+    const returnS = Math.max(1, V.opening.returnS || 6);
+    const openS = Math.max(1, cycleS - eventS - returnS);
+    // اگر عنوان/پودر روی صحنه بیاید، روایت را از ابتدا شروع می‌کنیم تا دوربین وسطِ رویداد
+    // یخ نزند و بعد از عنوان دوباره از نمای لبه‌ای سفرش را آغاز کند.
+    if (V.opening.started && (pst.on || V.entrance.pending || V.entrance.active) && V.opening.elapsed > 0) V.opening.elapsed = 0;
+    const tCycle = V.opening.elapsed % cycleS;
+    let camProg = 0, tunnelT = 0;
+    if (V.opening.started) {
+      if (tCycle < openS) camProg = smoother5(tCycle / openS);
+      else if (tCycle < openS + eventS) {
+        camProg = 1;
+        const u = (tCycle - openS) / eventS, fwd = DIVE.forwardPart;
+        tunnelT = u < fwd ? smoother5(u / fwd) : 1 - smoother5((u - fwd) / (1 - fwd));
+      } else {
+        camProg = 1 - smoother5((tCycle - openS - eventS) / returnS);
+      }
+    }
+    V.opening.progress = camProg;
+    // رویدادِ تونل فقط وقتی مجاز است که صحنه واقعاً در حالِ پخش باشد؛ در مکث/عنوان دوربین بیرون می‌آید.
+    const diveAllowed = openingActive && V.opening.started && !pst.on && !V.entrance.pending && !V.entrance.active;
+    const diveTarget = diveAllowed ? tunnelT : 0;
+    V.dive += (diveTarget - V.dive) * expK(dt, diveTarget > V.dive ? DIVE.tauIn : DIVE.tauOut);
+    if (V.dive < 0.0005) V.dive = 0;
+    const openProgress = camProg;
     if (!Number.isFinite(V.breath.pitch)) V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50;
     if (!Number.isFinite(V.breath.zoom)) V.breath.zoom = 1;
     if (!Number.isFinite(V.breath.mix)) V.breath.mix = 0;
     if (!Number.isFinite(V.breath.disk)) V.breath.disk = 0;
-    const pitchTarget = lerp(BREATH.startPitch, BREATH.endPitch, openProgress);
-    const zoomTarget = lerp(BREATH.startZoom, BREATH.endZoom, openProgress);
+    const pitchTarget = lerp(BREATH.startPitch, BREATH.endPitch, openProgress) + DIVE.pitch * V.dive;
+    const zoomTarget = lerp(BREATH.startZoom, BREATH.endZoom, openProgress) + 0.04 * V.dive;
     V.breath.pitch += (pitchTarget - V.breath.pitch) * expK(dt, 0.8);
     V.breath.zoom += (zoomTarget - V.breath.zoom) * expK(dt, 0.8);
     const breathActive = V.playing && VM.isOpen() && !document.hidden && !rm;
-    const diskBreathTarget = breathActive ? openProgress * (0.07 + 0.03 * clamp(V.energy || 0, 0, 1)) : 0;
+    const diskBreathTarget = breathActive ? openProgress * (0.07 + 0.03 * clamp(V.energy || 0, 0, 1)) * (1 - 0.85 * V.dive) : 0;
     V.breath.disk += (diskBreathTarget - V.breath.disk) * expK(dt, diskBreathTarget > V.breath.disk ? 1.6 : 2.2);
     if (rm) V.breath.mix = 0;
     else V.breath.mix += ((breathActive ? 1 : 0) - V.breath.mix) * expK(dt, 1.8);
@@ -1691,10 +1883,15 @@ void main(){
     const gl = V.gl;
     const rm = reduced();
     const La = V.L.aurora, Lg = V.L.galaxy;
+    const dive = clamp(V.dive || 0, 0, 1);
+    // پس‌زمینه فقط تا DIVE.airMin کم‌نور می‌شود؛ صفحه هیچ‌وقت کامل سیاه نمی‌شود.
+    const air = 1 - (1 - DIVE.airMin) * smoother5(dive / 0.92);
+    const tunnelMode = dive > 0.004;
+    const LaAir = La * air;
     const baseIncl = Number.isFinite(V.inclNow) ? V.inclNow : V.incl;
     const mix = Number.isFinite(V.breath.mix) ? clamp(V.breath.mix, 0, 1) : 0;
-    const breathPitch = Number.isFinite(V.breath.pitch) ? clamp(V.breath.pitch, BREATH.startPitch, 70) : baseIncl;
-    const breathZoom = Number.isFinite(V.breath.zoom) ? clamp(V.breath.zoom, BREATH.startZoom, 1.02) : 1;
+    const breathPitch = Number.isFinite(V.breath.pitch) ? clamp(V.breath.pitch, BREATH.startPitch, BREATH.maxPitch) : baseIncl;
+    const breathZoom = Number.isFinite(V.breath.zoom) ? clamp(V.breath.zoom, BREATH.startZoom, 1.08) : 1;
     const diskBreath = !rm && Number.isFinite(V.breath.disk) ? clamp(V.breath.disk, 0, 0.10) : 0;
     const cameraPitch = lerp(baseIncl, breathPitch, mix);
     const sinI = Math.sin(cameraPitch * Math.PI / 180);
@@ -1704,14 +1901,17 @@ void main(){
     gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND);
     if (V.cosmic.bandDirty && G.bandBuf) uploadBandStars();
     // نوار با سطحِ شفق محو می‌شود تا وقتی پخش متوقف می‌شود ناگهان نپرد
-    const bandAmt = V.cosmic.revelationAmount * clamp(La * 3.0, 0, 1);
+    const bandAmt = V.cosmic.revelationAmount * clamp(LaAir * 3.0, 0, 1);
 
-    if (La > 0.003) {
+    Q.auroraFrame = (Q.auroraFrame + 1) | 0;
+    const auroraDue = !G.auroraValid || (Q.auroraFrame % Math.max(1, Q.auroraEvery)) === 0;
+    if (LaAir > 0.003) {
+      if (auroraDue) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, G.fbo); gl.viewport(0, 0, G.aw, G.ah);
       gl.disable(gl.BLEND);
       gl.useProgram(G.aurora.p);
       gl.uniform2f(G.aurora.u.uRes, G.aw, G.ah); gl.uniform1f(G.aurora.u.uTime, rm ? 0 : nowS + V.track * 17.0);
-      gl.uniform1f(G.aurora.u.uLevel, La);
+      gl.uniform1f(G.aurora.u.uLevel, LaAir);
       gl.uniform3f(G.aurora.u.uSeed, V.seed3[0], V.seed3[1], V.seed3[2]);
       let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
       gl.uniform3f(G.aurora.u.uTint, PAL[top * 3], PAL[top * 3 + 1], PAL[top * 3 + 2]);
@@ -1729,23 +1929,25 @@ void main(){
       gl.uniform1f(G.aurora.u.uHorizon, cosmicHorizonRadius());
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.enable(gl.BLEND);
-    }
+      G.auroraValid = true;
+      }
+    } else G.auroraValid = false;
     gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.viewport(0, 0, V.W, V.H);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.blendFunc(gl.ONE, gl.ONE);
-    if (La > 0.003) {
+    if (LaAir > 0.003) {
       gl.useProgram(G.blit.p);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex);
       gl.uniform1i(G.blit.u.uTex, 0); gl.uniform2f(G.blit.u.uRes, V.W, V.H); gl.uniform1f(G.blit.u.uMix, 1);
       gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
 
-    if (La > 0.003 && G.cosmicVao) {
+    if (LaAir > 0.003 && G.cosmicVao) {
       const cu = G.cosmic.u;
       gl.useProgram(G.cosmic.p);
       gl.uniform2f(cu.uView, V.vw, V.vh); gl.uniform1f(cu.uPx, V.rs);
-      gl.uniform1f(cu.uTime, rm ? 0 : nowS); gl.uniform1f(cu.uLevel, La);
+      gl.uniform1f(cu.uTime, rm ? 0 : nowS); gl.uniform1f(cu.uLevel, LaAir);
       gl.uniform1f(cu.uGlow, rm ? 0 : V.cosmic.glow);
       gl.uniform1f(cu.uAspect, V.vw / Math.max(1, V.vh));
       const primary = cosmicPrimaryCenter();
@@ -1754,23 +1956,24 @@ void main(){
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex); gl.uniform1i(cu.uBandTex, 0);
       gl.uniform1f(cu.uBandAmt, bandAmt); gl.uniform1f(cu.uBandHigh, rm ? 0 : A.high);
       gl.bindVertexArray(G.cosmicVao); gl.drawArrays(gl.POINTS, 0, G.cosmicCount);
-      if (G.bandCount > 0 && bandAmt > 0.003) { gl.bindVertexArray(G.bandVao); gl.drawArrays(gl.POINTS, 0, G.bandCount); }
+      const bandN = Math.floor(G.bandCount * Q.band);
+      if (bandN > 0 && bandAmt > 0.003) { gl.bindVertexArray(G.bandVao); gl.drawArrays(gl.POINTS, 0, bandN); }
     }
 
-    if (La > 0.003 && COMETS.length) drawComets(sceneScale, sinI, roll, La);
-    if (Lg > 0.004) { drawHotSpot(sceneScale, Lg); drawEjecta(sceneScale, sinI, roll, nowS, rm); }
+    if (LaAir > 0.003 && COMETS.length) drawComets(sceneScale, sinI, roll, LaAir);
+    if (Lg > 0.004 && air > 0.02) { drawHotSpot(sceneScale, Lg * air); drawEjecta(sceneScale, sinI, roll, nowS, rm, air); }
 
     if (Lg > 0.004) {
       const u = G.dots.u, n = Math.max(1500, Math.floor(V.N * V.q));
       const au = G.aurDots.u, aurN = Math.floor(V.auroraN * V.q);
       const pp = clamp((nowS - V.pulse.t0) / 1.7, 0, 1);
       const setAurDots = function (half) {
-        if (La <= 0.003 || aurN <= 0) return;
+        if (LaAir <= 0.003 || aurN <= 0) return;
         gl.useProgram(G.aurDots.p);
         gl.uniform2f(au.uView, V.vw, V.vh); gl.uniform2f(au.uCenter, V.cx, V.cy);
         gl.uniform1f(au.uScale, sceneScale); gl.uniform1f(au.uSin, sinI); gl.uniform1f(au.uTilt, roll); gl.uniform1f(au.uPx, V.rs); gl.uniform1f(au.uHalf, half);
         gl.uniform1f(au.uDiskBreath, diskBreath); gl.uniform1f(au.uPhase, rm ? 0 : V.phase + V.track * 3.1); gl.uniform1f(au.uTime, rm ? 0 : nowS % 6000);
-        gl.uniform1f(au.uLevel, La); gl.uniform1f(au.uLum, V.L.lum);
+        gl.uniform1f(au.uLevel, LaAir); gl.uniform1f(au.uLum, V.L.lum);
         gl.uniform1f(au.uLow, rm ? 0 : A.low); gl.uniform1f(au.uMid, rm ? 0 : A.mid); gl.uniform1f(au.uHigh, rm ? 0 : A.high);
         gl.uniform1f(au.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1)); gl.uniform1fv(au.uChroma, A.chroma); gl.uniform1fv(au.uTint, V.tint); gl.uniform1f(au.uHoleR, HOLE_R);
         gl.bindVertexArray(G.aurVao); gl.drawArrays(gl.POINTS, V.auroraStart, aurN);
@@ -1782,31 +1985,54 @@ void main(){
         gl.uniform1f(u.uDiskBreath, diskBreath);
         gl.uniform1f(u.uHoleR, HOLE_R);
         gl.uniform1f(u.uPhase, V.phase + V.track * 3.1);
-        gl.uniform1f(u.uReveal, Lg * 1.4 - 0.1);
+        gl.uniform1f(u.uReveal, Math.max(Lg * 1.4 - 0.1, tunnelMode ? 1.35 : 0));   // در تونل همهٔ حلقه‌ها روشن می‌مانند
         gl.uniform1f(u.uLum, V.L.lum); gl.uniform1f(u.uTime, nowS % 6000);
         gl.uniform1f(u.uPulseR, 0.12 + 0.95 * pp); gl.uniform1f(u.uPulseA, pp < 1 ? V.pulse.amp * Math.pow(1 - pp, 1.5) : 0);
         gl.uniform1f(u.uConf, A.ok ? A.conf : 0);
-        gl.uniform1f(u.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1));
+        const baseDim = clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1);
+        gl.uniform1f(u.uDim, Math.max(baseDim, tunnelMode ? 0.95 * dive : 0));
         gl.uniform1f(u.uMid, rm ? 0 : A.mid); gl.uniform1f(u.uHigh, rm ? 0 : A.high); gl.uniform1f(u.uStructure, rm ? 0 : V.structure);
+        gl.uniform1f(u.uDive, dive); gl.uniform1f(u.uTravel, dive * DIVE.loopTravel);
+        gl.uniform1f(u.uCull, tunnelMode ? 0 : 1); gl.uniform1f(u.uOccl, tunnelMode ? 0 : 1);
         gl.uniform1fv(u.uChroma, A.chroma); gl.uniform1fv(u.uTint, V.tint); gl.uniform3fv(u.uPal, PAL);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex); gl.uniform1i(u.uAur, 0);
-        gl.uniform1f(u.uAurMix, La > 0.003 ? clamp(La * 1.5, 0, 1) : 0);
+        gl.uniform1f(u.uAurMix, LaAir > 0.003 ? clamp(LaAir * 1.5, 0, 1) : 0);
         gl.bindVertexArray(G.dotVao); gl.drawArrays(gl.POINTS, 0, n);
       };
-      setAurDots(0);
-      setDots(0);                                             // نیمهٔ دورِ حلقه‌ها (پشتِ کره)
-      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-      const h = G.hor.u;
-      gl.useProgram(G.hor.p);
-      gl.uniform2f(h.uCanvas, V.W, V.H); gl.uniform1f(h.uPx, V.rs); gl.uniform2f(h.uCenter, V.cx, V.cy);
-      gl.uniform1f(h.uScale, sceneScale); gl.uniform1f(h.uHoleR, HOLE_R);
-      gl.uniform1f(h.uLevel, Lg); gl.uniform1f(h.uLum, V.L.lum);
-      gl.uniform1f(h.uTime, V.haloT); gl.uniform1f(h.uEnergy, V.energy || 0); gl.uniform1f(h.uBass, rm ? 0 : A.low); gl.uniform1f(h.uFlare, V.flare);
-      gl.uniform1f(h.uAxis, roll + V.haloT * 0.05); gl.uniform3f(h.uTint, V.tintC[0], V.tintC[1], V.tintC[2]);
-      gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);     // کرهٔ کامل
-      gl.blendFunc(gl.ONE, gl.ONE);
-      setAurDots(1);
-      setDots(1);                                             // نیمهٔ نزدیکِ حلقه‌ها (جلوی کره)
+      const drawHorizon = function (holeR, level, flare) {
+        const h = G.hor.u;
+        gl.useProgram(G.hor.p);
+        gl.uniform2f(h.uCanvas, V.W, V.H); gl.uniform1f(h.uPx, V.rs); gl.uniform2f(h.uCenter, V.cx, V.cy);
+        gl.uniform1f(h.uScale, sceneScale); gl.uniform1f(h.uHoleR, holeR);
+        gl.uniform1f(h.uLevel, level); gl.uniform1f(h.uLum, V.L.lum);
+        gl.uniform1f(h.uTime, V.haloT); gl.uniform1f(h.uEnergy, V.energy || 0); gl.uniform1f(h.uBass, rm ? 0 : A.low); gl.uniform1f(h.uFlare, flare);
+        gl.uniform1f(h.uAxis, roll + V.haloT * 0.05); gl.uniform3f(h.uTint, V.tintC[0], V.tintC[1], V.tintC[2]);
+        // افق فقط چند شعاع حولِ سیاه‌چاله محتوا دارد؛ scissor همان ناحیه را رسم می‌کند، نه کلِ صفحه.
+        const radDev = (holeR * sceneScale * 4.5 + 6) * V.rs;
+        const cxd = V.cx * V.rs, cyd = V.H - V.cy * V.rs;
+        const x0 = Math.max(0, Math.floor(cxd - radDev)), y0 = Math.max(0, Math.floor(cyd - radDev));
+        const x1 = Math.min(V.W, Math.ceil(cxd + radDev)), y1 = Math.min(V.H, Math.ceil(cyd + radDev));
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(x0, y0, Math.max(0, x1 - x0), Math.max(0, y1 - y0));
+        gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.disable(gl.SCISSOR_TEST);
+      };
+      if (!tunnelMode) {
+        setAurDots(0);
+        setDots(0);                                           // نیمهٔ دورِ حلقه‌ها (پشتِ کره)
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        drawHorizon(HOLE_R, Lg, V.flare);                     // کرهٔ کامل
+        gl.blendFunc(gl.ONE, gl.ONE);
+        setAurDots(1);
+        setDots(1);                                           // نیمهٔ نزدیکِ حلقه‌ها (جلوی کره)
+      } else {
+        // تک‌پاسِ کاملِ حلقه‌های بی‌نهایت؛ افقِ سیاه کوچک و همیشگی روی مرکز می‌آید (بدونِ سیاهیِ تمام‌صفحه).
+        gl.blendFunc(gl.ONE, gl.ONE);
+        setDots(1);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        drawHorizon(HOLE_R, Lg, V.flare);
+        gl.blendFunc(gl.ONE, gl.ONE);
+      }
     }
 
     if ((V.powder.on || V.entrance.active) && V.powder.n > 0) {
@@ -1830,6 +2056,8 @@ void main(){
     if (V.running || !V.ok) return;
     refreshTaps();
     V.running = true; V.last = performance.now();
+    Q.grace = Math.max(Q.grace, performance.now() + 2200);
+    Q.fpsEma = 0; Q.msEma = 0; Q.slow = 0; Q.fast = 0;
     V.raf = requestAnimationFrame(frame);
   }
   function stopLoop(clear) {
@@ -1843,8 +2071,8 @@ void main(){
     V.raf = 0;
     if (!V.running) return;
     const rm = reduced();
-    const fast = !rm && (V.stage === 'galaxy' || V.L.galaxy > 0.05 || V.powder.on || V.entrance.active);
-    const minDt = 1000 / (rm ? CFG.reducedFps : (fast ? CFG.galaxyFps * (SND.vq === 'low' ? 0.8 : 1) : CFG.calmFps));
+    const fast = !rm && (V.stage === 'galaxy' || V.dive > 0.05 || V.powder.on || V.entrance.active);
+    const minDt = 1000 / (rm ? CFG.reducedFps : (fast ? CFG.galaxyFps : Q.calm));
     const dtMs = now - V.last;
     if (dtMs < minDt - 3) { V.raf = requestAnimationFrame(frame); return; }
     V.last = now;
@@ -1858,23 +2086,20 @@ void main(){
         else cancelTitleEntrance(true);
       }
     }
+    // تغییر مقیاسِ رندر را قبل از رسمِ همین فریم اعمال کن تا یک فریمِ خالی/سیاه دیده نشود.
+    if (Q.scaleDirty) applyRenderScale(now);
     const c0 = performance.now();
     step(dt, nowS);
     if (V.powder.on && V.powder.key === '') { V.powder.key = 'x'; buildPowder(); }
     draw(nowS);
     V.cpuMs += ((performance.now() - c0) - V.cpuMs) * 0.1;
-    if ((V.frames & 3) === 0) pushVizNow();
+    const pushEvery = Q.tier === 0 ? 8 : 4;
+    if ((V.frames & (pushEvery - 1)) === 0) pushVizNow();
 
     V.frames++; V.fpsT += dt;
     if (V.fpsT >= 1) {
       V.fps = V.frames / V.fpsT; V.frames = 0; V.fpsT = 0;
-      if (SND.vq === 'low' && V.q > 0.55) V.q = 0.55;
-      if (V.L.galaxy > 0.6 && !document.hidden && now > V.grace) {
-        const tgt = rm ? CFG.reducedFps : CFG.galaxyFps;
-        if (V.fps < tgt * 0.7 || V.cpuMs > 12) { V.fastN = 0; if (++V.slowN >= 2) { V.q = Math.max(SND.vq === 'high' ? 0.8 : 0.3, V.q * 0.72); V.slowN = 0; } }
-        else if (V.fps >= tgt * 0.93 && V.cpuMs < 8) { V.slowN = 0; if (++V.fastN >= 6 && V.q < 1) { V.q = Math.min(1, V.q * 1.15); V.fastN = 0; } }
-        else { V.slowN = 0; V.fastN = 0; }
-      }
+      updateQuality(now);
     }
     if (V.hudOn) updateHud(now);
 
@@ -1893,11 +2118,12 @@ void main(){
     V.hudT = now;
     let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
     V.hud.textContent =
-      'stage ' + V.stage + '  t ' + V.stageT.toFixed(1) + 's   fps ' + V.fps.toFixed(0) + '   dots ' + Math.floor(V.N * V.q) + '/' + V.N + '\n' +
+      'stage ' + V.stage + '  t ' + V.stageT.toFixed(1) + 's   fps ' + V.fps.toFixed(0) + '   dots ' + Math.floor(V.N * V.q) + '/' + V.N +
+        '   tier ' + Q.tier + '  q ' + V.q.toFixed(2) + '  rs ' + V.rs.toFixed(2) + '  aurora ' + Q.auroraEvery + 'x\n' +
       'db ' + A.db.toFixed(1) + '  pk/fl ' + A.pk.toFixed(0) + '/' + A.fl.toFixed(0) + '  en ' + A.en.toFixed(2) + '  E ' + A.energy.toFixed(2) + '  flux x' + A.fluxR.toFixed(2) + '  energy ' + (V.energy || 0).toFixed(2) + '\n' +
       'conf ' + A.conf.toFixed(2) + '  top ' + NOTE[top] + ' ' + A.chroma[top].toFixed(2) + '  centroid ' + A.centroidR.toFixed(2) + '  bright ' + A.bright.toFixed(2) + '\n' +
       'bands low/mid/high ' + A.low.toFixed(2) + '/' + A.mid.toFixed(2) + '/' + A.high.toFixed(2) + '  structure ' + V.structure.toFixed(2) + '\n' +
-      'aurora ' + V.L.aurora.toFixed(2) + '  galaxy ' + V.L.galaxy.toFixed(2) + '  powder ' + (V.powder.on ? V.powder.prog.toFixed(2) + '/T' + V.powder.T.toFixed(1) : '-') + '  ctx ' + (A.ok ? A.ctx.state : A.state) + '  thr ' + CFG.enterDb.toFixed(1) + '/' + CFG.exitDb.toFixed(1);
+      'aurora ' + V.L.aurora.toFixed(2) + '  galaxy ' + V.L.galaxy.toFixed(2) + '  dive ' + (V.dive || 0).toFixed(2) + '  powder ' + (V.powder.on ? V.powder.prog.toFixed(2) + '/T' + V.powder.T.toFixed(1) : '-') + '  ctx ' + (A.ok ? A.ctx.state : A.state) + '  thr ' + CFG.enterDb.toFixed(1) + '/' + CFG.exitDb.toFixed(1);
   }
   function toggleHud() {
     V.hudOn = !V.hudOn;
@@ -1915,6 +2141,14 @@ void main(){
   /* ---------- رویدادهای Music Mode ---------- */
   function newTrackLook(seed) {
     cancelTitleEntrance(true);
+    V.opening.elapsed = 0; V.dive = 0;          // هر آهنگ، روایتِ دوربین از نمای اول شروع شود
+    Q.upBlockedUntil = 0; Q.lastUpAt = 0; Q.slow = 0; Q.fast = 0;   // با آهنگِ تازه، یک آزمونِ کیفیتِ تازه مجاز است
+    Q.fpsEma = 0; Q.msEma = 0; Q.grace = performance.now() + 1500;
+    // زمان‌بندی را با طولِ آهنگِ تازه هماهنگ کن (۱۰٪ تونل، دو رویداد).
+    clearTimeout(V.retimeT);
+    V.retimeT = setTimeout(function () {
+      if (V.playing && VM.isOpen() && !reduced()) startCinematicOpening(true);
+    }, 700);
     const r = mulberry32((seed ^ V.session) >>> 0);
     V.track++;
     V.tiltT = (r() - 0.5) * 0.35;                // ±۱۰° شیبِ دیسک
@@ -1950,7 +2184,10 @@ void main(){
       try { analyze(0.17, true); pushVizNow(); } catch (e) {}
     }, 170);
   }
-  document.addEventListener('visibilitychange', function () { if (document.hidden) { if (SND.bg === 'live') bgKick(); } else refreshTaps(); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { if (SND.bg === 'live') bgKick(); }
+    else { refreshTaps(); Q.grace = performance.now() + 2000; }
+  });
   const MINI = { raf: 0, last: 0, tick: 0, boot: false };
   function miniActive() {
     const a = VM.getAudio();
@@ -2034,23 +2271,36 @@ void main(){
   window.addEventListener('voidmusic:mini', function () { miniKick(); setTimeout(refreshTaps, 50); });
   document.addEventListener('visibilitychange', function () { if (document.hidden) cancelTitleEntrance(true); else miniKick(); refreshTaps(); });
 
-  function startCinematicOpening() {
-    if (V.opening.started || reduced() || !V.playing || !VM.isOpen() || document.hidden) return;
+  function startCinematicOpening(force) {
+    if (V.opening.started && !force) return;
+    if (reduced() || !V.playing || !VM.isOpen() || document.hidden) return;
     const audio = VM.getAudio();
     const duration = audio && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
     const currentTime = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    const trackDur = duration > 0 ? duration : BREATH.fallbackTrackS;
     const remaining = duration > 0 ? Math.max(0, duration - currentTime) : BREATH.fallbackTrackS;
     const titleTail = duration > 0
       ? Math.min(Math.max(CFG.powderMinS, duration / 20 * 1.1), duration * 0.5)
       : CFG.powderMinS;
     const reserved = V.entrance.duration + V.entrance.handoff + titleTail;
-    V.opening.cycleS = clamp((remaining - reserved) / BREATH.cyclesPerTrack, BREATH.minCycleS, BREATH.maxCycleS);
+    const usable = Math.max(24, remaining - reserved);
+    const cycles = Math.max(2, BREATH.cyclesPerTrack);
+    const cycleS = clamp(usable / cycles, BREATH.minCycleS, BREATH.maxCycleS);
+    // رویدادِ تونل: حدودِ DIVE.trackShare از طولِ آهنگ (پیش‌فرض ۱۰٪ در هر بار).
+    let eventS = clamp(trackDur * DIVE.trackShare, DIVE.minEventS, DIVE.maxEventS);
+    eventS = Math.min(eventS, cycleS * 0.50);
+    const returnS = Math.max(2, Math.min(clamp(cycleS * 0.12, 3.5, 10), cycleS - eventS - 8));
+    V.opening.cycleS = cycleS; V.opening.eventS = eventS; V.opening.returnS = returnS;
     V.opening.started = true; V.opening.elapsed = 0; V.opening.progress = 0;
-    V.breath.pitch = BREATH.startPitch; V.breath.zoom = BREATH.startZoom; V.breath.mix = 1;
+    V.dive = 0;
+    if (!force) V.breath.pitch = BREATH.startPitch;
+    V.breath.zoom = BREATH.startZoom; V.breath.mix = 1;
   }
   function resetCinematicOpening() {
     V.opening.started = false; V.opening.elapsed = 0; V.opening.progress = 0; V.opening.cycleS = 60;
+    V.opening.eventS = 12; V.opening.returnS = 6;
     V.breath.mix = 0; V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50; V.breath.zoom = 1;
+    V.dive = 0;
   }
 
   window.addEventListener('voidmusic:playing', async function (e) {
@@ -2122,13 +2372,24 @@ void main(){
   window.VoidMusicViz = {
     debug: toggleHud,
     getStage: function () { return V.stage; },
+    debugState: function () {
+      const a = VM.getAudio();
+      return { playing: V.playing, running: V.running, ok: V.ok, stage: V.stage, frames: V.frames, fps: V.fps,
+        elapsed: V.opening.elapsed, progress: V.opening.progress, dive: V.dive, started: V.opening.started,
+        aok: A.ok, actx: A.ok ? A.ctx.state : A.state, audioPaused: a ? !!a.paused : null,
+        audioTime: a && isFinite(a.currentTime) ? a.currentTime : null, audioDur: a && isFinite(a.duration) ? a.duration : null };
+    },
     getMetrics: function () {
       return { stage: V.stage, db: A.db, base: A.base, delta: A.db - A.base, fluxR: A.fluxR, energy: V.energy || 0, audioBands: { low: A.low, mid: A.mid, high: A.high }, structure: V.structure,
-        breath: { disk: V.breath.disk || 0, zoom: V.breath.zoom, pitch: V.breath.pitch, mix: V.breath.mix }, conf: A.conf, centroidR: A.centroidR,
+        breath: { disk: V.breath.disk || 0, zoom: V.breath.zoom, pitch: V.breath.pitch, mix: V.breath.mix },
+        dive: V.dive || 0, opening: { progress: V.opening.progress, cycleS: V.opening.cycleS, eventS: V.opening.eventS, returnS: V.opening.returnS, started: V.opening.started }, conf: A.conf, centroidR: A.centroidR,
         q: V.q, chroma: Array.prototype.slice.call(A.chroma), L: { aurora: V.L.aurora, galaxy: V.L.galaxy }, powder: { on: V.powder.on, prog: V.powder.prog, n: V.powder.n, T: V.powder.T || 0 },
+        quality: { tier: Q.tier, q: V.q, rs: V.rs, budget: Q.budget, auroraEvery: Q.auroraEvery, band: Q.band, calm: Q.calm },
         ctx: A.ok ? A.ctx.state : A.state, fps: V.fps, cpuMs: V.cpuMs, ok: V.ok, N: V.N };
     },
     config: CFG,
-    sound: soundApi
+    story: DIVE,
+    sound: soundApi,
+    web: webApi
   };
 })();

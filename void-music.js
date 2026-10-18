@@ -51,7 +51,9 @@
     voidMusicQAuto: 'Auto', voidMusicQLow: 'Low', voidMusicQHigh: 'High', voidMusicResetSound: 'Reset',
     voidMusicPrFlat: 'Flat', voidMusicPrBass: 'Bass boost', voidMusicPrTreble: 'Treble boost', voidMusicPrVocal: 'Vocal', voidMusicPrRock: 'Rock', voidMusicPrPop: 'Pop',
     voidMusicPrJazz: 'Jazz', voidMusicPrClassical: 'Classical', voidMusicPrElectronic: 'Electronic', voidMusicPrLounge: 'Lounge', voidMusicPrCustom: 'Custom',
-    voidMusicRate: 'Rate this track', voidMusicRateN: '{n} of 5 stars'
+    voidMusicRate: 'Rate this track', voidMusicRateN: '{n} of 5 stars',
+    voidMusicWebSource: 'Web player', voidMusicWebPlaying: 'Playing from {site}', voidMusicWebHint: 'For live reactive visuals press Alt+Shift+V on that tab',
+    voidMusicWebCaptureOn: 'Live audio linked', voidMusicWebCaptureOff: 'Live audio stopped'
   });
   function L(key) {
     try {
@@ -74,7 +76,8 @@
     vol: 0.8, muted: false, outGain: null,
     mini: null, fsByUs: false, widgetShown: false, widgetWasVisible: true, ptrDown: false,
     roots: new Map(), permCache: new Map(), copyMode: false, copyDone: 0, copyTotal: 0, swept: [],
-    shuffle: false, query: '', starsFor: null, flownId: null, starsTimer: 0
+    shuffle: false, query: '', starsFor: null, flownId: null, starsTimer: 0,
+    web: null, localAudio: null, webKey: '', curIdBeforeWeb: null, webChipState: null
   };
   // پخش تصادفی: پیش‌فرض خاموش (ترتیبِ فهرست). برای برگرداندنِ رفتارِ قدیمی (همیشه تصادفی) این را true کن.
   const SHUFFLE_DEFAULT = false, SHUF_KEY = 'voidMusic.shuffle';
@@ -530,7 +533,7 @@
     const a = new Audio();
     a.preload = 'metadata';
     try { const s = parseFloat(localStorage.getItem(VOL_KEY)); if (isFinite(s)) S.vol = clamp(s, 0, 1); } catch (e) {}
-    S.audio = a;
+    S.audio = S.localAudio = a;
     applyVolume();
     a.addEventListener('play', onPlayState);
     a.addEventListener('pause', onPlayState);
@@ -550,7 +553,7 @@
         });
       });
     });
-    S.audio = a;
+    S.audio = S.localAudio = a;
     playbackLog('audio-created', { readyState: a.readyState, paused: a.paused, muted: a.muted, volume: a.volume, diagnosticBypass: SINGLE_TAB_DIAGNOSTIC });
     return a;
   }
@@ -609,6 +612,7 @@
 
   async function playId(id, opts) {
     opts = opts || {};
+    if (S.web) detachWeb({ pauseSite: true });          // پخشِ محلی شروع شد: منبعِ وب جدا و مکث می‌شود
     const tr = trackById(id);
     if (!tr) { playbackLog('play-aborted-no-track', { trackId: id }); return; }
     playbackLog('play-requested', { sourceType: tr.file ? 'File' : (tr.copy ? 'private-copy' : 'file-handle'), hasHandle: !!tr.handle, hasCopy: !!tr.copy, token: S.token + 1 });
@@ -675,10 +679,12 @@
   }
 
   function next() {
+    if (S.web) { S.web.cmd('nexttrack'); return; }
     const id = drawNext();
     if (id) playId(id); else releasePlayback();
   }
   function prev() {
+    if (S.web) { S.web.cmd('previoustrack'); return; }
     const a = S.audio;
     if (a && a.currentTime > 3) { a.currentTime = 0; return; }
     while (S.history.length) {
@@ -688,6 +694,7 @@
     if (a) a.currentTime = 0;
   }
   function toggle() {
+    if (S.web) { if (S.web.paused) S.web.play(); else S.web.pause(); return; }
     playbackLog('toggle-requested', { currentTrack: S.curId !== null, trackCount: S.tracks.length, audioExists: !!S.audio, paused: !S.audio || S.audio.paused, muted: !!(S.audio && S.audio.muted), volume: S.audio ? S.audio.volume : null });
     const a = S.audio;
     if (!a || S.curId === null) {
@@ -841,6 +848,8 @@
     head.insertBefore(els.shuffleChip, els.copyChip);
     els.soundBtn = el('button', 'vm-chip vm-snd-open', { type: 'button', 'aria-haspopup': 'true', 'aria-expanded': 'false' });
     head.appendChild(els.soundBtn);
+    els.webChip = el('button', 'vm-chip vm-web-chip', { type: 'button', 'aria-pressed': 'false', hidden: '' });
+    head.appendChild(els.webChip);
     els.stars = el('div', 'vm-stars', { hidden: '' });
     buildSoundPop();
     // جستجو در فهرست (عنوان، هنرمند، نام فایل؛ فارسی/عربی/اعراب‌دار هم‌ارز)
@@ -925,7 +934,8 @@
       '.vm-snd-sel{flex:1;min-width:120px;font:inherit;font-size:12px;color:inherit;background:rgba(255,255,255,.07);border:1px solid rgba(199,210,254,.22);border-radius:8px;padding:5px 8px}' +
       '.vm-snd-sel option{color:#111}.vm-snd-range{flex:1;min-width:120px;accent-color:#a99cff}.vm-snd-val{font-size:11px;opacity:.7;min-width:56px;text-align:end;font-variant-numeric:tabular-nums}' +
       '.vm-seg{display:inline-flex;gap:4px;flex-wrap:wrap}' +
-      '.vm-snd-on[aria-pressed="true"],.vm-snd-tg[aria-pressed="true"],.vm-seg .vm-chip[aria-pressed="true"]{background:rgba(199,210,254,.2);border-color:rgba(199,210,254,.6);color:#fff}';
+      '.vm-web-chip[hidden]{display:none!important}' +
+      '.vm-web-chip[aria-pressed="true"],.vm-snd-on[aria-pressed="true"],.vm-snd-tg[aria-pressed="true"],.vm-seg .vm-chip[aria-pressed="true"]{background:rgba(199,210,254,.2);border-color:rgba(199,210,254,.6);color:#fff}';
     document.head.appendChild(st);
   }
 
@@ -947,7 +957,7 @@
     els.addFolder.textContent = L('voidMusicAddFolder');
     els.copyChip.textContent = L('voidMusicKeepCopy');
     els.shuffleChip.textContent = L('voidMusicShuffle');
-    els.soundBtn.textContent = L('voidMusicSound'); relabelSound();
+    els.soundBtn.textContent = L('voidMusicSound'); relabelSound(); setWebChip(S.webChipState);
     els.shuffleChip.setAttribute('aria-pressed', S.shuffle ? 'true' : 'false');
     els.search.placeholder = L('voidMusicSearch'); els.search.setAttribute('aria-label', L('voidMusicSearch'));
     els.searchX.setAttribute('aria-label', L('voidMusicSearchClear')); els.searchX.title = L('voidMusicSearchClear');
@@ -1316,6 +1326,53 @@
     }, STAR_SHOW_MS);
   }
 
+  /* ---- منبعِ وب (SoundCloud / YouTube Music / …): «صدای مجازی» با رابطِ HTMLAudioElement جای S.audio می‌نشیند ---- */
+  function webHandlers() {
+    return S._wh || (S._wh = { play: onPlayState, pause: onPlayState, timeupdate: updateProgress, durationchange: function () { updateProgress(); posState(); }, seeked: posState });
+  }
+  function attachWeb(proxy, info) {
+    if (!proxy) return;
+    if (S.web === proxy) { setWebMeta(info); return; }
+    if (S.web) detachWeb({ pauseSite: false, quiet: true });
+    if (S.localAudio && !S.localAudio.paused) { try { S.localAudio.pause(); } catch (e) {} }
+    S.curIdBeforeWeb = S.curId; S.curId = null; S.web = proxy; S.audio = proxy;
+    const h = webHandlers(); Object.keys(h).forEach(function (k) { proxy.addEventListener(k, h[k]); });
+    S.webKey = ''; setWebMeta(info);
+    if (S.built) { renderQueue(); renderStars(); }
+    onPlayState(); updateProgress();
+  }
+  function detachWeb(opts) {
+    const p = S.web; if (!p) return;
+    opts = opts || {};
+    S.web = null;
+    try { p.onDetach && p.onDetach(opts); } catch (e) {}
+    const h = webHandlers(); Object.keys(h).forEach(function (k) { p.removeEventListener(k, h[k]); });
+    if (S.localAudio) S.audio = S.localAudio; else { S.audio = null; ensureAudio(); }
+    S.curId = S.curIdBeforeWeb == null ? null : S.curIdBeforeWeb; S.curIdBeforeWeb = null; S.webKey = '';
+    if (!opts.quiet && S.built) { const tr = curTrack(); setMeta(tr ? tr.title : '', tr ? tr.artist : '', null); renderQueue(); renderStars(); }
+    onPlayState(); updateProgress();
+  }
+  function setWebMeta(info) {
+    if (!S.web || !info) return;
+    const key = [info.title, info.artist, info.art].join('\u0001');
+    if (key === S.webKey) return;
+    S.webKey = key;
+    const tok = ++S.token, id = 'web:' + S.web.tabId;
+    S.seed = rand32();
+    try { window.dispatchEvent(new CustomEvent('voidmusic:track', { detail: { id: id, title: info.title, seed: S.seed } })); } catch (e) {}
+    setMeta(info.title, info.artist, info.art || null, function () {
+      try { window.dispatchEvent(new CustomEvent('voidmusic:title-ready', { detail: { id: id, title: info.title, artist: info.artist, seed: S.seed, generation: tok } })); } catch (e) {}
+    });
+  }
+  function setWebChip(c) {
+    S.webChipState = c || null;
+    if (!S.built || !els.webChip) return;
+    if (!c) { els.webChip.hidden = true; return; }
+    els.webChip.hidden = false;
+    els.webChip.textContent = (c.label || L('voidMusicWebSource')) + (c.count > 1 ? ' +' + (c.count - 1) : '') + (c.capture ? ' \u25CF' : '');
+    els.webChip.setAttribute('aria-pressed', c.on ? 'true' : 'false'); els.webChip.title = L('voidMusicWebSource');
+  }
+
   function setQuery(q) {
     S.query = q || '';
     if (S.built) { els.search.value = S.query; renderQueue(); }
@@ -1583,6 +1640,7 @@
     els.addFiles.addEventListener('click', pickFiles);
     els.addFolder.addEventListener('click', pickFolder);
     els.shuffleChip.addEventListener('click', function () { setShuffle(!S.shuffle, true); armPop(); });
+    els.webChip.addEventListener('click', function () { try { window.dispatchEvent(new CustomEvent('voidmusic:web-chip')); } catch (e) {} armPop(); });
     els.soundBtn.addEventListener('click', function (e) { e.stopPropagation(); const o = !els.soundPop.classList.contains('is-open'); closePops(); setPop('sound', o); });
     window.addEventListener('resize', placeStars);
     els.search.addEventListener('input', function () { S.query = els.search.value; renderQueue(); armPop(); });
@@ -2101,6 +2159,8 @@
     enter: enter, exit: exit, toggle: toggle, next: next, prev: prev,
     add: addEntries, addFolder: addFolderHandle, readMeta: readMeta, relabel: relabel,
     isOpen: function () { return S.open; },
+    attachWeb: attachWeb, detachWeb: detachWeb, setWebMeta: setWebMeta, setWebChip: setWebChip, toast: toast,
+    getLocalAudio: function () { return S.localAudio; }, isWeb: function () { return !!S.web; },
     // برای فازهای بعد (بصری‌سازی): seed تازه برای هر آهنگ، و المنتِ صدا
     getSeed: function () { return S.seed; },
     getAudio: function () { return S.audio; },

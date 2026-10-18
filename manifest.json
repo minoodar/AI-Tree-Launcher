@@ -1,14 +1,16 @@
 {
   "manifest_version": 3,
   "name": "AI Tree Launcher",
-  "version": "40.1",
+  "version": "41.0",
   "description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, offline voice dictation, calculator, clock and to-do.",
   "permissions": [
     "storage",
     "tabs",
     "offscreen",
     "topSites",
-    "favicon"
+    "favicon",
+    "tabCapture",
+    "activeTab"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -63,6 +65,39 @@
       ],
       "run_at": "document_idle",
       "all_frames": false
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "exclude_matches": [
+        "*://accounts.google.com/*",
+        "*://appleid.apple.com/*",
+        "*://login.microsoftonline.com/*",
+        "*://login.live.com/*"
+      ],
+      "js": [
+        "void-media-hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "exclude_matches": [
+        "*://accounts.google.com/*",
+        "*://appleid.apple.com/*",
+        "*://login.microsoftonline.com/*",
+        "*://login.live.com/*"
+      ],
+      "js": [
+        "void-media-bridge.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
     }
   ],
   "minimum_chrome_version": "116",
@@ -82,5 +117,14 @@
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  },
+  "commands": {
+    "vm-capture-tab": {
+      "suggested_key": {
+        "default": "Alt+Shift+V",
+        "mac": "Alt+Shift+V"
+      },
+      "description": "Link this tab's audio to Void Music (live galaxy) — press again to stop"
+    }
   }
 }
