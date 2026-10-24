@@ -20,6 +20,7 @@ body.void-music-leaving > *:not(#starfield):not(.space-vignette):not(#void-music
     --vm-line: rgba(235, 240, 245, .20);
     --vm-glass: rgba(8, 10, 14, .42);
     --vm-gold: rgba(251, 191, 36, .85);
+    --vm-rose: rgba(232, 176, 150, .82);
     position: fixed; inset: 0; z-index: 1000;
     display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
     gap: 14px;
@@ -91,6 +92,29 @@ body.void-music-leaving > *:not(#starfield):not(.space-vignette):not(#void-music
     text-shadow: 0 1px 4px rgba(0, 0, 0, .8);
 }
 
+/* ساعتِ محلیِ دستگاه: سطرِ خودش در باندِ خالیِ بینِ کمان و خطِ زمان.
+   سبک و آرام (رُزِ بی‌درخشش)، بدونِ انیمیشن، pointer-events نمی‌گیرد.
+   روشنایی: opacity .86 (از .74) و سایهٔ متن یک ذره پررنگ‌تر، فقط برای خوانایی روی کهکشانِ
+   پرنور؛ رنگ و فونت و جایگاه دست‌نخورده‌اند (در حالت پخش داک .72 است، پس اثر نهایی ≈ .62 است).
+   با layout() سنجیده شده: با top/base از فرمولِ dock، بازهٔ [base-1, base+12]
+   را می‌گیرد؛ کمان در مرکز base-26 (عریض) / base-16 (فشرده) است و تیک‌ها تا
+   ۱۰px پایین‌تر، و خطِ زمان از base+20 آغاز می‌شود → در هیچ پهنایی برخوردی نیست.
+   در حالتِ خالی هم پنهان می‌ماند، چون همان‌جا برچسبِ «باز کردنِ موسیقی» روی
+   همین سطر می‌آید و زمانِ trak أصلاً نمایش داده نمی‌شود. */
+.vm-clock {
+    position: absolute; left: 50%; transform: translateX(-50%); bottom: 24px;
+    display: flex; align-items: center; gap: 5px; line-height: 1;
+    font-size: 10.5px; font-weight: 300; letter-spacing: .14em;
+    color: var(--vm-rose); opacity: .86;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .65);
+    pointer-events: none; user-select: none;
+}
+.vm-clock-g {
+    font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Apple Symbols", sans-serif;
+    font-size: 11px; line-height: 1; opacity: .92;
+}
+
 /* ---- دکمه‌های دایره‌ای شیشه‌ای ---- */
 .vm-btn {
     position: absolute; width: 44px; height: 44px; margin: 0; padding: 0;
@@ -131,6 +155,7 @@ body.void-music-leaving > *:not(#starfield):not(.space-vignette):not(#void-music
 .vm-dock.is-empty .vm-arc,
 .vm-dock.is-empty .vm-seek,
 .vm-dock.is-empty .vm-time,
+.vm-dock.is-empty .vm-clock,
 .vm-dock.is-empty .vm-vol,
 .vm-dock.is-empty .vm-prev,
 .vm-dock.is-empty .vm-play,
@@ -198,6 +223,9 @@ body.void-music-leaving > *:not(#starfield):not(.space-vignette):not(#void-music
 .vm-row .dot { width: 6px; height: 6px; flex: none; border-radius: 50%; background: transparent; }
 .vm-row.is-cur .dot { background: #fbbf24; box-shadow: 0 0 6px rgba(251, 191, 36, .8); }
 .vm-row.is-bad .t { text-decoration: line-through; opacity: .5; }
+/* آهنگی که فقط اجازهٔ پوشه را می‌خواهد خط‌خورده نمی‌شود: فایل هست، کلیدِ یک کلیک لازم است */
+.vm-row.is-grant .dot { background: var(--vm-rose); box-shadow: 0 0 6px rgba(232, 176, 150, .55); }
+.vm-row.is-grant .vm-row-main { color: var(--vm-fg-hi); text-decoration: underline dotted rgba(232, 176, 150, .55) 2px; text-underline-offset: 3px; }
 .vm-row-x {
     width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: transparent; color: var(--vm-fg);
     opacity: .5; cursor: pointer; display: grid; place-items: center;
@@ -234,6 +262,8 @@ body.void-music-leaving > *:not(#starfield):not(.space-vignette):not(#void-music
 
 @media (prefers-reduced-motion: reduce) {
     #void-music-root, .vm-meta, .vm-btn, .vm-pop, .vm-toast, .vm-thumb, .vm-dock { transition: none !important; }
+    /* §CLOCK در این حالت هم مثلِ امروز هیچ محوِ تدریجی نداریم (قاعدهٔ پنجرهٔ ساعت پایینِ همین فایل است) */
+    #void-music-root.is-quiet.vm-clock-live .vm-dock > :not(.vm-clock) { transition: none !important; }
 }
 
 /* ======================================================================
@@ -244,6 +274,13 @@ body.void-music-leaving > *:not(#starfield):not(.space-vignette):not(#void-music
 #void-music-root.is-quiet .vm-corner * { pointer-events: none !important; }
 #void-music-root.is-quiet .vm-dock * { pointer-events: none !important; }
 #void-music-root.is-quiet .vm-meta { opacity: 0; }
+/* §CLOCK پنجرهٔ ماندگاریِ ساعت — جفتِ CLOCK_SHOW_MS در void-music.js.
+   ساعت فرزَندِ داک است و فرزند از والدِ opacity:0 فرار نمی‌کند، پس در این پنجره داک پنهان
+   نمی‌شود؛ عوضِ آن هر فرزَندِ غیرساعتی با همان .5s محو می‌شوند و داک روی همان روشناییِ
+   همیشگیِ پخش (.72) می‌ماند تا ساعت نه پرشی‌تر از حالتِ عادی باشد نه کم‌فروغ‌تر.
+   pointer-events همان قاعدهٔ بالا صفر است، پس هیچ کنترلِ پنهان‌شده‌ای قابل کلیک نمی‌شود. */
+#void-music-root.is-quiet.vm-clock-live .vm-dock { opacity: .72; }
+#void-music-root.is-quiet.vm-clock-live .vm-dock > :not(.vm-clock) { opacity: 0; transition: opacity .5s ease; }
 body.vm-quiet, body.vm-quiet * { cursor: none !important; }
 /* عنوان به ذرات تبدیل شده؛ نسخهٔ DOM محو می‌ماند */
 #void-music-root.is-powder .vm-meta { opacity: 0 !important; visibility: hidden; }
@@ -289,6 +326,13 @@ html.vm-on:not(.vm-widget) [data-vm-swept] { display: none !important; }
 .vm-chip.vm-copy { flex-basis: 100%; }
 .vm-chip[aria-pressed="true"] { border-color: var(--vm-gold); color: var(--vm-fg-hi); }
 
+/* چیپِ منبعِ وب: شناسایی / پخشِ واقعی / اتصالِ صوت / رسیدنِ داده به تحلیل، چهار وضعیتِ جدايند (نه یکی) */
+.vm-web-chip { flex: none; }
+.vm-web-chip.is-live { border-color: var(--vm-gold); color: var(--vm-fg-hi); }
+.vm-web-chip.is-pending { border-color: rgba(251, 191, 36, .45); opacity: .8; }
+.vm-web-chip.is-linked { border-color: rgba(251, 191, 36, .6); border-style: dashed; color: rgba(251, 191, 36, .85); }
+.vm-web-chip.is-failed { border-color: rgba(240, 130, 130, .5); color: rgba(248, 172, 162, .92); }
+.vm-web-chip.is-idle { opacity: .72; }
 
 /* FINAL-WIDGET-RULES
    ابزارکِ شناورِ افزونه (content.js → #ai-orbit-root) در Music Mode کاملاً پنهان است، مگر کاربر با دکمهٔ ابزارک

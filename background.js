@@ -641,21 +641,69 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
    (consumerTabId)، پس نه offscreen لازم است نه صدایی از SW عبور می‌کند. هیچ صدایی ضبط/ذخیره/ارسال نمی‌شود.
    ====================================================================== */
 (function () {
+  /* §1.3 «کدام تب را capture کرده‌ایم» باید خوابیدن/مردنِ Service Worker را تاب بیاورد (همان الگوی
+     musicOwnerTabId): در غیر این پس «بارِ دومِ میانبر روی همان تب = قطع» و toggle-off بعد از
+     راه‌اندازیِ دوبارهٔ SW کار نمی‌کند. تنها یک شناسهٔ عددی ذخیره می‌شود؛ هیچ صدایی نه
+     ضبط می‌شود نه از دستگاه بیرون می‌رود. */
+  var CAP_TARGET_KEY = 'voidMusicCaptureTargetTabId';
   var capTarget = null;
+  var capReady = chrome.storage.session.get(CAP_TARGET_KEY).then(function (stored) {
+    var saved = stored && stored[CAP_TARGET_KEY];
+    if (!Number.isInteger(saved)) return;
+    return chrome.tabs.get(saved).then(function () { capTarget = saved; },
+      function () { return chrome.storage.session.remove(CAP_TARGET_KEY); });
+  }).catch(function () {});
+  function setCapTarget(id, why) {
+    capTarget = Number.isInteger(id) ? id : null;
+    try {
+      var p = capTarget != null ? chrome.storage.session.set({ voidMusicCaptureTargetTabId: capTarget })
+                                : chrome.storage.session.remove(CAP_TARGET_KEY);
+      if (p && p.catch) p.catch(function () {});
+    } catch (e) {}
+    try { console.info('[VoidMusicCapture]', 'capTarget=' + capTarget, why || ''); } catch (e) {}
+  }
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function voidTabIds() {
+    var base = chrome.runtime.getURL('void-tab.html');
+    return chrome.runtime.getContexts({ contextTypes: ['TAB'] }).then(function (ctxs) {
+      return (ctxs || []).filter(function (c) { return c.documentUrl && c.documentUrl.indexOf(base) === 0 && c.tabId >= 0; })
+        .map(function (c) { return c.tabId; });
+    });
+  }
   async function findVoidTab() {
     try {
-      var base = chrome.runtime.getURL('void-tab.html');
-      var ctxs = await chrome.runtime.getContexts({ contextTypes: ['TAB'] });
-      var hit = ctxs.filter(function (c) { return c.documentUrl && c.documentUrl.indexOf(base) === 0 && c.tabId >= 0; });
-      return hit.length ? hit[hit.length - 1].tabId : null;
+      var hit = await voidTabIds();
+      return hit.length ? hit[hit.length - 1] : null;
     } catch (e) { return null; }
   }
+  /* §1.4 مصرف‌کنندهٔ میانبر: قبلاً همیشه «آخرین Void Tab» بود، پس صدای تبِ موسیقی به
+     Void Tabِ پنجرهٔ دیگری می‌رفت. حالا مثلِ resolveConsumer عمل می‌کند: اول تبِ فعالِ
+     پنجرهٔ متمرکز، بعد هر Void Tab همان پنجره، و تنها در نبودِ آن‌ها آخرین Void Tab. */
+  async function pickVoidTab() {
+    var hits; try { hits = await voidTabIds(); } catch (e) { return null; }
+    if (!hits || !hits.length) return null;
+    try {
+      var wins = await chrome.windows.getAll({ populate: true });
+      var focus = null;
+      for (var i = 0; i < (wins || []).length; i++) if (wins[i] && wins[i].focused) { focus = wins[i]; break; }
+      if (focus && focus.tabs) {
+        for (var j = 0; j < focus.tabs.length; j++) {
+          var tb = focus.tabs[j];
+          if (tb && tb.active && hits.indexOf(tb.id) >= 0) return tb.id;
+        }
+        for (var k = focus.tabs.length - 1; k >= 0; k--) {
+          var t2 = focus.tabs[k];
+          if (t2 && hits.indexOf(t2.id) >= 0) return t2.id;
+        }
+      }
+    } catch (e) {}
+    return hits[hits.length - 1];
+  }
   async function ensureVoidTab() {
-    var id = await findVoidTab();
+    var id = await pickVoidTab();
     if (id != null) return id;
     try { await chrome.tabs.create({ url: 'chrome://newtab/', active: false }); } catch (e) { return null; }
-    for (var i = 0; i < 40; i++) { await sleep(150); id = await findVoidTab(); if (id != null) return id; }
+    for (var i = 0; i < 40; i++) { await sleep(150); id = await pickVoidTab(); if (id != null) return id; }
     return null;
   }
   async function sendWithRetry(tabId, msg) {
@@ -670,26 +718,263 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   chrome.commands.onCommand.addListener(async function (command, tab) {
     if (command !== 'vm-capture-tab') return;
+    await capReady;                                              // §1.3 SW تازه بالا آمده: اول capTarget را از storage.session بخوان
     if (!tab || tab.id == null) { try { tab = (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0]; } catch (e) {} }
     if (!tab || tab.id == null) return;
     var voidId = await ensureVoidTab();
     if (voidId == null || voidId === tab.id) return;
     if (capTarget === tab.id) {                                   // بار دوم روی همان تب = قطع
-      capTarget = null;
-      try { await chrome.tabs.sendMessage(voidId, { type: 'vm-capture-stop' }); } catch (e) {}
+      setCapTarget(null, 'shortcut_toggle_off');
+      /* stop به همهٔ Void Tabها: ممکن است صدای قبلی در تبِ دیگری نشسته باشد (چند پنجره)؛
+         آن‌که capture نداشته باشد بی‌اثر رد می‌شود. وگرنه چیپِ «live» روی تبِ دیگر گیر می‌کند. */
+      try { var ids = await voidTabIds(); for (var q = 0; q < ids.length; q++) { try { await chrome.tabs.sendMessage(ids[q], { type: 'vm-capture-stop' }); } catch (e) {} } } catch (e) {}
       return;
     }
     var streamId;
     try { streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id, consumerTabId: voidId }); }
     catch (e) { return; }                                         // صفحه‌های محدود (chrome://، فروشگاه) اجازه نمی‌دهند
-    capTarget = tab.id;
+    setCapTarget(tab.id, 'shortcut_start');
     var host = ''; try { host = new URL(tab.url || '').hostname.replace(/^www\./, ''); } catch (e) {}
     try { var vt = await chrome.tabs.get(voidId); await chrome.windows.update(vt.windowId, { focused: true }); await chrome.tabs.update(voidId, { active: true }); } catch (e) {}
     var ok = await sendWithRetry(voidId, { type: 'vm-capture-start', streamId: streamId, tabId: tab.id, host: host, title: tab.title || '' });
-    if (!ok) capTarget = null;
+    if (!ok) setCapTarget(null, 'shortcut_send_failed');
   });
-  chrome.runtime.onMessage.addListener(function (m) { if (m && m.type === 'vm-capture-ended') capTarget = null; });
+  chrome.runtime.onMessage.addListener(function (m) { if (m && m.type === 'vm-capture-ended') setCapTarget(null, 'consumer_released'); });
+
+  /* ---- درخواستِ صوت از خودِ Void Tab (لایهٔ ۲، بدونِ میانبر) ----
+     Void Tab تبِ موسیقی را شناسایی کرده و stream می‌خواهد. هیچ تبِ تازه‌ای نمی‌سازیم:
+     consumer باید همان صفحه‌ای باشد که درخواست کرده (consumerTabId) و نشانی‌اش void-tab.html باشد؛
+     در نبودِ آن، آخرین Void Tab موجود. شکست را صریح با reason برمی‌گردانیم تا صفحه وضعیت «خطا» را ببیند. */
+  async function resolveConsumer(requested, sender) {
+    var fromSender = sender && sender.tab && Number.isInteger(sender.tab.id) && isVoidTabUrl(sender.tab.url) ? sender.tab.id : null;
+    if (fromSender != null) return fromSender;
+    if (Number.isInteger(requested) && requested >= 0) {
+      try {
+        var t = await chrome.tabs.get(requested);
+        if (t && t.url && isVoidTabUrl(t.url)) return requested;
+      } catch (e) { /* بسته شده */ }
+    }
+    return await findVoidTab();
+  }
+  async function handleCaptureRequest(m, sender) {
+    var tabId = Number.isInteger(m && m.tabId) ? m.tabId : null;
+    if (tabId == null || tabId < 0) return { ok: false, reason: 'bad_tab' };
+    var voidId = await resolveConsumer(m && m.consumerTabId, sender);
+    if (voidId == null) return { ok: false, reason: 'no_void_tab' };
+    if (voidId === tabId) return { ok: false, reason: 'self' };
+    var t; try { t = await chrome.tabs.get(tabId); } catch (e) { return { ok: false, reason: 'tab_gone' }; }
+    if (!t || !t.url || !/^https?:/i.test(t.url)) return { ok: false, reason: 'restricted_page' };
+    var streamId;
+    try { streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tabId, consumerTabId: voidId }); }
+    catch (e) { return { ok: false, reason: 'capture_denied' }; }
+    setCapTarget(tabId, 'page_request');
+    var host = ''; try { host = new URL(t.url).hostname.replace(/^www\./, ''); } catch (e) {}
+    return { ok: true, streamId: streamId, tabId: tabId, host: host, title: t.title || '' };
+  }
+  chrome.runtime.onMessage.addListener(function (m, sender, reply) {
+    if (!m || m.type !== 'vm-capture-request') return;
+    handleCaptureRequest(m, sender).then(function (r) { try { reply(r); } catch (e) {} },
+      function () { try { reply({ ok: false, reason: 'error' }); } catch (e) {} });
+    return true;
+  });
   chrome.tabs.onRemoved.addListener(function (id) {
-    if (capTarget === id) { capTarget = null; findVoidTab().then(function (v) { if (v != null) chrome.tabs.sendMessage(v, { type: 'vm-capture-stop' }).catch(function () {}); }); }
+    if (capTarget === id) {
+      setCapTarget(null, 'target_tab_closed');
+      /* stop به همهٔ Void Tabها، نه فقط «آخرین»: آن‌که capture ندارد بی‌اثر رد می‌شود. */
+      voidTabIds().then(function (ids) {
+        ids.forEach(function (v) { try { chrome.tabs.sendMessage(v, { type: 'vm-capture-stop' }).catch(function () {}); } catch (e) {} });
+      }).catch(function () {});
+    }
+  });
+})();
+
+
+/* ======================================================================
+   Launcher on websites — mode-based, on-demand injection (default: off everywhere)
+   ----------------------------------------------------------------------
+   AI Orbit Launcher (content.js + helpers) is NOT in manifest content_scripts.
+   One global mode (storage key voidLauncherMode) decides where it is registered/injected:
+     'off'      → nowhere (default)
+     'all'      → every ordinary http(s) site except the ones in voidLauncherExcluded
+     'selected' → only the sites in voidLauncherSites
+   Site lists hold match patterns like "https://example.com/*". Changes apply to already-open
+   tabs at once. Music Orb (void-music-remote.js) and the media hook/bridge are unaffected.
+   ====================================================================== */
+(function () {
+  if (!chrome.scripting || !chrome.scripting.registerContentScripts) return;   // permission missing: leave the rest of the worker alone
+  var MODE_KEY = 'voidLauncherMode', SITES_KEY = 'voidLauncherSites', EXCL_KEY = 'voidLauncherExcluded';
+  var SCRIPT_ID = 'void-launcher-sites';
+  var LAUNCHER_CSS = ['styles.css', 'toolbar-zen.css'];
+  var LAUNCHER_JS = ['i18n.js', 'calendar-engine.js', 'memory-engine.js', 'quote-engine.js', 'voice-engine.js',
+    'toolbar-icons.js', 'toolbar-dock.js', 'launcher-sound.js', 'firework-sky.js', 'content.js'];
+  var ALWAYS_EXCLUDE = ['*://accounts.google.com/*', '*://appleid.apple.com/*', '*://login.microsoftonline.com/*',
+    '*://login.live.com/*', '*://chromewebstore.google.com/*', '*://chrome.google.com/webstore/*'];
+  var MODES = ['off', 'all', 'selected'];
+  var queue = Promise.resolve();
+
+  function serial(fn) {
+    var run = queue.then(function () { return fn(); });
+    queue = run.catch(function () {});
+    return run;
+  }
+  function patternFor(url) {
+    var u; try { u = new URL(url); } catch (e) { return null; }
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+    var h = u.hostname.toLowerCase();
+    if (/(^|\.)accounts\.google\.com$/.test(h) || /(^|\.)appleid\.apple\.com$/.test(h) ||
+        /(^|\.)login\.microsoftonline\.com$/.test(h) || /(^|\.)login\.live\.com$/.test(h)) return null;
+    if (h === 'chromewebstore.google.com') return null;
+    if (h === 'chrome.google.com' && u.pathname.indexOf('/webstore') === 0) return null;
+    return u.protocol + '//' + u.hostname + '/*';
+  }
+  function cleanList(v) {
+    if (!Array.isArray(v)) return [];
+    var out = [];
+    v.forEach(function (p) { if (typeof p === 'string' && /^https?:\/\/[^\/*]+\/\*$/.test(p) && out.indexOf(p) < 0) out.push(p); });
+    return out;
+  }
+  function readState() {
+    return chrome.storage.local.get([MODE_KEY, SITES_KEY, EXCL_KEY]).then(function (r) {
+      r = r || {};
+      return { mode: MODES.indexOf(r[MODE_KEY]) >= 0 ? r[MODE_KEY] : 'off', sites: cleanList(r[SITES_KEY]), excluded: cleanList(r[EXCL_KEY]) };
+    });
+  }
+  function writeState(s) {
+    var o = {}; o[MODE_KEY] = s.mode; o[SITES_KEY] = s.sites; o[EXCL_KEY] = s.excluded;
+    return chrome.storage.local.set(o);
+  }
+  function effective(s, pattern) {
+    if (!pattern) return false;
+    if (s.mode === 'all') return s.excluded.indexOf(pattern) < 0;
+    if (s.mode === 'selected') return s.sites.indexOf(pattern) >= 0;
+    return false;
+  }
+  function describe(s, pattern) {
+    return { ok: true, mode: s.mode, sites: s.sites.length, excluded: s.excluded.length, supported: !!pattern, siteOn: effective(s, pattern) };
+  }
+  function syncRegistration() {
+    return serial(async function () {
+      var s = await readState();
+      var existing = [];
+      try { existing = await chrome.scripting.getRegisteredContentScripts({ ids: [SCRIPT_ID] }); } catch (e) {}
+      var matches = s.mode === 'all' ? ['http://*/*', 'https://*/*'] : (s.mode === 'selected' ? s.sites : []);
+      if (!matches.length) {
+        if (existing.length) await chrome.scripting.unregisterContentScripts({ ids: [SCRIPT_ID] });
+        return s;
+      }
+      var def = { id: SCRIPT_ID, matches: matches, excludeMatches: ALWAYS_EXCLUDE.concat(s.mode === 'all' ? s.excluded : []),
+                  css: LAUNCHER_CSS, js: LAUNCHER_JS, runAt: 'document_idle', allFrames: false, persistAcrossSessions: true };
+      if (existing.length) await chrome.scripting.updateContentScripts([def]);
+      else await chrome.scripting.registerContentScripts([def]);
+      return s;
+    });
+  }
+  /* Self-healing: after the extension is reloaded (or updated) a tab can keep an OLD copy of the launcher:
+     its DOM is still there (maybe hidden) but its script is dead, so it can neither be revealed nor hidden by
+     messages, and content.js refuses to mount a second copy while the old root exists. We detect that with a
+     read-only ping, clear the dead copy and inject a fresh one. */
+  var ROOT_IDS = ['ai-orbit-root', 'ai-inline-form', 'ai-quick-note-form', 'ai-calc-panel', 'ai-clock-panel',
+    'ai-todo-panel', 'ai-search-panel', 'ai-tier-dots', 'ai-hub-dots', 'ai-star-editor-popup'];
+  function domProbe() { var r = document.getElementById('ai-orbit-root'); return { root: !!r, visible: !!r && r.style.display !== 'none' }; }
+  function domPurge(ids) {
+    ids.forEach(function (id) { var n = document.getElementById(id); if (n && n.parentNode) n.parentNode.removeChild(n); });
+    var t = document.querySelectorAll('.ai-toast-notification');
+    for (var i = 0; i < t.length; i++) if (t[i].parentNode) t[i].parentNode.removeChild(t[i]);
+    return true;
+  }
+  function domForceShow() { var r = document.getElementById('ai-orbit-root'); if (!r) return false; if (r.style.display === 'none') r.style.display = ''; return r.style.display !== 'none'; }
+  function ping(tabId) {   // "getBookmarkBackups" is a read-only content.js action that answers with {backups:[…]}
+    var asked = chrome.tabs.sendMessage(tabId, { action: 'getBookmarkBackups' }).then(
+      function (r) { return !!(r && Array.isArray(r.backups)); }, function () { return false; });
+    var timeout = new Promise(function (res) { setTimeout(function () { res(false); }, 1500); });
+    return Promise.race([asked, timeout]);
+  }
+  async function probe(tabId) {
+    try { var r = await chrome.scripting.executeScript({ target: { tabId: tabId }, func: domProbe }); return (r && r[0] && r[0].result) || null; }
+    catch (e) { return null; }   // null = this page cannot be inspected
+  }
+  async function showNow(tab) {
+    if (!tab || tab.id == null) return { ok: false, reason: 'bad_tab' };
+    if (tab.status !== 'complete') return { ok: true, injected: false, pending: true };   // the registered script injects when it finishes loading
+    var p = await probe(tab.id);
+    if (!p) return { ok: false, reason: 'inject_denied' };
+    if (p.root) {
+      if (await ping(tab.id)) {   // a live copy is mounted (hidden earlier): reveal it, never inject twice
+        try { await chrome.tabs.sendMessage(tab.id, { action: 'resetFloatingMenuPositionAnly' }); } catch (e) {}
+        try {
+          var f = await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: domForceShow });
+          if (f && f[0] && f[0].result === false) return { ok: false, reason: 'still_hidden' };
+        } catch (e) {}
+        return { ok: true, injected: false };
+      }
+      try { await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: domPurge, args: [ROOT_IDS] }); }   // dead copy from an older extension load
+      catch (e) { return { ok: false, reason: 'inject_denied' }; }
+    }
+    try {
+      await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: LAUNCHER_CSS });
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: LAUNCHER_JS });
+    } catch (e) { return { ok: false, reason: 'inject_failed' }; }
+    return { ok: true, injected: true, repaired: !!p.root };
+  }
+  async function hideNow(tab) {
+    if (await ping(tab.id)) { try { await chrome.tabs.sendMessage(tab.id, { action: 'hideLauncherAnly' }); } catch (e) {} return; }
+    var p = await probe(tab.id);
+    if (p && p.root) { try { await chrome.scripting.executeScript({ target: { tabId: tab.id }, func: domPurge, args: [ROOT_IDS] }); } catch (e) {} }   // dead copy: remove it
+  }
+  async function applyToTabs(s, urlFilter, activeTab) {
+    var list = [];
+    try { list = await chrome.tabs.query({ url: urlFilter }); } catch (e) { return null; }
+    var activeResult = null;
+    for (var i = 0; i < list.length; i++) {
+      var t = list[i], p = patternFor(t.url);
+      if (!p) continue;
+      var res = effective(s, p) ? await showNow(t) : (await hideNow(t), null);
+      if (activeTab && t.id === activeTab.id) activeResult = res;
+    }
+    return activeResult;
+  }
+  async function handle(m) {
+    var tab = null;
+    if (Number.isInteger(m.tabId)) { try { tab = await chrome.tabs.get(m.tabId); } catch (e) { tab = null; } }
+    var pattern = tab ? patternFor(tab.url) : null;      // derived from the real tab, never from the message
+    var s = await readState();
+    if (m.op === 'status') return describe(s, pattern);
+    if (m.op === 'setMode') {
+      if (MODES.indexOf(m.mode) < 0) return { ok: false, reason: 'bad_mode' };
+      s.mode = m.mode;
+      await writeState(s); await syncRegistration();
+      var ar = await applyToTabs(s, ['http://*/*', 'https://*/*'], tab);
+      var out = describe(s, pattern); if (ar && ar.pending) out.pending = true; if (ar && !ar.ok) out.warn = ar.reason;
+      return out;
+    }
+    if (m.op === 'toggleSite') {
+      if (!pattern) return { ok: false, reason: 'unsupported_page' };
+      var on = !!m.on;
+      if (on) {
+        if (s.mode === 'off') s.mode = 'selected';          // first "show here" while everything is off switches to "chosen sites"
+        if (s.mode === 'selected') { if (s.sites.indexOf(pattern) < 0) s.sites.push(pattern); }
+        else s.excluded = s.excluded.filter(function (p) { return p !== pattern; });
+      } else {
+        if (s.mode === 'selected') s.sites = s.sites.filter(function (p) { return p !== pattern; });
+        else if (s.mode === 'all' && s.excluded.indexOf(pattern) < 0) s.excluded.push(pattern);
+      }
+      await writeState(s); await syncRegistration();
+      var ar2 = await applyToTabs(s, pattern, tab);       // every open tab of this site
+      var out2 = describe(s, pattern); if (ar2 && ar2.pending) out2.pending = true; if (ar2 && !ar2.ok) out2.warn = ar2.reason;
+      return out2;
+    }
+    return { ok: false, reason: 'bad_op' };
+  }
+  chrome.runtime.onMessage.addListener(function (m, sender, reply) {
+    if (!m || m.type !== 'vm-launcher-site') return;
+    if (!sender || sender.id !== chrome.runtime.id || sender.tab) { try { reply({ ok: false, reason: 'forbidden' }); } catch (e) {} return; }   // popup only
+    handle(m).then(function (r) { try { reply(r); } catch (e) {} },
+                   function () { try { reply({ ok: false, reason: 'error' }); } catch (e) {} });
+    return true;
+  });
+  chrome.runtime.onInstalled.addListener(function () { syncRegistration().catch(function () {}); });
+  chrome.runtime.onStartup.addListener(function () { syncRegistration().catch(function () {}); });
+  chrome.storage.onChanged.addListener(function (changes, area) {
+    if (area === 'local' && (changes[MODE_KEY] || changes[SITES_KEY] || changes[EXCL_KEY])) syncRegistration().catch(function () {});
   });
 })();

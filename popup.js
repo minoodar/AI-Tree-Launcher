@@ -19,14 +19,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaism", religionChristianity: "✝️ Christianity", religionEastern: "☸️ Eastern (Buddhism & Hindu wisdom)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Western Literature",
         vaultLiveSaved: "✓ Saved instantly — no need to press Save",
-        lblCreateVoidTab: "Void Tab",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "Home",
         restoreHomeHint: "Go to chrome://settings/onStartup and choose \"Open the New Tab page\" to restore the default.",
         lblCopyVoidHome: "Copy Link",
         lblNtpMode: "New Tab Behavior",
         lblUseDefaultNtp: "Redirect to standard Search Engine on New Tab instead",
         toastNtpDefaultOn: "Standard New Tab enabled",
-        toastNtpDefaultOff: "AI Tree New Tab restored",
+        toastNtpDefaultOff: "Void Galaxy New Tab restored",
         voidHomeCopiedHint: "✅ Copied! Paste it in Chrome Settings → On startup → Open a specific page"
       },
       fa: {
@@ -47,14 +47,14 @@ const i18nPopup = {
         religionIslam: "☪️ اسلام", religionJudaism: "✡️ یهودیت", religionChristianity: "✝️ مسیحیت", religionEastern: "☸️ شرقی (حکمت بودایی و هندو)",
         poetryRumi: "🌙 مولانا", poetryWestern: "🖋️ ادبیات غرب",
         vaultLiveSaved: "✓ همین الان ذخیره شد — نیازی به زدن «ذخیره تنظیمات» نیست",
-        lblCreateVoidTab: "تب وید",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "خانه",
         restoreHomeHint: "به chrome://settings/onStartup برو و «باز کردن صفحهٔ تب جدید» رو انتخاب کن تا به حالت پیش‌فرض برگرده.",
         lblCopyVoidHome: "کپی لینک",
         lblNtpMode: "رفتار تب جدید",
         lblUseDefaultNtp: "به‌جاش موتور جستجوی استاندارد در تب جدید باز شود",
         toastNtpDefaultOn: "تب جدیدِ استاندارد فعال شد",
-        toastNtpDefaultOff: "تب جدیدِ AI Tree برگشت",
+        toastNtpDefaultOff: "تب جدیدِ Void Galaxy برگشت",
         voidHomeCopiedHint: "✅ کپی شد! توی تنظیمات کروم ← هنگام شروع ← باز کردن صفحهٔ خاص، پیستش کن"
       },
       ar: {
@@ -75,14 +75,14 @@ const i18nPopup = {
         religionIslam: "☪️ الإسلام", religionJudaism: "✡️ اليهودية", religionChristianity: "✝️ المسيحية", religionEastern: "☸️ الشرق (الحكمة البوذية والهندوسية)",
         poetryRumi: "🌙 جلال الدين الرومي", poetryWestern: "🖋️ الأدب الغربي",
         vaultLiveSaved: "✓ تم الحفظ فوراً — لا حاجة للضغط على «حفظ الإعدادات»",
-        lblCreateVoidTab: "تبويب فارغ",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "الرئيسية",
         restoreHomeHint: "اذهب إلى chrome://settings/onStartup واختر \"فتح صفحة التبويب الجديد\" لاستعادة الوضع الافتراضي.",
         lblCopyVoidHome: "نسخ الرابط",
         lblNtpMode: "سلوك علامة التبويب الجديدة",
         lblUseDefaultNtp: "إعادة التوجيه إلى محرك البحث القياسي بدلاً من ذلك",
         toastNtpDefaultOn: "تم تفعيل علامة التبويب الجديدة القياسية",
-        toastNtpDefaultOff: "تمت استعادة علامة التبويب الجديدة الخاصة بـ AI Tree",
+        toastNtpDefaultOff: "تمت استعادة علامة التبويب الجديدة الخاصة بـ Void Galaxy",
         voidHomeCopiedHint: "✅ تم النسخ! الصقه في إعدادات كروم ← عند بدء التشغيل ← فتح صفحة معينة"
       },
       es: {
@@ -103,14 +103,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabiduría budista e hindú)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura occidental",
         vaultLiveSaved: "✓ Guardado al instante — no hace falta pulsar «Guardar»",
-        lblCreateVoidTab: "Pestaña Vacía",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "Inicio",
         restoreHomeHint: "Ve a chrome://settings/onStartup y elige \"Abrir la página Nueva pestaña\" para restaurar el valor predeterminado.",
         lblCopyVoidHome: "Copiar enlace",
         lblNtpMode: "Comportamiento de Nueva Pestaña",
         lblUseDefaultNtp: "Redirigir al motor de búsqueda estándar en su lugar",
         toastNtpDefaultOn: "Nueva pestaña estándar activada",
-        toastNtpDefaultOff: "Nueva pestaña de AI Tree restaurada",
+        toastNtpDefaultOff: "Nueva pestaña de Void Galaxy restaurada",
         voidHomeCopiedHint: "✅ ¡Copiado! Pégalo en Configuración de Chrome → Al iniciar → Abrir una página específica"
       },
       de: {
@@ -131,14 +131,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judentum", religionChristianity: "✝️ Christentum", religionEastern: "☸️ Östlich (buddhistische & hinduistische Weisheit)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Westliche Literatur",
         vaultLiveSaved: "✓ Sofort gespeichert — kein Klick auf „Speichern” nötig",
-        lblCreateVoidTab: "Leerer Tab",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "Start",
         restoreHomeHint: "Gehe zu chrome://settings/onStartup und wähle \"Neue-Tab-Seite öffnen\", um den Standard wiederherzustellen.",
         lblCopyVoidHome: "Link kopieren",
         lblNtpMode: "Verhalten neuer Tabs",
         lblUseDefaultNtp: "Stattdessen zur Standardsuchmaschine weiterleiten",
         toastNtpDefaultOn: "Standard-Neuer-Tab aktiviert",
-        toastNtpDefaultOff: "AI Tree Neuer Tab wiederhergestellt",
+        toastNtpDefaultOff: "Void Galaxy Neuer Tab wiederhergestellt",
         voidHomeCopiedHint: "✅ Kopiert! In Chrome-Einstellungen → Beim Start → Bestimmte Seite öffnen einfügen"
       },
       fr: {
@@ -159,14 +159,14 @@ const i18nPopup = {
         religionIslam: "☪️ Islam", religionJudaism: "✡️ Judaïsme", religionChristianity: "✝️ Christianisme", religionEastern: "☸️ Orientale (sagesse bouddhiste et hindoue)",
         poetryRumi: "🌙 Rûmî", poetryWestern: "🖋️ Littérature occidentale",
         vaultLiveSaved: "✓ Enregistré instantanément — pas besoin de cliquer sur « Enregistrer »",
-        lblCreateVoidTab: "Onglet Vide",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "Accueil",
         restoreHomeHint: "Allez sur chrome://settings/onStartup et choisissez \"Ouvrir la page Nouvel onglet\" pour restaurer le défaut.",
         lblCopyVoidHome: "Copier le lien",
         lblNtpMode: "Comportement du nouvel onglet",
         lblUseDefaultNtp: "Rediriger vers le moteur de recherche standard à la place",
         toastNtpDefaultOn: "Nouvel onglet standard activé",
-        toastNtpDefaultOff: "Nouvel onglet AI Tree restauré",
+        toastNtpDefaultOff: "Nouvel onglet Void Galaxy restauré",
         voidHomeCopiedHint: "✅ Copié ! Collez-le dans Paramètres Chrome → Au démarrage → Ouvrir une page spécifique"
       },
       ja: {
@@ -187,14 +187,14 @@ const i18nPopup = {
         religionIslam: "☪️ イスラム教", religionJudaism: "✡️ ユダヤ教", religionChristianity: "✝️ キリスト教", religionEastern: "☸️ 東洋（仏教・ヒンドゥーの知恵）",
         poetryRumi: "🌙 ルーミー", poetryWestern: "🖋️ 西洋文学",
         vaultLiveSaved: "✓ 即座に保存されました — 「保存」を押す必要はありません",
-        lblCreateVoidTab: "空白タブ",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "ホーム",
         restoreHomeHint: "chrome://settings/onStartup を開き、「新しいタブページを開く」を選んで既定に戻してください。",
         lblCopyVoidHome: "リンクをコピー",
         lblNtpMode: "新しいタブの動作",
         lblUseDefaultNtp: "代わりに標準の検索エンジンにリダイレクトする",
         toastNtpDefaultOn: "標準の新しいタブが有効になりました",
-        toastNtpDefaultOff: "AI Tree の新しいタブに戻りました",
+        toastNtpDefaultOff: "Void Galaxy の新しいタブに戻りました",
         voidHomeCopiedHint: "✅ コピーしました！Chromeの設定→起動時→特定のページを開く、に貼り付けてください"
       },
       ru: {
@@ -215,14 +215,14 @@ const i18nPopup = {
         religionIslam: "☪️ Ислам", religionJudaism: "✡️ Иудаизм", religionChristianity: "✝️ Христианство", religionEastern: "☸️ Восточная (буддийская и индуистская мудрость)",
         poetryRumi: "🌙 Руми", poetryWestern: "🖋️ Западная литература",
         vaultLiveSaved: "✓ Сохранено мгновенно — нажимать «Сохранить» не нужно",
-        lblCreateVoidTab: "Пустая вкладка",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "Домой",
         restoreHomeHint: "Перейдите в chrome://settings/onStartup и выберите «Открывать страницу новой вкладки», чтобы восстановить по умолчанию.",
         lblCopyVoidHome: "Скопировать ссылку",
         lblNtpMode: "Поведение новой вкладки",
         lblUseDefaultNtp: "Вместо этого перенаправлять на стандартную поисковую систему",
         toastNtpDefaultOn: "Стандартная новая вкладка включена",
-        toastNtpDefaultOff: "Новая вкладка AI Tree восстановлена",
+        toastNtpDefaultOff: "Новая вкладка Void Galaxy восстановлена",
         voidHomeCopiedHint: "✅ Скопировано! Вставьте в настройках Chrome → При запуске → Открыть конкретную страницу"
       },
       tr: {
@@ -243,14 +243,14 @@ const i18nPopup = {
         religionIslam: "☪️ İslam", religionJudaism: "✡️ Yahudilik", religionChristianity: "✝️ Hristiyanlık", religionEastern: "☸️ Doğu (Budist ve Hindu bilgeliği)",
         poetryRumi: "🌙 Mevlana", poetryWestern: "🖋️ Batı Edebiyatı",
         vaultLiveSaved: "✓ Anında kaydedildi — «Kaydet»e basmaya gerek yok",
-        lblCreateVoidTab: "Boş Sekme",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "Ana Sayfa",
         restoreHomeHint: "chrome://settings/onStartup adresine git ve varsayılana dönmek için \"Yeni sekme sayfasını aç\" seçeneğini seç.",
         lblCopyVoidHome: "Bağlantıyı Kopyala",
         lblNtpMode: "Yeni Sekme Davranışı",
         lblUseDefaultNtp: "Bunun yerine standart arama motoruna yönlendir",
         toastNtpDefaultOn: "Standart Yeni Sekme etkinleştirildi",
-        toastNtpDefaultOff: "AI Tree Yeni Sekmesi geri yüklendi",
+        toastNtpDefaultOff: "Void Galaxy Yeni Sekmesi geri yüklendi",
         voidHomeCopiedHint: "✅ Kopyalandı! Chrome Ayarları → Başlangıçta → Belirli bir sayfa aç kısmına yapıştır"
       },
       'zh-Hans': {
@@ -271,14 +271,14 @@ const i18nPopup = {
         religionIslam: "☪️ 伊斯兰教", religionJudaism: "✡️ 犹太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 东方（佛教与印度教智慧）",
         poetryRumi: "🌙 鲁米", poetryWestern: "🖋️ 西方文学",
         vaultLiveSaved: "✓ 已即时保存——无需点击「保存」",
-        lblCreateVoidTab: "空白标签",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "主页",
         restoreHomeHint: "前往 chrome://settings/onStartup，选择“打开新标签页”即可恢复默认设置。",
         lblCopyVoidHome: "复制链接",
         lblNtpMode: "新标签页行为",
         lblUseDefaultNtp: "改为跳转到标准搜索引擎",
         toastNtpDefaultOn: "已启用标准新标签页",
-        toastNtpDefaultOff: "已恢复 AI Tree 新标签页",
+        toastNtpDefaultOff: "已恢复 Void Galaxy 新标签页",
         voidHomeCopiedHint: "✅ 已复制！粘贴到 Chrome 设置 → 启动时 → 打开特定网页"
       },
       'zh-Hant': {
@@ -299,14 +299,14 @@ const i18nPopup = {
         religionIslam: "☪️ 伊斯蘭教", religionJudaism: "✡️ 猶太教", religionChristianity: "✝️ 基督教", religionEastern: "☸️ 東方（佛教與印度教智慧）",
         poetryRumi: "🌙 魯米", poetryWestern: "🖋️ 西方文學",
         vaultLiveSaved: "✓ 已即時儲存——無需點擊「儲存」",
-        lblCreateVoidTab: "空白分頁",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "首頁",
         restoreHomeHint: "前往 chrome://settings/onStartup，選擇「開啟新分頁」即可還原預設值。",
         lblCopyVoidHome: "複製連結",
         lblNtpMode: "新分頁行為",
         lblUseDefaultNtp: "改為跳轉到標準搜尋引擎",
         toastNtpDefaultOn: "已啟用標準新分頁",
-        toastNtpDefaultOff: "已還原 AI Tree 新分頁",
+        toastNtpDefaultOff: "已還原 Void Galaxy 新分頁",
         voidHomeCopiedHint: "✅ 已複製！貼到 Chrome 設定 → 啟動時 → 開啟特定網頁"
       },
       'pt-BR': {
@@ -327,19 +327,39 @@ const i18nPopup = {
         religionIslam: "☪️ Islamismo", religionJudaism: "✡️ Judaísmo", religionChristianity: "✝️ Cristianismo", religionEastern: "☸️ Oriental (sabedoria budista e hindu)",
         poetryRumi: "🌙 Rumi", poetryWestern: "🖋️ Literatura Ocidental",
         vaultLiveSaved: "✓ Salvo instantaneamente — não é preciso clicar em Salvar",
-        lblCreateVoidTab: "Aba Vazia",
+        lblCreateVoidTab: "Void Galaxy",
         lblRestoreHome: "Início",
         restoreHomeHint: "Vá em chrome://settings/onStartup e escolha \"Abrir a página Nova guia\" para restaurar o padrão.",
         lblCopyVoidHome: "Copiar Link",
         lblNtpMode: "Comportamento da Nova Guia",
         lblUseDefaultNtp: "Redirecionar para o mecanismo de busca padrão em vez disso",
         toastNtpDefaultOn: "Nova guia padrão ativada",
-        toastNtpDefaultOff: "Nova guia do AI Tree restaurada",
+        toastNtpDefaultOff: "Nova guia do Void Galaxy restaurada",
         voidHomeCopiedHint: "✅ Copiado! Cole em Configurações do Chrome → Ao iniciar → Abrir uma página específica"
       }
     };
 
+    // New, independent Music Orb labels. Kept separate from the legacy Launcher labels
+    // so the two controls cannot be conflated.
+    const musicOrbI18n = {
+      en: { title: "Music Orb on this site", show: "Show orb", hide: "Hide orb", on: "Authorized on this site", off: "Hidden on this site", invalid: "Saved preference is invalid", unavailable: "Unavailable on this page" },
+      fa: { title: "Orb موسیقی در این سایت", show: "نمایش Orb", hide: "پنهان کردن Orb", on: "در این سایت مجاز است", off: "در این سایت پنهان است", invalid: "تنظیم ذخیره‌شده نامعتبر است", unavailable: "در این صفحه در دسترس نیست" },
+      ar: { title: "كرة الموسيقى على هذا الموقع", show: "إظهار الكرة", hide: "إخفاء الكرة", on: "مسموح بها على هذا الموقع", off: "مخفية على هذا الموقع", invalid: "التفضيل المحفوظ غير صالح", unavailable: "غير متاحة في هذه الصفحة" },
+      es: { title: "Orbe de música en este sitio", show: "Mostrar orbe", hide: "Ocultar orbe", on: "Autorizado en este sitio", off: "Oculto en este sitio", invalid: "La preferencia guardada no es válida", unavailable: "No disponible en esta página" },
+      de: { title: "Musik-Orb auf dieser Website", show: "Orb anzeigen", hide: "Orb ausblenden", on: "Auf dieser Website autorisiert", off: "Auf dieser Website ausgeblendet", invalid: "Gespeicherte Einstellung ist ungültig", unavailable: "Auf dieser Seite nicht verfügbar" },
+      fr: { title: "Orbe musical sur ce site", show: "Afficher l’orbe", hide: "Masquer l’orbe", on: "Autorisé sur ce site", off: "Masqué sur ce site", invalid: "La préférence enregistrée est invalide", unavailable: "Indisponible sur cette page" },
+      ja: { title: "このサイトのミュージックオーブ", show: "オーブを表示", hide: "オーブを非表示", on: "このサイトで許可済み", off: "このサイトで非表示", invalid: "保存された設定が無効です", unavailable: "このページでは利用できません" },
+      ru: { title: "Музыкальная сфера на этом сайте", show: "Показать сферу", hide: "Скрыть сферу", on: "Разрешена на этом сайте", off: "Скрыта на этом сайте", invalid: "Сохранённая настройка недействительна", unavailable: "Недоступно на этой странице" },
+      tr: { title: "Bu sitede müzik küresi", show: "Küreyi göster", hide: "Küreyi gizle", on: "Bu sitede izin verildi", off: "Bu sitede gizli", invalid: "Kayıtlı tercih geçersiz", unavailable: "Bu sayfada kullanılamaz" },
+      "zh-Hans": { title: "此网站的音乐球", show: "显示音乐球", hide: "隐藏音乐球", on: "已在此网站授权", off: "已在此网站隐藏", invalid: "保存的偏好无效", unavailable: "此页面不可用" },
+      "zh-Hant": { title: "此網站的音樂球", show: "顯示音樂球", hide: "隱藏音樂球", on: "已在此網站授權", off: "已在此網站隱藏", invalid: "儲存的偏好無效", unavailable: "此頁面無法使用" },
+      "pt-BR": { title: "Orbe de música neste site", show: "Mostrar orbe", hide: "Ocultar orbe", on: "Autorizado neste site", off: "Oculto neste site", invalid: "A preferência guardada é inválida", unavailable: "Indisponível nesta página" }
+    };
+
     let currentLang = 'en';
+    const SITE_DISPLAY_KEY = 'voidGalaxySiteDisplay';
+    let musicOrbTabId = null, musicOrbOrigin = '', musicOrbPref = 'unset', musicOrbSupported = false, musicOrbBusy = false, musicOrbStorageOK = true, musicOrbMapMalformed = false;
+    function musicOrbText() { return musicOrbI18n[currentLang] || musicOrbI18n.en; }
 
     function applyTranslation() {
       // اگر زبانی به هر دلیل هنوز دیکشنری کامل ندارد، به انگلیسی برمی‌گردیم — تا
@@ -420,6 +440,8 @@ const i18nPopup = {
       if (optRumi) optRumi.textContent = t.poetryRumi;
       const optWestern = document.getElementById('opt-poetry-western');
       if (optWestern) optWestern.textContent = t.poetryWestern;
+      renderMusicOrbControl();
+      if (typeof renderLauncherSiteControl === 'function') renderLauncherSiteControl();
     }
 
     const tabBtns = document.querySelectorAll('.tab-btn');
@@ -811,6 +833,236 @@ const i18nPopup = {
       });
     }
 
+    /* ------------------------------------------------------------------
+       Launcher controls (Show/Hide above) exist only on Void Tab.
+       Ordinary websites no longer load the AI Orbit Launcher (content.js),
+       so these buttons would have no target there. The row starts hidden
+       in popup.html and is revealed only when the active tab is Void Tab.
+       ------------------------------------------------------------------ */
+    function isVoidTabPageUrl(url) {
+      if (!url) return false;
+      return url.indexOf(chrome.runtime.getURL('void-tab.html')) === 0 || /^chrome:\/\/newtab\/?/i.test(url);
+    }
+    const launcherControls = document.getElementById('launcherControls');
+    if (launcherControls) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError || !tabs || !tabs[0]) return;
+        if (isVoidTabPageUrl(tabs[0].url || tabs[0].pendingUrl)) launcherControls.style.display = 'flex';
+      });
+    }
+
+    /* ------------------------------------------------------------------
+       Music Orb on this site — separate from the Launcher controls above.
+       Default is hidden; only an explicit per-origin "show" authorizes it.
+       ------------------------------------------------------------------ */
+    function supportedMusicOrbTab(tab) {
+      if (!tab || typeof tab.id !== 'number' || !tab.url) return null;
+      let u;
+      try { u = new URL(tab.url); } catch (e) { return null; }
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+      const h = u.hostname.toLowerCase();
+      if (/(^|\.)accounts\.google\.com$/.test(h) || /(^|\.)appleid\.apple\.com$/.test(h) ||
+          /(^|\.)login\.microsoftonline\.com$/.test(h) || /(^|\.)login\.live\.com$/.test(h)) return null;
+      if (h === 'chromewebstore.google.com') return null;
+      if (h === 'chrome.google.com' && u.pathname.indexOf('/webstore') === 0) return null;
+      return { id: tab.id, origin: u.origin };
+    }
+
+    function renderMusicOrbControl() {
+      const mo = musicOrbText();
+      const title = document.getElementById('lbl-music-orb-site');
+      const stateEl = document.getElementById('musicOrbSiteState');
+      const showBtn = document.getElementById('musicOrbSiteShow');
+      const hideBtn = document.getElementById('musicOrbSiteHide');
+      if (title) title.textContent = mo.title;
+      if (showBtn) showBtn.textContent = mo.show;
+      if (hideBtn) hideBtn.textContent = mo.hide;
+      if (!stateEl || !showBtn || !hideBtn) return;
+
+      let state = mo.unavailable;
+      let canShow = false, canHide = false;
+      if (!musicOrbSupported || !musicOrbStorageOK || musicOrbMapMalformed) {
+        state = mo.unavailable;
+      } else if (musicOrbPref === 'show') {
+        state = mo.on; canHide = true;
+      } else if (musicOrbPref === 'hide' || musicOrbPref === 'unset') {
+        state = mo.off; canShow = true;
+      } else if (musicOrbPref === 'invalid') {
+        state = mo.invalid; canShow = true; canHide = true;
+      }
+      stateEl.textContent = state;
+      showBtn.disabled = musicOrbBusy || !canShow;
+      hideBtn.disabled = musicOrbBusy || !canHide;
+    }
+
+    function initMusicOrbControl() {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError || !tabs || !tabs[0]) {
+          musicOrbSupported = false; musicOrbOrigin = ''; renderMusicOrbControl(); return;
+        }
+        const site = supportedMusicOrbTab(tabs[0]);
+        if (!site) {
+          musicOrbSupported = false; musicOrbOrigin = ''; musicOrbTabId = null; renderMusicOrbControl(); return;
+        }
+        musicOrbTabId = site.id; musicOrbOrigin = site.origin; musicOrbSupported = true;
+        chrome.storage.local.get([SITE_DISPLAY_KEY], (res) => {
+          if (chrome.runtime.lastError) {
+            musicOrbStorageOK = false; musicOrbPref = 'unset'; renderMusicOrbControl(); return;
+          }
+          res = res || {};
+          musicOrbStorageOK = true;
+          const v = res[SITE_DISPLAY_KEY];
+          if (v === undefined || v === null) {
+            musicOrbMapMalformed = false; musicOrbPref = 'unset';
+          } else if (typeof v !== 'object' || Array.isArray(v)) {
+            musicOrbMapMalformed = true; musicOrbPref = 'invalid';
+          } else {
+            musicOrbMapMalformed = false;
+            if (!Object.prototype.hasOwnProperty.call(v, musicOrbOrigin)) {
+              musicOrbPref = 'unset';
+            } else {
+              const p = v[musicOrbOrigin];
+              musicOrbPref = (p === 'show' || p === 'hide') ? p : 'invalid';
+            }
+          }
+          renderMusicOrbControl();
+        });
+      });
+    }
+
+    function setMusicOrbPreference(value) {
+      if (!musicOrbSupported || !musicOrbOrigin || musicOrbBusy || (value !== 'show' && value !== 'hide')) return;
+      musicOrbBusy = true; renderMusicOrbControl();
+      chrome.storage.local.get([SITE_DISPLAY_KEY], (res) => {
+        if (chrome.runtime.lastError) {
+          musicOrbBusy = false; musicOrbStorageOK = false; renderMusicOrbControl(); return;
+        }
+        res = res || {};
+        const map = res[SITE_DISPLAY_KEY];
+        if (map !== undefined && map !== null && (typeof map !== 'object' || Array.isArray(map))) {
+          musicOrbBusy = false; musicOrbMapMalformed = true; musicOrbPref = 'invalid'; renderMusicOrbControl(); return;
+        }
+        const next = {};
+        if (map && typeof map === 'object') {
+          for (const k in map) if (Object.prototype.hasOwnProperty.call(map, k)) next[k] = map[k];
+        }
+        next[musicOrbOrigin] = value;
+        chrome.storage.local.set({ [SITE_DISPLAY_KEY]: next }, () => {
+          musicOrbBusy = false;
+          if (chrome.runtime.lastError) {
+            musicOrbStorageOK = false; renderMusicOrbControl(); return;
+          }
+          musicOrbStorageOK = true; musicOrbMapMalformed = false; musicOrbPref = value;
+          try {
+            chrome.tabs.sendMessage(musicOrbTabId, { type: 'void-display-pref', origin: musicOrbOrigin, value: value }, () => {
+              void chrome.runtime.lastError;
+            });
+          } catch (e) {}
+          renderMusicOrbControl();
+        });
+      });
+    }
+
+    const musicOrbShowBtn = document.getElementById('musicOrbSiteShow');
+    const musicOrbHideBtn = document.getElementById('musicOrbSiteHide');
+    if (musicOrbShowBtn) musicOrbShowBtn.addEventListener('click', () => setMusicOrbPreference('show'));
+    if (musicOrbHideBtn) musicOrbHideBtn.addEventListener('click', () => setMusicOrbPreference('hide'));
+    initMusicOrbControl();
+
+    /* ------------------------------------------------------------------
+       Launcher on websites — one dropdown decides where the launcher exists:
+         off (default) · all sites · chosen sites only.
+       On an ordinary website a single button adds/removes just that site
+       (in "all" mode it manages exceptions; while "off" it switches to
+       "chosen sites"). State shown here is only what background.js confirmed.
+       Separate from the Music Orb control and from the Void Tab buttons.
+       ------------------------------------------------------------------ */
+    var launcherI18n = {
+      en: { title: 'Launcher on websites', off: 'Hidden on all sites (default)', all: 'Show on all sites', selected: 'Show only on chosen sites',
+            hintOff: 'Nothing is loaded on websites. Void Tab is not affected.', hintAll: 'Shown on every website. You can hide it on single sites below.', hintSelected: 'Shown only on sites you chose',
+            n: ' — chosen: ', ex: ' — hidden on: ',
+            on: 'Shown on this site', offHere: 'Hidden on this site', show: 'Show on this site', hide: 'Hide on this site', showAuto: 'Show on this site (switches to chosen sites)',
+            failed: 'Could not apply it — reload the page and try again', pending: 'Will appear when the page finishes loading' },
+      fa: { title: 'لانچر در وب‌سایت‌ها', off: 'پنهان در همهٔ سایت‌ها (پیش‌فرض)', all: 'نمایش در همهٔ سایت‌ها', selected: 'نمایش فقط در سایت‌های انتخابی',
+            hintOff: 'هیچ‌چیز روی وب‌سایت‌ها بارگذاری نمی‌شود. Void Tab بی‌تأثیر است.', hintAll: 'در همهٔ وب‌سایت‌ها نمایش داده می‌شود. می‌توانید در هر سایت جداگانه پنهانش کنید.', hintSelected: 'فقط در سایت‌هایی که انتخاب کرده‌اید نمایش داده می‌شود',
+            n: ' — تعداد انتخابی: ', ex: ' — پنهان در: ',
+            on: 'در این سایت نمایش داده می‌شود', offHere: 'در این سایت پنهان است', show: 'نمایش در این سایت', hide: 'پنهان در این سایت', showAuto: 'نمایش در این سایت (حالت «سایت‌های انتخابی» فعال می‌شود)',
+            failed: 'اعمال نشد — صفحه را رفرش کنید و دوباره تلاش کنید', pending: 'پس از پایان بارگذاری صفحه نمایش داده می‌شود' }
+    };
+    var launcherSt = null, launcherTabId = null, launcherHost = '', launcherBusy = false, launcherMsg = '';
+    function renderLauncherSiteControl() {
+      const sel = document.getElementById('launcherModeSelect');
+      if (!sel || !launcherI18n) return;
+      const tx = launcherI18n[currentLang] || launcherI18n.en;
+      const title = document.getElementById('lbl-launcher-mode');
+      const hint = document.getElementById('launcherModeHint');
+      const row = document.getElementById('launcherSiteRow');
+      const state = document.getElementById('launcherSiteState');
+      const btn = document.getElementById('launcherSiteToggle');
+      if (title) title.textContent = tx.title;
+      Array.prototype.forEach.call(sel.options, (o) => { if (tx[o.value]) o.textContent = tx[o.value]; });
+      if (!launcherSt) { sel.disabled = true; if (hint) hint.textContent = ''; if (row) row.style.display = 'none'; return; }
+      sel.value = launcherSt.mode; sel.disabled = launcherBusy;
+      if (hint) {
+        const base = launcherSt.mode === 'all' ? tx.hintAll : (launcherSt.mode === 'selected' ? tx.hintSelected : tx.hintOff);
+        const extra = launcherSt.mode === 'selected' ? (tx.n + launcherSt.sites) : (launcherSt.mode === 'all' && launcherSt.excluded ? (tx.ex + launcherSt.excluded) : '');
+        hint.textContent = base + extra;
+      }
+      if (row) row.style.display = (launcherSt.supported && launcherTabId != null) ? 'block' : 'none';
+      if (state) state.textContent = launcherMsg || (launcherSt.siteOn ? tx.on : tx.offHere);
+      if (btn) {
+        btn.textContent = launcherSt.siteOn ? tx.hide : (launcherSt.mode === 'off' ? tx.showAuto : tx.show);
+        btn.disabled = launcherBusy;
+      }
+    }
+    function launcherSend(payload, done) {
+      launcherBusy = true; launcherMsg = ''; renderLauncherSiteControl();
+      const tx = launcherI18n[currentLang] || launcherI18n.en;
+      let finished = false;
+      const watchdog = setTimeout(() => {   // never leave the controls stuck in the busy state
+        if (finished) return; finished = true; launcherBusy = false; launcherMsg = tx.failed; renderLauncherSiteControl();
+      }, 12000);
+      chrome.runtime.sendMessage(Object.assign({ type: 'vm-launcher-site', tabId: launcherTabId }, payload), (res) => {
+        if (finished) return; finished = true; clearTimeout(watchdog);
+        launcherBusy = false;
+        if (chrome.runtime.lastError || !res || !res.ok) { launcherMsg = tx.failed; }
+        else { launcherSt = res; launcherMsg = res.pending ? tx.pending : (res.warn ? tx.failed : ''); }
+        renderLauncherSiteControl();
+        if (done) done(res);
+      });
+    }
+    function initLauncherSiteControl() {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const t = (!chrome.runtime.lastError && tabs && tabs[0]) ? tabs[0] : null;
+        const site = t ? supportedMusicOrbTab(t) : null;
+        launcherTabId = site ? site.id : null;
+        try { launcherHost = site ? new URL(t.url).hostname : ''; } catch (e) { launcherHost = ''; }
+        chrome.runtime.sendMessage({ type: 'vm-launcher-site', op: 'status', tabId: launcherTabId }, (res) => {
+          if (chrome.runtime.lastError || !res || !res.ok) return;   // cannot control it: the dropdown stays disabled
+          launcherSt = res; renderLauncherSiteControl();
+        });
+      });
+    }
+    const launcherModeSelect = document.getElementById('launcherModeSelect');
+    if (launcherModeSelect) launcherModeSelect.addEventListener('change', () => launcherSend({ op: 'setMode', mode: launcherModeSelect.value }, (res) => {
+      if (!res || !res.ok) initLauncherSiteControl();   // re-read the real state if it failed
+    }));
+    const launcherSiteToggle = document.getElementById('launcherSiteToggle');
+    if (launcherSiteToggle) launcherSiteToggle.addEventListener('click', () => {
+      if (!launcherSt || launcherBusy) return;
+      const turnOn = !launcherSt.siteOn;
+      const go = () => launcherSend({ op: 'toggleSite', on: turnOn });
+      if (turnOn && launcherHost) {
+        // The old "Hide" deny-list must not keep the launcher hidden on a site the user now shows.
+        chrome.storage.local.get(['aiTreeHiddenDomains'], (r) => {
+          const list = Array.isArray(r && r.aiTreeHiddenDomains) ? r.aiTreeHiddenDomains : [];
+          const next = list.filter(d => d !== launcherHost);
+          if (next.length !== list.length) chrome.storage.local.set({ aiTreeHiddenDomains: next }, go); else go();
+        });
+      } else { go(); }
+    });
+    initLauncherSiteControl();
+
     // «بازگردانی صفحهٔ خانه به پیش‌فرض» — دکمهٔ قبلیِ «باز کردن تب وید»
     // دیگر لازم نیست (چون حالا هم با override صفحهٔ تب جدید، هم با کپی‌لینکِ
     // پایین، این صفحه در دسترسه)؛ این دکمه به‌جایش کاربر رو راهنمایی می‌کنه
@@ -865,7 +1117,7 @@ const i18nPopup = {
         const enabled = useDefaultNtpCb.checked;
         const tp = i18nPopup[currentLang] || i18nPopup.en;
         chrome.storage.local.set({ useDefaultNtp: enabled }, () => {
-          showToast(enabled ? (tp.toastNtpDefaultOn || 'Standard New Tab enabled') : (tp.toastNtpDefaultOff || 'AI Tree New Tab restored'));
+          showToast(enabled ? (tp.toastNtpDefaultOn || 'Standard New Tab enabled') : (tp.toastNtpDefaultOff || 'Void Galaxy New Tab restored'));
         });
       });
     }

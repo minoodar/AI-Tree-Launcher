@@ -7,7 +7,9 @@
    ارتباط:  void-music.js (صفحهٔ افزونه) → chrome.tabs.sendMessage → این اسکریپت   {type:'vm-state', …}
             این اسکریپت → chrome.runtime.sendMessage → صفحهٔ افزونه                {type:'vm-cmd', cmd}
    بدونِ نیاز به background.js. ایزوله در Shadow DOM تا CSS سایت‌ها اثر نکند.
-   دامنه‌هایی که کاربر ابزارکِ اصلی را در آن‌ها پنهان کرده (aiTreeHiddenDomains) محترم شمرده می‌شوند.
+   نمایش orb به یک مجوزِ صریحِ per-origin در chrome.storage.local وابسته است
+   (voidGalaxySiteDisplay)؛ نبودِ مجوز یعنی پنهان. لیستِ قدیمیِ aiTreeHiddenDomains
+   فقط به‌عنوان fallbackِ hide برای orb استفاده می‌شود و Launcher دست‌نخورده است.
    ====================================================================== */
 (function () {
   'use strict';
@@ -27,10 +29,47 @@
   }
   const PAL = Array.from({ length: 12 }, (_, i) => i < RAINBOW_HUES.length ? hsl(RAINBOW_HUES[i], 0.78, 0.62) : [228, 234, 248]);
 
-  let host = null, ui = null, st = null, hidden = false, lastMsg = 0, drag = null, justDragged = false;
+  const DISPLAY_KEY = 'voidGalaxySiteDisplay';
+  const LEGACY_KEY = 'aiTreeHiddenDomains';
+  const SITE_ORIGIN = (function () { try { const o = location.origin; return (o && o !== 'null') ? o : ''; } catch (e) { return ''; } })();
+  const SENSITIVE_HOST = (function () {
+    try {
+      const h = location.hostname;
+      return /(^|\.)accounts\.google\.com$/.test(h) || /(^|\.)appleid\.apple\.com$/.test(h) ||
+        /(^|\.)login\.microsoftonline\.com$/.test(h) || /(^|\.)login\.live\.com$/.test(h) ||
+        h === 'chromewebstore.google.com' || (h === 'chrome.google.com' && location.pathname.indexOf('/webstore') === 0);
+    } catch (e) { return true; }
+  })();
+  let host = null, ui = null, st = null, lastMsg = 0, drag = null, justDragged = false;
   let raf = 0, tmr = 0, lastDraw = 0, tick = 0;
+  let displayReady = false, displayAllowed = false, displayState = 'default-hide', displayMap = {}, legacyHidden = false;
   const chroma = new Float32Array(12), target = new Float32Array(12);
   let side = 'r', yFrac = null;
+
+  function parseDisplayMap(value) {
+    if (value === undefined || value === null) return {};
+    if (typeof value !== 'object' || Array.isArray(value)) return null;
+    return value;
+  }
+  function currentDisplayPref(map) {
+    if (!SITE_ORIGIN) return 'unsupported';
+    if (SENSITIVE_HOST) return 'restricted';
+    if (map === null) return 'invalid';
+    if (!Object.prototype.hasOwnProperty.call(map, SITE_ORIGIN)) return 'unset';
+    const v = map[SITE_ORIGIN];
+    return (v === 'show' || v === 'hide') ? v : 'invalid';
+  }
+  function stateFresh() { return !!(st && st.active && lastMsg && Date.now() - lastMsg <= 6500); }
+  function applyDisplayState(map) {
+    displayReady = true;
+    displayMap = (map === null) ? null : ((map && typeof map === 'object' && !Array.isArray(map)) ? map : {});
+    const pref = currentDisplayPref(displayMap);
+    displayState = pref === 'unset' ? (legacyHidden ? 'legacy-hide' : 'default-hide') : pref;
+    displayAllowed = pref === 'show';
+    if (displayAllowed) {
+      if (stateFresh()) show(); else hello();
+    } else hide();
+  }
 
   const CSS = `
   :host { all: initial; }
@@ -164,7 +203,7 @@
   }
   function frame(now) {
     raf = 0;
-    if (!ui || !st || !st.active || document.hidden) return;
+    if (!ui || !st || !st.active || document.hidden || !ui.wrap.classList.contains('on')) return;
     if (now - lastDraw >= 64) {
       const dt = Math.min(0.2, (now - lastDraw) / 1000); lastDraw = now; tick++;
       const k = 1 - Math.exp(-dt / 0.14);
@@ -173,7 +212,7 @@
     }
     if (st.playing) raf = requestAnimationFrame(frame);
   }
-  function kick() { if (!raf && ui && st && st.active && !document.hidden) { lastDraw = 0; raf = requestAnimationFrame(frame); } }
+  function kick() { if (!raf && ui && st && st.active && !document.hidden && ui.wrap.classList.contains('on')) { lastDraw = 0; raf = requestAnimationFrame(frame); } }
 
   function paint() {
     if (!ui || !st) return;
@@ -192,35 +231,61 @@
     const pos = st.pos + (st.playing ? (Date.now() - st.ts) / 1000 : 0);
     ui.prog.setAttribute('stroke-dashoffset', String(1000 * (1 - clamp(pos / st.dur, 0, 1))));
   }
-  function show() { build(); ui.wrap.classList.add('on'); paint(); if (!tmr) tmr = setInterval(() => { progress(); if (st && Date.now() - lastMsg > 6500) hide(); }, 500); }
-  function hide() { if (ui) ui.wrap.classList.remove('on'); if (tmr) { clearInterval(tmr); tmr = 0; } }
+  function show() {
+    if (!displayAllowed || !stateFresh()) return;
+    build(); ui.wrap.classList.add('on'); paint();
+    if (!tmr) tmr = setInterval(() => { progress(); if (st && Date.now() - lastMsg > 6500) hide(); }, 500);
+  }
+  function hide() {
+    if (ui) ui.wrap.classList.remove('on');
+    if (tmr) { clearInterval(tmr); tmr = 0; }
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
 
   function apply(m) {
+    if (!m || typeof m !== 'object') return;
     lastMsg = Date.now();
-    if (hidden) return;
-    if (!m.active) { st = m; hide(); return; }
-    st = m; st.ts = m.ts || Date.now();
+    st = m;
+    if (!m.active) { hide(); return; }
+    st.ts = m.ts || Date.now();
     if (m.viz && m.viz.chroma) for (let i = 0; i < 12; i++) target[i] = clamp(+m.viz.chroma[i] || 0, 0, 1);
     else for (let i = 0; i < 12; i++) target[i] = 0.12 + 0.1 * Math.sin(Date.now() / 700 + i);
-    show();
+    if (displayAllowed) show(); else hide();
   }
 
   try {
     chrome.runtime.onMessage.addListener(function (m, sender, respond) {
-      if (m && m.type === 'vm-state') { apply(m); try { respond({ ok: true }); } catch (e) {} }
+      if (m && m.type === 'vm-state') { apply(m); try { respond({ ok: true }); } catch (e) {} return; }
+      if (m && m.type === 'void-display-pref') {
+        if (m.origin === SITE_ORIGIN && (m.value === 'show' || m.value === 'hide')) {
+          const base = (displayMap && typeof displayMap === 'object' && !Array.isArray(displayMap)) ? displayMap : {};
+          const next = {};
+          for (const k in base) if (Object.prototype.hasOwnProperty.call(base, k)) next[k] = base[k];
+          next[SITE_ORIGIN] = m.value;
+          applyDisplayState(next);
+        }
+        try { respond({ ok: true }); } catch (e) {}
+      }
     });
-    chrome.storage.local.get(['aiTreeHiddenDomains', POS_KEY], function (res) {
-      if (chrome.runtime.lastError) return;
-      const list = Array.isArray(res.aiTreeHiddenDomains) ? res.aiTreeHiddenDomains : [];
-      if (list.indexOf(location.hostname) >= 0) { hidden = true; return; }
+    chrome.storage.local.get([LEGACY_KEY, DISPLAY_KEY, POS_KEY], function (res) {
+      if (chrome.runtime.lastError) { displayReady = true; displayAllowed = false; displayState = 'storage-error'; hide(); return; }
+      res = res || {};
+      const list = Array.isArray(res[LEGACY_KEY]) ? res[LEGACY_KEY] : [];
+      legacyHidden = list.indexOf(location.hostname) >= 0;
       if (res[POS_KEY]) { side = res[POS_KEY].side === 'l' ? 'l' : 'r'; yFrac = typeof res[POS_KEY].y === 'number' ? res[POS_KEY].y : null; }
-      hello();
+      applyDisplayState(parseDisplayMap(res[DISPLAY_KEY]));
     });
     chrome.storage.onChanged.addListener(function (ch, area) {
-      if (area === 'local' && ch.aiTreeHiddenDomains) { const l = ch.aiTreeHiddenDomains.newValue || []; hidden = l.indexOf(location.hostname) >= 0; if (hidden) hide(); else hello(); }
+      if (area !== 'local') return;
+      if (ch[DISPLAY_KEY]) applyDisplayState(parseDisplayMap(ch[DISPLAY_KEY].newValue));
+      if (ch[LEGACY_KEY]) {
+        const l = Array.isArray(ch[LEGACY_KEY].newValue) ? ch[LEGACY_KEY].newValue : [];
+        legacyHidden = l.indexOf(location.hostname) >= 0;
+        applyDisplayState(displayMap);
+      }
     });
   } catch (e) {}
-  function hello() { try { chrome.runtime.sendMessage({ type: 'vm-hello' }, () => void chrome.runtime.lastError); } catch (e) {} }
+  function hello() { if (!displayAllowed) return; try { chrome.runtime.sendMessage({ type: 'vm-hello' }, () => void chrome.runtime.lastError); } catch (e) {} }
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { hello(); kick(); } });
   window.addEventListener('focus', hello);
 })();

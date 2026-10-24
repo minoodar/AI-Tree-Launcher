@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "AI Tree Launcher",
-  "version": "41.0",
-  "description": "Floating orbital bookmark launcher with infinite bookmark support, quick notes, offline voice dictation, calculator, clock and to-do.",
+  "name": "Void Galaxy",
+  "version": "42.0",
+  "description": "Cosmic new-tab audio-visual experience: galaxy visualizer for your music, with a subtle idle singularity state.",
   "permissions": [
     "storage",
     "tabs",
@@ -10,7 +10,8 @@
     "topSites",
     "favicon",
     "tabCapture",
-    "activeTab"
+    "activeTab",
+    "scripting"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -23,7 +24,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "AI Tree Launcher",
+    "default_title": "Void Galaxy",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -46,21 +47,7 @@
         "*://login.microsoftonline.com/*",
         "*://login.live.com/*"
       ],
-      "css": [
-        "styles.css",
-        "toolbar-zen.css"
-      ],
       "js": [
-        "i18n.js",
-        "calendar-engine.js",
-        "memory-engine.js",
-        "quote-engine.js",
-        "voice-engine.js",
-        "toolbar-icons.js",
-        "toolbar-dock.js",
-        "launcher-sound.js",
-        "firework-sky.js",
-        "content.js",
         "void-music-remote.js"
       ],
       "run_at": "document_idle",

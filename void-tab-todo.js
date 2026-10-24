@@ -1528,7 +1528,7 @@ if (typeof repositionForLayoutChange === 'function') {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
     const lines = [];
-    lines.push('AI Tree — Daily Report');
+    lines.push('Void Galaxy — Daily Report');
     lines.push(dateLine);
     lines.push('='.repeat(Math.min(40, dateLine.length + 8)));
     lines.push('');
@@ -1614,7 +1614,7 @@ if (typeof repositionForLayoutChange === 'function') {
         .replace('{goals}', String(openGoals))
     );
     lines.push('');
-    lines.push('— AI Tree Launcher');
+    lines.push('— Void Galaxy');
     return lines.join('\n');
   }
 

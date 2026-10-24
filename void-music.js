@@ -20,7 +20,11 @@
     description: 'Audio',
     accept: { 'audio/*': ['.mp3', '.m4a', '.aac', '.ogg', '.oga', '.opus', '.flac', '.wav', '.weba'] }
   }];
-  const MAX_FOLDER_FILES = 500;
+  /* پوشه‌ها بدونِ سقفِ فایل بررسی می‌شوند: کاربر ممکن است هزاران فایل داشته باشد.
+     تنها ترمز، عمقِ تودرتو است (سقفِ فایل = حذفِ خاموشِ موسیقی، که دقیقاً همان چیزی است
+     که «فایل پیدا نشد» را می‌سازد). هر چیزی که بررسی نشد شمارش و گزارش می‌شود. */
+  const SCAN_MAX_DEPTH = 12;
+  const FAIL_STREAK_MAX = 12;    // پس از این تعداد خرابیِ پشت‌سرهم، چرخهٔ خودکارِ «بعدی» متوقف می‌شود
   const VOL_KEY = 'voidMusic.volume';
   const SINGLE_TAB_DIAGNOSTIC = new URLSearchParams(location.search).get('voidMusicSingleTabTest') === '1';
   function playbackLog(event, detail) {
@@ -46,14 +50,41 @@
   EN.voidMusicSearch = 'Search tracks'; EN.voidMusicSearchClear = 'Clear search'; EN.voidMusicNoResults = 'No matching tracks';
   EN.voidMusicShuffle = 'Shuffle'; EN.voidMusicShuffleOn = 'Shuffle on'; EN.voidMusicShuffleOff = 'Shuffle off';
   Object.assign(EN, {
-    voidMusicSound: 'Sound', voidMusicEqualizer: 'Equalizer', voidMusicPreset: 'Preset', voidMusicPreamp: 'Preamp', voidMusicLimiter: 'Limiter', voidMusicAutoGain: 'Auto gain',
+    voidMusicSound: 'Sound and picture', voidMusicEqualizer: 'Equalizer', voidMusicPreset: 'Preset', voidMusicPreamp: 'Preamp', voidMusicLimiter: 'Limiter', voidMusicAutoGain: 'Auto gain',
     voidMusicBgMode: 'When this tab is in the background', voidMusicBgAudio: 'Audio only', voidMusicBgLive: 'Live visuals', voidMusicVisQuality: 'Visual quality',
     voidMusicQAuto: 'Auto', voidMusicQLow: 'Low', voidMusicQHigh: 'High', voidMusicResetSound: 'Reset',
     voidMusicPrFlat: 'Flat', voidMusicPrBass: 'Bass boost', voidMusicPrTreble: 'Treble boost', voidMusicPrVocal: 'Vocal', voidMusicPrRock: 'Rock', voidMusicPrPop: 'Pop',
     voidMusicPrJazz: 'Jazz', voidMusicPrClassical: 'Classical', voidMusicPrElectronic: 'Electronic', voidMusicPrLounge: 'Lounge', voidMusicPrCustom: 'Custom',
     voidMusicRate: 'Rate this track', voidMusicRateN: '{n} of 5 stars',
     voidMusicWebSource: 'Web player', voidMusicWebPlaying: 'Playing from {site}', voidMusicWebHint: 'For live reactive visuals press Alt+Shift+V on that tab',
-    voidMusicWebCaptureOn: 'Live audio linked', voidMusicWebCaptureOff: 'Live audio stopped'
+    voidMusicWebCaptureOn: 'Live audio linked', voidMusicWebCaptureOff: 'Live audio stopped',
+    voidMusicWebAudioLive: 'Live audio linked', voidMusicWebAudioPending: 'Linking audio…', voidMusicWebAudioNone: 'Detected — no live audio',
+    voidMusicWebAudioFailed: 'Audio link failed', voidMusicWebSiteBlocked: 'This site does not allow tab audio',
+    voidMusicWebRetry: 'Click to retry', voidMusicWebPaused: 'Paused', voidMusicClock: 'Local time',
+    voidMusicWebAnLive: 'The galaxy is reacting to this audio', voidMusicWebAnSilent: 'Audio stream linked but silent — no signal',
+    voidMusicWebAnUntapped: 'Analyzers detached — the visuals are not reading the audio', voidMusicWebAnSuspended: 'The browser held the audio — one click on this page starts it',
+    voidMusicWebAnBuilding: 'Building the audio graph…', voidMusicWebAnFailed: 'The audio graph could not start',
+    voidMusicWebAnNoStream: 'No audio stream reaches the visual engine',
+    voidMusicTipAddFiles: 'Add audio files to the queue', voidMusicTipAddFolder: 'Add every audio file in a folder; nothing is copied unless you ask',
+    voidMusicTipKeepCopy: 'Keep a private copy of each track so playback never needs the folder again', voidMusicTipShuffle: 'Play the queue in random order',
+    voidMusicTipSound: 'Equalizer, limiter, background mode and galaxy quality', voidMusicTipVolume: 'Playback volume for this tab',
+    voidMusicTipSeek: 'Drag, click or use the arrow keys to move through the track', voidMusicTipSndOn: 'Turn the equalizer and limiter on or off',
+    voidMusicTipSndReset: 'Restore the flat curve, the preset and the defaults', voidMusicTipPreset: 'Pick a starting EQ curve',
+    voidMusicTipPreamp: 'Gain applied before the equalizer', voidMusicTipLimiter: 'Catches the peaks so loud tracks stop clipping',
+    voidMusicTipAutoGain: 'Keeps the loudness steady between tracks', voidMusicTipBgAudio: 'Keep the audio playing and freeze the visuals',
+    voidMusicTipBgLive: 'Keep the galaxy reacting while the tab is in the background', voidMusicTipQAuto: 'Chooses the galaxy quality from the measured frame rate',
+    voidMusicTipQLow: 'Fewer particles — the lightest option', voidMusicTipQHigh: 'Maximum detail — needs a strong GPU',
+    voidMusicTipEqBand: '{hz} band — drag up or down, or use the arrow keys', voidMusicTipSpectrum: 'Live spectrum of the track being analysed'
+  });
+  /* دلیل‌های جدا برای «صوت بالا نیامد»: سقفِ فایل حذف شد، پس حالا باید صادق بگوییم کدام علت بوده */
+  Object.assign(EN, {
+    voidMusicErrPrompt: 'Access to this folder has not been granted yet', voidMusicErrDenied: 'Access to this folder was denied',
+    voidMusicErrGone: 'This file is no longer in the folder', voidMusicErrUnreadable: 'This file could not be read',
+    voidMusicErrNoRoot: 'The folder this track came from is no longer known', voidMusicGrantAction: 'Click to grant access',
+    voidMusicRegrantOk: 'Access granted — playback continues', voidMusicAddedN: '{n} tracks added',
+    voidMusicSkippedOther: '{n} non-audio files skipped', voidMusicScanDeep: '{n} folders were too deep to scan',
+    voidMusicScanError: '{n} folders could not be read', voidMusicFailStreak: '{n} files in a row failed to load; auto-advance stopped',
+    voidMusicPermRoots: '{n} folders need your permission before they can play'
   });
   function L(key) {
     try {
@@ -70,7 +101,7 @@
     tracks: [],              // {id,name,title,artist,file,handle,bad}
     curId: null, bag: [], history: [],
     audio: null, url: null, coverUrl: null,
-    seed: 0, token: 0, failures: 0,
+    seed: 0, token: 0, failures: 0, failStreak: 0, grantAdvised: false, grantTrack: null, permRoots: 0, toastLog: [], scan: null,
     libLoaded: false, savedTitle: null,
     dragging: false, dragFrac: 0,
     vol: 0.8, muted: false, outGain: null,
@@ -409,16 +440,28 @@
   function isAudioName(name, file) { return EXT.test(name || '') || !!(file && file.type && file.type.indexOf('audio/') === 0); }
 
   // یک پوشه = یک ریشه؛ مجوزِ خواندن فقط برای ریشه گرفته می‌شود و همهٔ فایل‌های زیرش را می‌پوشاند
-  async function walkDir(dirHandle, out, depth, rootObj, path) {
-    if (depth > 4 || out.length >= MAX_FOLDER_FILES) return;
+  function newScan() { return { audio: 0, other: 0, tooDeep: 0, dirErrors: 0, denied: false }; }
+  // بدونِ سقفِ فایل: هر چیزی که به فهرست نمی‌رسد شمارش می‌شود، نه اینکه بی‌صدا کم شود
+  async function walkDir(dirHandle, out, depth, rootObj, path, scan) {
     path = path || [];
+    scan = scan || newScan();
     try {
       for await (const entry of dirHandle.values()) {
-        if (out.length >= MAX_FOLDER_FILES) break;
-        if (entry.kind === 'file') { if (EXT.test(entry.name)) out.push({ handle: entry, root: rootObj || null, path: rootObj ? path.concat(entry.name) : null }); }
-        else if (entry.kind === 'directory') await walkDir(entry, out, depth + 1, rootObj, path.concat(entry.name));
+        if (entry.kind === 'file') {
+          if (EXT.test(entry.name)) {
+            out.push({ handle: entry, root: rootObj || null, path: rootObj ? path.concat(entry.name) : null });
+            scan.audio++;
+          } else scan.other++;
+        } else if (entry.kind === 'directory') {
+          if (depth >= SCAN_MAX_DEPTH) { scan.tooDeep++; continue; }
+          await walkDir(entry, out, depth + 1, rootObj, path.concat(entry.name), scan);
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      scan.dirErrors++;
+      if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) scan.denied = true;
+    }
+    return scan;
   }
   async function addFolderHandle(dir) {
     let rootObj = null;
@@ -426,8 +469,19 @@
     if (!rootObj) { rootObj = { id: uid(), name: dir.name, handle: dir }; S.roots.set(rootObj.id, rootObj); dbRoot('put', rootObj); }
     S.permCache.set(rootObj.handle, Promise.resolve());       // همین الان کاربر مجوز داده
     const list = [];
-    await walkDir(dir, list, 0, rootObj, []);
-    return addEntries(list);
+    const scan = await walkDir(dir, list, 0, rootObj, [], newScan());
+    S.scan = scan;
+    const added = await addEntries(list);
+    reportScan(scan, added);
+    return { added: added, scan: scan };
+  }
+  function reportScan(scan, added) {
+    const parts = [L('voidMusicAddedN').replace('{n}', added)];
+    if (scan.other) parts.push(L('voidMusicSkippedOther').replace('{n}', scan.other));
+    if (scan.tooDeep) parts.push(L('voidMusicScanDeep').replace('{n}', scan.tooDeep));
+    if (scan.dirErrors) parts.push(L('voidMusicScanError').replace('{n}', scan.dirErrors));
+    if (scan.denied) parts.push(L('voidMusicErrPrompt'));
+    toast(parts.join(' · '));
   }
   // مجوزِ خواندنِ یک دستگیره؛ اول بدونِ پرسش (queryPermission)، فقط اگر لازم بود یک بار می‌پرسد و در همین نشست حفظ می‌شود
   function grant(h) {
@@ -435,14 +489,26 @@
     if (p) return p;
     p = (async function () {
       let st = 'granted';
-      if (h.queryPermission) st = await h.queryPermission({ mode: 'read' });
-      if (st !== 'granted' && h.requestPermission) st = await h.requestPermission({ mode: 'read' });
-      if (st !== 'granted') throw new Error('denied');
+      if (h.queryPermission) {
+        try { st = await h.queryPermission({ mode: 'read' }); } catch (e) { throw new Error('permQuery'); }
+      }
+      if (st === 'granted') return;
+      if (!h.requestPermission) throw new Error('permUnsupported');
+      let r = null;
+      try { r = await h.requestPermission({ mode: 'read' }); } catch (e) { throw new Error('permDenied'); }
+      if (r === 'granted') return;
+      throw new Error(r === 'prompt' ? 'permPrompt' : 'permDenied');
     })();
     S.permCache.set(h, p);
-    p.catch(function () { S.permCache.delete(h); });
+    p.catch(function () { S.permCache.delete(h); });       // شکست نباید در نشست قفل شود: هر کلیکِ کاربر دوباره می‌پرسد
     return p;
   }
+  // هر علت را به یک پیامِ جدا تبدیل می‌کنیم؛ «پیدا نشد» و «اجازه نداری» دو چیزند و دو راه‌حل
+  const FAIL_KEY = {
+    permPrompt: 'voidMusicErrPrompt', permDenied: 'voidMusicErrDenied', permUnsupported: 'voidMusicErrDenied', permQuery: 'voidMusicErrUnreadable',
+    noroot: 'voidMusicErrNoRoot', nofile: 'voidMusicErrNoRoot', notfound: 'voidMusicErrGone', unreadable: 'voidMusicErrUnreadable'
+  };
+  const FAIL_GRANTABLE = { permPrompt: 1, permDenied: 1, permQuery: 1 };
   // نسخهٔ خصوصی در OPFS (بدونِ هیچ درخواستِ دسترسی)
   async function copyToPrivate(file, name) {
     const dir = await (await navigator.storage.getDirectory()).getDirectoryHandle('music', { create: true });
@@ -457,12 +523,18 @@
     opts = opts || {};
     let added = 0, firstNew = null, firstTarget = null, dupTr = null;
     S.copyDone = 0; S.copyTotal = S.copyMode ? entries.length : 0;
+    /* همان‌سازیِ پیشین برای هر ورودی کلِ صف را با await می‌پیمود؛ روی پوشه‌هایِ هزارفایلی همان
+       حلقه صفحه را قفل می‌کرد. دو فایلِ یکسان حتماً یک نام دارند، پس فقط نام‌هایِ یکسان سنجیده می‌شوند. */
+    const byName = new Map();
+    function indexTrack(tr) { const a = byName.get(tr.name); if (a) a.push(tr); else byName.set(tr.name, [tr]); }
+    for (const tr of S.tracks) indexTrack(tr);
     for (const en of entries) {
       let f = en.file || null, h = en.handle || null;
       const name = (h && h.name) || (f && f.name) || '';
       if (!isAudioName(name, f)) continue;
       let dup = false;
-      for (const tr of S.tracks) {
+      const cands = byName.get(name);
+      if (cands) for (const tr of cands) {
         if (en.root && tr.rootId === en.root.id && tr.path && tr.path.join('/') === en.path.join('/')) { dup = true; dupTr = tr; break; }
         if (!en.root && h && tr.handle && !tr.copy) { try { if (await tr.handle.isSameEntry(h)) { dup = true; dupTr = tr; break; } } catch (e) {} }
         else if (f && tr.file && tr.file.name === f.name && tr.file.size === f.size && tr.file.lastModified === f.lastModified) { dup = true; dupTr = tr; break; }
@@ -476,10 +548,11 @@
           if (S.copyTotal) toast((S.copyDone + 1) + ' / ' + S.copyTotal);
           const c = await copyToPrivate(src, name);
           tr.handle = c.handle; tr.copy = c.copy; tr.file = null; tr.rootId = null; tr.path = null; f = null; h = c.handle;
-        } catch (e) { toast(L('voidMusicMissing')); continue; }
+        } catch (e) { toast(L(e && e.name === 'NotFoundError' ? 'voidMusicErrGone' : 'voidMusicErrUnreadable')); continue; }
         S.copyDone++;
       }
       S.tracks.push(tr);
+      indexTrack(tr);
       // آهنگِ تازه در جای تصادفیِ کیسه می‌نشیند
       S.bag.splice(randInt(S.bag.length + 1), 0, tr.id);
       if (tr.rootId || tr.copy || (h && !f)) dbPut(tr);
@@ -563,18 +636,23 @@
     if (tr.rootId) {
       const root = S.roots.get(tr.rootId);
       if (!root) throw new Error('noroot');
+      if (!tr.path || !tr.path.length) throw new Error('nofile');
       await grant(root.handle);                                  // یک مجوز برای کلِ پوشه
       if (!tr.handle) {
-        let d = root.handle;
-        for (let i = 0; i < tr.path.length - 1; i++) d = await d.getDirectoryHandle(tr.path[i]);
-        tr.handle = await d.getFileHandle(tr.path[tr.path.length - 1]);
+        try {
+          let d = root.handle;
+          for (let i = 0; i < tr.path.length - 1; i++) d = await d.getDirectoryHandle(tr.path[i]);
+          tr.handle = await d.getFileHandle(tr.path[tr.path.length - 1]);
+        } catch (e) { throw new Error(e && e.name === 'NotFoundError' ? 'notfound' : 'unreadable'); }
       }
-      return await tr.handle.getFile();
+      try { return await tr.handle.getFile(); }
+      catch (e) { throw new Error(e && e.name === 'NotFoundError' ? 'notfound' : 'unreadable'); }
     }
     const h = tr.handle;
     if (!h) throw new Error('nofile');
     if (!tr.copy) await grant(h);
-    return await h.getFile();
+    try { return await h.getFile(); }
+    catch (e) { throw new Error(e && e.name === 'NotFoundError' ? 'notfound' : 'unreadable'); }
   }
 
   // ترتیبِ فهرست (وقتی شافل خاموش است): آهنگِ بعد از جاری، خرابها را رد می‌کند و در انتها به اول برمی‌گردد
@@ -619,7 +697,12 @@
     const tok = ++S.token;
     let file;
     try { file = await fileOf(tr); }
-    catch (e) { playbackLog('source-load-failed', { name: e && e.name || 'Error', message: e && e.message || String(e) }); if (tok === S.token) { trackFailed(tr, 'voidMusicMissing'); releasePlayback(); } return; }
+    catch (e) {
+      const cause = (e && e.message) || 'unreadable';
+      playbackLog('source-load-failed', { cause: cause, name: e && e.name || 'Error', message: e && e.message || String(e), hasHandle: !!tr.handle, hasCopy: !!tr.copy, rootId: tr.rootId || null });
+      if (tok === S.token) { trackFailed(tr, cause); releasePlayback(); }
+      return;
+    }
     if (tok !== S.token) { playbackLog('play-aborted-stale-token', { token: tok, currentToken: S.token }); return; }
     playbackLog('source-loaded', { type: file && file.type || '', size: file && file.size, readyState: S.audio ? S.audio.readyState : 0 });
     if (!await claimPlayback()) { playbackLog('play-aborted-claim-denied', { token: tok }); return; }
@@ -640,7 +723,7 @@
     pushRemote(true);
     try { window.dispatchEvent(new CustomEvent('voidmusic:track', { detail: { id: id, title: tr.title, seed: S.seed } })); } catch (e) {}
     let playbackStarted = false;
-    try { playbackLog('audio-play-invoked', { readyState: a.readyState, paused: a.paused, muted: a.muted, volume: a.volume, hasSource: !!a.currentSrc }); await a.play(); playbackStarted = true; playbackLog('audio-play-resolved', { readyState: a.readyState, paused: a.paused, ended: a.ended, muted: a.muted, volume: a.volume }); S.failures = 0; }
+    try { playbackLog('audio-play-invoked', { readyState: a.readyState, paused: a.paused, muted: a.muted, volume: a.volume, hasSource: !!a.currentSrc }); await a.play(); playbackStarted = true; playbackLog('audio-play-resolved', { readyState: a.readyState, paused: a.paused, ended: a.ended, muted: a.muted, volume: a.volume }); S.failures = 0; S.failStreak = 0; S.grantAdvised = false; S.grantTrack = null; tr.needGrant = null; }
     catch (e) {
       playbackLog('audio-play-rejected', { name: e && e.name || 'Error', message: e && e.message || String(e), readyState: a.readyState, paused: a.paused, ended: a.ended, muted: a.muted, volume: a.volume, mediaError: a.error ? { code: a.error.code, message: a.error.message || '' } : null });
       if (a.paused) releasePlayback();
@@ -664,12 +747,45 @@
     });
   }
 
-  function trackFailed(tr, key) {
-    tr.bad = true;
-    toast(L(key));
+  /* یک خرابی = یک پیام، نه پیام‌هایِ پشت‌سرهم. «اجازه نداری» فایل را خراب نمی‌کند:
+     همان آهنگ با یک کلیکِ کاربر (ژستِ واقعی = activation) دوباره امتحان می‌شود. */
+  function trackFailed(tr, cause) {
+    const isKey = /^voidMusic/.test(String(cause || ''));
+    const key = isKey ? cause : (FAIL_KEY[cause] || 'voidMusicErrUnreadable');
+    const grantable = !isKey && !!FAIL_GRANTABLE[cause];
+    if (grantable) tr.needGrant = cause; else tr.bad = true;
+    S.failures++; S.failStreak++;
+    if (grantable) {
+      S.grantTrack = tr.id;
+      if (!S.grantAdvised) {
+        S.grantAdvised = true;
+        toast(L(key), function () { regrantAndPlay(tr); }, L('voidMusicGrantAction'));
+      }
+      renderQueue();
+      return;                                       // چرخهٔ خودکارِ «بعدی» متوقف: بقیهٔ این پوشه هم همین اجازه را می‌خواهند
+    }
+    if (S.failStreak === 1) toast(L(key));
     renderQueue();
-    S.failures++;
+    if (S.failStreak >= FAIL_STREAK_MAX) { toast(L('voidMusicFailStreak').replace('{n}', S.failStreak)); S.failStreak = 0; return; }
     if (S.failures < S.tracks.length && S.tracks.length > 1) setTimeout(function () { if (S.curId !== null) next(); }, 1200);
+  }
+  // از داخلِ کلیکِ کاربر صدا می‌زند، پس requestPermission مجاز است (بدونِ ژست، مرورگر رد می‌کند)
+  async function regrantAndPlay(tr) {
+    const root = tr && tr.rootId ? S.roots.get(tr.rootId) : null;
+    const h = root ? root.handle : (tr && tr.handle);
+    if (!h) { toast(L('voidMusicErrNoRoot')); return; }
+    S.permCache.delete(h);
+    try { await grant(h); }
+    catch (e) {
+      playbackLog('regrant-failed', { cause: e && e.message || String(e) });
+      toast(L(FAIL_KEY[(e && e.message) || 'unreadable'] || 'voidMusicErrDenied'), function () { regrantAndPlay(tr); }, L('voidMusicGrantAction'));
+      return;
+    }
+    playbackLog('regrant-ok', { trackId: tr.id });
+    S.grantAdvised = false; S.grantTrack = null; S.failStreak = 0; S.failures = 0;
+    tr.needGrant = null;
+    toast(L('voidMusicRegrantOk'));
+    playId(tr.id);
   }
   function onAudioError() {
     playbackLog('audio-error-handler', { readyState: S.audio ? S.audio.readyState : 0, paused: S.audio ? S.audio.paused : true, mediaError: S.audio && S.audio.error ? { code: S.audio.error.code, message: S.audio.error.message || '' } : null });
@@ -716,10 +832,16 @@
   }
   function seekBy(d) { if (S.audio) seekTo(S.audio.currentTime + d); }
   // یک مدلِ واحدِ صدا: اگر ویژولایزر گراف ساخته باشد، بلندی را GainNode می‌دهد (تا تحلیل
-  // مستقل از ولوم بماند)، وگرنه خودِ <audio>.
+  // مستقل از ولوم بماند)، وگرنه خودِ <audio>. منبعِ تب استثناست: صدایش در Void Tab پخش نمی‌شود
+  // (گراف فقط تحلیل می‌کند و خروجی‌اش بی‌صداست)، پس ولوم باید به همان تب فرستاده شود.
   function applyVolume() {
     const a = S.audio;
     if (!a) return;
+    if (a.__web) {
+      try { a.volume = S.muted ? 0 : S.vol; a.muted = S.muted; } catch (e) {}
+      playbackLog('volume-web', { volume: a.volume, muted: a.muted });
+      return;
+    }
     if (S.outGain) {
       a.volume = 1; a.muted = false;
       try { S.outGain.gain.value = S.muted ? 0 : S.vol; } catch (e) {}
@@ -744,7 +866,7 @@
     if (!('mediaSession' in navigator)) return;
     try {
       const art = coverUrl ? [{ src: coverUrl, sizes: '300x300' }] : [];
-      navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title || '', artist: tr.artist || '', album: 'Void Tab', artwork: art });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: tr.title || '', artist: tr.artist || '', album: 'Void Galaxy', artwork: art });
     } catch (e) {}
   }
   function posState() {
@@ -815,6 +937,11 @@
 
     els.seek = el('div', 'vm-seek', { role: 'slider', tabindex: '0', 'aria-valuemin': '0', 'aria-valuemax': '0', 'aria-valuenow': '0' });
     els.time = el('div', 'vm-time');
+    // ساعتِ محلیِ دستگاه (۲۴ساعته) بالای خطِ زمان: مستقل از پخش کار می‌کند و همان‌جا می‌ماند
+    els.clock = el('div', 'vm-clock', { role: 'timer' });
+    els.clockGlyph = el('span', 'vm-clock-g', { 'aria-hidden': 'true' });
+    els.clockText = el('span', 'vm-clock-t');
+    els.clock.append(els.clockGlyph, els.clockText);
 
     els.vol = mkBtn('vm-vol', 'voidMusicVolume');
     els.vol.append(icon(ICON.vol), icon(ICON.waves, 'vm-waves'), icon(ICON.slash, 'vm-slash'));
@@ -876,9 +1003,10 @@
     els.file = el('input', 'vm-sr', { type: 'file', accept: 'audio/*,.flac,.m4a,.opus', multiple: '', tabindex: '-1', 'aria-hidden': 'true' });
     els.folder = el('input', 'vm-sr', { type: 'file', webkitdirectory: '', multiple: '', tabindex: '-1', 'aria-hidden': 'true' });
 
-    dock.append(els.arc, els.seek, els.time, els.vol, els.prev, els.play, els.next, els.queueBtn, els.open, els.openLabel, els.volPop, els.queuePop, els.soundPop, els.toast);
+    dock.append(els.arc, els.seek, els.time, els.clock, els.vol, els.prev, els.play, els.next, els.queueBtn, els.open, els.openLabel, els.volPop, els.queuePop, els.soundPop, els.toast);
     root.append(els.meta, els.stars, dock, els.corner, els.file, els.folder);
     document.body.appendChild(root);
+    clockWatch(true);
 
     wire();
     els.toast.addEventListener('click', function () { if (toastAction) toastAction(); });
@@ -953,19 +1081,21 @@
     els.widget.setAttribute('aria-pressed', S.widgetShown ? 'true' : 'false');
     els.widget.setAttribute('aria-label', L(S.widgetShown ? 'voidMusicHideWidget' : 'voidMusicShowWidget')); els.widget.title = els.widget.getAttribute('aria-label');
     els.openLabel.textContent = L('voidMusicOpen');
-    els.addFiles.textContent = L('voidMusicAddFiles');
-    els.addFolder.textContent = L('voidMusicAddFolder');
-    els.copyChip.textContent = L('voidMusicKeepCopy');
-    els.shuffleChip.textContent = L('voidMusicShuffle');
-    els.soundBtn.textContent = L('voidMusicSound'); relabelSound(); setWebChip(S.webChipState);
+    /* عنوانِ هر کلید: برچسبِ نیمه‌مانده با hover کامل خوانده می‌شود و خودِ کلید هم
+       توضیح می‌خواهد — «صدا» برای پنلی که کیفیتِ کهکشان را هم ست می‌کند کم است. */
+    els.addFiles.textContent = L('voidMusicAddFiles'); els.addFiles.title = L('voidMusicTipAddFiles');
+    els.addFolder.textContent = L('voidMusicAddFolder'); els.addFolder.title = L('voidMusicTipAddFolder');
+    els.copyChip.textContent = L('voidMusicKeepCopy'); els.copyChip.title = L('voidMusicTipKeepCopy');
+    els.shuffleChip.textContent = L('voidMusicShuffle'); els.shuffleChip.title = L('voidMusicTipShuffle');
+    els.soundBtn.textContent = L('voidMusicSound'); els.soundBtn.title = L('voidMusicTipSound'); relabelSound(); setWebChip(S.webChipState);
     els.shuffleChip.setAttribute('aria-pressed', S.shuffle ? 'true' : 'false');
     els.search.placeholder = L('voidMusicSearch'); els.search.setAttribute('aria-label', L('voidMusicSearch'));
     els.searchX.setAttribute('aria-label', L('voidMusicSearchClear')); els.searchX.title = L('voidMusicSearchClear');
     els.copyChip.setAttribute('aria-pressed', S.copyMode ? 'true' : 'false');
     els.queuePop.setAttribute('aria-label', L('voidMusicQueue'));
     els.volPop.setAttribute('aria-label', L('voidMusicVolume'));
-    els.volRange.setAttribute('aria-label', L('voidMusicVolume'));
-    els.seek.setAttribute('aria-label', L('voidMusicSeek'));
+    els.volRange.setAttribute('aria-label', L('voidMusicVolume')); els.volRange.title = L('voidMusicTipVolume');
+    els.seek.setAttribute('aria-label', L('voidMusicSeek')); els.seek.title = L('voidMusicTipSeek');
     root.setAttribute('aria-label', L('ntpMenuMusic'));
     let rtl = false;
     try { rtl = typeof isRTL === 'function' && isRTL(currentLang); } catch (e) {}
@@ -1101,6 +1231,30 @@
     els.seek.setAttribute('aria-valuetext', fmt(cur) + ' / ' + fmt(dur));
     if (S.mini && !S.open) syncMini();
   }
+
+  /* ------------------------------------------------------------------ */
+  /* ساعتِ محلیِ دستگاه: HH:MM بیست‌وچهارساعته + نشانِ خورشید/ماه            */
+  /* مستقل از پخش کار می‌کند، حلقهٔ رندرِ جدیدی نمی‌سازد و DOM را فقط وقتی */
+  /* مقدار واقعاً عوض شده می‌نویسد (یعنی حداکثر دقیقه‌ای یک بار).           */
+  /* ------------------------------------------------------------------ */
+  const CLK = { iv: 0, hhmm: '', day: null };
+  const DAY_FROM = 6, DAY_UNTIL = 19;          // خورشید ۰۶:۰۰ تا ۱۸:۵۹ِ زمانِ دستگاه، بعدش ماه
+  function tickClock() {
+    const d = new Date();
+    const h = d.getHours(), mi = d.getMinutes();
+    const hhmm = (h < 10 ? '0' : '') + h + ':' + (mi < 10 ? '0' : '') + mi;
+    const day = h >= DAY_FROM && h < DAY_UNTIL;
+    if (hhmm === CLK.hhmm && day === CLK.day) return;
+    CLK.hhmm = hhmm; CLK.day = day;
+    els.clockGlyph.textContent = day ? '\u2600' : '\u263E';
+    els.clockText.textContent = hhmm;
+    els.clock.setAttribute('aria-label', L('voidMusicClock') + ' ' + hhmm);
+    els.clock.title = L('voidMusicClock') + ' ' + hhmm;
+  }
+  function clockWatch(on) {
+    if (on && S.built && !CLK.iv) { tickClock(); CLK.iv = setInterval(tickClock, 1000); }
+    else if (!on && CLK.iv) { clearInterval(CLK.iv); CLK.iv = 0; }
+  }
   function syncVolume() {
     const muted = !!(S.muted || S.vol === 0);
     els.vol.dataset.muted = muted ? '1' : '0';
@@ -1113,16 +1267,19 @@
   }
   let toastTimer = 0;
   let toastAction = null;
-  function toast(msg, action) {
+  function toast(msg, action, actionLabel) {
+    S.toastLog.push({ msg: msg, action: typeof action === 'function' ? 1 : 0 });
+    if (S.toastLog.length > 24) S.toastLog.shift();
     if (!S.built) return;
     els.toast.textContent = msg;
     toastAction = typeof action === 'function' ? action : null;
     els.toast.classList.toggle('is-actionable', !!toastAction);
     if (toastAction) {
+      const lab = actionLabel || L('voidMusicSwitchToPlayingTab');
       els.toast.setAttribute('role', 'button');
       els.toast.tabIndex = 0;
-      els.toast.title = L('voidMusicSwitchToPlayingTab');
-      els.toast.setAttribute('aria-label', msg + ' ' + L('voidMusicSwitchToPlayingTab'));
+      els.toast.title = lab;
+      els.toast.setAttribute('aria-label', msg + ' ' + lab);
     } else {
       els.toast.setAttribute('role', 'status');
       els.toast.removeAttribute('tabindex');
@@ -1178,8 +1335,8 @@
     els.sndLim = el('button', 'vm-chip vm-snd-tg', { type: 'button', 'aria-pressed': 'true' }); els.sndAuto = el('button', 'vm-chip vm-snd-tg', { type: 'button', 'aria-pressed': 'true' });
     r3.append(els.sndLim, els.sndAuto);
     const seg = function (items) { const w = el('div', 'vm-seg'); items.forEach(function (it) { it.btn = el('button', 'vm-chip', { type: 'button', 'aria-pressed': 'false' }); w.appendChild(it.btn); }); return w; };
-    els.bgItems = [{ v: 'audio', k: 'voidMusicBgAudio' }, { v: 'live', k: 'voidMusicBgLive' }];
-    els.vqItems = [{ v: 'auto', k: 'voidMusicQAuto' }, { v: 'low', k: 'voidMusicQLow' }, { v: 'high', k: 'voidMusicQHigh' }];
+    els.bgItems = [{ v: 'audio', k: 'voidMusicBgAudio', tp: 'voidMusicTipBgAudio' }, { v: 'live', k: 'voidMusicBgLive', tp: 'voidMusicTipBgLive' }];
+    els.vqItems = [{ v: 'auto', k: 'voidMusicQAuto', tp: 'voidMusicTipQAuto' }, { v: 'low', k: 'voidMusicQLow', tp: 'voidMusicTipQLow' }, { v: 'high', k: 'voidMusicQHigh', tp: 'voidMusicTipQHigh' }];
     const r4 = el('div', 'vm-snd-row'); els.sndBgLbl = el('label', 'vm-snd-lbl vm-snd-wide'); r4.append(els.sndBgLbl, seg(els.bgItems));
     const r5 = el('div', 'vm-snd-row'); els.sndVqLbl = el('label', 'vm-snd-lbl vm-snd-wide'); r5.append(els.sndVqLbl, seg(els.vqItems));
     els.soundPop.append(head, els.spec, bands, r1, r2, r3, r4, r5);
@@ -1233,13 +1390,26 @@
   }
   function relabelSound() {
     if (!els.soundPop) return;
-    els.sndTitle.textContent = L('voidMusicEqualizer'); els.sndOn.textContent = L('voidMusicEqualizer'); els.sndReset.textContent = L('voidMusicResetSound');
+    els.sndTitle.textContent = L('voidMusicSound'); els.sndOn.textContent = L('voidMusicEqualizer'); els.sndReset.textContent = L('voidMusicResetSound');
     els.sndPresetLbl.textContent = L('voidMusicPreset'); els.sndPreLbl.textContent = L('voidMusicPreamp');
     els.sndLim.textContent = L('voidMusicLimiter'); els.sndAuto.textContent = L('voidMusicAutoGain');
+    /* برچسبِ متنیِ کنارِ هر کنترل هم نیمه‌می‌افتد و راهنما می‌خواهد؛ chrome در real DOM نشان داد
+       که فقط sndBgLbl/sndVqLbl عنوان داشتند و «پیش‌تنظیم»/«پیش‌تقویت» بی‌عنوان مانده بودند. */
+    els.sndPresetLbl.title = L('voidMusicTipPreset'); els.sndPreLbl.title = L('voidMusicTipPreamp');
     els.sndBgLbl.textContent = L('voidMusicBgMode'); els.sndVqLbl.textContent = L('voidMusicVisQuality');
     Array.prototype.forEach.call(els.sndPreset.options, function (o) { o.textContent = L(PRESET_KEY[o.value]); });
     els.bgItems.concat(els.vqItems).forEach(function (it) { it.btn.textContent = L(it.k); });
     els.spec.setAttribute('aria-label', L('voidMusicEqualizer')); els.soundPop.setAttribute('aria-label', L('voidMusicSound'));
+    /* راهنمایِ هر کنترلِ پنلِ صدا؛ باندِ اکولایزر هیچ نامِ دسترسی‌پذیری نداشت
+       (فقط اسلایدر + عددِ dB)، پس نامِ «باندِ 1000 Hz» همین‌جا ساخته می‌شود. */
+    els.sndOn.title = L('voidMusicTipSndOn'); els.sndReset.title = L('voidMusicTipSndReset');
+    els.sndPreset.title = L('voidMusicTipPreset'); els.sndPreset.setAttribute('aria-label', L('voidMusicPreset'));
+    els.sndPre.title = L('voidMusicTipPreamp'); els.sndPre.setAttribute('aria-label', L('voidMusicPreamp'));
+    els.sndLim.title = L('voidMusicTipLimiter'); els.sndAuto.title = L('voidMusicTipAutoGain');
+    els.sndBgLbl.title = L('voidMusicTipSound'); els.sndVqLbl.title = L('voidMusicTipSound');
+    els.spec.title = L('voidMusicTipSpectrum');
+    els.bgItems.concat(els.vqItems).forEach(function (it) { it.btn.title = L(it.tp); it.btn.setAttribute('aria-label', L(it.k)); });
+    els.eqEls.forEach(function (E, i) { const t = L('voidMusicTipEqBand').replace('{hz}', BAND_HZ[i] + ' Hz'); E.b.title = t; E.b.setAttribute('aria-label', t); });
     syncSoundUI();
   }
   function sizeSpec() {
@@ -1364,13 +1534,36 @@
       try { window.dispatchEvent(new CustomEvent('voidmusic:title-ready', { detail: { id: id, title: info.title, artist: info.artist, seed: S.seed, generation: tok } })); } catch (e) {}
     });
   }
+  // دلیل‌هایی که «سایت اجازه نمی‌دهد» (نه خرابیِ اتصال): کاربر نباید آن را با خطای افزونه اشتباه بگیرد
+  var WEB_FAIL_BLOCKED = { capture_denied: 1, restricted_page: 1, stream_denied: 1, self: 1, bad_tab: 1, tab_gone: 1 };
+  // وضعیتِ «تحلیل» صادقانه از موتورِ ویژولایزر می‌آید: «stream گرفتم» با «کهکشان داده دارد» یکی نیست.
+  var WEB_ANALYSIS_KEY = { live: 'voidMusicWebAnLive', silent: 'voidMusicWebAnSilent', untapped: 'voidMusicWebAnUntapped', suspended: 'voidMusicWebAnSuspended', building: 'voidMusicWebAnBuilding', failed: 'voidMusicWebAnFailed', nostream: 'voidMusicWebAnNoStream', noviz: 'voidMusicWebAnNoStream' };
   function setWebChip(c) {
     S.webChipState = c || null;
     if (!S.built || !els.webChip) return;
     if (!c) { els.webChip.hidden = true; return; }
     els.webChip.hidden = false;
-    els.webChip.textContent = (c.label || L('voidMusicWebSource')) + (c.count > 1 ? ' +' + (c.count - 1) : '') + (c.capture ? ' \u25CF' : '');
-    els.webChip.setAttribute('aria-pressed', c.on ? 'true' : 'false'); els.webChip.title = L('voidMusicWebSource');
+    const audio = c.audio || 'none';
+    const an = c.analysis || 'none';
+    const state = an === 'live' ? 'live' : audio === 'pending' ? 'pending' : audio === 'failed' || an === 'failed' ? 'failed'
+      : an === 'silent' || an === 'untapped' || an === 'suspended' || an === 'building' || an === 'nostream' || an === 'noviz' ? 'linked'
+      : c.playing ? 'detected' : 'idle';
+    // ◉ = وصل است ولی دادهٔ تحلیل نمی‌رسد؛ هرگز آن را با ● (کهکشان زنده) اشتباه نگیر
+    const glyph = an === 'live' ? '●' : audio === 'pending' ? '◐' : (audio === 'failed' || an === 'failed') ? '✕'
+      : state === 'linked' ? '◉' : '○';
+    const site = c.label || L('voidMusicWebSource');
+    els.webChip.textContent = site + (c.count > 1 ? ' +' + (c.count - 1) : '') + ' ' + glyph;
+    els.webChip.className = 'vm-chip vm-web-chip is-' + state;
+    els.webChip.setAttribute('aria-pressed', c.on ? 'true' : 'false');
+    const parts = [site, c.playing ? L('voidMusicWebPlaying').replace('{site}', site) : L('voidMusicWebPaused')];
+    if (audio === 'pending') parts.push(L('voidMusicWebAudioPending'));
+    else if (audio === 'failed') parts.push((WEB_FAIL_BLOCKED[c.fail] ? L('voidMusicWebSiteBlocked') : L('voidMusicWebAudioFailed')) + ' — ' + L('voidMusicWebRetry') + ' · ' + (c.fail || 'unknown'));
+    else if (audio === 'live' && WEB_ANALYSIS_KEY[an]) {
+      parts.push(L(WEB_ANALYSIS_KEY[an]));
+      if (typeof c.db === 'number' && (an === 'live' || an === 'silent')) parts.push(c.db + ' dB');
+    } else if (c.on) parts.push(L('voidMusicWebAudioNone'));
+    const title = parts.filter(Boolean).join(' · ');
+    els.webChip.title = title; els.webChip.setAttribute('aria-label', title);
   }
 
   function setQuery(q) {
@@ -1388,12 +1581,17 @@
         for (let k = 0; k < toks.length; k++) if (hay.indexOf(toks[k]) < 0) return;
       }
       shown++;
-      const li = el('li', 'vm-row' + (tr.id === S.curId ? ' is-cur' : '') + (tr.bad ? ' is-bad' : ''));
+      /* دو حالتِ متمایز: «فایل واقعاً نیست» (is-bad، خط‌خورده) و «هست ولی پوشه اجازه می‌خواهد»
+         (is-grant، نقطهٔ رُز + راهنما). بی‌این تفکیک، کاربرِ گرفتارِ «دسترسی باطل» ردیفِ سالم
+         را خراب می‌پنداشت و روی همان کلیک نمی‌کرد. */
+      const li = el('li', 'vm-row' + (tr.id === S.curId ? ' is-cur' : '') + (tr.bad ? ' is-bad' : '') + (tr.needGrant && !tr.bad ? ' is-grant' : ''));
       const main = el('button', 'vm-row-main', { type: 'button' });
       main.appendChild(el('span', 'dot'));
       const tt = el('span', 't'); tt.textContent = tr.title + (tr.artist ? ' \u2014 ' + tr.artist : ''); tt.setAttribute('dir', 'auto');
       main.appendChild(tt);
-      main.addEventListener('click', function () { tr.bad = false; playId(tr.id); });
+      if (tr.needGrant && !tr.bad) main.title = L(FAIL_KEY[tr.needGrant] || 'voidMusicErrPrompt') + ' — ' + L('voidMusicGrantAction');
+      else if (tr.bad) main.title = L('voidMusicErrGone');
+      main.addEventListener('click', function () { tr.bad = false; tr.needGrant = null; playId(tr.id); });
       const rate = el('div', 'vm-rate', { role: 'group', 'aria-label': L('voidMusicRate') });
       for (let n = 1; n <= 5; n++) {
         const on = n <= (tr.stars || 0);
@@ -1434,9 +1632,15 @@
   /* ---- مخفی‌شدنِ خودکار ----
      • وقتی موزیک پخش می‌شود و کاربر کاری نمی‌کند، کنترل‌ها و عنوان محو می‌شوند (پنهان نه؛
        با حرکتِ موس/لمس/کلید دوباره می‌آیند). موقعِ مکث همیشه دیده می‌شوند.
-     • هر پاپ‌اور (صدا، صف) خودش بسته می‌شود؛ تا وقتی موس رویش است یا فوکوس دارد باز می‌ماند. */
+     • هر پاپ‌اور (صدا، صف) خودش بسته می‌شود؛ تا وقتی موس رویش است یا فوکوس دارد باز می‌ماند.
+     • §CLOCK استثنا: ساعتِ محلیِ داخلِ داک با رابط مخفی نمی‌شود؛ تا CLOCK_SHOW_MS بعدِ آخرین
+       تعامل دیده می‌شود و بعدِ آن محو می‌گردد (باقیهٔ رابط، زمان‌بندی و pointer-events دست‌نخورده). */
   const IDLE_MS = 3800, POP_MS = { vol: 3000, queue: 6500, sound: 12000 };
-  let idleTimer = 0, popTimer = 0;
+  /* §CLOCK پنجرهٔ ماندگاریِ ساعت: مخفی‌شدنِ خودکارِ رابط همان ۳۸۰۰ms می‌ماند؛ فقط ساعت
+     (که داخلِ داک است) تا CLOCK_SHOW_MS بعدِ آخرین poke روی صفحه می‌ماند و بعد محو می‌شود.
+     تایمرِ تازه‌ای ساخته نمی‌شود: همان idleTimer پس از goQuiet برای باقی‌ماندهٔ پنجره دوباره راه می‌افتد. */
+  const CLOCK_SHOW_MS = 30000;
+  let idleTimer = 0, popTimer = 0, lastPokeAt = -1;   // -1 = هیچ poke‌ای نشده (۰ یک زمانِ معتبر است، پس sentinel نمی‌تواند ۰ باشد)
   function isPlaying() { return !!(S.audio && !S.audio.paused); }
   const MUSIC_MESSAGE_TIMEOUT_MS = 3500;
   function musicCoordLog(event, detail) {
@@ -1571,7 +1775,10 @@
   }
   function poke(ev) {
     if (!S.built || !S.open) return;
+    lastPokeAt = Date.now();                                            // §CLOCK مبدأِ پنجرهٔ ساعت (همین تابع تایمرِ مخفی‌شدن را راه می‌اندازد)
     if (root.classList.contains('is-quiet')) { root.classList.remove('is-quiet'); document.body.classList.remove('vm-quiet'); }
+    // هر تعامل، هم رابط را برمی‌گرداند هم پنجرهٔ ساعت را از نو باز می‌کند
+    if (root.classList.contains('vm-clock-live')) root.classList.remove('vm-clock-live');
     clearTimeout(idleTimer); idleTimer = 0;
     if (isPlaying()) idleTimer = setTimeout(goQuiet, IDLE_MS);
     // حرکتِ موس در جاهای دیگر، تایمرِ بسته‌شدنِ پاپ‌اور را تمدید نمی‌کند (قبلاً تا موس حرکت می‌کرد باز می‌ماند)
@@ -1585,7 +1792,14 @@
     if (!S.open || !isPlaying()) return;
     if (keepAlive() || anyPop()) { idleTimer = setTimeout(goQuiet, 1200); return; }
     root.classList.add('is-quiet'); document.body.classList.add('vm-quiet');
+    // §CLOCK ساعت خودش را نمی‌بلعد: تا پایانِ پنجرهٔ ۳۰ ثانیه‌ایِ آخرین poke روشن می‌ماند.
+    // اگر موس فوکوسِ کیبوردی را گرم نگه داشته بود و goQuiet عقب افتاد، باقی‌ماندهٔ پنجره کاسته می‌شود.
+    if (lastPokeAt >= 0) {
+      const left = CLOCK_SHOW_MS - (Date.now() - lastPokeAt);
+      if (left > 0) { root.classList.add('vm-clock-live'); idleTimer = setTimeout(dropClockLive, left); }
+    }
   }
+  function dropClockLive() { idleTimer = 0; root.classList.remove('vm-clock-live'); }
   function armPop() {
     clearTimeout(popTimer);
     if (!anyPop()) return;
@@ -1668,7 +1882,15 @@
     });
     els.file.addEventListener('change', function () { addEntries(Array.prototype.map.call(els.file.files, function (f) { return { file: f }; }), { playFirst: true }); });
     els.folder.addEventListener('change', function () {
-      addEntries(Array.prototype.filter.call(els.folder.files, function (f) { return EXT.test(f.name); }).slice(0, MAX_FOLDER_FILES).map(function (f) { return { file: f }; }));
+      // بدونِ سقف: هر فایلِ صوتیِ انتخاب‌شده وارد می‌شود و شمارشِ ردشده‌ها گزارش می‌شود
+      const all = Array.prototype.slice.call(els.folder.files || []);
+      const audio = all.filter(function (f) { return EXT.test(f.name); });
+      if (!all.length) return;
+      addEntries(audio.map(function (f) { return { file: f }; })).then(function (added) {
+        const parts = [L('voidMusicAddedN').replace('{n}', added)];
+        if (all.length > audio.length) parts.push(L('voidMusicSkippedOther').replace('{n}', all.length - audio.length));
+        toast(parts.join(' · '));
+      });
     });
     root.addEventListener('pointerdown', function (e) { if (!e.target.closest('.vm-pop') && !e.target.closest('.vm-vol') && !e.target.closest('.vm-queue-btn')) closePops(); });
 
@@ -1982,6 +2204,43 @@
   /* ------------------------------------------------------------------ */
   /* ورود / خروج                                                          */
   /* ------------------------------------------------------------------ */
+  /* بعد ازِ بازگشتِ صفحه، دستگیره‌ها در IndexedDB هست‌اند ولی مجوز خواندن نه (سیاستِ مرورگر).
+     این را زود و بدونِ پرسش (queryPermission) می‌فهمیم تا پیامِ «فایل پیدا نشد» با
+     «اجازه ندارید» قاطی نشود و کاربر بداند یک کلیک کافی است. */
+  async function probePermissions() {
+    let n = 0;
+    for (const r of S.roots.values()) {
+      r.perm = 'granted';
+      try {
+        if (r.handle && r.handle.queryPermission && (await r.handle.queryPermission({ mode: 'read' })) !== 'granted') { r.perm = 'prompt'; n++; }
+      } catch (e) { r.perm = 'unknown'; }
+    }
+    S.permRoots = n;
+    playbackLog('permission-probe', { roots: S.roots.size, needsGrant: n });
+    if (n) toast(L('voidMusicPermRoots').replace('{n}', n), grantAllRoots, L('voidMusicGrantAction'));
+    return n;
+  }
+  async function grantAllRoots() {
+    let granted = 0, asked = 0;
+    for (const r of Array.from(S.roots.values())) {
+      if (r.perm === 'granted') { granted++; continue; }
+      S.permCache.delete(r.handle);
+      asked++;
+      try { await grant(r.handle); r.perm = 'granted'; granted++; }
+      catch (e) { r.perm = (e && e.message) || 'permDenied'; break; }   // یک پرسش در هر ژست؛ بقیه برای کلیکِ بعد
+    }
+    let pending = 0;
+    for (const r of S.roots.values()) if (r.perm !== 'granted') pending++;
+    S.permRoots = pending;
+    playbackLog('permission-sweep', { granted: granted, asked: asked, pending: pending });
+    if (pending) { toast(L('voidMusicPermRoots').replace('{n}', pending), grantAllRoots, L('voidMusicGrantAction')); return pending; }
+    toast(L('voidMusicRegrantOk'));
+    const id = S.grantTrack;
+    S.grantAdvised = false; S.grantTrack = null; S.failStreak = 0;
+    if (id) { const tr = trackById(id); if (tr) { tr.needGrant = null; playId(tr.id); } }
+    return 0;
+  }
+
   async function restoreLibrary() {
     if (S.libLoaded) return;
     S.libLoaded = true;
@@ -2024,6 +2283,7 @@
     document.addEventListener('keydown', onKey, true);
     bindSession();
     restoreLibrary().then(function () {
+      probePermissions();
       setTimeout(function () { if (S.open && !S.tracks.length) els.open.focus({ preventScroll: true }); else if (S.open) els.play.focus({ preventScroll: true }); }, 700);
     });
     try { window.dispatchEvent(new CustomEvent('voidmusic:mode', { detail: { open: true } })); } catch (e) {}
@@ -2038,7 +2298,7 @@
     watchStrays(false);
     clearTimeout(S.starsTimer); S.starsTimer = 0;
     restoreWidgetAfterExit();
-    root.classList.remove('is-quiet'); document.body.classList.remove('vm-quiet');
+    root.classList.remove('is-quiet', 'vm-clock-live'); document.body.classList.remove('vm-quiet');
     closePops();
     root.classList.remove('is-on');
     document.removeEventListener('keydown', onKey, true);
@@ -2090,7 +2350,11 @@
       }
     } catch (e) {}
   }
-  document.addEventListener('visibilitychange', function () { if (S.built && !document.hidden) relabel(); });
+  document.addEventListener('visibilitychange', function () {
+    if (!S.built) return;
+    clockWatch(!document.hidden);       // پس‌زمینه: هیچ تایمری نگه نمی‌داریم؛ هنگام نماش، ساعت بی درنگ درست می‌شود
+    if (!document.hidden) relabel();
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hookMenu); else hookMenu();
   setWidgetSelector('#ai-orbit-root');   // ریشهٔ ابزارکِ شناورِ content.js (همان که Focus Mode هم پنهانش می‌کند)
 
@@ -2161,6 +2425,8 @@
     isOpen: function () { return S.open; },
     attachWeb: attachWeb, detachWeb: detachWeb, setWebMeta: setWebMeta, setWebChip: setWebChip, toast: toast,
     getLocalAudio: function () { return S.localAudio; }, isWeb: function () { return !!S.web; },
+    // وضعیتِ سه‌محورِ منابعِ وب (detected / playing / connected) — برای بازرسیِ دستی و آزمون
+    webState: function () { try { return window.VoidMusicWeb && window.VoidMusicWeb.getState ? window.VoidMusicWeb.getState() : null; } catch (e) { return null; } },
     // برای فازهای بعد (بصری‌سازی): seed تازه برای هر آهنگ، و المنتِ صدا
     getSeed: function () { return S.seed; },
     getAudio: function () { return S.audio; },
@@ -2203,6 +2469,14 @@
       }
       return { title: rect(els.title), artist: rect(els.artist), stars: stars };
     },
-    getState: function () { return { tracks: S.tracks.length, current: S.curId, playing: !!(S.audio && !S.audio.paused), bag: S.bag.length, history: S.history.length, vol: S.vol, muted: S.muted, quiet: !!(root && root.classList.contains('is-quiet')), popOpen: !!(S.built && anyPop()), widget: S.widgetShown, mini: !!(S.miniWrap && S.miniWrap.classList.contains('is-on')) }; }
+    getState: function () { return { tracks: S.tracks.length, current: S.curId, playing: !!(S.audio && !S.audio.paused), bag: S.bag.length, history: S.history.length, vol: S.vol, muted: S.muted, quiet: !!(root && root.classList.contains('is-quiet')), popOpen: !!(S.built && anyPop()), widget: S.widgetShown, mini: !!(S.miniWrap && S.miniWrap.classList.contains('is-on')) }; },
+    /* سطحِ آزمون، به همان الگوی void-music-viz.js: پیمایشِ پوشه، مجوز و علت‌هایِ خرابی
+       بدونِ DOM و بدونِ تقلیدِ منطق قابلِ راندن باشند (آینه‌سازیِ مجدد = ریسکِ واگرایی). */
+    _test: {
+      S: S, newScan: newScan, walkDir: walkDir, addFolderHandle: addFolderHandle, addEntries: addEntries,
+      grant: grant, fileOf: fileOf, trackFailed: trackFailed, regrantAndPlay: regrantAndPlay,
+      probePermissions: probePermissions, grantAllRoots: grantAllRoots, renderQueue: renderQueue,
+      FAIL_KEY: FAIL_KEY, FAIL_GRANTABLE: FAIL_GRANTABLE, SCAN_MAX_DEPTH: SCAN_MAX_DEPTH, FAIL_STREAK_MAX: FAIL_STREAK_MAX
+    }
   };
 })();

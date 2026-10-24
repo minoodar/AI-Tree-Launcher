@@ -34,6 +34,56 @@
   const CFG = {
     calmFps: 20, galaxyFps: 30, reducedFps: 12,
     dotsDesktop: 22000, dotsMobile: 8500,
+    // HOTFIX «موزیکِ تب پخش می‌شود؟» باورپذیر باشد: 'or' = reported-playing **یا** audio trackی که
+    // readyState‌اش 'live' است؛ `track.muted` هرگز سیگنالِ توقف نیست (تبِ capture‌شدهٔ بی‌صدای مرورگر
+    // muted گزارش می‌کند در حالی که پخش ادامه دارد → کهکشان تاریک می‌شد). 'legacy' = قاعدهٔ سختِ Phase 1
+    // (stream باید live و بی‌صدا نباشد). یک‌خط برگشت: همین‌جا 'legacy'.
+    webPlayRule: 'or', playHoldMs: 1700,     // playHoldMs: خوانشِ بدِ کوتاه، پخش را نبندد (هیسترزیس)
+    // §AMBIENT لایه‌های پخش: 'ambient' = اگر دادهٔ صوتیِ واقعی نداریم ولی تب *تازه* می‌گوید پخش
+    // می‌کند، کهکشان با انرژیِ تزئینی زنده می‌ماند (هرگز تاریک نیست)؛ 'off' = رفتارِ پیش از این
+    // تغییر (تاریکیِ مجاز). یک‌خط برگشت: همین‌جا 'off'.
+    // webFreshMs: پنجرهٔ تازگیِ گزارشِ تب. قاعدهٔ dedupe در void-media-hook.js هر ~۵ ثانیه یک
+    // گزارش می‌فرستد (Math.floor(pos/5) + تیکِ ۱ ثانیه) و هر vm-web-ping هم report(true) را
+    // بی‌درنگ می‌زند (void-media-hook.js:174)، پس «۸ ثانیه بی‌خبر» یعنی دو گزارشِ از دست رفته =
+    // دیگر باور نمی‌کنیم — نه بیشتر، تا تبِ مرده کهکشان را روشن نگه دارد.
+    webFallback: 'ambient', webFreshMs: 8000, tierXFadeS: 0.7,
+    // §SHOW نمایشِ آرایشیِ لایهٔ ambient. این یک «کارگردانِ» زمان‌محور است، نه تحلیلِ موسیقی:
+    // هیچ ضربان/تمپو/اوجِ موسیقی‌ای را ادعا نمی‌کند و هیچ‌جا quality را از 'ambient' بیرون نمی‌آورد.
+    // ambientShow=false = دقیقاً همان ambientِ امروز (هیچ چیز از این بلوک اجرا نمی‌شود).
+    // ambientShowLevel (۰..۱) شدتِ کلِ نمایشِ آرایشی است (پرتوِ روشنایی، رنگ، flare).
+    ambientShow: true, ambientShowLevel: 0.8,
+    // §IDLE «حالتِ سکوتِ تکین» (Singularity Idle Mode): تبی که *صدا* دارد ولی منبعِ موسیقیِ
+    // معتبرِ کهکشان نیست (اتاقِ صوتی/کالان — خودِ لایهٔ منبع آن را با activeInfo.audioOnly اعلام
+    // می‌کند؛ ما «صدا» را با «موسیقی» یکی نمی‌گیریم). در این حالت کهکشان، ستاره‌ها، شفق، ذرات و
+    // تحلیلِ صدا خاموش می‌مانند و فقط همان هالهٔ همیشگیِ پشتِ کرهٔ سیاه (همان FS_HORIZON که با
+    // uTime=V.haloT می‌چرخد) آرام حرکت می‌کند؛ عنوانِ تب هم همان‌طور که بود می‌ماند.
+    // ورود/خروج با همان blend نرم است (هیچ پرش و هیچ سیاهی‌ای ندارد) و خروجِ کامل از حالت،
+    // همان رفتارِ قبلی است: فریمِ کم‌نورِ فریزشده.
+    // یک‌خط برگشت: idleHalo = false ⇒ هیچ چیز از این حالت اجرا نمی‌شود و صفحه دقیقاً مثلِ دیروز است.
+    idleHalo: true, idleHaloLevel: 0.30, idleHaloFadeS: 0.9,
+    // §SCENE مدلِ سه‌حالتهٔ «تکینِ افسون‌شده ← بیداریِ کهکشانی ← کهکشانِ زنده»:
+    //   idle    = هیچ منبعی نیست (یا منبعِ فقط-صدا) ⇒ همان هالهٔ زندهٔ بالا، با هیچ‌چیزِ دیگر.
+    //             سطحش را با idleHaloLevelِ دست‌نخورده می‌گیریم: هاله‌ای که قبلاً بازبینی شده،
+    //             پس در idleِ بی‌منبع هم همان نقره‌ای-بنفشِ آرام است و عددِ تازه‌ای اضافه نشده.
+    //   source  = منبع تشخیص داده شده ولی پخش تأیید نشده ⇒ قرصِ تجمع از ردِ کم‌نورِ holeRest
+    //             تا awakenLevel بیدار می‌شود (uRevealِ حلقه‌ها از همان Lg می‌آید؛ هیچ لایهٔ
+    //             تازه‌ای نیست). هیچ عددِ صوتیِ ساختگی نمایش داده نمی‌شود: FEAT دست‌نخورده
+    //             می‌ماند و quality هرگز «live» نمی‌شود — تشخیص، پخش نیست.
+    //   playing = کهکشانِ کاملِ واکنش‌به‌صوت، بیت‌به‌بیت مثلِ امروز (awakenX همیشه ۰).
+    // vstate فقط یک *خوانشِ مشتق* از سیگنال‌های از-پیش-موجود است (V.playing + رأیِ لایهٔ
+    // منبع): نه تایمرِ تازه، نه listener تازه، نه کلیدِ storage تازه.
+    // scene=false ⇒ هر دو شاخهٔ تازه خاموش‌اند و اعدادِ فریم مثلِ دیروز است.
+    scene: true, awakenLevel: 0.34, awakenFadeS: 1.8,
+    // §ENCHANT «هالهٔ افسونگر» + «ورودِ باشکوه» (فقط لایهٔ بصری؛ هیچ ربطی به تحلیل/پخش صدا ندارد):
+    //   enchant       = در حالتِ idle (بی‌منبع یا فقط-صدا) دورِ کرهٔ سیاه یک «اژدهای خفته» می‌چرخد: پیچِ مارپیچیِ
+    //                   کم‌نورِ آبی‌-یخی با پولکِ ریز و گرهِ ستاره‌ای، یک اخگرِ گرمِ بسیار کم‌نور، و غبارِ ریز
+    //                   (یک پاسِ شیدرِ سبکِ جدا، بعد از پاسِ افق؛ کرهٔ سیاه کدر می‌ماند). enchantLevel شدتِ آن.
+    //   grandEntrance = لحظهٔ آغازِ واقعیِ پخش (پس از سکوتی ≥ entranceCooldownS) یک نمایشِ ~entranceS ثانیه‌ای:
+    //                   اژدها بیدار می‌شود: نفسِ عمیق ← اخگر روشن ← دو موجِ شوک ← جریان شتاب می‌گیرد، هم‌زمان با ابزارهای موجودِ همین فایل
+    //                   (V.flare / V.ejBurst / spawnBloom / awakenDistantGroups). با reduced-motion اجرا نمی‌شود.
+    // یک‌خط برگشت: enchant:false و/یا grandEntrance:false ⇒ صفحه دقیقاً مثلِ قبل است.
+    enchant: true, enchantLevel: 0.9,
+    grandEntrance: true, entranceS: 6.5, entranceCooldownS: 20,
     // حساسیت: انرژیِ نرمال‌شده (۰..۱) نسبت به بازهٔ پویاییِ همین آهنگ؛ sens بزرگ‌تر = زودتر و بیشتر. با HUD (Shift+D) تنظیم کن
     sens: 1.15, enterE: 0.46, enterFluxE: 0.34, enterFluxR: 1.45, exitE: 0.26,
     minGalaxyS: 1.2, exitHoldS: 1.4, enterHoldS: 0.18, cooldownS: 0.6, holeRest: 0.20, holeBase: 0.30,
@@ -43,18 +93,32 @@
     cyclesPerTrack: 2, minCycleS: 24, maxCycleS: 180, fallbackTrackS: 180, rollFadeS: 18,
     startPitch: 10, endPitch: 80, startZoom: 0.86, endZoom: 1.0, startRoll: 0.35, maxPitch: 88
   };
-  // روایتِ دوربین: بیشترِ چرخه، حرکتِ آرامِ «لبه‌ای → دیدِ بالا» است. در پایانِ هر چرخه،
-  // یک «رویدادِ تونل» می‌آید: حلقه‌ها بی‌نهایت از نزدیکِ افق می‌زایند، بزرگ می‌شوند و از کادر
-  // بیرون می‌روند؛ بعد همان حرکت معکوس می‌شود. هیچ سیاهیِ تمام‌صفحه‌ای وجود ندارد.
-  //   trackShare  سهم هر رویداد از طول آهنگ (۰٫۱۰ = ۱۰٪)؛ پیش‌فرض دو رویداد در هر آهنگ
+  // روایتِ دوربین (§3): یک «گشایش» در آغازِ واقعیِ پخش، سپس «خانه» = دیسکِ تمام‌گشاده که
+  // ماندگارِ سفر است؛ رویدادهای تونل روی اوجِ موسیقی بلند می‌شوند و به همان کف برمی‌گردند.
+  // هیچ سیاهیِ تمام‌صفحه‌ای وجود ندارد و درِ کرم‌چاله با مکث، عنوان، پودر یا اطلاعاتِ تب بسته نمی‌شود.
+  //   trackShare   سهم هر رویداد از طول آهنگ (۰٫۱۰)؛ سیکل‌ها از باقی‌ماندهٔ آهنگ تقسیم می‌شوند
   //   forwardPart  سهمِ حرکت به داخل از کلِ رویداد (بقیه برگشت است)
-  //   loopTravel   چند «دورِ حلقه» در اوجِ رویداد طی شود
-  //   airMin      کمینهٔ نورِ پس‌زمینه؛ صفحه هرگز کامل سیاه نمی‌شود
+  //   flow         «دورِ حلقه» در ثانیه در اوجِ رویداد (جریانِ محوریِ واقعیِ تونل)
+  //   diveBase     کفِ عمقِ تونل در پخش: سفر پیوسته است، رویداد آن را بلند می‌کند و خاموش نمی‌کند
+  //   idleShare    سهمِ حرکتِ پایه از جریان وقتی رویدادی در کار نیست (هرگز به بیت وابسته نیست)
+  //   eventWaitS   بیشترین صبر برای قفل روی اوج؛ در سکوت پس از آن رویداد خودکار آغاز می‌شود
+  //   camIn/camOut گذارِ نرمِ دوربین به خانه یا بیرونِ آن (عنوان و پودر در را نمی‌بندند)
+  //   airMin       کمینهٔ نورِ پس‌زمینه؛ صفحه هرگز کامل سیاه نمی‌شود
   const DIVE = {
     trackShare: 0.10, minEventS: 8, maxEventS: 34,
-    forwardPart: 0.65, loopTravel: 2.2,
-    tauIn: 0.35, tauOut: 0.55, pitch: 8, airMin: 0.45
+    forwardPart: 0.65, flow: 0.13,
+    tauIn: 0.35, tauOut: 0.55, pitch: 8, airMin: 0.45,
+    diveBase: 0.14, idleShare: 0.30, eventWaitS: 14, camIn: 2.2, camOut: 1.8, silentGraceS: 20,
+    // §B ترتیبِ دوپاس تا کفِ پخش (diveBase=۰.۱۴) باید بماند: هندسه در آن dive هنوز mix(p,pt,warp)
+    // است، یعنی ۸۶٪ دیسک، ولی برشِ نیمه‌ها side=sin(th) هیچ وابستگی به warp ندارد.
+    //   splitAt     جایی که تونل دیگر «دیسکِ کج» نیست و تک‌پاس به‌کار می‌آید
+    //   splitSoft   پهنای پنجرهٔ نرم حولِ splitAt؛ درونِ آن برشِ نیمه‌ها به وزنِ مکمل تبدیل می‌شود
+    //               (نیمهٔ دور ۱-w و نیمهٔ نزدیک w، مجموعشان ۱ ⇒ روشنایی بیرونِ کره حفظ می‌شود)
+    splitAt: 0.35, splitSoft: 0.12
   };
+  // آینهٔ SPAN در VS_DOTS: uTravel داخل mod(...,SPAN) می‌رود، پس برای حفظِ دقتِ float
+  // روی همان یک بازهٔ متناوب نگه داشته می‌شود.
+  const TUNNEL_SPAN = 1.42 - 0.13;
   // سه پلهٔ کیفیت: ۰ کم، ۱ متوسط، ۲ زیاد. مدیرِ کیفیت با توجه به fps/CPU بین این‌ها
   // جابه‌جا می‌شود: تعداد نقاط، بودجهٔ پیکسل (رزولوشنِ داخلی)، نرخِ به‌روزرسانیِ شفق و
   // تعداد ستاره‌های دور را کم/زیاد می‌کند. ظاهر کلی و همان افکت حفظ می‌شود.
@@ -90,12 +154,30 @@
     cometStrength: 0.62
   };
   const RTL = /[\u0590-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
+  // §SHOW جدولِ زمان‌بندیِ «کارگردان». همهٔ بازه‌ها ثانیه‌اند و هر بار با rngِ خودِ نمایش
+  // کمی جابه‌جا می‌شوند تا تکرارِ آشکار در ۶۰ ثانیه نیفتد.
+  //   fotosensitivity: maxEnvPerS سقفِ سختِ تغییرِ روشنایی در ثانیه، minEventGapS فاصلهٔ دو پرش،
+  //   flareRate سقفِ بالا‌رفتنِ flare (پله‌ای نیست) و flashGapS حداقلِ فاصلهٔ دو جرقه (≤۲Hz).
+  //   density پله‌های کیفیت: ضریبِ فشردگیِ افکت‌ها (۰=کم‌مصرف‌ترین پله).
+  const SHOW = {
+    overtureS: 20, ringStepS: 0.9, ringRiseS: 2.6,
+    envLo: 0.30, envHi: 1.0, maxEnvPerS: 0.42,
+    surgeMinS: 60, surgeRandS: 30, surgeHoldS: 10, breathMinS: 9, breathRandS: 7,
+    minEventGapS: 8, flashGapS: 0.5, flareRate: 0.8, flareMax: 0.5,
+    cometMinS: 6, cometRandS: 7, bloomMinS: 9, bloomRandS: 8, wakeMinS: 11, wakeRandS: 9,
+    flightMinS: 38, flightRandS: 30,
+    energyGain: 0.34, energyTrim: 0.22, chromaW: 0.55, tintW: 0.42, hueMix: 0.30, huePeriodS: 46,
+    density: [0.55, 0.80, 1.0]
+  };
+
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const expK = (dt, tau) => 1 - Math.exp(-dt / tau);
   const smoother5 = (t) => { t = clamp(t, 0, 1); return t * t * t * (t * (t * 6 - 15) + 10); };
   function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  // §SHOW hashِ FNV-1a: همان رشته ⇒ همان عدد (کروما/پالتِ آهنگ در همهٔ تب‌ها و همهٔ نشست‌ها خوانا می‌ماند)
+  function hash32(str) { let h = 2166136261 >>> 0; const s = String(str || ''); for (let i = 0; i < s.length; i++) { h = Math.imul(h ^ s.charCodeAt(i), 16777619) >>> 0; } return h >>> 0; }
   const reduced = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   // پالت ثابت هفت‌رنگ؛ کلاس‌های نت بعد از رینگ هفتم سفید نگه داشته می‌شوند.
@@ -115,15 +197,20 @@
   /* ------------------------------------------------------------------ */
   /* صدا: گراف + آنالیز                                                   */
   /* ------------------------------------------------------------------ */
+  const FLUX_SEED = 0.12;   // پیش‌مقدارِ فلاکسِ بی‌بُعد (سهمِ binهای رو‌به‌رشد از کلِ طیف)
+  const BAND_AGC_TARGET = -46;   // dBFS: جبرانِ کمبودِ ولوم، بلندترین باند را تا میانهٔ پنجرهٔ نگاشت بالا می‌آورد (نه به سقف)
   const A = {
     state: 'none', tries: 0, ctx: null, anE: null, anS: null, gain: null, sr: 48000,
     tBuf: null, fE: null, prevE: null, fS: null, kEHi: 0,
     kLo: 0, kHi: 0, pcIdx: null, pcW: null, bandIdx: null, kC0: 0, kC1: 0,
     raw: new Float32Array(12), band: new Float32Array(12), chroma: new Float32Array(12),
-    bright: 0.2, db: -90, base: -60, warm: 4, snap: true, fluxBase: 1e-3, fluxR: 1, prevFluxR: 1, centroidR: 0.4, conf: 0, energy: 0,
-    silent: true, lastOnset: -9, ok: false, pk: -30, fl: -50, en: 0, src: null,
+    bright: 0.2, db: -90, base: -60, warm: 4, snap: true, fluxBase: FLUX_SEED, fluxR: 1, prevFluxR: 1, centroidR: 0.4, conf: 0, energy: 0,
+    silent: true, measured: 0, ok: false, pk: -30, fl: -50, en: 0, src: null,
+    web: false, sink: null, gestureArmed: false, retryGo: null,
     tapped: true, bassAvg: 0, bassPrev: 0, bassBeat: false, lastBass: -9, tAcc: 0, kBass: 1,
-    kLowEnd: 4, kMidEnd: 42, low: 0, mid: 0, high: 0
+    tapsWhy: '', trackEv: '',
+    kLowEnd: 4, kMidEnd: 42, low: 0, mid: 0, high: 0,
+    bassRatio: 0, bandNorm: 0, fSeed: true
   };
 
   /* ------------------------------------------------------------------ */
@@ -237,38 +324,762 @@
     }
   };
 
+  /* ------------------------------------------------------------------
+     §0 حلقهٔ خطا (diagnosis-only): هر callbackِ تایمر/فاصله/framِ این فایل با guard
+     اجرا می‌شود و یک‌خطِ خلاصه (برچسب + نوع/پیام + سه قابِ نخستِ پشته) در زنجهٔ ۴۰تایی
+     ثبت می‌شود؛ همان خطا دوباره پرتاب می‌شود، پس مسیرِ هیچ کدی عوض نمی‌شود و رفتارِ
+     مرورگر (قطعِ زنجیره، ادامهٔ interval) عیناً همان است که بود. شنوندهٔ سراسریِ خطا
+     خطاهای void-music.js و void-music-web.js را هم بدونِ دست‌زدنِ آن دو فایل ثبت می‌کند.
+     خواندن: VoidMusicViz.web.diagnostics().errors     */
+  const ERR = window.__vmErr = window.__vmErr || { ring: [], n: 0 };
+  /* یک قابِ پشته در یک‌خط: «نامِ تابع@نامِ فایل:خط» (مسیرِ کامل حذف می‌شود؛ در ویندوز
+     جداکننده Backslash است، پس split روی هر دو). */
+  function frameOf(s) {
+    const t = String(s).trim().replace(/^at\s+/, '');
+    const i = t.lastIndexOf(' ('), j = t.lastIndexOf(')');
+    const pick = function (p) { const seg = String(p).split(/[\\/]/); return seg[seg.length - 1]; };
+    if (i > 0 && j > i) return t.slice(0, i) + '@' + pick(t.slice(i + 2, j));
+    return pick(t);
+  }
+  function errPush(tag, e, isAsync) {
+    try {
+      ERR.n++;
+      const name = (e && e.name) || 'Error';
+      const msg = String((e && e.message) || e || '').slice(0, 160);
+      const where = (e && e.stack ? String(e.stack).split('\n').slice(1, 4).map(frameOf) : []).join(' <- ');
+      const last = ERR.ring[ERR.ring.length - 1];
+      if (last && last.err === name + ': ' + msg && last.tag === tag && performance.now() - last.at < 1500) return;   // پخشِ دوباره از two listeners
+      const rec = { at: Math.round(performance.now()), tag: tag, err: name + ': ' + msg, where: where };
+      if (isAsync) rec.a = 1;                                       // از promise آمده، نه از throwِ همیشگی
+      ERR.ring.push(rec);
+      while (ERR.ring.length > 40) ERR.ring.shift();
+    } catch (x) {}
+  }
+  /* §0.۱ خطای یک تابعِ async به شکلِ rejection بیرون می‌آید (در Chrome به onunhandledrejection
+     می‌رود) و try/catchِ همیشگی آن را نمی‌بیند. attach همان rejection را با برچسبِ *جای
+     فراخوانی* ثبت می‌کند و دوباره reject می‌کند تا مسیرِ صفحهٔ مرورگر دست‌نخورده بماند.
+     (شنوندهٔ سراسریِ promise پایین‌تر همچنان همه را بی‌برچسبِ محلی هم می‌گیرد.) */
+  function attach(tag, p) { if (p && typeof p.then === 'function') p.then(undefined, function (e) { errPush(tag, e, true); throw e; }); return p; }
+  function guard(fn, tag) {
+    return function (arg) { try { return fn(arg); } catch (e) { errPush(tag, e); throw e; } };
+  }
+  // زنجیرهٔ rAF تنها چیزی است که با خطا *می‌میرد* (interval خودش دوباره می‌خواند). این wrapper
+  // مرگِ زنجیره را ثبت می‌کند ولی آن را وصل نمی‌کند — در این فاز فقط دیدن، نه درمان.
+  function guardChain(fn, tag, rafOf, runningOf) {
+    return function (arg) {
+      try { return fn(arg); } catch (e) {
+        errPush(runningOf() && !rafOf() ? tag + ' LOOP-LOST:rAF-not-re-armed' : tag, e);
+        throw e;
+      }
+    };
+  }
+  window.addEventListener('error', function (e) {
+    const node = e.target && e.target.tagName ? e.target.tagName + ':' + (e.target.src || e.target.href || '') : '';
+    if (node) { errPush('resource:' + node, { name: 'ResourceError', message: String(e.target.src || e.target.href || '').slice(-90) }); return; }
+    errPush('page:' + String((e.filename || '').split('/').pop()) + ':' + e.lineno, e.error || { name: 'Error', message: e.message });
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    errPush('promise', (e.reason && e.reason.name) ? e.reason : { name: 'UnhandledRejection', message: String(e.reason) });
+  });
+
   /* ---- صدای واقعیِ تبِ دیگر (chrome.tabCapture → getUserMedia در Void Tab) ---- */
-  const EXT = { stream: null, src: null };
+  const EXT = { stream: null, src: null, watch: null };
+
+  /* §1.1 «موسیقی پخش می‌شود؟» برای منبعِ تب از خودِ stream تصمیم گرفته می‌شود، نه از
+     proxy.paused: در صفحه‌های چندِالمنتی المنتِ اشتباه انتخاب می‌شود و pausedِ کاذبش
+     تحلیل را برای همیشه خاموش می‌کند (chip زنده، کهکشان بی‌حرکت). سکوتِ واقعی را همان
+     RMS و A.silent می‌شناسد. منبعِ محلی: دقیقاً مثلِ قبل، بی‌هیچ تغییرِ رفتار.
+     HOTFIX: قاعدهٔ سختِ §1.1 (only live and unmuted → playing) تبِ capture‌شدهٔ ساکت/
+     mute‌شده را «نپخش» می‌کرد و کهکشان را خاموش می‌کرد. حالا 'or' است: چیزی که تب گزارش
+     می‌کند (paused=false) **یا** trackی که 'live' است کافی است؛ muted فقط یک خبر است نه ترمز. */
+  function streamInfo() {
+    if (!EXT.stream) return { state: 'none', n: 0, ready: 'none', muted: false, live: false, liveAny: false };
+    let trs; try { trs = EXT.stream.getAudioTracks() || []; } catch (e) { trs = []; }
+    if (!trs.length) return { state: 'connected', n: 0, ready: 'no_track', muted: false, live: false, liveAny: false };
+    let live = false, liveAny = false, allMuted = true, ready = '';
+    for (let i = 0; i < trs.length; i++) {
+      const t = trs[i];
+      if (t.readyState === 'live') liveAny = true;               // HOTFIX: بی‌توجه به muted
+      if (t.readyState === 'live' && !t.muted) live = true;      // قاعدهٔ سختِ Phase 1 (legacy)
+      if (!t.muted) allMuted = false;
+      ready += (ready ? '/' : '') + t.readyState;
+    }
+    return { state: 'connected', n: trs.length, ready: ready, muted: allMuted, live: live, liveAny: liveAny };
+  }
+  /* §AMBIENT «چند میلی‌ثانیه از آخرین گزارشِ وضعیتِ این تب می‌گذرد؟» proxy._at در
+     void-music-web.js:applyState (و در play/pause محلیِ همان proxy) نو می‌شود — یعنی دقیقاً همان
+     «آخرین vm-web-state / پاسخِ ping» که معیارِ تازگی است، بدونِ هیچ وابستگیِ تازه به آن فایل.
+     _at=0 (هرگز گزارشی نرسیده) = بی‌انتها کهنه: لایهٔ محیطی فقط با گزارشِ واقعی روشن می‌شود. */
+  function webReportAgeMs(a) {
+    if (!a || !a.__web) return -1;
+    const at = +a._at || 0;
+    return at ? Math.max(0, performance.now() - at) : Infinity;
+  }
+  function siteReportedPlayingFresh(a) {
+    if (!a || !a.__web || a.paused) return false;
+    const age = webReportAgeMs(a);
+    return age >= 0 && age <= CFG.webFreshMs;
+  }
+  /* یک خوانشِ مشترک برای همهٔ مصرف‌کننده‌ها (tapsWanted، mini، bgKick، حلقه، رویدادها).
+     'or' = reported-playing **یا** trackِ live؛ با یک قید: «سکوت» فقط وقتی ترمز است که
+     واقعاً اندازه گرفته شده باشد (A.measured) و تحلیلگرها وصل باشند — تا reportِ کاذبِ
+     paused و trackِ mute‌شده کهکشان را نکشد، ولی مکثِ حقیقیِ تب (سکوتِ اندازه‌گرفته‌شده)
+     مثلِ همیشه به آرامش برسد. این همان «سکوت را RMS می‌شناسد» است، نه پرچمِ track. */
+  function silenceMeasured() { return !!(A.ok && A.tapped && A.measured > 2 && A.silent); }
+  function webPlaying(a, si) {
+    si = si || streamInfo();
+    if (CFG.webPlayRule === 'legacy') return !a.paused;          // بازگشتِ کامل به پیش از Phase 1
+    /* §AMBIENT گزارشِ تازهٔ «پخش» خودش کافی است، حتی با هیچ streamی: صدای تب هنوز capture نشده
+       (یا capture رد شده) ولی آهنگ در تبش نواخته می‌شود ⇒ کهکشان با لایهٔ ambient زنده است.
+       با webFallback='off' این شاخه وجود ندارد و همان تاریکیِ قبلی برمی‌گردد. */
+    if (CFG.webFallback === 'ambient' && siteReportedPlayingFresh(a)) return true;
+    // stream یا trackی که همه‌اش ended است صدایی به تحلیلگر نمی‌رساند: «پخش» باورپذیر نیست.
+    // دقت: only readyState. `muted` در tabCaptureِ بی‌صدا true است و هرگز ترمز نیست.
+    if (!si.liveAny) return false;
+    if (!a.paused) return true;                                  // تب می‌گوید پخش
+    return !silenceMeasured();                                   // track زنده ولی تب «مکث»: فقط سکوتِ اندازه‌گرفته‌شده ترمز است
+  }
+  /* درِ تحلیلگرها: تا streamِ زنده‌ای هست، اندازه بگیر (وگرنه سکوت هرگز اندازه گرفته نمی‌شود
+     و قاعدهٔ بالا در «مکثِ کاذب» قفل می‌کند). منبعِ محلی: همان paused، دست‌نخورده. */
+  function tapsSignal(a) {
+    if (!a) return false;
+    if (!a.__web) return !a.paused;
+    return CFG.webPlayRule === 'legacy' ? !a.paused : streamInfo().liveAny;
+  }
+  function playSignal(a) { return a ? (a.__web ? webPlaying(a) : !a.paused) : false; }
+  /* §HOTFIX(۲) منبعِ تب را وقتی track زنده است معلق نکن. قاعدهٔ 'or' سکوتِ *اندازه‌گرفته‌شده*
+     را ترمز می‌داند، ولی suspend() یعنی analyzer بی‌داده → سکوتِ بیات تا ابد → هرگز بیدار
+     نمی‌شود (پذیرش «resume → lit again» با suspend هرگز برقرار نمی‌شد). صدای دوباره ندارد:
+     routeOutput برای منبعِ وب خروجی را به sink با gain=0 می‌برد، پس contextِ روشن فقط تحلیل
+     می‌کند. منبعِ محلی: رفتارِ دست‌نخورده (suspend می‌شود). */
+  function suspendAllowed(a) {
+    if (CFG.webPlayRule === 'or' && a && a.__web && streamInfo().liveAny) return false;
+    return true;
+  }
+  /* فقط برای diagnostics: کدام شرط «پخش» را true/false کرد. هیچ تصمیمی اینجا گرفته نمی‌شود. */
+  function playWhy(a) {
+    if (!a) return 'IDLE:no_element';
+    if (!a.__web) return (a.paused ? 'IDLE' : 'PLAY') + ':local_paused_flag';
+    const si = streamInfo();
+    const yes = webPlaying(a, si);
+    const why = CFG.webPlayRule === 'legacy' ? (a.paused ? 'legacy_paused' : 'legacy_playing')
+      : (!si.liveAny ? (si.state === 'none' ? 'no_stream' : 'no_live_track')
+        : (!a.paused ? 'reported_playing' : (silenceMeasured() ? 'measured_silence' : 'track_live_unmeasured_or_audible')));
+    return (yes ? 'PLAY:' : 'IDLE:') + why +
+      ' {rule=' + CFG.webPlayRule + ' paused=' + !!a.paused + ' ready=' + si.ready +
+      ' muted=' + si.muted + ' liveAny=' + si.liveAny + ' strict=' + si.live +
+      ' silent=' + !!A.silent + ' measured=' + A.measured + ' tapped=' + !!(A.ok && A.tapped) +
+      ' freshMs=' + (a.__web ? (isFinite(webReportAgeMs(a)) ? Math.round(webReportAgeMs(a)) : 'never') : 'n/a') + '}';
+  }
+  /* §AMBIENT سه لایهٔ پخش. LIVE = دادهٔ صوتیِ واقعی به تحلیلگر می‌رسد. AMBIENT = پخش باورپذیر است
+     ولی داده‌ای نیست (صدای تب capture نشده / گراف نساخته) ⇒ نمایشِ تزئینی با انرژیِ ساختگی.
+     IDLE = هیچ‌کدام. لایه فقط «داده هست یا نه» را می‌گوید؛ تصمیمِ پخش همان playSignal است و
+     هیچ‌جا تاریکیِ جدید نمی‌سازد: playing=false ⟸ tier=idle، وگرنه tier هرگز playing را نمی‌بندد. */
+  function tierEval(a) {
+    a = a || VM.getAudio();
+    if (!a) return { tier: 'idle', why: 'IDLE:no_element' };
+    if (!a.__web) return { tier: V.playing ? 'live' : 'idle', why: (V.playing ? 'PLAY' : 'IDLE') + ':local_element' };
+    if (CFG.webFallback !== 'ambient') {                       // 'off' = هیچ لایه‌ای اضافه نمی‌شود
+      if (!V.playing) return { tier: 'idle', why: 'fallback_off:not_playing' };
+      // بدونِ قضاوتِ تازه: «گراف دارد = تحلیل زنده، گراف ندارد = همان مسیرِ تزئینیِ همیشگی».
+      // خواندنِ FEAT.quality اینجا حلقهٔ بازِ tier→quality→tier می‌ساخت (یک‌بار ambient، همیشه ambient).
+      return { tier: A.ok ? 'live' : 'ambient', why: 'fallback_off:' + (A.ok ? 'analysis' : 'no_graph') };
+    }
+    if (!V.playing) return { tier: 'idle', why: playWhy(a) };
+    const si = streamInfo();
+    // stream زنده + گرافِ ساخته = مسیرِ دادهٔ واقعی؛ بسته *بودنِ* درِ تحلیلگر news است نه
+    // نبودِ داده (نظرسنجیِ ۳ ثانیه‌ای بازش می‌کند)، پس لایه را عوض نمی‌کند.
+    if (A.ok && si.liveAny)
+      return { tier: 'live', why: !A.tapped ? 'LIVE:stream_taps_closed' : (silenceMeasured() ? 'LIVE:grace_after_measured_silence' : 'LIVE:analysis') };
+    const age = webReportAgeMs(a);
+    if (age >= 0 && age <= CFG.webFreshMs) return { tier: 'ambient', why: 'AMBIENT:fresh_report_' + Math.round(age) + 'ms' };
+    if (si.liveAny) return { tier: 'ambient', why: 'AMBIENT:track_live_no_analysis' };
+    return { tier: 'idle', why: 'IDLE:no_data_and_no_fresh_report' };
+  }
+  /* §IDLE آیا منبعِ فعلی «صدا هست ولی موسیقی نیست» است؟ فقط از لایهٔ منبع پرسیده می‌شود
+     (activeInfo.audioOnly) — خودِ اینجا هرگز «صدا» را با «موسیقی» یکی نمی‌گیرد و هیچ حدسی
+     نمی‌زند: نه عنوان، نه duration، نه RMS. منبعِ محلی (فایل) هرگز وارد این شاخه نمی‌شود.
+     بی‌هزینه نگه داشتنش مهم است: این تابع getState() را می‌خواند، پس حداکثر ۲ بار در ثانیه. */
+  function idleAudioEval() {
+    if (!CFG.idleHalo) return 'flag_off';
+    const a = VM.getAudio();
+    if (!a) return 'no_element';
+    if (!a.__web) return 'local_source';                       // فایلِ محلی: رفتارِ دست‌نخورده
+    if (!VM.isOpen()) return 'mode_closed';
+    if (document.hidden) return 'hidden';
+    if (reduced()) return 'reduced_motion';
+    let st = null;
+    try { st = VM.webState && VM.webState(); } catch (e) { return 'web_state_error'; }
+    const ai = st && st.activeInfo;
+    if (!ai) return 'no_active_source';
+    if (ai.tabId !== a.tabId) return 'not_this_source';         // فقط دربارهٔ همان منبعی که به آن وصلیم
+    if (ai.contact !== 'live') return 'bridge_not_live';        // پلِ تب دیگر پاسخ نمی‌دهد: منبع نمانده است
+    return ai.audioOnly ? 'audio_only_source' : 'music_source';
+  }
+  /* نورِ هاله در این حالت: فقط زمانِ قطعی (V.haloT) — هیچ عددی از FEAT/A نمی‌آید، پس صحنه
+     با صدایِ حرف‌زدنِ کسی نمی‌پرد و ادعایِ «تحلیلِ موسیقی» نمی‌شود. دامنهٔlow و آهسته است تا
+     «ظریف» بماند و برای نورحساسی خطرناک نباشد. */
+  function idleHaloEnergy() { return 0.16 + 0.10 * Math.sin(V.haloT * 0.23); }
+  function idleHaloLevel() { return clamp(CFG.idleHaloLevel, 0, 1) * (0.86 + 0.14 * Math.sin(V.haloT * 0.31)); }
+  /* §SCENE رأیِ «چه منبعی هست» — فقط از همان خوانش‌هایی که idleAudioEval هم می‌خواند، و حداکثر
+     دو بار در ثانیه (از همان تیکِ idlePoll) یا هنگامِ رویدادهایِ منبع. سه نتیجهٔ ممکن:
+       'local'     المنتِ فایلِ خودِ پخش‌کن، به‌شرطی که واقعاً آهنگی بارگذاری شده باشد —
+                   ensureAudio() یک المنتِ بی‌src هم می‌سازد، پس «بودنِ المنت» منبع نیست.
+       'web'       منبعِ تب با پلِ زنده و همین tabId.
+       'audioOnly' صدا هست ولی موسیقی نیست (رأیِ خودِ لایهٔ منبع) ⇒ کهکشان بیدار نمی‌شود.
+       'none'      منبعی نیست ⇒ idle.
+     هیچ‌جا «تشخیص» جای «پخش» را نمی‌گیرد: این تابع هرگز playing نمی‌دهد. */
+  function scenePoll() {
+    if (!CFG.scene) { V.srcKind = 'none'; V.sceneWhy = 'scene:off'; return; }
+    const a = VM.getAudio();
+    if (!a) { V.srcKind = 'none'; V.sceneWhy = 'scene:no_element'; return; }
+    if (!a.__web) {
+      let st = null;
+      try { st = VM.getState && VM.getState(); } catch (e) { st = null; }
+      const loaded = (st && st.current !== null && st.current !== undefined) || !!a.currentSrc;
+      V.srcKind = loaded ? 'local' : 'none';
+      V.sceneWhy = loaded ? 'scene:local_track' : 'scene:local_empty';
+      return;
+    }
+    let w = null;
+    try { w = VM.webState && VM.webState(); } catch (e) { V.srcKind = 'none'; V.sceneWhy = 'scene:web_state_error'; return; }
+    const ai = w && w.activeInfo;
+    if (!ai) { V.srcKind = 'none'; V.sceneWhy = 'scene:no_active_source'; return; }
+    if (ai.tabId !== a.tabId) { V.srcKind = 'none'; V.sceneWhy = 'scene:not_this_source'; return; }
+    if (ai.contact !== 'live') { V.srcKind = 'none'; V.sceneWhy = 'scene:bridge_not_live'; return; }
+    if (ai.audioOnly) { V.srcKind = 'audioOnly'; V.sceneWhy = 'scene:audio_only_source'; return; }
+    V.srcKind = 'web'; V.sceneWhy = 'scene:music_source';
+  }
+  /* §SCENE مشتقِ بی‌خوانش (هر فریم، صفر alloc): تنها ورودی‌هایش V.playing و کشِ scenePoll‌اند،
+     پس هیچ منبعِ حقیقتِ دومی نمی‌سازد و با tier/idleAudio در نمی‌افتد. */
+  function visualState() {
+    if (V.playing) return 'playing';
+    return (V.srcKind === 'web' || V.srcKind === 'local') ? 'source' : 'idle';
+  }
+  /* §SCENE جایی که کهکشان در «منبع هست، پخش نیست» می‌نشیند. از holeRest پایین‌تر نمی‌آید
+     (بیداری هرگز تاریکیِ بیشتر نسازد) و از ۱ بالا نمی‌رود. */
+  function awakenTarget() { return clamp(CFG.awakenLevel, CFG.holeRest, 1); }
+  function sceneWanted() { return !!CFG.scene && VM.isOpen() && (V.vstate === 'idle' || V.vstate === 'source'); }
+  /* §SCENE تک‌فریمِ بی‌حرکت برایِ prefers-reduced-motion: صحنه «مرده» نمی‌ماند ولی هیچ
+     انیمیشنی هم نمی‌بیند. مخلوط‌ها بی‌درنگ رویِ هدفِ خودشان می‌نشینند، یک فریم رسم می‌شود و
+     حلقه اجرا نمی‌شود (نه rAF، نه تایمر). بیرون از Motion-Reduce هرگز صدا نمی‌کند. */
+  function paintSceneStill() {
+    if (!CFG.scene || V.playing || V.running || !VM.isOpen() || document.hidden || !reduced()) return false;
+    if (!V.ok && !initGL()) return false;
+    V.vstate = visualState();
+    const idle = V.vstate === 'idle';
+    V.idleX = idle ? 1 : 0; V.awakenX = idle ? 0 : 1;
+    V.L.aurora = 0; V.L.galaxy = idle ? 0 : awakenTarget(); V.L.lum = 0.35;
+    // همان فازِ ایستِ حلقه (بی‌حرکت): عددِ حرکتِ هاله از V.haloT خوانده می‌شود و haloT جلو نمی‌رود،
+    // پس Motion-Reduce یک فریمِ «زنده ولی بی‌جنبش» می‌بیند، نه انیمیشنِ تیک‌تیک‌ی ۳ ثانیه‌ای.
+    V.idleE = V.haloE = idle ? idleHaloEnergy() : 0;
+    V.sceneStill++;
+    try { draw(performance.now() / 1000); } catch (e) { return false; }
+    return true;
+  }
+  /* §IDLE بیدار-کنندهٔ حالت: حلقهٔ رندر در idleِ معمولی خودش می‌ایستد (و باید بایستد). تنها جایی
+     که می‌تواند دوباره بیدارش کند، همان تیکِ ۳ ثانیه‌ایِ از-پیش-موجود است — تایمرِ تازه نمی‌سازیم. */
+  function idleHaloCheck() {
+    V.idleWhy = idleAudioEval();
+    const on = V.idleWhy === 'audio_only_source';
+    V.idleAudio = on;
+    scenePoll(); V.vstate = visualState();                    // §SCENE همان تیک، رأیِ تازه
+    // با scene خاموش، عیناً شرطِ قبلی: فقط «صدا بدونِ موسیقی» حلقه را بیدار می‌کرد.
+    const keep = on || sceneWanted();
+    if (!keep || V.running || !VM.isOpen() || document.hidden) return;
+    if (reduced()) { paintSceneStill(); return; }             // §SCENE بی‌حرکت، ولی نه تاریک
+    if (!V.ok && !initGL()) return;
+    startLoop();                                               // هاله از idleX=0 بالا می‌آید؛ پرشِ نور نداریم
+  }
+  /* tierX نسبتِ مخلوطِ تزئینی است (۰ = دادهٔ واقعی، ۱ = محیطیِ خالص) و نرم جابه‌جا می‌شود تا
+     آمدنِ capture وسطِ پخش — یا رفتنش — پرشِ نور نسازد (crossfade ~CFG.tierXFadeS ثانیه). */
+  function tierUpdate(dt) {
+    const t = tierEval();
+    V.tier = t.tier; V.tierWhy = t.why;
+    // 'off' = ماشینِ لایه کلاً از مدار خارج می‌شود (نه فقط تصمیم): مخلوط هرگز درگیر نمی‌گردد
+    if (CFG.webFallback !== 'ambient') { V.tierX = 0; }
+    else {
+      const want = V.tier === 'ambient' ? 1 : 0;
+      V.tierX += (want - V.tierX) * expK(dt, want > V.tierX ? CFG.tierXFadeS : CFG.tierXFadeS * 0.6);
+      if (Math.abs(V.tierX - want) < 0.002) V.tierX = want;
+    }
+    /* §IDLE crossfadeِ هاله با همان شکلِ کارِ tierX (بی‌تایمر، بی‌رشتهٔ تازه). رأیِ حالت را
+       حداکثر ۲ بار در ثانیه تازه می‌کنیم؛ آمدنِ منبعِ موسیقی = هاله بیرون، کهکشان درون — نرم
+       و در جهتِ مخالفِ همان blend، پس هیچ فریمی دوباره-انیمیشن یا سیاهی نمی‌بیند. */
+    V.idlePoll -= dt;
+    if (V.idlePoll <= 0) { V.idlePoll = 0.5; V.idleWhy = idleAudioEval(); V.idleAudio = V.idleWhy === 'audio_only_source'; scenePoll(); }
+    /* §SCENE رأیِ حالت هر فریم فقط از کش خوانده می‌شود (صفر DOM، صفر alloc). با scene خاموش،
+       iWant عیناً همان عبارتِ قبلی است: تنها «صدا بدونِ موسیقی» هاله را بالا می‌برد. */
+    V.vstate = visualState();
+    const iWant = CFG.scene ? (V.vstate === 'idle' ? 1 : 0) : (V.idleAudio ? 1 : 0);
+    V.idleX += (iWant - V.idleX) * expK(dt, CFG.idleHaloFadeS);
+    if (Math.abs(V.idleX - iWant) < 0.002) V.idleX = iWant;
+    /* §SCENE بیداریِ «منبع هست، پخش نیست»: با همان expK و بی‌رویداد، پس تکرارِ تشخیصِ منبع
+       هرگز این گذار را از نو نمی‌شکند (no restart, no pop) و خروج به idle نرم برگردانده می‌شود.
+       ورود آهسته‌تر از خروج است تا کهکشان با «آمدنِ» یک تبِ تازه جرقه نزند. */
+    const aWant = (CFG.scene && V.vstate === 'source') ? 1 : 0;
+    V.awakenX += (aWant - V.awakenX) * expK(dt, aWant > V.awakenX ? CFG.awakenFadeS : CFG.awakenFadeS * 0.7);
+    if (Math.abs(V.awakenX - aWant) < 0.002) V.awakenX = aWant;
+  }
+  /* انرژیِ تزئینیِ محیطی: همان منحنیِ v42، حالا یک صاحبِ واحد دارد (پیش‌تر در دو جا کپی بود:
+     updateStage و step — دو نسخهٔ جدا یعنی امکانِ واگراییِ نمایش). */
+  function ambientEnergy(nowS) { return clamp(0.52 + 0.30 * Math.sin(nowS * 0.33) + 0.12 * Math.sin(nowS * 1.1), 0, 1); }
+  /* انرژی‌ای که نمایش می‌خواند: واقعی، تزئینی، یا مخلوطِ نرمِ دوتا. با webFallback='off' و
+     tierX=0 دقیقاً همان عبارتِ قبلی است (FEAT.quality==='ambient' ? ساختگی : FEAT.energy). */
+  function displayEnergy(nowS) {
+    const eA = showOwnsDisplay() ? showEnergy(ambientEnergy(nowS)) : ambientEnergy(nowS);
+    if (CFG.webFallback !== 'ambient' || V.tierX <= 0.001) return FEAT.quality === 'ambient' ? eA : FEAT.energy;
+    const real = (FEAT.quality === 'ambient' || V.tier === 'ambient') ? eA : FEAT.energy;
+    return clamp(eA * V.tierX + real * (1 - V.tierX), 0, 1);
+  }
+
+  /* ==================================================================
+     §SHOW — «کارگردانِ» لایهٔ ambient
+     یک نمایشِ زمان‌محور و قطعی برای وقتی که *هیچ دادهٔ صوتیِ واقعی* به تحلیلگر نمی‌رسد
+     (صدای تب capture نشده یا stream مُرده است، ولی تب تازه می‌گوید پخش می‌کند).
+     صداقیت: این کد هیچ‌جا mوزیک را «می‌شنود». ورودی‌هایش فقط سه چیز است:
+       ۱) زمانِ سپری‌شده درونِ نمایش (s.t)، ۲) seed = hash(عنوان + میزبان + طولِ گزارش‌شده)،
+       ۳) خودِ لایه (ambient) و پلهٔ کیفیت. هیچ عددی از آن به FEAT برنمی‌گردد، پس
+       quality هرگز 'live' نمی‌شود و چیپ دروغ نمی‌گوید. ambientShow=false ⇒ این بلوک
+       اجرا نمی‌شود و همان ambientِ پیشین (بدونِ هیچ تغییرِ دیگری) بازمی‌گردد.
+     افکت‌ها همه از همین فایل‌اند: spawnComet / spawnBloom / awakenDistantGroups /
+     startStarFlight / V.flare (همان uFlare) / V.cosmic.glow / V.ejBurst / ماشینِ dive.
+     دو hookِ جدید و حداقلی (چون جایِ درستِ دیگری نبود):
+       الف) شکل‌دادنِ منحنیِ *تزئینی* در displayEnergy (فقط در شعبهٔ ambient؛ LIVE/local نه)،
+       ب) یک کرومایِ آرایشیِ جدا (V.show.chroma) که فقط در draw به‌جای A.chroma آپلود می‌شود
+          و A.chroma (حافظهٔ تحلیل) را اصلاً لمس نمی‌کند؛ وزنِ آن V.tierX است، پس در
+          crossfade با LIVE نرم جابه‌جا می‌شود و در LIVE دقیقاً همان آرایهٔ قبلی می‌ماند.
+     photosensitivity: تغییرِ روشنایی با SHOW.maxEnvPerS محدود به نرخ می‌شود (نه پله)،
+     دو پرشِ تیز حداقل SHOW.minEventGapS ثانیه فاصله، و flare با SHOW.flashGapS ≤ ۲Hz.
+     پنهان‌بودنِ تب: حلقهٔ رندر (rAF) نمی‌چرخد و s.t هم جلو نمی‌رود — یعنی بی‌رندر و بی‌پرش.
+     ================================================================== */
+  function showDensity() { return SHOW.density[clamp(Q.tier | 0, 0, 2)] || 1; }
+  function showWanted() {
+    // §IDLE: «کارگردانِ» ambient یک روایتِ *موسیقی* است؛ در حالتِ «صدا بدونِ موسیقی» کهکشان
+    // سرکوب شده است، پس نمایش هم اجرا نمی‌شود (نه افکت، نه خرجِ محاسباتی‌اش).
+    return !!(CFG.ambientShow && CFG.webFallback === 'ambient' && V.tier === 'ambient' &&
+      V.playing && VM.isOpen() && !document.hidden && !reduced() && !V.idleAudio);
+  }
+  function showOwnsDisplay() { return !!(V.show.on && CFG.ambientShow && CFG.webFallback === 'ambient'); }
+  function showSeedSrc() {
+    const a = VM.getAudio();
+    let host = '';
+    try { const st = VM.webState && VM.webState(); host = (st && st.activeInfo && st.activeInfo.host) || ''; } catch (e) {}
+    const dur = a && Number.isFinite(a.duration) && a.duration > 0 ? Math.round(a.duration) : 0;
+    return V.show.title + '\u0001' + host + '\u0001' + dur;
+  }
+  /* بازشمارِ یک بازهٔ ثانیه‌ای با کمی تنوعِ قطعی؛ پله‌هایِ پایینِ کیفیت افکت‌ها را رقیق می‌کند. */
+  function showSpan(minS, randS) { return (minS + V.show.rng() * randS) / Math.max(0.4, showDensity()); }
+  function showBegin() {
+    const s = V.show;
+    s.seedSrc = showSeedSrc(); s.seed = hash32(s.seedSrc);
+    s.rng = mulberry32((s.seed ^ 0x5F5A7A13) >>> 0);
+    s.begins++; s.on = true; s.t = 0; s.phase = 'overture';
+    s.level = clamp(+CFG.ambientShowLevel || 0, 0, 1);
+    s.env = 0; s.envTarget = 0; s.hueIdx = s.seed % 7;
+    s.lastFlareAt = -99; s.maxEnvRate = 0;
+    for (let i = 0; i < 12; i++) { s.chroma[i] = 0; s.pattern[i] = 0; s.wake[i] = 0; s.order[i] = i; s.wOff[i] = s.rng(); }
+    // ترتیبِ بیداریِ حلقه‌ها: همان آهنگ ⇒ همان ترتیب (قطعی از seed)، آهنگِ دیگر ⇒ ترتیبِ دیگر
+    for (let i = 11; i > 0; i--) { const j = Math.floor(s.rng() * (i + 1)); const x = s.order[i]; s.order[i] = s.order[j]; s.order[j] = x; }
+    s.nextCometAt = showSpan(SHOW.cometMinS, SHOW.cometRandS);
+    s.nextBloomAt = 2 + showSpan(SHOW.bloomMinS, SHOW.bloomRandS);
+    s.nextWakeAt = 4 + showSpan(SHOW.wakeMinS, SHOW.wakeRandS);
+    s.nextFlightAt = showSpan(SHOW.flightMinS, SHOW.flightRandS);
+    s.nextSurgeAt = showSpan(SHOW.surgeMinS, SHOW.surgeRandS);
+    s.surgeEndAt = 0; s.breathEndAt = 0;
+  }
+  /* شکلِ منحنیِ تزئینی: همان منحنیِ v42 کمی کوتاه‌شده + بلندِ آهستهٔ قوسِ روایت.
+     سقفِ output همان ۱ است و نرخِ تغییر را limiterِ پایین‌تر تضمین می‌کند. */
+  function showEnergy(eA) {
+    const s = V.show, L = s.level;
+    if (L <= 0) return eA;
+    return clamp(eA * (1 - SHOW.energyTrim * L) + SHOW.energyGain * L * s.env, 0, 1);
+  }
+  function showUpdate(dt, nowS) {
+    const s = V.show, want = showWanted();
+    if (!want) { s.on = false; return; }
+    // آهنگ/سایت عوض شده؟ ⇒ پالت و روایتِ تازه (با همان seedِ قطعی) و پیش‌درآمدِ دوباره
+    if (!s.on || !s.rng) showBegin();
+    else if (s.seedSrc !== showSeedSrc()) showBegin();
+    else s.on = true;
+    s.level = clamp(+CFG.ambientShowLevel || 0, 0, 1);
+    const L = s.level;
+    s.t += Math.min(dt, 0.1);
+    const t = s.t, ct = V.cosmic.activeElapsed;      // ساعتِ افکت‌ها همان ساعتِ cosmic است (دنباله‌دار/بloom آن را می‌خوانند)
+
+    // ——— قوسِ روایت: پیش‌درآمد ← کروز ← اوج ← نفس ———
+    if (s.phase === 'overture' && t >= SHOW.overtureS) { s.phase = 'cruise'; s.nextSurgeAt = t + showSpan(SHOW.surgeMinS, SHOW.surgeRandS); }
+    else if (s.phase === 'surge' && t >= s.surgeEndAt) { s.phase = 'breath'; s.breathEndAt = t + showSpan(SHOW.breathMinS, SHOW.breathRandS); }
+    else if (s.phase === 'breath' && t >= s.breathEndAt) { s.phase = 'cruise'; s.nextSurgeAt = t + showSpan(SHOW.surgeMinS, SHOW.surgeRandS); }
+
+    if (s.phase === 'overture') s.envTarget = 0.16 + 0.34 * smoother5(t / SHOW.overtureS);
+    else if (s.phase === 'surge') s.envTarget = 0.92;
+    else if (s.phase === 'breath') s.envTarget = SHOW.envLo + 0.06 * Math.sin(t * 0.09);
+    else s.envTarget = clamp(0.46 + 0.20 * Math.sin(t * 0.11 + s.wOff[0] * TAU) + 0.12 * Math.sin(t * 0.037 + s.wOff[1] * TAU), 0, 1);
+    // limiterِ سخت: روشنایی هیچ‌وقت سریع‌تر از SHOW.maxEnvPerS در ثانیه عوض نمی‌شود (حساسیتِ نوری)
+    const prev = s.env, maxStep = SHOW.maxEnvPerS * Math.max(dt, 0.0001);
+    s.env = clamp(s.env + clamp(s.envTarget - s.env, -maxStep, maxStep), 0, 1);
+    const rate = Math.abs(s.env - prev) / Math.max(dt, 0.0001);
+    if (rate > s.maxEnvRate) s.maxEnvRate = rate;
+
+    // بیداریِ حلقه‌ها: در پیش‌درآمد یکی‌یکی با ترتیبِ seed؛ بعد از آن نفسِ آهستهٔ زمان (نه ضربهٔ موسیقی)
+    for (let i = 0; i < 12; i++) {
+      const rb = s.order[i];
+      s.wake[rb] = s.phase === 'overture'
+        ? smoother5((t - i * SHOW.ringStepS) / SHOW.ringRiseS)
+        : clamp(0.55 + 0.45 * Math.sin(t * 0.14 + s.wOff[rb] * TAU), 0, 1);
+    }
+    const amp = clamp(0.62 * L * (0.35 + 0.65 * s.env), 0, 1);
+    for (let i = 0; i < 12; i++) s.pattern[i] = clamp(amp * s.wake[i] * (0.55 + 0.45 * Math.sin(t * (0.20 + 0.16 * (i % 3)) + s.wOff[i] * TAU)), 0, 1);
+    s.hueIdx = ((s.seed % 7) + Math.floor(t / SHOW.huePeriodS)) % 7;
+
+    // ——— افکت‌های کروز: فقط تابع‌های موجود، با فاصله‌های تازه‌ریزی‌شده (بی‌تکرارِ آشکار) ———
+    if (s.phase !== 'breath') {
+      if (t >= s.nextBloomAt) { spawnBloom(ct, clamp(0.5 + 0.45 * s.env * L, 0, 1)); s.nBloom++; s.nextBloomAt = t + showSpan(SHOW.bloomMinS, SHOW.bloomRandS); }
+      if (t >= s.nextCometAt) { if (spawnComet(ct, 0.22 * s.env * L)) s.nComet++; s.nextCometAt = t + showSpan(SHOW.cometMinS, SHOW.cometRandS); }
+      if (t >= s.nextWakeAt) { awakenDistantGroups(ct, Q.tier >= 2 ? 2 : 1, clamp(0.34 + 0.30 * s.env * L, 0, 1)); s.nWake++; s.nextWakeAt = t + showSpan(SHOW.wakeMinS, SHOW.wakeRandS); }
+      if (t >= s.nextFlightAt) {
+        // فورانِ ستارگان تنها اگر ستارهٔ امتیازیِ واقعی روی صفحه باشد معنا دارد؛ وگرنه بی‌کار است
+        let has = false; try { const r = VM.getStarRects && VM.getStarRects(); has = !!(r && r.length); } catch (e) {}
+        if (has) { startStarFlight(); s.nFlight++; } else s.nFlightNoStars++;
+        s.nextFlightAt = t + showSpan(SHOW.flightMinS, SHOW.flightRandS);
+      }
+    }
+
+    // ——— اوج: همان ماشینِ dive، بدونِ هیچ «اوجِ موسیقی» ساختگی ———
+    if (s.phase !== 'breath' && t >= s.nextSurgeAt && t - s.lastJumpAt >= SHOW.minEventGapS) {
+      const op = V.opening;
+      if (op.started && op.phase === 'travel' && op.evAt < 0) {
+        op.evAt = op.elapsed;
+        op.evLen = clamp(op.eventS || DIVE.minEventS, DIVE.minEventS, DIVE.maxEventS);
+        s.phase = 'surge'; s.surgeEndAt = t + Math.min(SHOW.surgeHoldS, op.evLen * 0.9);
+        s.lastJumpAt = t; s.nSurge++;
+        V.ejBurst = Math.min(0.5, V.ejBurst + 0.30 * L);                 // فورانِ جت‌های لبه (موجِ نرم، خودش محو می‌شود)
+        V.cosmic.glow = Math.max(V.cosmic.glow, 0.30 * L);                // هالهٔ گروه‌های دوردست
+        spawnBloom(ct, clamp(0.75 + 0.25 * L, 0, 1)); s.nBloom++;
+        awakenDistantGroups(ct, Q.tier >= 2 ? 3 : 2, clamp(0.45 + 0.25 * L, 0, 1)); s.nWake++;
+      } else { s.nSurgeNoGate++; s.nextSurgeAt = t + 6; }                 // درِ تونل در دسترس نیست: کوتاه صبر کن
+    }
+    if (s.phase === 'surge') {
+      // flareِ افق: با نرخِ محدود بالا می‌آید (پله‌ای نیست) و با decayِ خودش می‌نشیند؛ ≤۲Hz
+      const cap = SHOW.flareMax * L;
+      if (V.flare < cap && t - s.lastFlareAt >= SHOW.flashGapS) { V.flare = Math.min(cap, V.flare + SHOW.flareRate * dt); s.lastFlareAt = t; }
+    }
+  }
+  /* کرومایِ آرایشیِ لایهٔ ambient (فقط برای آپلودِ uChroma). آرایهٔ تحلیل (A.chroma) دست‌نخورده
+     می‌ماند؛ در crossfade با وزنِ V.tierX مخلوط می‌شود و در LIVE همان A.chroma برمی‌گردد. */
+  function displayChroma() {
+    const s = V.show;
+    if (!showOwnsDisplay()) return A.chroma;
+    const w = clamp(SHOW.chromaW * s.level * V.tierX, 0, 1);
+    if (w <= 0.001) return A.chroma;
+    for (let i = 0; i < 12; i++) s.chroma[i] = A.chroma[i] * (1 - w) + s.pattern[i] * w;
+    return s.chroma;
+  }
+
+  /* ==================================================================
+     §ENCHANT — «اژدهای خفته» (idle) و «بیدارشدنِ باشکوه» (آغازِ پخش)
+     فقط بصری: نه تحلیلِ صدا، نه capture، نه تصمیمِ پخش. ورودی‌ها فقط V.playing (که بقیهٔ فایل
+     تعیین می‌کند)، idleX (همان blendِ هاله) و ساعتِ خودِ این بلوک‌اند.
+     ورود فقط وقتی شروع می‌شود که *گذارِ* «پخش نمی‌شد ← پخش می‌شود» را در فریم‌های پیاپیِ
+     Music Mode دیده باشیم (باز کردنِ صفحه وسطِ پخش، یا ازسرگیریِ کمتر از entranceCooldownS
+     ثانیه بعد از مکث، نمایش را تکرار نمی‌کند).
+     ================================================================== */
+  const ENCH = { t: 0, flow: 0, lastT: 0, open: false, prevPlaying: false, lastPlayT: -999,
+    intro: { on: false, t: 0, fired: false }, starts: 0, why: 'none' };
+  const ENCH_TMP = { swell: 0, squeeze: 0, r1: 1, a1: 0, r2: 1, a2: 0 };
+  const ENCH_OUT = { aura: 0, swell: 0, squeeze: 0, r1: 1, a1: 0, r2: 1, a2: 0 };
+  /* منحنیِ بیدارشدن (ثانیه از شروع): ۰–۰٫۹ نفسِ عمیق (هاله جمع می‌شود) · ۰٫۹ موجِ اول · ۱٫۵ موجِ دوم ·
+     تورمِ نرمِ هاله تا ~۵٫۰. همه smoother5 و پیوسته‌اند؛ هیچ پله/چشمک‌ی نیست (حساسیتِ نوری). */
+  function enchEnvelope(tt, o) {
+    o.swell = 0.70 * smoother5(tt / 1.8) * (1 - smoother5((tt - 3.2) / 3.0));
+    o.squeeze = tt < 0.9 ? Math.sin(Math.PI * clamp(tt / 0.9, 0, 1)) * 0.8 : 0;
+    const p1 = clamp((tt - 0.9) / 2.6, 0, 1), p2 = clamp((tt - 1.5) / 3.4, 0, 1);
+    o.r1 = 1 + 5.2 * smoother5(p1); o.a1 = tt >= 0.9 ? 0.70 * smoother5(p1 / 0.15) * Math.pow(1 - p1, 1.3) : 0;
+    o.r2 = 1 + 5.2 * smoother5(p2); o.a2 = tt >= 1.5 ? 0.46 * smoother5(p2 / 0.15) * Math.pow(1 - p2, 1.3) : 0;
+    return o;
+  }
+  function enchStartIntro() { const I = ENCH.intro; I.on = true; I.t = 0; I.fired = false; ENCH.starts++; }
+  /* هر فراخوانیِ draw یک بار: ساعتِ هاله، تشخیصِ گذارِ شروعِ پخش، و پیشبردِ ورود. */
+  function enchStep(nowS, rm) {
+    const dt = ENCH.lastT > 0 ? clamp(nowS - ENCH.lastT, 0, 0.1) : 0;
+    const open = !!VM.isOpen(), playing = !!V.playing;
+    const contiguous = ENCH.lastT > 0 && (nowS - ENCH.lastT) < 1.5 && ENCH.open && open;
+    if (playing && !ENCH.prevPlaying) {
+      if (!CFG.enchant || !CFG.grandEntrance) ENCH.why = 'flag_off';
+      else if (!contiguous) ENCH.why = 'no_prior_frames';
+      else if (rm) ENCH.why = 'reduced_motion';
+      else if (document.hidden) ENCH.why = 'hidden';
+      else if (ENCH.intro.on) ENCH.why = 'already_running';
+      else if (nowS - ENCH.lastPlayT <= CFG.entranceCooldownS) ENCH.why = 'cooldown';
+      else { ENCH.why = 'started'; enchStartIntro(); }
+    }
+    if (playing) ENCH.lastPlayT = nowS;
+    ENCH.prevPlaying = playing; ENCH.lastT = nowS; ENCH.open = open;
+    const I = ENCH.intro;
+    if (!rm) {
+      ENCH.t += dt;
+      // جریانِ اژدها: در خواب خیلی آرام؛ هنگامِ بیدارشدن (swellِ ورود) شتاب می‌گیرد. انتگرال‌گیری ⇒ بدونِ پرش
+      ENCH.flow += dt * (0.28 + 2.0 * (I.on ? enchEnvelope(I.t, ENCH_TMP).swell : 0));
+    }
+    if (I.on) {
+      if (rm || !playing && !I.fired && I.t > 0.2 && ENCH.why !== 'preview') { I.on = false; return; }   // مکثِ فوری یا reduced-motion: ورود را رها کن
+      I.t += dt;
+      if (!I.fired && I.t >= 0.9) {
+        I.fired = true;
+        // لحظهٔ موجِ اول: ابزارهای موجودِ همین فایل (همانی که کارگردانِ ambient هم صدا می‌زند)، سقفِ سختِ flare
+        V.flare = Math.max(V.flare, Math.min(SHOW.flareMax, 0.32));
+        V.ejBurst = Math.min(0.5, V.ejBurst + 0.30);
+        try {
+          if (V.cosmic.sessionActive) {
+            const ct = V.cosmic.activeElapsed;
+            spawnBloom(ct, 0.85); awakenDistantGroups(ct, Q.tier >= 2 ? 2 : 1, 0.5);
+            V.cosmic.glow = Math.max(V.cosmic.glow, 0.30);
+          }
+        } catch (e) {}
+      }
+      if (I.t >= CFG.entranceS) I.on = false;
+    }
+  }
+  /* uniformهای این فریم، یا null وقتی چیزی برای رسم نیست (پاسِ شیدر کلاً اجرا نمی‌شود). */
+  function enchUniforms(idleW) {
+    if (!CFG.enchant) return null;
+    const o = ENCH_OUT;
+    o.aura = clamp(CFG.enchantLevel, 0, 1.2) * idleW;
+    if (ENCH.intro.on) enchEnvelope(ENCH.intro.t, o); else { o.swell = 0; o.squeeze = 0; o.r1 = 1; o.a1 = 0; o.r2 = 1; o.a2 = 0; }
+    if (o.aura < 0.004 && o.swell < 0.004 && o.a1 < 0.004 && o.a2 < 0.004) return null;
+    return o;
+  }
+
+  /* رویدادِ بیات هیچ‌وقت نمی‌رسد وقتی stream می‌میرد یا وقتی صدای تازه‌ای وسطِ «مکث» می‌آید.
+     این یکی خودمان V.playing را با سیگنال هم‌راستا می‌کند و همان رویدادِ همیشگی را می‌فرستد
+     تا بقیهٔ صفحه (starfield، روایتِ دوربین) هم‌وقت شوند. منبعِ محلی هرگز دست‌نخورده می‌ماند.
+     HOTFIX: با قاعدهٔ 'or' هرگز «پخش» را وقتی تب در حالِ پخش است یا track زنده است نبندد؛
+     و برای اینکه یک خوانشِ لحظه‌ایِ بد (مثلاً stream تازه جاافتاده) کهکشان را نکشد،
+     خاموش‌شدن playHoldMs میلی‌ثانیه بعد از آخرین خوانشِ «پخش» اعمال می‌شود. */
+  const P = { hiAt: 0, retry: 0 };
+  // تصمیمِ «پخش/مکث» هیچ‌وقت داخلِ analyze() یا فریمِ رندر اجرا نمی‌شود (stopLoop وسطِ فریم
+  // زنجیرهٔ rAF را به‌هم می‌ریزد): یک ماكروTaskِ کوتاه جلوتر می‌افتد و همان syncPlay می‌خواند.
+  function syncPlaySoon(ms) {
+    if (P.retry) return;
+    P.retry = setTimeout(guard(function () { P.retry = 0; syncPlay(); }, 'to:play-sync'), ms || 0);
+  }
+  function syncPlayEval() {
+    const a = VM.getAudio();
+    if (!a || !a.__web) return false;
+    const want = playSignal(a), now = performance.now();
+    if (want) P.hiAt = now;
+    if (CFG.webPlayRule === 'or' && V.playing && !want) {
+      const left = CFG.playHoldMs - (now - P.hiAt);
+      // پنجرهٔ هیسترزیس: یک خوانشِ بدِ کوتاه پخش را نبندد، ولی قفل هم نکند — دقیقاً سرِ
+      // پنجره خودمان دوباره می‌پرسیم (وگرنه باید تا نظرسنجیِ ۳ ثانیه‌ای صبر کرد).
+      if (left > 0) { syncPlaySoon(left); return false; }
+    }
+    if (want === V.playing) return false;
+    V.playing = want;
+    try { window.dispatchEvent(new CustomEvent('voidmusic:playing', { detail: { playing: want } })); } catch (e) {}
+    return true;
+  }
+  /* §HOTFIX(۲) «گوش‌به‌زنگِ سبک»: وقتی منبعِ تب زنده است ولی حلقهٔ رندر خاموش است، چیزی
+     analyze() را صدا نمی‌زند؛ پس بازگشتِ صدا تا نظرسنجیِ ۳ ثانیه‌ای (یا تا یک reportِ بیرونی)
+     نمی‌رسد. این تایمر فقط در همان حالت روشن است — rule 'or' + منبعِ تب + !playing + تحلیلگر
+     وصل + track زنده — و هر ۴۰۰ms یک نمونهٔ تحلیل (بدون رندر) می‌گیرد؛ به‌محض تغییرِ حالت
+     خودش را خاموش می‌کند. منبعِ محلی هرگز این شاخه را نمی‌بیند. */
+  const WW = { t: 0, n: 0 };
+  function webWatchNeeded() {
+    const a = VM.getAudio();
+    return CFG.webPlayRule === 'or' && !!(a && a.__web) && !V.playing && !!(A.ok && A.tapped) &&
+      streamInfo().liveAny && !(document.hidden && SND.bg !== 'live');
+  }
+  function webWatchGo() {
+    const need = webWatchNeeded();
+    if (need && !WW.t) WW.t = setInterval(guard(function () { WW.n++; probeIdle(); syncPlay(); }, 'int:web-watch-400ms'), 400);
+    else if (!need && WW.t) { clearInterval(WW.t); WW.t = 0; }
+  }
+  /* صاحبِ رأیِ بیرونی (report، رویدادِ track، نظرسنجی، streamِ تازه) همیشه از این دروازه
+     رد می‌شود، پس «گوش‌به‌زنگ» همیشه با آخرین تصمیم هم‌وقت است. */
+  function syncPlay() { const r = syncPlayEval(); webWatchGo(); return r; }
+
+  /* §HOTFIX خودِ track خبر می‌دهد (mute / unmute / ended) — منتظرِ نظرسنجیِ ۳ ثانیه‌ای نمان:
+     بلافاصله «پخش» و تحلیلگرها را دوباره ارزیابی کن. muted ترمز نیست؛ فقط یک بازخوانی است. */
+  function unwatchTracks() {
+    if (!EXT.watch) return;
+    EXT.watch.forEach(function (w) { try { w.t.removeEventListener(w.k, w.f); } catch (e) {} });
+    EXT.watch = null;
+  }
+  function watchTracks(stream) {
+    unwatchTracks();
+    let trs; try { trs = stream.getAudioTracks() || []; } catch (e) { trs = []; }
+    const list = [];
+    ['mute', 'unmute', 'ended'].forEach(function (kind) {
+      trs.forEach(function (t) {
+        const f = guard(function () {
+          A.trackEv = kind + '@' + Math.round(performance.now());
+          syncPlay();                                                    // «پخش» را فوراً بازخوانی کن (muted ترمز نیست)
+          refreshTaps();
+        }, 'track:' + kind);
+        try { t.addEventListener(kind, f); list.push({ t: t, k: kind, f: f }); } catch (e) {}
+      });
+    });
+    EXT.watch = list.length ? list : null;
+  }
+
   function swapSource(newSrc) {
     const N = SNDE.nodes; if (!A.ok || !N || !newSrc) return;
     try { if (A.src) A.src.disconnect(); } catch (e) {}
     A.src = newSrc; N.src = newSrc;
     try { newSrc.connect(A.anE); newSrc.connect(A.anS); } catch (e) {}
-    N.mode = ''; applySound(true);                       // مسیرِ EQ/محدودکننده از نو به منبعِ تازه وصل می‌شود
+    N.mode = ''; applySound(true);
+    resetTransient();                                              // منبع جابه‌جا شد: میانگین‌های تطبیقیِ منبعِ قبلی بی‌اعتبار است
   }
   function releaseStream() {
+    disarmGestureRetry();
+    unwatchTracks();
+    if (P.retry) { clearTimeout(P.retry); P.retry = 0; }
     const old = EXT.src; EXT.stream = null; EXT.src = null;
     try { if (old) old.disconnect(); } catch (e) {}
     if (old && A.ok && A.src === old) {
       let el = A.elSrc;
       if (!el) { const a = VM.getLocalAudio && VM.getLocalAudio(); if (a) { try { el = A.elSrc = A.ctx.createMediaElementSource(a); } catch (e) { el = null; } } }
-      if (el) swapSource(el); else A.src = null;
+      if (el) { swapSource(el); routeOutput(false); } else { A.src = null; resetTransient(); }
     }
+    syncPlay();                                                  // stream رفت: «پخش» دیگر باورپذیر نیست (§1.1)
+    if (A.ok) refreshTaps();                                     // درِ تحلیلگر هم منتظرِ نظرسنجیِ ۳s نمی‌ماند
   }
   const webApi = {
     useStream: function (stream) {
       if (EXT.stream && EXT.stream !== stream) releaseStream();
       EXT.stream = stream;
-      if (A.ok && A.ctx) { EXT.src = A.ctx.createMediaStreamSource(stream); swapSource(EXT.src); }
+      watchTracks(stream);                                             // §HOTFIX mute/unmute/ended را زنده ببین، نه با نظرسنجی
+      if (A.ok && A.ctx) { EXT.src = A.ctx.createMediaStreamSource(stream); swapSource(EXT.src); routeOutput(true); }
       else { A.tries = 0; ensureGraph(); }
+      syncPlay();                                                // stream آمد: اگر صفحه «مکث» گزارش کرده بود، تحلیل باید زنده شود (§1.1)
+      if (A.ok) refreshTaps();                                   // اتصالِ تحلیلگرها همان لحظهٔ capture، نه تا ۳ ثانیه بعد
     },
     releaseStream: releaseStream,
-    active: function () { return !!EXT.stream; }
+    active: function () { return !!EXT.stream; },
+    /* تشخیصِ صادقانه: «صدا گرفته شد» با «تحلیل در جریان است» یکی نیست. رابطِ کاربری
+       فقط وقتی ● می‌زند که واقعاً دادهٔ صوتی به کهکشان می‌رسد. */
+    diagnostics: function () {
+      const c = A.ctx || A.ctxTry, si = streamInfo(), a = VM.getAudio();
+      anRate();
+      return {
+        graph: A.ok ? 'ready' : (A.state === 'failed' ? 'failed' : 'building'),
+        ctx: c ? c.state : 'none',
+        stream: si.state, tracks: si.n, trackReady: si.ready, trackMuted: si.muted, streamLive: si.live,
+        // §HOTFIX «چرا پخش/چرا نه» با قابل‌خواندنِ هر دو شرط: playWhy یک‌خطِ کامل است
+        trackLiveAny: si.liveAny, playRule: CFG.webPlayRule, playHoldMs: CFG.playHoldMs,
+        playWhy: playWhy(a), paused: a ? !!a.paused : null, reportedPlaying: !!V.playReported,
+        /* §AMBIENT لایهٔ فعلی + دلیل + ضامنِ مخلوط + ساعتِ تازگیِ گزارشِ تب. tier/tierWhy را بدونِ
+           حلقهٔ رندر هم می‌خوانیم (tierEval فراخوانیِ بی‌عوارض است) تا چیپِ تشخیص در سکوت هم جواب بدهد. */
+        tier: (V.running ? V.tier : tierEval(a).tier), tierWhy: (V.running ? V.tierWhy : tierEval(a).why),
+        tierX: Math.round(V.tierX * 100) / 100, lastWebStateAgeMs: webReportAgeMs(a),
+        webFallback: CFG.webFallback, webFreshMs: CFG.webFreshMs,
+        /* §IDLE حالتِ «صدا هست، منبعِ موسیقی نیست». on = رأیِ همین لحظه، why = دلیلِ خوانا از
+           idleAudioEval (هرگز حدس نیست: از activeInfo.audioOnlyِ لایهٔ منبع می‌آید)، x = ضامنِ
+           crossfade. هیچ عددی از اینجا ادعایِ تحلیلِ موسیقی نمی‌کند و quality را لمس نمی‌کند. */
+        idleHalo: { on: !!V.idleAudio, flag: !!CFG.idleHalo, x: Math.round(V.idleX * 100) / 100,
+          why: V.idleWhy, level: Math.round(idleHaloLevel() * 1000) / 1000, fadeS: CFG.idleHaloFadeS,
+          taps: !!(A.ok && A.tapped) },
+        /* §SCENE مدلِ سه‌حالتیِ نمایش: vstate = idle | source | playing. source یعنی «منبعِ
+           شناسایی‌شده، پخشِ تأییدشده نیست» — هیچ‌وقت جای playing را نمی‌گیرد و quality را لمس
+           نمی‌کند. why = دلیلِ رأی از scenePoll، awakenX = ضامنِ گذارِ بیداریِ دیسکِ موجود. */
+        scene: { flag: !!CFG.scene, vstate: V.vstate, why: V.sceneWhy, srcKind: V.srcKind,
+          idleX: Math.round(V.idleX * 100) / 100, awakenX: Math.round(V.awakenX * 100) / 100,
+          level: Math.round(awakenTarget() * 1000) / 1000, fadeS: CFG.awakenFadeS,
+          wanted: !!sceneWanted(), stillPainted: !!V.sceneStill },
+        /* §SHOW «کارگردانِ» ambient: روشن/خاموش، پردهٔ فعلی، زمانِ نمایش، شدتِ نورِ لحظه، seedِ
+           آهنگ و شمارشِ افکت‌ها. همه آرایشی‌اند: هیچ‌کدام از دادهٔ صوتی نمی‌آید و هیچ‌کدام
+           quality را از 'ambient' بیرون نمی‌آورد (چیپ در این لایه هرگز «live» نمی‌گوید). */
+        show: { on: !!V.show.on, flag: !!CFG.ambientShow, level: Math.round(V.show.level * 100) / 100,
+          phase: V.show.phase, t: Math.round(V.show.t * 10) / 10, env: Math.round(V.show.env * 1000) / 1000,
+          hueIdx: V.show.hueIdx, seed: V.show.seed, seedSrc: String(V.show.seedSrc).slice(0, 60),
+          begins: V.show.begins, nComet: V.show.nComet, nBloom: V.show.nBloom, nWake: V.show.nWake,
+          nFlight: V.show.nFlight, nFlightNoStars: V.show.nFlightNoStars, nSurge: V.show.nSurge,
+          nSurgeNoGate: V.show.nSurgeNoGate, maxEnvRate: Math.round(V.show.maxEnvRate * 100) / 100,
+          density: Math.round(showDensity() * 100) / 100 },
+        trackEvent: A.trackEv || '', listeners: EXT.watch ? EXT.watch.length : 0,
+        // §HOTFIX(۲) «گوش‌به‌زنگ» و اجازهٔ suspend: دو شرطی که بیدار-ماندنِ تحلیل را تعیین می‌کنند
+        webWatch: WW.t ? 'on' : 'off', webWatchSamples: WW.n, suspendAllowed: suspendAllowed(a),
+        tapped: !!(A.ok && A.tapped), tapsWhy: A.tapsWhy || '',
+        hidden: !!document.hidden, bgMode: SND.bg,
+        playing: !!V.playing, reported: !!V.playReported,
+        /* fpsِ واقعیِ analyze() روی پنجرهٔ ۵ ثانیه: raf = حلقهٔ رندر، bg = pumpِ پس‌زمینه/orb.
+           «تحلیلِ زنده» را با فریم‌ریتِ رندر اشتباه نگیرید — این دو عدد جدا شمرده می‌شوند. */
+        analyzeAgoMs: AN.lastAt ? Math.round(performance.now() - AN.lastAt) : -1,
+        /* runs = شمارشِ انباشتهٔ واقعاً-اجراشده؛ در مرورگرِ واقعی analyzeAgoMs/fps را بخوانید
+           (sandboxِ آزمون performance.now را بی‌حرکت نگه می‌دارد، پس این دو بی‌معنی می‌شوند). */
+        runsRaf: AN.raf, runsBg: AN.bg,
+        fpsRaf: Math.round(AN.fpsRaf * 10) / 10, fpsBg: Math.round(AN.fpsBg * 10) / 10, fpsWindowS: 5,
+        replay: !!(A.ok && !A.web),            //Void Tab خودش هم صدا پخش می‌کند (فقط منبعِ محلی)
+        db: A.db, silent: !!A.silent, tries: A.tries, quality: FEAT.quality,
+        /* §0 حلقهٔ خطا: تازه‌ترین ۴۰ خطای ثبت‌شدهٔ تایمرها/صفحه (بدونِ تغییرِ رفتار) */
+        errors: ERR.ring.slice(), errTotal: ERR.n
+      };
+    }
   };
+
+  /* مسیرِ خروجی: منبعِ محلی از اکولایزرِ اصلی به اسپیکرِ Void Tab می‌رود. منبعِ تب
+     (chrome.tabCapture) باید *تحلیل* شود، نه دوباره پخش: همان صدا در تبِ خودش می‌آید و
+     عبورِ مجدد از destination اکو و تأخیر می‌سازد («تبِ قدیمی صدای تبِ جدید را پخش می‌کند»).
+     یک گرهٔ بی‌صدا به destination وصل می‌ماند تا گراف همچنان رندر شود. */
+  function routeOutput(web) {
+    if (!A.ctx || !A.gain) return;
+    try { A.gain.disconnect(); } catch (e) {}
+    if (web) {
+      if (!A.sink) { A.sink = A.ctx.createGain(); A.sink.gain.value = 0; A.sink.connect(A.ctx.destination); }
+      A.gain.connect(A.sink);
+    } else {
+      A.gain.connect(A.ctx.destination);
+    }
+    A.web = !!web;
+  }
+
+  /* context به‌دلیلِ سیاستِ autoplay اجرا نشده؟ پس این شکستِ گراف نیست و نباید برای
+     همیشه کنار گذاشته شود: اولین ژستِ واقعیِ کاربر (کلیک/کلید در همین صفحه) گراف را
+     می‌سازد. بدونِ این حلقه، «chip متصل — کهکشان بی‌حرکت» برگشت‌ناپذیر می‌ماند. */
+  function armGestureRetry() {
+    if (A.gestureArmed || !EXT.stream) return;
+    A.gestureArmed = true;
+    A.retryGo = function () {
+      document.removeEventListener('pointerdown', A.retryGo, true);
+      document.removeEventListener('keydown', A.retryGo, true);
+      A.retryGo = null; A.gestureArmed = false; A.tries = 0;
+      ensureGraph().then(function (ok) { if (ok) { refreshTaps(); A.snap = true; } });
+    };
+    document.addEventListener('pointerdown', A.retryGo, true);
+    document.addEventListener('keydown', A.retryGo, true);
+  }
+  /* منبعی که رفته، ژستِ معطلِ آن هم نباید بماند: وگرنه gestureArmed روی true قفل می‌کند
+     و منبعِ بعدی هیچ‌وقت فرصتِ تلاشِ دوباره نمی‌گیرد. */
+  function disarmGestureRetry() {
+    if (!A.gestureArmed) return;
+    if (A.retryGo) {
+      document.removeEventListener('pointerdown', A.retryGo, true);
+      document.removeEventListener('keydown', A.retryGo, true);
+    }
+    A.retryGo = null; A.gestureArmed = false;
+  }
+
+  /* معلق موندنِ گراف فقط با یک ژستِ *داخلِ همین صفحه* باز نمی‌شود: کاربر تب را از نوارِ
+     تب‌ها انتخاب می‌کند و آن کلیک هرگز به این صفحه نمی‌رسد. پس خودِ «جلو آمدنِ تب» را
+     فرصتِ ادامه می‌گیریم: اگر تلاشی معطل است همین‌جا مصرف می‌شود، وگرنه یک بودجهٔ تازه
+     برای ساختِ گراف. رد شدنِ تلاش چیزی را جا نمی‌گذارد جز یک ژستِ دوبارهarmed. */
+  function recoverOnReturn() {
+    if (!V.playing) return;
+    if (!A.ok || (A.ctx && A.ctx.state !== 'running')) {
+      if (A.retryGo) A.retryGo();
+      else {
+        A.tries = 0;
+        ensureGraph().then(function (ok) { if (ok) { refreshTaps(); A.snap = true; } });
+      }
+    }
+    if (!V.running && V.playing) startLoop();
+  }
 
   async function ensureGraph() {
     if (A.ok) { if (A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (e) {} } return true; }
-    if (A.tries >= 6) return false;
+    if (A.tries >= 6) { armGestureRetry(); return false; }
     const audio = VM.getAudio();
     if (!audio) return false;
     if (audio.__web && !EXT.stream) return false;     // منبعِ وب بدونِ صدای واقعیِ تب: تحلیل نداریم (حالتِ محیطیِ دکوراتیو)؛ شمارندهٔ تلاش را هم نمی‌سوزاند
@@ -279,22 +1090,24 @@
       A.ctxTry = ctx;
       try { await ctx.resume(); } catch (e) {}
       // اگر context اجرا نشد، المنتِ صدا را «نمی‌دزدیم» تا پخش بی‌صدا نشود؛ دفعهٔ بعد (با یک کلیکِ دیگر) دوباره امتحان می‌شود
-      if (ctx.state !== 'running') return false;
+      if (ctx.state !== 'running') { armGestureRetry(); return false; }
       const web = !!audio.__web;
       const src = A.src || (A.src = web ? (EXT.src = ctx.createMediaStreamSource(EXT.stream)) : (A.elSrc = ctx.createMediaElementSource(audio)));      // منبعِ المنت نباید دوبار ساخته شود
-      const anE = ctx.createAnalyser(); anE.fftSize = 1024; anE.smoothingTimeConstant = 0;
-      const anS = ctx.createAnalyser(); anS.fftSize = 4096; anS.smoothingTimeConstant = 0.3; anS.minDecibels = -110; anS.maxDecibels = -10;
+      const anE = ctx.createAnalyser(); anE.fftSize = 2048; anE.smoothingTimeConstant = 0;
+      const anS = ctx.createAnalyser(); anS.fftSize = 4096; anS.smoothingTimeConstant = 0.3;
       const gain = ctx.createGain();
       src.connect(anE); src.connect(anS);
-      buildSoundChain(ctx, src, gain); gain.connect(ctx.destination);
+      buildSoundChain(ctx, src, gain);
       VM.setOutputGain(gain);
       // پایداری: اگر مرورگر context را وسطِ پخش معلق کرد (سیاست‌های خودکار/سیستم)، صدا قطع می‌شود؛ بلافاصله ادامه بده
       ctx.onstatechange = function () {
         const a = VM.getAudio();
-        if (ctx.state !== 'running' && a && !a.paused) { try { ctx.resume(); } catch (e) {} }
+        if (ctx.state !== 'running' && playSignal(a)) { try { ctx.resume(); } catch (e) {} armGestureRetry(); }
+        else if (ctx.state === 'running') { A.snap = true; refreshTaps(); }   // از سرِ معلق بودن برگشت: میانگین‌های تطبیقی دوباره کالیبره شوند
       };
       A.tapped = true;
       A.ctx = ctx; A.anE = anE; A.anS = anS; A.gain = gain; A.sr = ctx.sampleRate;
+      routeOutput(web);                                            // بعد از نشستنِ A.ctx/A.gain: پیش از این، مسیرِ خروجی در ساختِ نخستین گراف هرگز برقرار نمی‌شد
       A.tBuf = new Float32Array(anE.fftSize);
       A.fE = new Float32Array(anE.frequencyBinCount); A.prevE = new Float32Array(anE.frequencyBinCount);
       A.fS = new Float32Array(anS.frequencyBinCount);
@@ -302,7 +1115,7 @@
       const eBinHz = A.sr / anE.fftSize;
       A.kLowEnd = clamp(Math.floor(180 / eBinHz), 1, A.kEHi);
       A.kMidEnd = clamp(Math.floor(2000 / eBinHz), A.kLowEnd + 1, A.kEHi);
-      A.kBass = Math.max(1, Math.floor(150 / (A.sr / anE.fftSize)));              // باندِ باس ۲۰–۱۵۰Hz (۳ bin در ۴۸kHz)
+      A.kBass = Math.max(1, Math.floor(150 / eBinHz));                             // باندِ باس ۲۰–۱۵۰Hz؛ با fftSize=2048 در ۴۸kHz ≈ ۶ bin (از ≈۲۳Hz)
       // جدولِ bin → کلاسِ نت (وزنِ مثلثی: ۱ روی نیم‌پردهٔ دقیق، ۰ در وسطِ دو نیم‌پرده)
       const binHz = A.sr / anS.fftSize;
       A.kLo = Math.ceil(130 / binHz); A.kHi = Math.min(A.fS.length - 2, Math.floor(4200 / binHz));
@@ -322,22 +1135,90 @@
 
   function tapSet(on) {
     if (!A.ok || A.tapped === on) return;
-    try { if (on) { A.src.connect(A.anE); A.src.connect(A.anS); } else { A.src.disconnect(A.anE); A.src.disconnect(A.anS); } A.tapped = on; } catch (e) {}
+    if (on) {
+      if (!A.src) return;                                        // منبعی نیست که وصل شود: درِ تحلیل باز نمی‌شود (tapped دروغ نمی‌گوید)
+      try { A.src.connect(A.anE); A.src.connect(A.anS); A.tapped = true; } catch (e) {}
+      resetTransient();
+      return;
+    }
+    /* §HOTFIX: جداکردنِ نودِ رفته خطا می‌دهد. آن خطا نباید باعث شود «وصل» باقی بماند:
+       tapped در diagnostics و در silenceMeasured() خوانده می‌شود، پس باید صادق باشد. */
+    try { if (A.src) { A.src.disconnect(A.anE); A.src.disconnect(A.anS); } } catch (e) {}
+    A.tapped = false;
   }
   function tapsWanted() {
     const a = VM.getAudio();
-    if (!(a && !a.paused)) return false;
-    if (a.__web && !EXT.stream) return false;
-    if (document.hidden && SND.bg !== 'live') return false;     // تبِ پنهان: فقط صدا (تحلیلگرها جدا می‌شوند)
-    return VM.isOpen() || !!(VM.isMiniVisible && VM.isMiniVisible() && !document.hidden) || !!(VM.remoteWanted && VM.remoteWanted());
+    if (!a) { A.tapsWhy = 'no_element'; return false; }
+    /* §IDLE: منبعِ «صدا بدونِ موسیقی» تحلیل نمی‌شود — نه به‌خاطرِ هزینه، به‌خاطرِ صداقت: هیچ چیز
+       در این حالت نباید با دادهٔ آن حرکت کند و چیپ هم باید «linked ولی بدونِ تحلیلِ موسیقی» بگوید
+       (analysisState از tapped می‌خواند → 'untapped'). فقط منبعِ وب؛ فایلِ محلی دست‌نخورده.
+       درِ پخش/سکوتِ اندازه‌گرفته‌شده به تحلیلگرِ وصل وابسته است (silenceMeasured → A.tapped) و
+       با بسته‌بودنِ تحلیلگرها قفلِ «سکوتِ بیات» نمی‌سازد، پس playSignal مثلِ قبل رأی می‌گیرد. */
+    if (CFG.idleHalo && a.__web && V.idleAudio) { A.tapsWhy = 'audio_only_source'; return false; }
+    // §1.1 + HOTFIX منبعِ تب: تا stream زنده است تحلیلگرها وصل می‌مانند (سکوت/پخش اندازه گرفته می‌شود،
+    // از پرچمِ muted یا pausedِ کاذب نتیجهٔ تاریک نمی‌گیریم)؛ منبعِ محلی مثلِ قبل.
+    if (!tapsSignal(a)) {
+      // دلیل باید همان چیزی باشد که رأی آورده: در 'legacy' صاحبِ رأی paused است، نه stream.
+      A.tapsWhy = (a.__web && CFG.webPlayRule !== 'legacy') ? 'stream_not_live' : 'paused';
+      return false;
+    }
+    if (document.hidden && SND.bg !== 'live') { A.tapsWhy = 'hidden'; return false; }      // تبِ پنهان: فقط صدا (تحلیلگرها جدا می‌شوند)
+    const vis = VM.isOpen() || !!(VM.isMiniVisible && VM.isMiniVisible() && !document.hidden) || !!(VM.remoteWanted && VM.remoteWanted());
+    A.tapsWhy = vis ? 'wanted' : 'not_visible';
+    return vis;
   }
-  function refreshTaps() { tapSet(tapsWanted()); }
-  setInterval(function () { if (A.ok) refreshTaps(); }, 3000);
+  function refreshTaps() { tapSet(tapsWanted()); webWatchGo(); }
+  /* §HOTFIX وقتی تب «مکث» گزارش می‌کند ولی stream زنده است، حلقهٔ رندر خاموش است و کسی
+     analyze() را صدا نمی‌زند — پس سکوت *اندازه گرفته نمی‌شود* و قاعدهٔ fail-open در «مکثِ
+     کاذب» قفل می‌کرد. این یکی همان کاری را می‌کند که bgKick در تبِ پنهان می‌کند: یک نمونهٔ
+     تحلیل بدونِ رندر، تا تصمیم بعدی بر پایهٔ RMS باشد نه بر پایهٔ خوانشِ بیات. */
+  function probeIdle() {
+    const a = VM.getAudio();
+    if (!a || !a.__web || V.playing || !A.ok || !A.tapped) return;
+    if (CFG.webPlayRule === 'legacy' || !streamInfo().liveAny) return;
+    if (document.hidden && SND.bg !== 'live') return;             // قاعدهٔ تبِ پنهان دست‌نخورده: تحلیل نکن
+    try { anCount(true); analyze(0.17, true); } catch (e) { errPush('probe:analyze', e); }
+  }
+  setInterval(guard(function () {
+    idleHaloCheck();                                               // §IDLE رأیِ «صدا بدونِ موسیقی» + بیدارکردنِ حلقه (تایمرِ تازه نمی‌سازیم)
+    if (A.ok) refreshTaps();
+    probeIdle();                                                 // §HOTFIX سکوتِ اندازه‌گرفته‌شده را از reportِ کاذب جدا کن
+    syncPlay();                                                  // §1.1 اگر رویدادی برای مرگِ stream نیامد، خودمان درِ تحلیل را می‌بندیم/باز می‌کنیم
+  }, 'int:reconcile-3s'), 3000);
 
-  function spectralLevel(power, count, floorDb, ceilingDb) {
-    const db = 10 * Math.log10(power / Math.max(1, count) + 1e-12);
-    const x = clamp((db - floorDb) / (ceilingDb - floorDb), 0, 1);
+  // توانِ میانگینِ یک گروه bin → dBFS (همان مقیاسی که پنجره‌های بانده در آن تنظیم شده‌اند)
+  function bandDb(power, count) { return 10 * Math.log10(power / Math.max(1, count) + 1e-12); }
+  function spectralLevel(db, floorDb, ceilingDb, normDb) {
+    const x = clamp((db + (normDb || 0) - floorDb) / (ceilingDb - floorDb), 0, 1);
     return x * x * (3 - 2 * x);
+  }
+
+  /* §1.6 شمارشِ خودِ analyze() — «تحلیلگر وصل است» با «تحلیل اجرا می‌شود» یکی نیست.
+     raf = حلقهٔ اصلیِ رندر، bg = pumpِ پس‌زمینه (~۶Hz) و orb کوچک. سبدِ یک‌ثانیه‌ای و
+     پرسشِ تنبل (فقط داخل diagnostics) تا هیچ هزینه‌ای در مسیرِ گرمِ فریم نیفتد. */
+  const AN = { cur: null, buckets: [], lastAt: 0, raf: 0, bg: 0, fpsRaf: 0, fpsBg: 0 };
+  function anCount(fromBg) {
+    const now = performance.now();
+    AN.lastAt = now;
+    if (!AN.cur || now - AN.cur.t >= 1000) {
+      if (AN.cur) { AN.buckets.push(AN.cur); while (AN.buckets.length > 6) AN.buckets.shift(); }
+      AN.cur = { t: now, n: 0, b: 0 };
+    }
+    if (fromBg) { AN.cur.b++; AN.bg++; } else { AN.cur.n++; AN.raf++; }
+  }
+  function anRate() {
+    const now = performance.now();
+    let n = 0, b = 0, from = now, any = false;
+    if (AN.cur) { n += AN.cur.n; b += AN.cur.b; from = AN.cur.t; any = true; }
+    for (let i = 0; i < AN.buckets.length; i++) {
+      const k = AN.buckets[i];
+      if (now - k.t > 5000) continue;
+      n += k.n; b += k.b; any = true;
+      if (k.t < from) from = k.t;
+    }
+    if (!any) { AN.fpsRaf = 0; AN.fpsBg = 0; return; }
+    const span = Math.min(5, Math.max(0.5, (now - from) / 1000));
+    AN.fpsRaf = n / span; AN.fpsBg = b / span;
   }
 
   // یک بار در هر فریمِ رندر: انرژی/فلاکس (همیشه) + طیف/کروما (فقط وقتی کهکشان دیده می‌شود)
@@ -347,37 +1228,59 @@
     let ss = 0; const tb = A.tBuf, n = tb.length;
     for (let i = 0; i < n; i++) ss += tb[i] * tb[i];
     const db = 20 * Math.log10(Math.sqrt(ss / n) + 1e-7);
-    if (A.snap && db > -80) { A.db = db; A.base = db; A.snap = false; A.fluxBase = 1e-3; A.warm = 1.5; A.pk = db + 3; A.fl = db - 3; }
+    const wasSilent = A.silent;
+    if (A.snap && db > -80) { A.db = db; A.base = db; A.snap = false; A.warm = 1.5; A.pk = db + 3; A.fl = db - 3; A.fSeed = true; A.fluxBase = FLUX_SEED; }
     A.db += (db - A.db) * expK(dt, 0.12);
+    A.silent = A.db < -66;
+    A.measured++;                                                // §HOTFIX: «سکوت» فقط با شواهدِ اندازه‌گرفته‌شده باورپذیر است
+    if (CFG.webPlayRule === 'or' && A.silent !== wasSilent) syncPlaySoon(0);   // «پخش/مکث» روی همان لحظهٔ تغییرِ سکوت تصمیم می‌گیرد، نه تا نظرسنجیِ ۳s
 
     E.getFloatFrequencyData(A.fE);
-    let flux = 0, hi = 0, all = 0;
-    let lowPower = 0, midPower = 0, highPower = 0, lowCount = 0, midCount = 0, highCount = 0;
+    let hi = 0, all = 0, allPrev = 0;
+    let lowPower = 0, midPower = 0, highPower = 0, lowCount = 0, midCount = 0, highCount = 0, bassPower = 0, bassCount = 0;
     const k2k = Math.floor(2000 / (A.sr / A.anE.fftSize));
+    const C = 0.11512925;                                        // ln(10)/20 : dB → دامنهٔ خطی
     for (let k = 1; k <= A.kEHi; k++) {
-      const m = Math.exp(A.fE[k] * 0.11512925), p = Math.exp(A.prevE[k] * 0.11512925);
-      if (k >= 2) {
-        if (m > p) flux += m - p;
-        all += m; if (k >= k2k) hi += m;
-      }
+      const m = Math.exp(A.fE[k] * C);
+      if (k >= 2) { all += m; if (k >= k2k) hi += m; allPrev += Math.exp(A.prevE[k] * C); }
+      if (k <= A.kBass) { bassPower += m * m; bassCount++; }
       if (k <= A.kLowEnd) { lowPower += m * m; lowCount++; }
       else if (k <= A.kMidEnd) { midPower += m * m; midCount++; }
       else { highPower += m * m; highCount++; }
     }
     A.bright += ((all > 0 ? hi / all : 0) - A.bright) * expK(dt, 0.5);
-    A.prevE.set(A.fE);
-    // ضربانِ باس: انرژیِ باندِ ۲۰–۱۵۰Hz در برابرِ میانگینِ متحرکِ خودش (EMA)؛ برای کیک‌ها دقیق‌تر از فلاکسِ پهن‌باند
     A.tAcc += dt;
-    let bs = 0; for (let k = 1; k <= A.kBass; k++) bs += Math.exp(A.fE[k] * 0.11512925);
-    bs /= A.kBass;
-    A.bassBeat = false;
-    if (!A.snap && bs > A.bassAvg * 1.45 + 1e-5 && bs > A.bassPrev * 1.05 && A.tAcc - A.lastBass > 0.28) { A.bassBeat = true; A.lastBass = A.tAcc; }
-    A.bassAvg += (bs - A.bassAvg) * expK(dt, 1.2); A.bassPrev = bs;
-    A.fluxBase += (flux - A.fluxBase) * expK(dt, 4);
-    A.prevFluxR = A.fluxR;
-    A.fluxR += (flux / (A.fluxBase + 1e-5) - A.fluxR) * expK(dt, 0.1);
 
-    A.silent = A.db < -66;
+    // فلاکسِ «شکلِ طیف» (بی‌بُعد): هر bin بر حسبِ سهمش از کلِ انرژی، و سپس مجموعِ افزایش‌های مثبت.
+    // گامِ حجمی (ولومِ سیستم/آنمیوت/پرشِ مستر) سهم‌ها را تغییر نمی‌دهد ⇒ فلاکس دقیقاً صفر، پس
+    // بلندیِ بیشتر خودش ضرب حساب نمی‌شود؛ فقط تغییرِ توزیعِ انرژِ (کوک/استیک/بیس) نسبت را بالا می‌برد.
+    const invAll = all > 1e-12 ? 1 / all : 0, invPrev = allPrev > 1e-12 ? 1 / allPrev : 0;
+    let flux = 0;
+    for (let k = 2; k <= A.kEHi; k++) {
+      const m = Math.exp(A.fE[k] * C) * invAll, p = Math.exp(A.prevE[k] * C) * invPrev;
+      if (m > p) flux += m - p;
+    }
+    A.prevE.set(A.fE);
+    const fluxN = A.silent ? 0 : flux;
+    // غلبهٔ بیس: توانِ میانگینِ ۲۰–۱۵۰Hz تقسیم بر توانِ میانگینِ بقیهٔ طیف — شکلِ طیف، نه بلندیِ آن.
+    const bassMean = bassPower / Math.max(1, bassCount);
+    const restDen = (lowCount - bassCount) + midCount + highCount;
+    const restMean = (lowPower - bassPower + midPower + highPower) / Math.max(1, restDen);
+    const bassN = (A.silent || restMean < 1e-14) ? 0 : bassMean / restMean;
+    // بازگشت از سکوت یک گسست است، نه ضرب: پایه‌ها از نو کالیبره و پنجرهٔ گرمایش کوتاه می‌شود
+    if (wasSilent && !A.silent) { A.fSeed = true; A.warm = Math.max(A.warm, 0.35); }
+    if (A.fSeed && !A.silent) { A.fluxBase = Math.max(fluxN, 1e-4); A.bassAvg = Math.max(bassN, 1e-4); A.fSeed = false; }
+    A.bassRatio += (bassN - A.bassRatio) * expK(dt, 0.6);
+    A.prevFluxR = A.fluxR;
+    if (!A.silent) {
+      A.fluxBase += (fluxN - A.fluxBase) * expK(dt, 4);
+      A.fluxR += (fluxN / (A.fluxBase + 1e-9) - A.fluxR) * expK(dt, 0.1);
+    }
+    // ضربانِ باس: قلهٔ نسبتِ غلبهٔ بیس در برابرِ میانگینِ متحرکِ همان نسبت (نه آستانهٔ ثابتِ dB)
+    A.bassBeat = false;
+    if (!A.snap && !A.silent && A.warm <= 0 && bassN > A.bassAvg * 1.45 + 1e-4 && bassN > A.bassPrev * 1.05 && A.tAcc - A.lastBass > 0.28) { A.bassBeat = true; A.lastBass = A.tAcc; }
+    A.bassAvg += (bassN - A.bassAvg) * expK(dt, 1.2); A.bassPrev = bassN;
+
     // خطِ پایهٔ کندِ «بلندیِ همین آهنگ»: بالا رفتنش آهسته، پایین آمدنش سریع‌تر
     let tau = A.db > A.base ? 30 : 10;
     if (A.warm > 0) { A.warm -= dt; tau = 1.2; }
@@ -391,15 +1294,27 @@
     const dr = Math.max(6, A.pk - A.fl);
     // نسبت به «وسطِ بازهٔ پویاییِ همین آهنگ»: آهنگِ یکنواخت ≈۰٫۵؛ اوج‌ها بالاتر، بخش‌های آرام پایین‌تر
     A.en = A.silent ? 0 : clamp(0.5 + (A.db - (A.pk + A.fl) / 2) / dr, 0, 1);
-    const abs = clamp((A.db + 42) / 24, 0, 1);                       // بلندیِ مطلق: ‑۴۲dBFS→۰ ، ‑۱۸dBFS→۱
+    const abs = clamp((A.db + 50) / 42, 0, 1);                       // بلندیِ مطلق: ‑۵۰dBFS→۰ ، ‑۸dBFS→۱
+    // چرا این بازه: موسیقیِ واقعاً مستر‌شده (استریم/فایل) تقریباً بین ‑۲۵ تا ‑۹dBFS جا می‌گیرد.
+    // با سقفِ قبلی (‑۱۸dBFS→۱) هر آهنگِ معمولی روی ۱ می‌چسبید و انرژی ≈۰٫۹ ثابت می‌شد: کهکشان
+    //ِ آروم و پرانرژی یکی می‌شد و ماشینِ calm/galaxy هرگز خارج نمی‌شد. با این منحنی، بلندترین
+    // آهنگ همان پرنوریِ همیشگی می‌گیرد (abs≈۰٫۹۸) و آهنگِ آرام واقعاً ملایم‌تر می‌شود (abs≈۰٫۶).
+    // زیرِ ‑۳۳dBFS منحنیِ تازه مقدارِ منحنیِ قبلی را دقیقاً حفظ می‌کند، پس رفتارِ صداهای ضعیف عوض نشده است.
     // صداهای ضعیف (abs کم) → شفق جلو؛ صداهای قوی → کهکشان. آهنگِ بلندِ یکنواخت هم همیشه به کهکشان می‌رسد
     A.energy = A.silent ? 0 : clamp(Math.max(A.en * (0.5 + 0.65 * abs), abs * 0.8) * CFG.sens, 0, 1);
 
     // Three smoothed spectral layers share the existing analyser pass: bass → core,
     // mids → disk density waves, highs → sparse stellar glints.
-    const lowTarget = A.silent ? 0 : spectralLevel(lowPower, lowCount, -72, -30);
-    const midTarget = A.silent ? 0 : spectralLevel(midPower, midCount, -68, -28);
-    const highTarget = A.silent ? 0 : spectralLevel(highPower, highCount, -78, -38);
+    // آروانهٔ یک‌طرفه، اما با خط‌کشِ *خودِ طیف*: معیارِ کمبود، بلندترین بانده (نه قلهٔ دامنهٔ زمانی،
+    // که حدود ۲۵dB پایین‌تر از همان اطلاعات را روی مقیاسی دیگر می‌خواند و آروانه را بیش از حد
+    // درگیر می‌کرد؛ نتیجه: همهٔ باندها به سقف می‌چسبیدند و شکلِ طیفِ آهنگ‌های آرام صاف می‌شد).
+    // هدف ‑۴۶dBFS وسطِ پنجرهٔ نگاشتِ باندهاست، پس جبرانِ کمبود نور را «به میانه» می‌آورد و
+    // فاصلهٔ باندها از هم (همان هویتِ آهنگ) دست‌نخورده می‌ماند؛ پخشِ معمول اصلاً درگیر نمی‌شود.
+    const lowRaw = bandDb(lowPower, lowCount), midRaw = bandDb(midPower, midCount), highRaw = bandDb(highPower, highCount);
+    if (!A.silent) A.bandNorm += (clamp(BAND_AGC_TARGET - Math.max(lowRaw, midRaw, highRaw), 0, 24) - A.bandNorm) * expK(dt, 3);
+    const lowTarget = A.silent ? 0 : spectralLevel(lowRaw, -72, -30, A.bandNorm);
+    const midTarget = A.silent ? 0 : spectralLevel(midRaw, -68, -28, A.bandNorm);
+    const highTarget = A.silent ? 0 : spectralLevel(highRaw, -78, -38, A.bandNorm);
     A.low += (lowTarget - A.low) * expK(dt, lowTarget > A.low ? 0.18 : 0.72);
     A.mid += (midTarget - A.mid) * expK(dt, midTarget > A.mid ? 0.20 : 0.78);
     A.high += (highTarget - A.high) * expK(dt, highTarget > A.high ? 0.12 : 0.62);
@@ -445,11 +1360,88 @@
   }
 
   /* ------------------------------------------------------------------ */
+  /* رابطهِ تحلیل ← رندر (FEAT)                                           */
+  /* ------------------------------------------------------------------ */
+  /* تحلیل فقط این شیء را می‌سازد و رندر فقط از همین می‌خواند؛ هیچ تابعِ تحلیلی داخلِ
+     مسیرِ رسم نیست. quality صادقانه می‌گوید دادهٔ صوتی واقعی است یا نه:
+       'live'    آنالایزر زنده و سیگنال بالاتر از آستانهٔ سکوت
+       'silent'  پخش برقرار است ولی سیگنال زیرِ آستانهٔ سکوت است (ویژگی‌ها صفر می‌شوند)
+       'idle'    پخش متوقف/یافت‌نشده است
+       'ambient' آنالیز در دسترس نیست (context اجرا نشد) ⇒ فقط جایگزینِ تزئینی
+     در سه وضعیتِ آخر هیچ ضربه/پالسِ «موسیقی‌ای» ساخته نمی‌شود. */
+  const FEAT = {
+    quality: 'ambient', live: false,
+    bass: 0, mid: 0, treble: 0, bassDom: 0, energy: 0, fluxR: 1,
+    onset: false, onsetStrength: 0, beat: false,
+    conf: 0, centroidR: 0.4, bright: 0.2, silent: true, db: -90,
+    lastOnsetAt: -9
+  };
+  const ONSET_REFRACTORY_S = 0.30;                  // حداکثر ~۳٬۳ ضربه در ثانیه (صدای تند هم پالسی نمی‌شود)
+  function updateFeatures(dt, playing, nowS) {
+    // §AMBIENT لایهٔ ambient یعنی «دادهٔ واقعی به تحلیلگر نمی‌رسد» (track مرده + گرافِ قدیمی،
+    // یا گرافِ نساخته). پیش‌تر FEAT.live فقط از شواهدِ خودِ گراف (A.ok) می‌آمد و در حالتِ
+    // «گراف هست ولی stream مُرده» می‌توانست true بماند درحالی‌که quality همان لحظه 'ambient'
+    // می‌گفت — دو ادعای متناقض در یک خوانش. حالا هر دو از یک منبع تصمیم می‌آیند.
+    // زیرِ webFallback='off' لایه جز در نبودِ گراف 'ambient' نمی‌شود (شرطِ tierEval)، پس این
+    // شرط با A.ok یکی است و نقشهٔ live دقیقاً همان عبارتِ قبلی می‌ماند.
+    FEAT.live = !!(A.ok && playing && !A.silent) && V.tier !== 'ambient';
+    FEAT.quality = (!A.ok || V.tier === 'ambient') ? 'ambient' : (!playing ? 'idle' : (A.silent ? 'silent' : 'live'));
+    const stable = FEAT.live && A.warm <= 0;        // پنجرهٔ گرمایش: جابه‌جاییِ منبع/آهنگ ضربهٔ کاذب نمی‌سازد
+    FEAT.bass = FEAT.live ? A.low : 0;
+    FEAT.mid = FEAT.live ? A.mid : 0;
+    FEAT.treble = FEAT.live ? A.high : 0;
+    FEAT.bassDom = stable ? clamp(A.bassRatio * 0.5, 0, 1) : 0;
+    FEAT.energy = A.ok ? A.energy : 0;
+    FEAT.fluxR = A.ok ? A.fluxR : 1;
+    FEAT.db = A.db; FEAT.silent = A.silent;
+    FEAT.conf = A.ok ? A.conf : 0; FEAT.centroidR = A.centroidR; FEAT.bright = A.bright;
+    // دو مسیرِ مستقلِ onset: شارِ طیفی (تغییرِ زمانیِ طیف) و قلهٔ غلبهٔ بیس. هیچ‌کدام «افزایشِ حجم» نیست.
+    const fluxCross = stable && A.fluxR >= 1.7 && A.prevFluxR < 1.7;
+    FEAT.beat = stable && A.bassBeat;
+    FEAT.onset = false; FEAT.onsetStrength = 0;
+    if ((fluxCross || FEAT.beat) && nowS - FEAT.lastOnsetAt > ONSET_REFRACTORY_S) {
+      FEAT.onset = true; FEAT.lastOnsetAt = nowS;
+      const shape = clamp((A.fluxR - 1) * 0.35, 0, 0.55);
+      FEAT.onsetStrength = clamp(shape + (FEAT.beat ? 0.18 : 0) + 0.10 * FEAT.bassDom, 0.22, 0.75);
+    }
+  }
+  // منبعِ تازه یا آهنگِ تازه: میانگین‌های تطبیقی را پاک می‌کند. بی‌این کار یک جابه‌جاییِ منبع
+  // چند ثانیه فلاکسِ کاذب تولید می‌کرد (prevE از طیفِ منبعِ قبلی بود).
+  function resetTransient() {
+    if (A.prevE && A.fE) A.prevE.set(A.fE);
+    A.snap = true; A.warm = 1.5; A.fSeed = true; A.measured = 0;
+    A.fluxBase = FLUX_SEED; A.fluxR = 1; A.prevFluxR = 1;
+    A.bassAvg = 0; A.bassPrev = 0; A.bassBeat = false; A.bassRatio = 0; A.lastBass = A.tAcc;
+    A.bandNorm = 0;
+    FEAT.onset = false; FEAT.beat = false; FEAT.onsetStrength = 0; FEAT.lastOnsetAt = -9;
+  }
+
+  /* ------------------------------------------------------------------ */
   /* وضعیتِ ویژولایزر                                                     */
   /* ------------------------------------------------------------------ */
   const V = {
     canvas: null, gl: null, ok: false, dead: false, raf: 0, running: false, last: 0,
-    playing: false, stage: 'calm', stageT: 0, hiT: 0, loT: 0, calmT: 0, cool: 0, tPlay: 0,
+    playing: false, playReported: false, stage: 'calm', stageT: 0, hiT: 0, loT: 0, calmT: 0, cool: 0, tPlay: 0,
+    // §AMBIENT لایهٔ فعلی (live|ambient|idle)، دلیلِ خوانا، و ضامنِ مخلوطِ تزئینی↔واقعی
+    tier: 'idle', tierWhy: 'IDLE:no_element', tierX: 0,
+    // §IDLE حالتِ «صدا هست، منبعِ موسیقی نیست»: رأیِ لایهٔ منبع (audioOnly) + ضامنِ crossfade
+    // + ساعتِ پرس‌وجویِ بی‌تایمر (از همان فریم‌ها جلو می‌رود) + دلیلِ خوانا برای diagnostics/HUD.
+    idleAudio: false, idleX: 0, idlePoll: 0, idleWhy: 'flag_off', idleE: 0, haloE: 0,
+    // §SCENE مدلِ سه‌حالته (idle|source|playing) + کشِ رأیِ منبع + ضامنِ بیداری. vstate فقط از
+    // V.playing و srcKind مشتق می‌شود و srcKind حداکثر دو بار در ثانیه تازه می‌شود؛ هیچ‌کدام از
+    // این فیلدها صاحبِ مستقلِ «پخش» یا تصمیمِ لایه نیستند — فقط خوانش‌هایِ مشتق‌اند.
+    vstate: 'idle', srcKind: 'none', sceneWhy: 'scene:off', awakenX: 0, sceneStill: 0,
+    // §SHOW وضعیتِ «کارگردانِ» لایهٔ ambient. هیچ عددی اینجا ادعای موسیقی نیست: فقط زمانِ سپری‌شده
+    // درونِ نمایش + seedِ رشته‌ایِ آهنگ. آرایه‌ها پیش‌ساخته‌اند تا در فریم چیزی alloc نشود.
+    show: {
+      on: false, begins: 0, t: 0, phase: 'overture', seed: 0, seedSrc: '', rng: null,
+      env: 0, envTarget: 0, level: 0.8, hueIdx: 0, title: '',
+      chroma: new Float32Array(12), pattern: new Float32Array(12), wake: new Float32Array(12),
+      order: new Int8Array(12), wOff: new Float32Array(12),
+      nextCometAt: 0, nextBloomAt: 0, nextWakeAt: 0, nextFlightAt: 0, nextSurgeAt: 0,
+      surgeEndAt: 0, breathEndAt: 0, lastJumpAt: -99, lastFlareAt: -99,
+      nComet: 0, nBloom: 0, nWake: 0, nFlight: 0, nFlightNoStars: 0, nSurge: 0, nSurgeNoGate: 0, maxEnvRate: 0
+    },
     L: { aurora: 0, galaxy: 0, lum: 0.4 },
     phase: 0, pulse: { t0: -9, amp: 0 }, tick: 0, tickAcc: 0, time: 0,
     tilt: 0, tiltT: 0, spiralPh: 0, spiralPhT: 0, structure: 0, seed3: [0.3, 0.6, 0.1], track: 0,
@@ -458,8 +1450,8 @@
     q: 1, slowN: 0, fastN: 0, rich: 0.8,
     rs: 1, W: 0, H: 0, vw: 0, vh: 0, cx: 0, cy: 0, scale: 1, incl: 24, N: 0,
     breath: { mix: 0, pitch: 50, zoom: 1, disk: 0, ready: false },
-    dive: 0,
-    opening: { started: false, elapsed: 0, progress: 0, cycleS: 60, eventS: 12, returnS: 6 },
+    dive: 0, travel: 0,
+    opening: { started: false, elapsed: 0, progress: 0, cycleS: 60, eventS: 12, evLen: 0, openS: 12, phase: 'idle', cam: 0, evAt: -1, nextAt: 0 },
     cosmic: {
       rng: null, nextCometAt: 0, lastPeakAt: -100, peakCandidateUntil: -100, prevEnergy: 0,
       wakeStart: -100, wakeUntil: -100, wakeTier: 0, wakeStrength: 0, glow: 0,
@@ -793,7 +1785,7 @@ in vec2 aPolar;   // r, theta0
 in vec4 aMisc;    // seed, size, band (0..11 = pitch class, 12 = inner dust, 13 = outer dust), tier
 in float aU;      // position inside its band, 0..1
 uniform vec2 uView; uniform vec2 uCenter; uniform float uScale, uSin, uTilt, uPx, uHalf, uDiskBreath, uHoleR;
-uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uConf, uDim, uMid, uHigh, uStructure;
+uniform float uPhase, uReveal, uLum, uTime, uPulseR, uPulseA, uDim, uMid, uHigh, uStructure;
 uniform float uDive, uTravel, uCull;   // شیرجه: uDive ۰..۱، مسافتِ حرکت، و خاموش‌کردنِ برشِ نیمهٔ دیسک
 uniform float uChroma[12]; uniform vec3 uPal[12]; uniform float uTint[12];   // uTint: «لمسِ رنگ» هر لایه (۰ = سفید، ۱ = رنگِ کاملِ نت)
 uniform sampler2D uAur; uniform float uAurMix;
@@ -806,32 +1798,89 @@ void main(){
   bool ring = band < 11.5;
   float baseR = aPolar.x;
   float r = baseR * (ring ? 1.0 + uDiskBreath * (0.78 + 0.22 * aU) : 1.0);
-  float omega = 0.10 * pow(baseR + 0.05, -1.5) + 1.53;   // تقریباً دورانِ الگو (بازوها نپیچند)، با کمی تفاضل
-  float armWave = sin(aU * 6.28318 * 2.0 - uTime * 0.035 + uStructure * 2.0 + seed * 0.9);
-  float th = aPolar.y - uPhase * omega + (ring ?     // پادساعت‌گرد روی صفحه: زاویه با زمان کم می‌شود
+  // چرخشِ الگو: یک دورِ صلب (همهٔ لایه‌ها با هم) + برشِ *کران‌دار*. شکلِ قبلی omega را در uPhase
+  // بی‌وقفه جمع می‌کرد، پس لایهٔ درونی در چند دقیقهٔ پخش چند رادیان جلو می‌افتاد و بازوی مارپیچ
+  // تا خورده و پخش می‌شد. اینجا تفاوتِ سرعت فقط تا WIND_MAX بالا می‌آید و همان‌جا می‌ماند:
+  // هر تابعِ هموارِ شعاع، دالانِ بازو را می‌پیچد ولی گسست یا محو نمی‌سازد.
+  const float OMEGA_PATTERN = 1.53;
+  const float WIND_MAX = 0.55;
+  const float WIND_RAMP = 1.2;
+  const float WIND_R0P = 0.24;
+  float rel = pow(WIND_R0P / (baseR + 0.05), 1.5);
+  float wind = uPhase >= 0.0 ? WIND_MAX * min(1.0, uPhase / WIND_RAMP) * rel : 0.0;
+  // موجِ چگالی که با uPhase به *داخل* حرکت می‌کند (جریانِ پیوستهٔ گرانشی). چون از جمعِ زمانیِ
+  // uPhase می‌آید، سرعتش با انرژیِ موسیقی بالا می‌رود ولی در آرامشِ موسیقی هم صفر نمی‌شود.
+  const float WAVE_K = 60.0;
+  float armWave = sin(aU * 6.28318 * 2.0 + uPhase * WAVE_K + uStructure * 2.0 + seed * 0.9);
+  float th = aPolar.y - uPhase * OMEGA_PATTERN - wind + (ring ?     // پادساعت‌گرد روی صفحه: زاویه با زمان کم می‌شود
    armWave * (0.026 * uMid + 0.018 * uStructure) : 0.0);
   float side = sin(th);
   float warp = clamp(uDive, 0.0, 1.0);
+  // غبارِ لبه پیوسته به دیسک فرو می‌ریزد: نرخِ حرکت از جمعِ زمانیِ uPhase می‌آید، پس حتی در
+  // موسیقیِ آرام جریان دارد و با انرژی بلندتر می‌شود؛ هر ذره هم فازِ خودش (baseR*7) و هم
+  // سرعتِ خودش (از seed) دارد، پس نه صفوفِ منظم می‌سازد و نه همه با هم به یک شعاع می‌رسند.
+  // در warp=۱ خاموش می‌شود، آن‌جا جریانِ خودِ تونل جایش را می‌گیرد.
+  const float INFLOW_SPAN = 0.46;
+  const float INFLOW_RATE = 4.0;
+  const float INFLOW_VAR = 0.78;   // دامنهٔ پراکندگیِ سرعتِ فروریزش حولِ INFLOW_RATE (×۰٫۶۲ تا ×۱٫۴۰)
+  bool dustFall = band > 12.5 && band < 13.5;
+  float inflowP = dustFall ? fract(baseR * 7.0 + uPhase * INFLOW_RATE * (1.0 - INFLOW_VAR / 2.0 + INFLOW_VAR * seed)) : 0.0;
+  if (dustFall) r -= INFLOW_SPAN * inflowP * (1.0 - warp);
+  // پوششِ مسیر: دو سرِ فروریزش محو و میانه روشن → بازگشتِ دورِ هیچ ذره‌ای دیده نمی‌شود و
+  // هیچ ذرهٔ روشنی داخلِ لبهٔ دیسک (چه‌رسد به سیلوئتِ کرهٔ سیاه) نمی‌نشیند.
+  float inflowEnv = dustFall ? mix(smoothstep(0.0, 0.14, inflowP) * (1.0 - smoothstep(0.66, 0.96, inflowP)), 1.0, warp) : 1.0;
   // نیمهٔ دورِ حلقه‌ها پشتِ کره، نیمهٔ نزدیک جلوی آن رسم می‌شود (دو پاس)
-  if (band > 13.5 || (uCull > 0.5 && ((uHalf < 0.5) != (side < 0.0)))) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); vDiskView = vec3(0.0); vPointDiameter = 0.0; gl_PointSize = 1.0; return; }
+  // §B برشِ نیمه‌ها حالا وزن دارد تا آستانه پرش نداشته باشد:
+  //   uCull = 1        همان برشِ سختِ همیشگی (وزنِ پاسِ درست ۱، پاسِ دیگر دور ریخته می‌شود)
+  //   uCull در (0,1)  پنجرهٔ نرم: هر دو پاس همه را می‌بینند ولی با وزنِ مکمل (w و ۱-w)
+  //   uCull < 0        تک‌پاسِ شیرجهٔ عمیق: بدونِ برش و با وزنِ ۱ (دقیقاً رفتارِ امروز)
+  float softE = max(1.0 - uCull, 0.0001);
+  float nearW = smoothstep(-softE, softE, side);
+  float halfKeep = uCull < 0.0 ? 1.0 : (uHalf < 0.5 ? 1.0 - nearW : nearW);
+  if (band > 13.5 || halfKeep <= 0.0008) { gl_Position = vec4(2.0, 2.0, 2.0, 1.0); vCol = vec4(0.0); vDiskView = vec3(0.0); vPointDiameter = 0.0; gl_PointSize = 1.0; return; }
   vec2 p = vec2(r * cos(th), r * side * uSin);
   float c = cos(uTilt), s = sin(uTilt);
   p = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
   // Orthographic view of the inclined disk: screen Y is compressed by sin(i),
   // while the omitted camera-depth coordinate is the complementary cos(i).
   float diskDepth = r * side * sqrt(max(0.0, 1.0 - uSin * uSin));
-  // حلقه‌های بی‌نهایت: شعاعِ هر ذره در بازهٔ [R_MIN,R_MAX] می‌چرخد؛ حلقه‌ای که از لبه
-  // بیرون می‌رود، محو می‌شود و همان لحظه حلقهٔ تازه‌ای نزدیکِ افق می‌زاید. در uTravel=۰
-  // دقیقاً همان دیسکِ اولیه است، پس گذار از کهکشان به تونل و برگشت بدونِ پرش است.
+  // حلقه‌های بی‌نهایت: شعاعِ هر ذره در بازهٔ [R_MIN,R_MAX] می‌چرخد و با uTravel در طولِ
+  // تونل جلو می‌رود؛ حلقه‌ای که از لبه بیرون می‌رود محو می‌شود و همان لحظه حلقهٔ تازه‌ای
+  // نزدیکِ افق می‌زاید. همهٔ تغییراتِ زیر با warp (مقدارِ شیرجه) وزن می‌شوند، پس در
+  // warp=۰ هندسه دقیقاً همان دیسکِ کهکشان است و گذار رفت و برگشت بدونِ پرش می‌ماند.
   const float R_MIN = 0.13, R_MAX = 1.42, SPAN = R_MAX - R_MIN;
-  // هر گروه (۱۲ نوار + دو غبار) با یک آفستِ ثابت در طولِ تونل پخش می‌شود تا همیشه
+  const float ZOOM = 2.3903;              // ln(R_MAX/R_MIN) : رشدِ هندسیِ شعاع با عمق
+  const float PHI_INV2 = 0.3819660113;    // ۱/φ² : پخشِ طلاییِ گروه‌ها در طولِ تونل
+  const float QTR = 1.5707963, LN_PHI = 0.4812118;   // π/۲ و ln(φ) → مارپیچِ لگاریتمیِ طلایی
+  const float SPIRAL_DAMP = 0.34;         // فقط بخشی از پیچشِ طلایی کامل باز می‌ماند تا بازوها وارفته نشوند
+  // هر گروه (۱۲ نوار + دو غبار) با آفستِ طلایی در طولِ تونل پخش می‌شود تا همیشه
   // حلقه‌هایی در مرکز، میانه و لبه‌ها حاضر باشند؛ نه اینکه همه با هم به لبه برسند.
-  float bandOff = warp * (band / 14.0) * SPAN;
+  float bandOff = warp * fract(band * PHI_INV2) * SPAN;
   float rLoop = R_MIN + mod(r - R_MIN + uTravel + bandOff, SPAN);
   float depth = clamp((rLoop - R_MIN) / SPAN, 0.0, 1.0);
   float loopFade = smoothstep(R_MIN, R_MIN + 0.10, rLoop) * (1.0 - smoothstep(R_MAX - 0.24, R_MAX, rLoop));
-  vec2 pt = vec2(cos(th), sin(th)) * rLoop;
+  // پرسپکتیو: شعاعِ رسمِ حلقه با عمق *هندسی* بزرگ می‌شود (r = R_MIN·e^(ZOOM·depth))، نه خطی؛
+  // همان چیزی که دوربینِ باسرعتِ ثابتِ درونِ لوله می‌دهد: فشرده‌شدنِ حلقه‌ها near افق و
+  // گشاده‌شدن near خروج. در warp=0 هیچ‌چیز جابه‌جا نمی‌شود، پس گذار از کهکشان پرش ندارد.
+  float rPersp = R_MIN * exp(ZOOM * depth);
+  // مارپیچِ طلایی (لگاریتمی): زاویه با logِ شعاع می‌پیچد → لایه‌ها هیچ‌وقت حلقهٔ هم‌مرکز نیستند
+  float thT = th + warp * SPIRAL_DAMP * QTR * ZOOM / LN_PHI * depth;
+  // لبهٔ تونل دایره نیست: چهار هارمونیکِ فیبوناچی (۳،۵،۸،۱۳) با فازهای ثابت و درفتِ
+  // آهستهٔ ناهم‌دوره، شعاع را تابعِ زاویه می‌کنند → در هیچ فریمی مرزِ دایره‌ایِ هموار نمی‌ماند.
+  float rim = sin(thT * 3.0 + uTime * 0.091) + 0.62 * sin(thT * 5.0 - uTime * 0.053 + 1.7)
+            + 0.38 * sin(thT * 8.0 + uTime * 0.031 + 2.9) + 0.24 * sin(thT * 13.0 - uTime * 0.019 + 4.1);
+  // اعوجاجِ لبه در دهانهٔ تونل کامل است و تا افق کم می‌شود، اما هرگز صفر نمی‌شود (مرزِ
+  // دایره‌ایِ هموار در هیچ فریمی باقی نمی‌ماند). آستانهٔ پایین فقط به‌اندازهٔ ~۴٪ِ HOLE_R
+  // جابه‌جا می‌کند، پس حلقه‌های چسبیده به تکینگی مرکزِ کرهٔ سیاه را نمی‌لغزند.
+  float rimBite = 0.18 + 0.82 * smoothstep(0.10, 0.55, depth);
+  // دامنهٔ پایه هرگز صفر نمی‌شود؛ میدرنج کمی بازش می‌کند (ساختار، نه نویز). ۰٫۴۴۶ = ۱/سقفِ مجموعِ هارمونیک‌ها
+  float rDraw = rPersp * (1.0 + warp * rimBite * (0.038 + 0.030 * clamp(uStructure, 0.0, 1.0)) * rim * 0.446);
+  vec2 pt = vec2(cos(thT), sin(thT)) * rDraw;
   pt = vec2(c * pt.x - s * pt.y, s * pt.x + c * pt.y);
+  // کجیِ محور تونل به حلقه‌های *نزدیک* داده می‌شود، نه دوردست: انتهای تونل دقیقاً روی
+  // تکینگی می‌ماند (مرکزیتِ کرهٔ سیاه حفظ می‌شود، occlusion نمی‌شکند) و میلِ استوانه
+  // در دهانه خوانده می‌شود. سقفِ جابه‌جایی ۰٫۰۳ ≈ ۲۷٪ِ HOLE_R=۰٫۱۱ است.
+  pt += vec2(-s, c) * (uSin * 0.030 * smoothstep(0.25, 1.0, depth) * warp);
   p = mix(p, pt, warp);
   vDiskView = vec3(p, mix(diskDepth, depth, warp));
   int ib = int(clamp(band, 0.0, 11.0) + 0.5);
@@ -853,7 +1902,9 @@ void main(){
   float edge = smoothstep(0.0, 0.14, aU) * (1.0 - smoothstep(0.86, 1.0, aU));     // لبه‌های نرمِ هر نوار
   float shimmer = 0.88 + 0.12 * sin(uTime * (0.7 + 1.8 * seed) + seed * 47.0);
   float dop = 1.0 + 0.30 * (-cos(th));
-  float vis = 1.0 - smoothstep(uReveal - 0.28, uReveal, r);
+  // درِ آشکارسازیِ دیسک فقط در حالتِ کهکشان کار می‌کند؛ در تونل، ذره‌ای که دوردستِ دیسک
+  // نشسته بود هم باید دیده شود (وگرنه جمعیتِ لبه درست جایی که لازم است خاموش می‌ماند).
+  float vis = 1.0 - (1.0 - warp) * smoothstep(uReveal - 0.28, uReveal, r);
   float pulse = uPulseA * exp(-pow((r - uPulseR) / 0.05, 2.0));
   float lum; vec3 col;
   if (ring) {
@@ -864,6 +1915,11 @@ void main(){
     // رنگِ ذراتِ نزدیکِ افق از هندسهٔ ساخته‌شده می‌آید، نه از محاسبهٔ فریمی.
     int hue = int(clamp(aMisc.w, 0.0, 6.0) + 0.5);
     lum = 0.85; col = mix(neutral, uPal[hue], clamp(uTint[hue], 0.0, 1.0));
+  } else if (band < 13.5) {
+    // غبارِ لبه: روشنایی از seed (تنوعِ درخشش) و از پوششِ مسیرِ فروریزش؛ هرگز به درونِ
+    // دیسک و سایهٔ کرهٔ سیاه نمی‌رسد، پس مرکزیت و خواناییِ سیاه‌چاله حفظ می‌شود.
+    lum = 0.46 * (0.55 + 0.75 * seed) * inflowEnv;
+    col = neutral * 0.92;
   } else {
     lum = 0.46 * (1.0 - smoothstep(0.80, 1.0, r)); col = neutral * 0.92;
   }
@@ -882,7 +1938,7 @@ void main(){
   float spark = smoothstep(0.55, 1.0, depth) * warp;             // فورانِ سفید-گرم در لبهٔ خروج
   col = mix(col, vec3(1.0, 0.95, 0.85), 0.50 * spark);
   lum = (lum * shimmer * (1.0 + (ring ? 0.10 * uMid * armWave : 0.0) + 0.32 * highGlint) + pulse * 0.9) * tunnelDop * vis * uDim * depthGlow * fade;
-  vCol = vec4(col * lum, 0.0);
+  vCol = vec4(col * lum * halfKeep, 0.0);
   gl_PointSize = clamp(sz * uPx, 1.0, mix(10.0, 14.0, warp));
   vPointDiameter = gl_PointSize / max(uPx * uScale, 0.001);
 }`;
@@ -1046,6 +2102,89 @@ void main(){
   o = vec4(col, body);
 }`;
 
+  // §ENCHANT اژدهای خفته: پیچِ مارپیچیِ آبی-یخی + اخگر + ذراتِ ریز + دو موجِ شوکِ بیدارشدن. فقط بیرونِ کره (d>1) می‌کشد.
+  const FS_ENCHANT = `#version 300 es
+precision highp float;
+uniform vec2 uCanvas; uniform float uPx; uniform vec2 uCenter; uniform float uScale, uHoleR;
+uniform float uTime, uFlow, uAura, uSwell, uSqueeze, uR1, uA1, uR2, uA2;
+out vec4 o;
+float eHash(float x){ return fract(sin(x * 127.1 + 311.7) * 43758.5453); }
+float eHash2(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float eNoise(float a, float seed){
+  float x = fract(a / 6.2831853) * 8.0, i = floor(x), f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(eHash(mod(i, 8.0) + seed), eHash(mod(i + 1.0, 8.0) + seed), f);
+}
+void main(){
+  vec2 q = vec2(gl_FragCoord.x, uCanvas.y - gl_FragCoord.y) / uPx - uCenter;
+  float R = uHoleR * uScale;
+  vec2 pd = q / R;
+  float d = length(pd);
+  if (d < 1.0) { o = vec4(0.0); return; }
+  float a = atan(pd.y, pd.x);
+  float t = uTime;
+  float k = d - 1.0;
+  float mask = smoothstep(1.0, 1.035, d) * (1.0 - smoothstep(5.2, 6.6, d));
+  vec3 deep = vec3(0.13, 0.24, 0.60), ice = vec3(0.62, 0.83, 1.00), ember = vec3(1.00, 0.62, 0.30);
+  float breathe = 0.90 + 0.10 * sin(t * 0.40);
+  float gain = uAura * breathe;
+  float wake = uSwell;
+
+  float n1 = eNoise(a + t * 0.05, 3.0);
+  float veil = (0.85 * exp(-k * (3.0 + 2.0 * uSqueeze)) + 0.35 * exp(-k * 0.9)) * (0.80 + 0.20 * n1);
+  vec3 col = mix(deep, ice, exp(-k * 2.2)) * veil * (gain * 0.62 + wake * 0.50);
+
+  float aa = mod(a + 3.14159265 - uFlow * 0.045, 6.2831853);
+  float body = 0.0, knots = 0.0;
+  for (int n = 0; n < 2; n++) {
+    float s = aa + 6.2831853 * float(n);
+    float tt = s / 10.6;
+    if (tt > 1.0) continue;
+    float rc = 1.18 + 1.90 * pow(tt, 0.85) + 0.11 * sin(s * 1.9 - uFlow * 1.1) + 0.04 * sin(s * 5.1 + uFlow * 0.7);
+    float w = mix(0.175, 0.036, smoothstep(0.0, 1.0, tt));
+    float dist = d - rc;
+    float core = exp(-pow(dist / w, 2.0));
+    float pulse = (0.50 + 0.50 * sin(s * 2.6 - uFlow * 1.6)) * (0.50 + 0.50 * eNoise(s * 0.9 + uFlow * 0.05, 5.0)) + 0.18;
+    float fade = smoothstep(0.0, 0.06, tt) * (1.0 - smoothstep(0.66, 1.0, tt));
+    float scale = 0.78 + 0.22 * abs(sin(s * 24.0)) * (0.5 + 0.5 * cos(dist / w * 2.2));
+    body += core * pulse * fade * scale;
+    knots += core * fade * pow(max(0.0, sin(s * 1.9 + 1.3)), 14.0);
+  }
+  float dg = gain * 0.95 + wake * 1.05;
+  col += mix(deep * 1.6, ice, clamp(body * 0.9, 0.0, 1.0)) * body * dg * 0.70;
+  col += vec3(0.85, 0.94, 1.00) * knots * dg * 0.55;
+
+  float ah = -3.14159265 + 0.64 + uFlow * 0.045;
+  vec2 hp = vec2(cos(ah), sin(ah)) * 1.24;
+  float he = exp(-dot(pd - hp, pd - hp) / 0.010);
+  col += ember * he * (0.16 + 0.84 * wake) * (0.80 + 0.20 * sin(t * 0.7)) * (0.35 + 0.65 * gain + wake);
+
+  float ph = exp(-pow((d - 1.03) / 0.026, 2.0)) * (0.7 + 0.3 * sin(7.0 * a - t * 0.6));
+  col += ice * ph * (gain * 0.22 + wake * 0.30);
+
+  float rr = k * 7.0;
+  float cr = floor(rr), cf = fract(rr);
+  float dirn = (mod(cr, 2.0) < 1.0) ? 1.0 : -1.0;
+  float ang = fract(a / 6.2831853 + t * (0.03 + 0.025 * eHash(cr)) * dirn / (1.0 + 0.5 * cr));
+  float cells = 26.0 + 11.0 * cr;
+  float ca = floor(ang * cells), cfa = fract(ang * cells);
+  float hh = eHash2(vec2(ca, cr + 7.0));
+  float present = step(0.86, hh);
+  float tw = 0.5 + 0.5 * sin(t * (0.8 + 2.0 * hh) + hh * 40.0);
+  float mote = present * smoothstep(0.26, 0.0, length(vec2(cfa - 0.5, cf - 0.5))) * (0.30 + 0.70 * tw) * exp(-k * 0.5);
+  col += mix(ice, vec3(1.0), 0.5) * mote * (gain * 0.60 + wake * 0.50);
+
+  float w1 = 0.10 + 0.05 * uR1, w2 = 0.11 + 0.045 * uR2;
+  float ring1 = uA1 * smoothstep(1.0, 1.7, uR1) * exp(-pow((d - uR1) / w1, 2.0)) * (0.84 + 0.16 * sin(6.0 * a + uR1 * 3.0));
+  float ring2 = uA2 * smoothstep(1.0, 1.7, uR2) * exp(-pow((d - uR2) / w2, 2.0)) * (0.84 + 0.16 * sin(5.0 * a - uR2 * 2.5 + 1.0));
+  vec3 rc1 = mix(vec3(0.98, 0.78, 0.58), vec3(0.70, 0.87, 1.00), clamp((uR1 - 1.0) / 2.6, 0.0, 1.0));
+  vec3 rc2 = vec3(0.50, 0.74, 1.00);
+  col += rc1 * ring1 + rc2 * ring2;
+
+  col = min(col, vec3(1.10)) * mask;
+  o = vec4(col, 0.0);
+}`;
+
   const VS_POWDER = `#version 300 es
 precision highp float;
 in vec2 aS; in vec3 aR; in float aG;   // aG: ۰ = عنوان/هنرمند، ۱ = ستارهٔ امتیاز
@@ -1172,7 +2311,7 @@ void main(){
       inner.push(cur); cur += wts[b] * unit; outer.push(cur);
       cur += (b === 5 ? CASSINI : GAP) * unit;
     }
-    const nInner = Math.round(N * 0.04), nDustTotal = Math.round(N * 0.08);
+    const nInner = Math.round(N * 0.04), nDustTotal = Math.round(N * 0.11);
     const nAurora = Math.floor(N * 0.04), nDust = nDustTotal - nAurora, nRing = N - nInner - nDustTotal;
     // سهم هر نوار ∝ مساحتِ تقریبی (چگالی ∝ r^-0.5 تا نوارهای درونی خالی نمانند)
     const area = outer.map(function (o, b) { return Math.pow(o, 1.5) - Math.pow(inner[b], 1.5); });
@@ -1184,12 +2323,14 @@ void main(){
     const counts = area.map(function (a) { return Math.round(nRing * a / asum); });
     counts[NB - 1] += nRing - counts.reduce(function (a, c) { return a + c; }, 0);
     const th0 = rnd() * TAU;
-    // بازوهای مارپیچِ لگاریتمی (دنباله‌دار نسبت به چرخشِ پادساعت‌گرد)؛ ~۲۶٪ ذرات پس‌زمینهٔ بین‌بازوهاست
+    // بازوهای مارپیچِ لگاریتمی (دنباله‌دار نسبت به چرخشِ پادساعت‌گرد). انحرافِ استانداردِ زاویه‌ای
+    // ≈ ۰٫۱۶rad در مرکز تا ۰٫۳۴rad در لبه (۸٪ تا ۱۶٪ فاصلهٔ بینِ بازوها؛ پیش‌تر ۱۰٪ تا ۲۳٪) و
+    // فقط ۱۸٪ ذرات پس‌زمینه‌اند: بازو باید *پیوسته و خوانا* بماند، نه ابری که دورِ مرکز پخش شده است.
     const ARMS = 3, KPITCH = 1.8;
     V.armTh0 = th0; V.armK = KPITCH; V.armN = ARMS;
     const armAngle = function (r) {
-      if (rnd() > 0.74) return rnd() * TAU;
-      const k = Math.floor(rnd() * ARMS), sg = 0.26 + 0.34 * ((r - R0) / (R1 - R0)), g = (rnd() + rnd() + rnd() - 1.5) * 1.6;
+      if (rnd() > 0.82) return rnd() * TAU;
+      const k = Math.floor(rnd() * ARMS), sg = 0.20 + 0.22 * ((r - R0) / (R1 - R0)), g = (rnd() + rnd() + rnd() - 1.5) * 1.6;
       return th0 + k * TAU / ARMS + KPITCH * Math.log(r / R0) + g * sg;
     };
     let i = 0;
@@ -1211,7 +2352,10 @@ void main(){
       }
     }
     for (let k = 0; k < nInner; k++) put(HOLE_R + 0.03 + 0.05 * Math.pow(rnd(), 0.8), 12, rnd(), k % 7);
-    for (let k = 0; k < nDust; k++) put(0.82 + 0.18 * Math.pow(rnd(), 1.5), 13, rnd(), 4);
+    // غبارِ لبه: پوسته‌ای درست بیرونِ دیسک تا دهانهٔ تونل (R_MAX=۱٫۴۲ در VS_DOTS). در حالتِ
+    // کهکشان پیوسته به داخل می‌ریزد (پوششِ روشنایی‌اش آن‌ها را بیرونِ لبهٔ دیسک خاموش می‌کند،
+    // پس سیلوئتِ کرهٔ سیاه دست‌نخورده می‌ماند) و در حالتِ شیرجه همان‌ها غذای تونل می‌شوند.
+    for (let k = 0; k < nDust; k++) put(1.00 + 0.32 * rnd(), 13, rnd(), 2 + Math.floor(rnd() * 5));
     V.auroraStart = i; V.auroraN = nAurora;
     for (let k = 0; k < nAurora; k++) {
       const pick = rnd() * auroraAsum; let b = 0, acc = auroraArea[0];
@@ -1242,10 +2386,10 @@ void main(){
       // GPU reset / از دست رفتنِ context: بوم را از نو می‌سازیم (هندسه از seedِ همان نشست دوباره ساخته می‌شود)
       cv.addEventListener('webglcontextlost', function (e) {
         e.preventDefault(); V.ok = false; stopLoop(false);
-        setTimeout(function () {
+        setTimeout(guard(function () {
           teardownGL(); V.dead = false;
           if (V.playing && VM.isOpen() && initGL()) startLoop();
-        }, 400);
+        }, 'to:ctx-restore-400ms'), 400);
       });
 
       G = {};
@@ -1253,10 +2397,12 @@ void main(){
       G.aurora = program(gl, VS_TRI, FS_AURORA, ['uRes', 'uTime', 'uLevel', 'uSeed', 'uTint', 'uHole', 'uAsp', 'uBend', 'uInfall[0]', 'uInfallTail', 'uHorizon', 'uBand', 'uBandP', 'uBandLow', 'uBloom[0]']);
       G.blit = program(gl, VS_TRI, FS_BLIT, ['uTex', 'uRes', 'uMix']);
       G.cosmic = program(gl, VS_COSMIC_DOTS, FS_COSMIC_DOTS, ['uView', 'uPx', 'uTime', 'uLevel', 'uGlow', 'uAspect', 'uPrimary', 'uReveal[0]', 'uBandTex', 'uBandAmt', 'uBandHigh']);
-      G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uConf', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix', 'uTint', 'uDive', 'uTravel', 'uCull', 'uOccl']);
+      G.dots = program(gl, VS_DOTS, FS_OCCLUDED_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uHoleR', 'uPhase', 'uReveal', 'uLum', 'uTime', 'uPulseR', 'uPulseA', 'uDim', 'uMid', 'uHigh', 'uStructure', 'uChroma', 'uPal', 'uAur', 'uAurMix', 'uTint', 'uDive', 'uTravel', 'uCull', 'uOccl']);
       G.aurDots = program(gl, VS_AUR_DOTS, FS_AUR_DOTS, ['uView', 'uCenter', 'uScale', 'uSin', 'uTilt', 'uPx', 'uHalf', 'uDiskBreath', 'uPhase', 'uTime', 'uLevel', 'uLum', 'uLow', 'uMid', 'uHigh', 'uDim', 'uChroma', 'uHoleR', 'uTint']);
       G.hor = program(gl, VS_TRI, FS_HORIZON, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uLevel', 'uLum', 'uTime', 'uEnergy', 'uBass', 'uFlare', 'uAxis', 'uTint']);
     } catch (e) { teardownGL(); V.dead = true; return false; }
+    // §ENCHANT برنامهٔ شیدرِ هاله در try جدا: اگر روی یک GPU کامپایل نشد، فقط همین افکت خاموش می‌شود
+    try { G.ench = program(V.gl, VS_TRI, FS_ENCHANT, ['uCanvas', 'uPx', 'uCenter', 'uScale', 'uHoleR', 'uTime', 'uFlow', 'uAura', 'uSwell', 'uSqueeze', 'uR1', 'uA1', 'uR2', 'uA2']); } catch (e) { G.ench = null; }
     try {
       const gl = V.gl;
       G.pow = program(gl, VS_POWDER, FS_DOTS, ['uView', 'uCenter', 'uProg', 'uApp', 'uSin', 'uPx', 'uBoxX', 'uBoxW', 'uMode', 'uEnter', 'uCoreR', 'uFade', 'uHasStars']);
@@ -1452,9 +2598,16 @@ void main(){
   function updateStage(dt, nowS) {
     V.stageT += dt; V.tPlay += dt;
     if (reduced()) { V.stage = 'calm'; return; }
-    // اگر آنالیز در دسترس نباشد (context اجرا نشد)، انرژیِ ساختگیِ آرام جایگزین می‌شود تا نمایش هرگز «مرده» نماند
-    const e = A.ok ? A.energy : clamp(0.52 + 0.30 * Math.sin(nowS * 0.33) + 0.12 * Math.sin(nowS * 1.1), 0, 1);
-    const fr = A.ok ? A.fluxR : 1, silent = A.ok && A.silent;
+    /* §SCENE دروازهٔ صادقِ پله: «galaxy» یعنی موسیقیِ واکنش‌گر با دادهٔ تأییدشده. در دو حالتِ
+       تازه (idle بی‌منبع و «منبع هست، پخش نیست») حلقه حالا می‌چرخد و انرژیِ تزئینیِ ambient
+       (میانگین ≈ 0.52) از آستانه 0.46 بالا می‌زند؛ بدونِ این دروازه پله از هیچ‌چیز بیدار می‌شد
+       و لایه‌های پله‌محور (نشستِ کیهانی/دنباله‌دار) روشن می‌شدند. با scene خاموش رفتارِ قبلی عیناً
+       باقی می‌ماند. */
+    if (CFG.scene && !V.playing) { V.stage = 'calm'; return; }
+    // اگر آنالیز در دسترس نباشد (لایهٔ ambient) انرژیِ ساختگیِ آرام جایگزین می‌شود تا نمایش هرگز «مرده» نماند
+    const ambient = FEAT.quality === 'ambient' || V.tier === 'ambient';
+    const e = displayEnergy(nowS);
+    const fr = ambient ? 1 : FEAT.fluxR, silent = !ambient && FEAT.silent;
     if (V.stage === 'calm') {
       V.calmT += dt;
       if (V.cool > 0) { V.cool -= dt; V.hiT = 0; return; }
@@ -1599,7 +2752,7 @@ void main(){
   }
   function drawHotSpot(sc, Lg) {
     const gl = V.gl; if (!G.comet || !G.cometVao) return;
-    const e = clamp(V.energy || 0, 0, 1), bass = V.playing ? clamp(A.low || 0, 0, 1) : 0;
+    const e = clamp(V.energy || 0, 0, 1), bass = clamp(FEAT.bass, 0, 1);
     const a = Lg * (0.10 + 0.18 * V.colorLevel * (0.4 + e) + 0.16 * bass);
     if (a < 0.003) return;
     const hs = sc * HOLE_R * (4.6 + 1.2 * bass), buf = CM.buf; let o = 0;
@@ -1690,15 +2843,14 @@ void main(){
       else c.nextCometAt = eventTime + 1.5;     // هر سه اسلات مشغول است؛ کمی بعد دوباره امتحان کن
     }
     if (!rm && !titleAnimation) {
-      // اوج‌های واقعی (انرژیِ نرمال + شارِ طیفی) با هیسترزیس و دورهٔ بازیابی؛ حالا دنباله‌دارِ اضافه/درخشان‌تر و بیدارشدنِ ستاره‌ها
-      const fluxCross = A.fluxR >= 1.7 && A.prevFluxR < 1.7;
-      if (fluxCross) c.peakCandidateUntil = eventTime + 0.75;
+      // اوج‌های واقعی: onset از رابطهِ FEAT (شارِ طیفی یا قلهٔ غلبهٔ بیس، با دورهٔ بازیابی) — نه افزایشِ حجم
+      if (FEAT.onset) c.peakCandidateUntil = eventTime + 0.75;
       const energy = clamp(V.energy || 0, 0, 1);
       const rising = energy > c.prevEnergy + 0.006 || energy > 0.92;
-      if (A.ok && eventTime <= c.peakCandidateUntil && energy >= 0.68 && rising && eventTime - c.lastPeakAt >= 18) {
+      if (FEAT.live && eventTime <= c.peakCandidateUntil && energy >= 0.68 && rising && eventTime - c.lastPeakAt >= 18) {
         c.lastPeakAt = eventTime;
         c.peakCandidateUntil = -100;
-        const exceptional = energy >= 0.90 && A.fluxR >= 2.1;
+        const exceptional = energy >= 0.90 && FEAT.onsetStrength >= 0.45;
         const tier = exceptional ? 3 : (energy >= 0.78 ? 2 : 1);
         const probability = tier === 3 ? 0.72 : (tier === 2 ? 0.48 : 0.26);
         if (cosmicRand() < probability) {
@@ -1758,11 +2910,15 @@ void main(){
     VM.setPowder((pst.on && V.powder.n > 0) || (V.entrance.active && V.entrance.elapsed < V.entrance.duration + V.entrance.handoff));
 
     const needSpec = V.L.galaxy > 0.02 || V.stage === 'galaxy' || pst.on;
-    if (A.ok && V.playing && audio && !audio.paused) analyze(dt, needSpec);
+    const audioLive = playSignal(audio);                          // §1.1 منبعِ تب: از stream؛ منبعِ محلی: از paused
+    if (A.ok && V.playing && audioLive) { anCount(false); analyze(dt, needSpec); }
+    tierUpdate(dt);                                               // §AMBIENT پیش از FEAT: لایه تعیین می‌کند quality چه ادعایی دارد
+    showUpdate(dt, nowS);                                         // §SHOW کارگردانِ ambient (پیش از updateStage: منحنیِ تزئینی را همان فریم شکل می‌دهد)
+    updateFeatures(dt, V.playing && audioLive, nowS);
     updateStage(dt, nowS);
 
     const rm = reduced();
-    let energy = A.ok ? A.energy : clamp(0.52 + 0.30 * Math.sin(nowS * 0.33) + 0.12 * Math.sin(nowS * 1.1), 0, 1);
+    let energy = displayEnergy(nowS);                             // §AMBIENT واقعی / تزئینی / مخلوطِ نرم
     energy = V.energy = (V.energy || 0) + (energy - (V.energy || 0)) * expK(dt, 0.25);
     updateCosmic(dt, rm, pst.on || V.entrance.pending || V.entrance.active);
 
@@ -1772,10 +2928,21 @@ void main(){
     }
 
     const soft = 1 - energy;
-    const aT = !V.playing ? 0 : (V.stage === 'galaxy' ? 0.30 + 0.24 * soft : 0.46 + 0.50 * Math.pow(soft, 1.2) + 0.06 * energy) * (rm ? 0.6 : 1);
+    /* §IDLE blend: در حالتِ «صدا هست، موسیقی نیست» هر دو لایه با وزنِ idleX به صفر می‌روند؛
+       شفق و کهکشان. چون ستاره‌ها/دنباله‌دارها/ذراتِ جداشده/.hot-spot همه از همین دو آستانه
+       (LaAir و Lg) گذر می‌کنند، یک blendِ خطی کافی است تا «هیچ کهکشانی» بماند — بدونِ دروازهٔ
+       تازه در رسم و بدونِ پرش: آمدنِ موسیقی = idleX پایین و Lg بالا ⇒ دقیقاً همان عددِ همیشگی. */
+    const idleW = CFG.idleHalo ? clamp(V.idleX, 0, 1) : 0;
+    const aT = (!V.playing ? 0 : (V.stage === 'galaxy' ? 0.30 + 0.24 * soft : 0.46 + 0.50 * Math.pow(soft, 1.2) + 0.06 * energy) * (rm ? 0.6 : 1)) * (1 - idleW);
     V.rich += ((V.stage === 'galaxy' ? 0.30 : 0.45 + 0.55 * soft) - V.rich) * expK(dt, 1.2);
     // سیاه‌چاله همیشه (حتی کم‌رنگ و میانِ شفق) حاضر است: با آهنگ بارگذاری‌شده حتی در مکث یک ردِ ملایم می‌ماند
-    const gT = !V.playing ? CFG.holeRest : (V.stage === 'galaxy' ? 1 : (pst.on ? 0.8 : CFG.holeBase + 0.25 * energy));
+    /* §SCENE blend: «منبع فعال است ولی پخش قطعی نشده» ⇒ عددِ سکونِ کهکشان از holeRest به
+       awakenTarget بالا می‌آید و همین دیسکِ همیشگی (uReveal = Lg*1.4-0.1) را بیدار می‌کند؛
+       نه لایهٔ تازه، نه عددِ صوتیِ ساختگی. با آمدنِ پخشِ واقعی شاخهٔ قبلی (V.playing) را می‌گیرد،
+       با رفتنِ منبع awakenX به صفر برمی‌گردد و دقیقاً همان holeRestِ همیشگی می‌ماند. */
+    const awakenW = CFG.scene ? clamp(V.awakenX, 0, 1) : 0;
+    const gRest = awakenW > 0.0005 ? lerp(CFG.holeRest, awakenTarget(), awakenW) : CFG.holeRest;
+    const gT = (!V.playing ? gRest : (V.stage === 'galaxy' ? 1 : (pst.on ? 0.8 : CFG.holeBase + 0.25 * energy))) * (1 - idleW);
     V.L.aurora += (aT - V.L.aurora) * expK(dt, aT > V.L.aurora ? 0.9 : (V.playing ? 1.2 : 0.55));
     V.L.galaxy += (gT - V.L.galaxy) * expK(dt, gT > V.L.galaxy ? 0.45 : (V.playing ? 1.4 : 0.8));
     V.L.lum += ((0.35 + 0.65 * energy) - V.L.lum) * expK(dt, 0.3);
@@ -1783,12 +2950,17 @@ void main(){
     // دورانِ دیفرانسیلیِ بسیار نرم (فازِ مشترک؛ سرعتِ هر نقطه از ω(r) در شیدر)
     V.phase += dt * 0.0065 * (1 + 1.0 * energy);
     // Multi-scale, deterministic drift changes disk density over long sessions without rebuilding geometry.
-    const structureTarget = V.playing && !rm
-      ? 0.56 * Math.sin(nowS * 0.0217 + V.seed3[0] * TAU) + 0.29 * Math.sin(nowS * 0.0081 + V.seed3[1] * TAU) + 0.15 * Math.sin(nowS * 0.0037 + V.seed3[2] * TAU)
-      : 0;
+    // میدرنج هم عمقِ همان موج‌های چگالی را تعیین می‌کند (حرکتِ ساختاری ← مید)، نه فقط زمانِ ساعتِ دیوار.
+    const drift = 0.56 * Math.sin(nowS * 0.0217 + V.seed3[0] * TAU) + 0.29 * Math.sin(nowS * 0.0081 + V.seed3[1] * TAU) + 0.15 * Math.sin(nowS * 0.0037 + V.seed3[2] * TAU);
+    const structureTarget = V.playing && !rm ? drift * (0.60 + 0.40 * FEAT.mid) + 0.30 * FEAT.mid : 0;
     V.structure += (structureTarget - V.structure) * expK(dt, V.playing && !rm ? 7.0 : 1.8);
     // هالهٔ سیاه‌چاله: زمانِ جریان (با انرژی تندتر)، جرقهٔ ضربه و رنگِ ملایمِ نتِ غالب (حداکثر ۵۵٪ مخلوط)
-    V.haloT += dt * (0.55 + 1.5 * energy);
+    // §IDLE: در حالتِ بی‌موسیقی، انرژیِ *حرکتِ هاله* فقط زمانِ قطعی است (idleHaloEnergy) — نه
+    // دادهٔ صدا؛ پس هاله آرام می‌چرخد ولی با حرف‌زدنِ کسی نمی‌پرد. idleX=0 ⇒ همان V.energyِ همیشگی.
+    V.idleE = idleW > 0 ? idleHaloEnergy() : 0;
+    const eMotion = idleW > 0.0005 ? lerp(energy, V.idleE, idleW) : energy;
+    V.haloE = eMotion;
+    V.haloT += dt * (0.55 + 1.5 * eMotion);
     {
       let sr = 0, sg = 0, sb = 0, sw = 0.0001;
       for (let i = 0; i < 12; i++) { const c = A.chroma[i]; sr += PAL[i * 3] * c; sg += PAL[i * 3 + 1] * c; sb += PAL[i * 3 + 2] * c; sw += c; }
@@ -1798,7 +2970,7 @@ void main(){
     V.flare *= Math.exp(-dt * 2.2);
     {
       let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
-      const mixW = A.ok ? clamp(A.conf * Math.min(1, A.chroma[top] * 1.2), 0, 1) * 0.55 : 0;
+      const mixW = FEAT.live ? clamp(FEAT.conf * Math.min(1, A.chroma[top] * 1.2), 0, 1) * 0.55 : 0;
       const k = expK(dt, 0.4);
       for (let c = 0; c < 3; c++) V.tintC[c] += ((WARM[c] * (1 - mixW) + PAL[top * 3 + c] * mixW) - V.tintC[c]) * k;
     }
@@ -1816,6 +2988,16 @@ void main(){
         V.tint[b] += (want - V.tint[b]) * expK(dt, want > V.tint[b] ? 0.30 : 1.0);
       }
     }
+    /* §SHOW بیداریِ آرایشیِ حلقه‌ها و کششِ آرامِ رنگ. فقط وقتی اجرا می‌شود که کارگردان صاحبِ
+       نمایش باشد (لایهٔ ambient + پرچمِ روشن) و وزنش با V.tierX است: در crossfade نرم می‌آید،
+       در LIVE و در مسیرِ فایلِ محلی هرگز درگیر نمی‌شود. مقدارِ محاسباتی از زمانِ قطعی می‌آید،
+       پس پله‌ای نیست (rate-limit شده) و هیچ‌جا ادعای «ضربانِ موسیقی» نمی‌کند. */
+    if (showOwnsDisplay()) {
+      const sh = V.show, w = clamp(SHOW.tintW * sh.level * V.tierX, 0, 1);
+      if (w > 0.001) for (let b = 0; b < 12; b++) { const wt = w * sh.wake[b] * (0.55 + 0.45 * sh.env); if (wt > V.tint[b]) V.tint[b] = wt; }
+      const hm = clamp(SHOW.hueMix * sh.level * (0.5 + 0.5 * sh.env), 0, 0.55), hk = expK(dt, 2.4), hi = sh.hueIdx * 3;
+      for (let c = 0; c < 3; c++) V.tintC[c] += hm * (PAL[hi + c] - V.tintC[c]) * hk;
+    }
     {   // نرخِ جداشدنِ ستاره‌ها از بازوها: با انرژیِ موسیقی؛ اوج‌ها فوران می‌دهند و سریع فرو می‌نشینند (صحنه شلوغ نمی‌شود)
       const e2 = clamp(V.energy || 0, 0, 1), rt = V.playing ? clamp(0.10 + 0.50 * e2, 0, 0.7) : 0;
       V.ejRate += (rt - V.ejRate) * expK(dt, rt > V.ejRate ? 1.6 : 1.2);
@@ -1824,37 +3006,62 @@ void main(){
     // دوربین: شیبِ دیسک و رولِ بسیار کند — حسِ شناور بودن در فضا (دوره‌ها ≈ ۱۲۰ و ۹۰ ثانیه)
     V.inclNow = V.incl + 6 * Math.sin(nowS * 0.052);
     V.rollNow = V.tilt + 0.05 * Math.sin(nowS * 0.07 + 1.3);
-    // حرکتِ دوربین مستقل از انرژی و ضربانِ صداست؛ reduced-motion آن را متوقف می‌کند.
-    const openingActive = V.playing && VM.isOpen() && !document.hidden && !rm;
+    // روایتِ دوربین (§3): یک گشایش در آغازِ واقعیِ پخش، سپس «خانه» = دیسکِ تمام‌گشاده که
+    // ماندگارِ سفر است، و رویدادهای تونل که روی اوجِ موسیقی بلند می‌شوند و به همان کف برمی‌گردند.
+    // درِ کرم‌چاله را فقط پایانِ واقعیِ پخش یا خروج از Music Mode می‌بندد؛ مکث، عنوان، پودر
+    // و رسیدنِ اطلاعاتِ تب نه می‌بندندش و نه از نو باز می‌کنند.
+    // §IDLE: روایتِ دوربین برای «صدا بدونِ موسیقی» آغاز نمی‌شود — نه گشایش، نه رویدادِ تونل
+    // (هیچ‌کدام در این حالت دیده نمی‌شوند و خرجِ بیدوراندنشان هم نیست). موسیقی که بیاید، idleAudio
+    // صفر می‌شود و روایت از همان نقطه‌ای که همیشه شروع می‌شد شروع می‌کند.
+    const openingActive = V.playing && VM.isOpen() && !document.hidden && !rm && !V.idleAudio;
     if (openingActive && !V.opening.started) startCinematicOpening();
-    if (openingActive && V.opening.started && !V.entrance.pending && !V.entrance.active && !pst.on) {
-      V.opening.elapsed += dt;
-    }
+    const narrating = !pst.on && !V.entrance.pending && !V.entrance.active;
+    const inGate = openingActive && V.opening.started && narrating;
+    if (inGate) V.opening.elapsed += dt;
     const cycleS = Math.max(1, V.opening.cycleS || BREATH.maxCycleS);
     const eventS = Math.max(1, V.opening.eventS || 12);
-    const returnS = Math.max(1, V.opening.returnS || 6);
-    const openS = Math.max(1, cycleS - eventS - returnS);
-    // اگر عنوان/پودر روی صحنه بیاید، روایت را از ابتدا شروع می‌کنیم تا دوربین وسطِ رویداد
-    // یخ نزند و بعد از عنوان دوباره از نمای لبه‌ای سفرش را آغاز کند.
-    if (V.opening.started && (pst.on || V.entrance.pending || V.entrance.active) && V.opening.elapsed > 0) V.opening.elapsed = 0;
-    const tCycle = V.opening.elapsed % cycleS;
-    let camProg = 0, tunnelT = 0;
-    if (V.opening.started) {
-      if (tCycle < openS) camProg = smoother5(tCycle / openS);
-      else if (tCycle < openS + eventS) {
-        camProg = 1;
-        const u = (tCycle - openS) / eventS, fwd = DIVE.forwardPart;
-        tunnelT = u < fwd ? smoother5(u / fwd) : 1 - smoother5((u - fwd) / (1 - fwd));
-      } else {
-        camProg = 1 - smoother5((tCycle - openS - eventS) / returnS);
+    // طولِ رویدادِ در جریان فریز می‌شود (evLen): آهنگِ تازه نباید وسطِ یک صعود/فرود منحنی را بشکند
+    const evLen = Math.max(1, V.opening.evLen || eventS);
+    const openS = Math.max(2, V.opening.openS || 12);
+    if (V.opening.phase === 'open') {
+      if (V.opening.elapsed >= openS) {
+        V.opening.phase = 'travel'; V.opening.cam = 1;
+        V.opening.nextAt = V.opening.elapsed + Math.max(6, cycleS * 0.25);
+      }
+    } else if (V.opening.phase === 'travel') {
+      // رویداد به نزدیک‌ترین اوج قفل می‌شود؛ موسیقیِ بی‌اوج پس از DIVE.eventWaitS آن را
+      // خودکار آغاز می‌کند، پس حرکتِ پایه هیچ‌وقت وابسته به ضربان نمی‌ماند.
+      if (V.opening.evAt < 0) {
+        if (inGate && V.opening.elapsed >= V.opening.nextAt &&
+          (FEAT.onset || V.opening.elapsed >= V.opening.nextAt + DIVE.eventWaitS)) { V.opening.evAt = V.opening.elapsed; V.opening.evLen = eventS; }
+      } else if (V.opening.elapsed - V.opening.evAt >= evLen || !inGate) {
+        V.opening.evAt = -1; V.opening.evLen = 0;
+        V.opening.nextAt = V.opening.elapsed + Math.max(8, cycleS - eventS);
       }
     }
+    let camProg;
+    if (V.opening.phase === 'open') camProg = smoother5(clamp(V.opening.elapsed / openS, 0, 1));
+    else {
+      // مکثِ موقت در را نمی‌بندد: تا Music Mode باز است دوربین در خانه می‌ماند؛ تنها عنوان و
+      // پودر موقتاً بیرونش می‌آورند و پس از آن، بدونِ هیچ گشایشِ دوباره، برمی‌گردد.
+      const camTarget = V.opening.started && narrating && VM.isOpen() && !rm ? 1 : 0;
+      V.opening.cam += (camTarget - V.opening.cam) * expK(dt, camTarget > V.opening.cam ? DIVE.camIn : DIVE.camOut);
+      camProg = clamp(V.opening.cam, 0, 1);
+      if (V.opening.phase === 'closing' && camProg < 0.02) { V.opening.phase = 'idle'; V.opening.cam = 0; camProg = 0; }
+    }
     V.opening.progress = camProg;
-    // رویدادِ تونل فقط وقتی مجاز است که صحنه واقعاً در حالِ پخش باشد؛ در مکث/عنوان دوربین بیرون می‌آید.
-    const diveAllowed = openingActive && V.opening.started && !pst.on && !V.entrance.pending && !V.entrance.active;
-    const diveTarget = diveAllowed ? tunnelT : 0;
+    const evU = V.opening.evAt >= 0 ? (V.opening.elapsed - V.opening.evAt) / evLen : -1;
+    const fwd = DIVE.forwardPart;
+    const tunnelT = evU < 0 ? 0 : (evU < fwd ? smoother5(evU / fwd) : 1 - smoother5((evU - fwd) / (1 - fwd)));
+    // کفِ عمق در پخش (= سفرِ پیوسته) و قله روی رویداد؛ در مکث کف صفر می‌شود تا جریانِ بی‌صدا
+    // حرکت نکند، ولی «در» باز می‌ماند و از اولین اوجِ بعدی بی‌درنگ ادامه می‌دهد.
+    const diveTarget = inGate ? DIVE.diveBase + (1 - DIVE.diveBase) * tunnelT : 0;
     V.dive += (diveTarget - V.dive) * expK(dt, diveTarget > V.dive ? DIVE.tauIn : DIVE.tauOut);
     if (V.dive < 0.0005) V.dive = 0;
+    // جریانِ محوریِ تونل: بی‌رویداد هم حلقه‌ها می‌چرخند (idleShare) و رویداد نرخ را تا DIVE.flow
+    // بالا می‌برد؛ انرژیِ موسیقی نرخ را حداکثر ۱۵٪ باز می‌کند. dive=۰ (مکث) ⇒ حرکت هم صفر.
+    V.travel += dt * DIVE.flow * (V.dive > 0 ? DIVE.idleShare + (1 - DIVE.idleShare) * V.dive : 0) * (0.85 + 0.15 * FEAT.energy);
+    if (V.travel >= TUNNEL_SPAN) V.travel -= TUNNEL_SPAN;
     const openProgress = camProg;
     if (!Number.isFinite(V.breath.pitch)) V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50;
     if (!Number.isFinite(V.breath.zoom)) V.breath.zoom = 1;
@@ -1865,17 +3072,25 @@ void main(){
     V.breath.pitch += (pitchTarget - V.breath.pitch) * expK(dt, 0.8);
     V.breath.zoom += (zoomTarget - V.breath.zoom) * expK(dt, 0.8);
     const breathActive = V.playing && VM.isOpen() && !document.hidden && !rm;
-    const diskBreathTarget = breathActive ? openProgress * (0.07 + 0.03 * clamp(V.energy || 0, 0, 1)) * (1 - 0.85 * V.dive) : 0;
+    // باس → انبساطِ دیسک (سقف همان ۰٫۱۰ قبلی می‌ماند، فقط بینِ انرژی و باس تقسیم شده)
+    const diskBreathTarget = breathActive ? openProgress * (0.055 + 0.025 * clamp(V.energy || 0, 0, 1) + 0.02 * FEAT.bass) * (1 - 0.85 * V.dive) : 0;
     V.breath.disk += (diskBreathTarget - V.breath.disk) * expK(dt, diskBreathTarget > V.breath.disk ? 1.6 : 2.2);
     if (rm) V.breath.mix = 0;
     else V.breath.mix += ((breathActive ? 1 : 0) - V.breath.mix) * expK(dt, 1.8);
     V.tilt += (V.tiltT - V.tilt) * expK(dt, 2.5);
     V.spiralPh += (V.spiralPhT - V.spiralPh) * expK(dt, 2.5);
 
-    // ضربهٔ محدود: حداکثر ~۳ بار در ثانیه، فقط در کهکشان
-    if (V.stage === 'galaxy' && !rm && A.ok && ((A.fluxR > 1.7 && A.prevFluxR <= 1.7) || A.bassBeat) && nowS - A.lastOnset > 0.34) {
-      A.lastOnset = nowS; V.pulse.t0 = nowS; V.pulse.amp = clamp((A.fluxR - 1) * 0.35, 0.25, 0.75); V.flare = Math.max(V.flare, V.pulse.amp);
+    // ضربهٔ محدود: حداکثر ~۳ بار در ثانیه، فقط در کهکشان — و فقط از FEAT (رندر چیزی را خودشان محاسبه نمی‌کند)
+    if (FEAT.onset && V.stage === 'galaxy' && !rm) {
+      V.pulse.t0 = nowS; V.pulse.amp = FEAT.onsetStrength; V.flare = Math.max(V.flare, FEAT.onsetStrength);
     }
+  }
+
+  /* §B تابعِ خالصِ آستانه: تنها منبعِ حقیقتِ «چند پاس رسم شود و با چه وزنی».
+     draw() از همان یکجا می‌خواند و آزمونِ جعبه‌سیاه هم همان را صدا می‌زند (آینه‌سازیِ مجدد = ریسکِ واگرایی). */
+  function splitWeights(d) {
+    const at = DIVE.splitAt, soft = Math.max(0.0001, DIVE.splitSoft);
+    return { halfW: clamp(1 - (d - (at - soft)) / (2 * soft), 0, 1), hard: d >= at + soft };
   }
 
   /* ---------- رسم ---------- */
@@ -1883,11 +3098,20 @@ void main(){
     const gl = V.gl;
     const rm = reduced();
     const La = V.L.aurora, Lg = V.L.galaxy;
+    // §SHOW کرومایِ آپلودشده: در حالت‌های عینی همان A.chroma است؛ فقط در ambientِ با نمایش روشن،
+    // آرایهٔ آرایشیِ جدا (مخلوطی از همان داده + منحنیِ زمان) برمی‌گردد. A.chroma هیچ‌وقت نوشته نمی‌شود.
+    const DC = displayChroma();
     const dive = clamp(V.dive || 0, 0, 1);
     // پس‌زمینه فقط تا DIVE.airMin کم‌نور می‌شود؛ صفحه هیچ‌وقت کامل سیاه نمی‌شود.
     const air = 1 - (1 - DIVE.airMin) * smoother5(dive / 0.92);
-    const tunnelMode = dive > 0.004;
+    const tunnelMode = dive > 0.004;   // فقط کف‌های uReveal/uDim و پاس‌های شفق را تعیین می‌کند (بدونِ تغییرِ رفتار)
+    // §B ترتیبِ رسمِ افق دیگر با همین یک بولین عوض نمی‌شود؛ آستانهٔ نرمِ splitAt جای آن را گرفته.
+    const sw = splitWeights(dive);
     const LaAir = La * air;
+    // §IDLE وزنِ حالتِ «صدا بدونِ موسیقی» (از همان blend در step خوانده می‌شود، نه رأیِ تازه):
+    // با idleW=0 همهٔ عبارتهای پایین دقیقاً همان اعدادِ امروزند.
+    const idleW = CFG.idleHalo ? clamp(V.idleX, 0, 1) : 0;
+    enchStep(nowS, rm);                                           // §ENCHANT ساعتِ هاله + گذارِ شروعِ پخش
     const baseIncl = Number.isFinite(V.inclNow) ? V.inclNow : V.incl;
     const mix = Number.isFinite(V.breath.mix) ? clamp(V.breath.mix, 0, 1) : 0;
     const breathPitch = Number.isFinite(V.breath.pitch) ? clamp(V.breath.pitch, BREATH.startPitch, BREATH.maxPitch) : baseIncl;
@@ -1913,7 +3137,7 @@ void main(){
       gl.uniform2f(G.aurora.u.uRes, G.aw, G.ah); gl.uniform1f(G.aurora.u.uTime, rm ? 0 : nowS + V.track * 17.0);
       gl.uniform1f(G.aurora.u.uLevel, LaAir);
       gl.uniform3f(G.aurora.u.uSeed, V.seed3[0], V.seed3[1], V.seed3[2]);
-      let top = 0; for (let i = 1; i < 12; i++) if (A.chroma[i] > A.chroma[top]) top = i;
+      let top = 0; for (let i = 1; i < 12; i++) if (DC[i] > DC[top]) top = i;
       gl.uniform3f(G.aurora.u.uTint, PAL[top * 3], PAL[top * 3 + 1], PAL[top * 3 + 2]);
       gl.uniform2f(G.aurora.u.uHole, V.cx / V.vw, 1 - V.cy / V.vh); gl.uniform1f(G.aurora.u.uAsp, V.vw / V.vh);
       gl.uniform1f(G.aurora.u.uBend, clamp(0.45 + 0.55 * Lg, 0, 1));
@@ -1921,7 +3145,7 @@ void main(){
       const bandTemp = clamp((A.centroidR - 0.2) / 0.5, 0, 1);
       gl.uniform4f(G.aurora.u.uBand, c.bandAngle, c.bandOffset, c.bandBulge, c.bandWidth);
       gl.uniform4f(G.aurora.u.uBandP, bandAmt, c.revelationSeed, c.revelationEnergy, bandTemp);
-      gl.uniform1f(G.aurora.u.uBandLow, rm ? 0 : A.low);
+      gl.uniform1f(G.aurora.u.uBandLow, rm ? 0 : FEAT.bass);
       gl.uniform4fv(G.aurora.u['uBloom[0]'], bloomUniform(c.activeElapsed));
       infall.fill(0);                                                   // دنباله‌دارها حالا با روبانِ جدا رسم می‌شوند (drawComets)
       gl.uniform4fv(G.aurora.u['uInfall[0]'], infall);
@@ -1954,7 +3178,7 @@ void main(){
       gl.uniform3f(cu.uPrimary, primary[0], primary[1], cosmicPrimaryRadius());
       gl.uniform1fv(cu['uReveal[0]'], V.cosmic.reveal);
       gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex); gl.uniform1i(cu.uBandTex, 0);
-      gl.uniform1f(cu.uBandAmt, bandAmt); gl.uniform1f(cu.uBandHigh, rm ? 0 : A.high);
+      gl.uniform1f(cu.uBandAmt, bandAmt); gl.uniform1f(cu.uBandHigh, rm ? 0 : FEAT.treble);
       gl.bindVertexArray(G.cosmicVao); gl.drawArrays(gl.POINTS, 0, G.cosmicCount);
       const bandN = Math.floor(G.bandCount * Q.band);
       if (bandN > 0 && bandAmt > 0.003) { gl.bindVertexArray(G.bandVao); gl.drawArrays(gl.POINTS, 0, bandN); }
@@ -1963,7 +3187,12 @@ void main(){
     if (LaAir > 0.003 && COMETS.length) drawComets(sceneScale, sinI, roll, LaAir);
     if (Lg > 0.004 && air > 0.02) { drawHotSpot(sceneScale, Lg * air); drawEjecta(sceneScale, sinI, roll, nowS, rm, air); }
 
-    if (Lg > 0.004) {
+    /* §IDLE حلقه‌ها/شفقِ کهکشانی فقط با Lg زنده‌اند؛ هاله پاسِ افقِ *همان* بلوک است. پس بلوک
+       وقتی کهکشان رفته هم باز می‌ماند (haloOn) تا سیاه‌چاله و هاله‌اش روی صفحه بمانند، ولی
+       هیچ پاسِ نقطه‌ای (dots/aurDots) دیگر اجرا نمی‌شود. آستانه‌ها دست‌نخورده‌اند. */
+    const dotsOn = Lg > 0.004;
+    const haloOn = idleW > 0.0005;
+    if (dotsOn || haloOn) {
       const u = G.dots.u, n = Math.max(1500, Math.floor(V.N * V.q));
       const au = G.aurDots.u, aurN = Math.floor(V.auroraN * V.q);
       const pp = clamp((nowS - V.pulse.t0) / 1.7, 0, 1);
@@ -1974,8 +3203,8 @@ void main(){
         gl.uniform1f(au.uScale, sceneScale); gl.uniform1f(au.uSin, sinI); gl.uniform1f(au.uTilt, roll); gl.uniform1f(au.uPx, V.rs); gl.uniform1f(au.uHalf, half);
         gl.uniform1f(au.uDiskBreath, diskBreath); gl.uniform1f(au.uPhase, rm ? 0 : V.phase + V.track * 3.1); gl.uniform1f(au.uTime, rm ? 0 : nowS % 6000);
         gl.uniform1f(au.uLevel, LaAir); gl.uniform1f(au.uLum, V.L.lum);
-        gl.uniform1f(au.uLow, rm ? 0 : A.low); gl.uniform1f(au.uMid, rm ? 0 : A.mid); gl.uniform1f(au.uHigh, rm ? 0 : A.high);
-        gl.uniform1f(au.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1)); gl.uniform1fv(au.uChroma, A.chroma); gl.uniform1fv(au.uTint, V.tint); gl.uniform1f(au.uHoleR, HOLE_R);
+        gl.uniform1f(au.uLow, rm ? 0 : FEAT.bass); gl.uniform1f(au.uMid, rm ? 0 : FEAT.mid); gl.uniform1f(au.uHigh, rm ? 0 : FEAT.treble);
+        gl.uniform1f(au.uDim, clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1)); gl.uniform1fv(au.uChroma, DC); gl.uniform1fv(au.uTint, V.tint); gl.uniform1f(au.uHoleR, HOLE_R);
         gl.bindVertexArray(G.aurVao); gl.drawArrays(gl.POINTS, V.auroraStart, aurN);
       };
       const setDots = function (half) {
@@ -1988,24 +3217,27 @@ void main(){
         gl.uniform1f(u.uReveal, Math.max(Lg * 1.4 - 0.1, tunnelMode ? 1.35 : 0));   // در تونل همهٔ حلقه‌ها روشن می‌مانند
         gl.uniform1f(u.uLum, V.L.lum); gl.uniform1f(u.uTime, nowS % 6000);
         gl.uniform1f(u.uPulseR, 0.12 + 0.95 * pp); gl.uniform1f(u.uPulseA, pp < 1 ? V.pulse.amp * Math.pow(1 - pp, 1.5) : 0);
-        gl.uniform1f(u.uConf, A.ok ? A.conf : 0);
         const baseDim = clamp(0.45 + 0.55 * V.scale / 700, 0.45, 1);
         gl.uniform1f(u.uDim, Math.max(baseDim, tunnelMode ? 0.95 * dive : 0));
-        gl.uniform1f(u.uMid, rm ? 0 : A.mid); gl.uniform1f(u.uHigh, rm ? 0 : A.high); gl.uniform1f(u.uStructure, rm ? 0 : V.structure);
-        gl.uniform1f(u.uDive, dive); gl.uniform1f(u.uTravel, dive * DIVE.loopTravel);
-        gl.uniform1f(u.uCull, tunnelMode ? 0 : 1); gl.uniform1f(u.uOccl, tunnelMode ? 0 : 1);
-        gl.uniform1fv(u.uChroma, A.chroma); gl.uniform1fv(u.uTint, V.tint); gl.uniform3fv(u.uPal, PAL);
+        gl.uniform1f(u.uMid, rm ? 0 : FEAT.mid); gl.uniform1f(u.uHigh, rm ? 0 : FEAT.treble); gl.uniform1f(u.uStructure, rm ? 0 : V.structure);
+        gl.uniform1f(u.uDive, dive); gl.uniform1f(u.uTravel, V.travel);
+        // §B وزنِ دو پاس از splitWeights() خوانده می‌شود؛ dive=0 → همان (۱,۱)ِ همیشگی.
+        gl.uniform1f(u.uCull, sw.hard ? -1 : sw.halfW); gl.uniform1f(u.uOccl, sw.hard ? 0 : sw.halfW);
+        gl.uniform1fv(u.uChroma, DC); gl.uniform1fv(u.uTint, V.tint); gl.uniform3fv(u.uPal, PAL);
         gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, G.tex); gl.uniform1i(u.uAur, 0);
         gl.uniform1f(u.uAurMix, LaAir > 0.003 ? clamp(LaAir * 1.5, 0, 1) : 0);
         gl.bindVertexArray(G.dotVao); gl.drawArrays(gl.POINTS, 0, n);
       };
-      const drawHorizon = function (holeR, level, flare) {
+      const drawHorizon = function (holeR, level, flare, energy, bass) {
         const h = G.hor.u;
         gl.useProgram(G.hor.p);
         gl.uniform2f(h.uCanvas, V.W, V.H); gl.uniform1f(h.uPx, V.rs); gl.uniform2f(h.uCenter, V.cx, V.cy);
         gl.uniform1f(h.uScale, sceneScale); gl.uniform1f(h.uHoleR, holeR);
         gl.uniform1f(h.uLevel, level); gl.uniform1f(h.uLum, V.L.lum);
-        gl.uniform1f(h.uTime, V.haloT); gl.uniform1f(h.uEnergy, V.energy || 0); gl.uniform1f(h.uBass, rm ? 0 : A.low); gl.uniform1f(h.uFlare, flare);
+        // §IDLE: energy/bass از بیرون می‌آیند تا همان یک پاس، در حالتِ هاله، با عددِ بی‌دادهٔ صدا
+        // پخش شود. بدونِ آن دو آرگومان، دقیقاً همان دو مقدارِ همیشگی (V.energy و FEAT.bass).
+        gl.uniform1f(h.uTime, V.haloT); gl.uniform1f(h.uEnergy, energy === undefined ? (V.energy || 0) : energy);
+        gl.uniform1f(h.uBass, bass === undefined ? (rm ? 0 : FEAT.bass) : bass); gl.uniform1f(h.uFlare, flare);
         gl.uniform1f(h.uAxis, roll + V.haloT * 0.05); gl.uniform3f(h.uTint, V.tintC[0], V.tintC[1], V.tintC[2]);
         // افق فقط چند شعاع حولِ سیاه‌چاله محتوا دارد؛ scissor همان ناحیه را رسم می‌کند، نه کلِ صفحه.
         const radDev = (holeR * sceneScale * 4.5 + 6) * V.rs;
@@ -2017,21 +3249,50 @@ void main(){
         gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.disable(gl.SCISSOR_TEST);
       };
-      if (!tunnelMode) {
-        setAurDots(0);
-        setDots(0);                                           // نیمهٔ دورِ حلقه‌ها (پشتِ کره)
+      /* §ENCHANT پاسِ هالهٔ افسونگر: یک مثلثِ تمام‌صفحه با scissor دورِ کره (۷٫۵R)، جمع‌شونده (ONE,ONE)
+         بعد از پاسِ افق؛ بیرونِ کره می‌کشد پس کرهٔ سیاه کدر می‌ماند. enchU=null ⇒ هیچ کاری نمی‌کند. */
+      const enchU = enchUniforms(idleW);
+      const drawEnch = function () {
+        if (!enchU || !G.ench) return;
+        const e = G.ench.u;
+        gl.useProgram(G.ench.p);
+        gl.uniform2f(e.uCanvas, V.W, V.H); gl.uniform1f(e.uPx, V.rs); gl.uniform2f(e.uCenter, V.cx, V.cy);
+        gl.uniform1f(e.uScale, sceneScale); gl.uniform1f(e.uHoleR, HOLE_R);
+        gl.uniform1f(e.uTime, ENCH.t); gl.uniform1f(e.uFlow, ENCH.flow); gl.uniform1f(e.uAura, enchU.aura); gl.uniform1f(e.uSwell, enchU.swell); gl.uniform1f(e.uSqueeze, enchU.squeeze);
+        gl.uniform1f(e.uR1, enchU.r1); gl.uniform1f(e.uA1, enchU.a1); gl.uniform1f(e.uR2, enchU.r2); gl.uniform1f(e.uA2, enchU.a2);
+        const radDev = (HOLE_R * sceneScale * 7.5 + 6) * V.rs;
+        const cxd = V.cx * V.rs, cyd = V.H - V.cy * V.rs;
+        const x0 = Math.max(0, Math.floor(cxd - radDev)), y0 = Math.max(0, Math.floor(cyd - radDev));
+        const x1 = Math.min(V.W, Math.ceil(cxd + radDev)), y1 = Math.min(V.H, Math.ceil(cyd + radDev));
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(x0, y0, Math.max(0, x1 - x0), Math.max(0, y1 - y0));
+        gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.disable(gl.SCISSOR_TEST);
+      };
+      /* §IDLE هاله فقط «یک» پاسِ افق است، نه پاسِ دوم: level با همان idleX بینِ کهکشان (Lg) و
+         نورِ هاله مخلوط می‌شود، پس در گذار هیچ فریمی دوبار روشن نمی‌شود و هیچ سیاهی‌ای هم
+         نمی‌بینیم (Lg=holeRest→0 با هالهٔ 0→level هم‌زمان و روی هم پیوسته). */
+      const horLevel = Lg * (1 - idleW) + idleHaloLevel() * idleW;
+      const horFlare = V.flare * (1 - idleW);
+      const horEnergy = idleW > 0.0005 ? V.haloE : undefined;
+      const horBass = idleW > 0.0005 ? (rm ? 0 : FEAT.bass * (1 - idleW)) : undefined;
+      if (!sw.hard) {
+        if (!tunnelMode) setAurDots(0);                // §B شفق دقیقاً مثلِ امروز: فقط کهکشان
+        if (dotsOn) setDots(0);                                 // نیمهٔ دورِ حلقه‌ها (پشتِ کره)
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        drawHorizon(HOLE_R, Lg, V.flare);                     // کرهٔ کامل
+        drawHorizon(HOLE_R, horLevel, horFlare, horEnergy, horBass);   // کرهٔ کامل (§IDLE: تنها پاسِ افق)
         gl.blendFunc(gl.ONE, gl.ONE);
-        setAurDots(1);
-        setDots(1);                                           // نیمهٔ نزدیکِ حلقه‌ها (جلوی کره)
+        drawEnch();                                             // §ENCHANT هالهٔ افسونگر (فقط بیرونِ کره)
+        if (!tunnelMode) setAurDots(1);
+        if (dotsOn) setDots(1);                                 // نیمهٔ نزدیکِ حلقه‌ها (جلوی کره)
       } else {
         // تک‌پاسِ کاملِ حلقه‌های بی‌نهایت؛ افقِ سیاه کوچک و همیشگی روی مرکز می‌آید (بدونِ سیاهیِ تمام‌صفحه).
         gl.blendFunc(gl.ONE, gl.ONE);
-        setDots(1);
+        if (dotsOn) setDots(1);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-        drawHorizon(HOLE_R, Lg, V.flare);
+        drawHorizon(HOLE_R, horLevel, horFlare, horEnergy, horBass);
         gl.blendFunc(gl.ONE, gl.ONE);
+        drawEnch();
       }
     }
 
@@ -2058,7 +3319,7 @@ void main(){
     V.running = true; V.last = performance.now();
     Q.grace = Math.max(Q.grace, performance.now() + 2200);
     Q.fpsEma = 0; Q.msEma = 0; Q.slow = 0; Q.fast = 0;
-    V.raf = requestAnimationFrame(frame);
+    V.raf = requestAnimationFrame(frameG);
   }
   function stopLoop(clear) {
     V.running = false;
@@ -2071,10 +3332,11 @@ void main(){
     V.raf = 0;
     if (!V.running) return;
     const rm = reduced();
-    const fast = !rm && (V.stage === 'galaxy' || V.dive > 0.05 || V.powder.on || V.entrance.active);
+    // §IDLE هاله «سریع» نیست: با idleX بالا همان fpsِ آرامِ حالتِ سکوت را نگه می‌داریم (کم‌مصرف)
+    const fast = !rm && (V.stage === 'galaxy' || V.dive > 0.05 || V.powder.on || V.entrance.active) && !(CFG.idleHalo && V.idleX > 0.5);
     const minDt = 1000 / (rm ? CFG.reducedFps : (fast ? CFG.galaxyFps : Q.calm));
     const dtMs = now - V.last;
-    if (dtMs < minDt - 3) { V.raf = requestAnimationFrame(frame); return; }
+    if (dtMs < minDt - 3) { V.raf = requestAnimationFrame(frameG); return; }
     V.last = now;
     const dt = Math.min(dtMs, 100) / 1000, nowS = now / 1000;
     V.time = nowS;
@@ -2103,16 +3365,39 @@ void main(){
     }
     if (V.hudOn) updateHud(now);
 
-    if (!V.playing && V.L.aurora < 0.004 && Math.abs(V.L.galaxy - CFG.holeRest) < 0.008) {
+    /* §IDLE حالتِ فریزِ پایانیِ idle: یا کهکشان در «ردِ کم‌نورِ همیشگی» (holeRest) نشسته، یا
+       هاله کاملاً بیرون رفته و Lg هم به صفر رسیده (صاحبِ صوتی رفت). تا idleAudio روشن است یا
+       idleX دارد پایین می‌آید، حلقه نباید بایستد — وگرنه فریمِ هاله روی صفحه «مرده» می‌ماند و
+       عنوانِ آن منبع هم روی همان یخ می‌ماند. شرطِ دوم با flag خاموش هرگز فعال نمی‌شود. */
+    const settledCalm = V.L.aurora < 0.004 &&
+      (Math.abs(V.L.galaxy - CFG.holeRest) < 0.008 || (V.idleX < 0.001 && V.L.galaxy < 0.004));
+    /* §SCENE: درِ فریز باید صحنه را هم ببیند، وگرنه در لحظهٔ رفتنِ پخش (idleX هنوز صفر و
+       Lg روی holeRest) حلقه می‌ایستد و یک فریمِ مرده جای نفسِ آهستهٔ هاله را می‌گیرد. */
+    const sceneOn = sceneWanted();
+    if (!V.playing && settledCalm && !(CFG.idleHalo && V.idleAudio) && !sceneOn) {
       stopLoop(false);                                           // آخرین فریم (سیاه‌چاله‌ی کم‌نور) روی صفحه می‌ماند؛ دیگر هیچ پردازشی نیست
-      try { const au = VM.getAudio(); if (A.ok && A.ctx.state === 'running' && au && au.paused) A.ctx.suspend(); } catch (e) {}
+      try { const au = VM.getAudio(); if (A.ok && A.ctx.state === 'running' && au && !playSignal(au) && suspendAllowed(au)) A.ctx.suspend(); } catch (e) {}
       if (V.hudOn) updateHud(now);
       return;
     }
-    V.raf = requestAnimationFrame(frame);
+    V.raf = requestAnimationFrame(frameG);
   }
+  // §0 wrapperهای ثابت (یک بسته در ابتدای ماژول، نه هر فریم): زنجیرهٔ rAF تنها مسیرِ
+  // ship‌شده‌ای است که با یک خطا برای همیشه می‌ایستد؛ LOOP-LOST همان را گزارش می‌کند.
+  const frameG = guardChain(frame, 'raf:galaxy-frame', function () { return V.raf; }, function () { return V.running; });
 
   /* ---------- HUD (Shift+D) ---------- */
+  // خطِ SHOW صادق است: می‌گوید این حرکت‌ها آرایشی‌اند و هیچ دادهٔ صوتی‌ای پشتشان نیست.
+  function hudShowLine() {
+    const s = V.show;
+    return 'SHOW ' + (CFG.ambientShow ? 'ON' : 'off') + (s.on ? '' : '  (idle: not ambient/playing/visible)') +
+      '  phase ' + s.phase + '  t ' + s.t.toFixed(1) + 's  env ' + s.env.toFixed(3) + '  lvl ' + s.level.toFixed(2) +
+      '  seed ' + s.seed + '  hue ' + s.hueIdx + '  density ' + showDensity().toFixed(2) +
+      '\n  effects: comets ' + s.nComet + '  blooms ' + s.nBloom + '  groupWakes ' + s.nWake +
+      '  starFlights ' + s.nFlight + (s.nFlightNoStars ? '/skipped-no-stars ' + s.nFlightNoStars : '') +
+      '  surges ' + s.nSurge + (s.nSurgeNoGate ? '/no-gate ' + s.nSurgeNoGate : '') +
+      '  maxEnvRate ' + s.maxEnvRate.toFixed(2) + '/s  (decorative — NOT audio analysis)';
+  }
   function updateHud(now) {
     if (!V.hud || now - V.hudT < 250) return;
     V.hudT = now;
@@ -2120,10 +3405,19 @@ void main(){
     V.hud.textContent =
       'stage ' + V.stage + '  t ' + V.stageT.toFixed(1) + 's   fps ' + V.fps.toFixed(0) + '   dots ' + Math.floor(V.N * V.q) + '/' + V.N +
         '   tier ' + Q.tier + '  q ' + V.q.toFixed(2) + '  rs ' + V.rs.toFixed(2) + '  aurora ' + Q.auroraEvery + 'x\n' +
-      'db ' + A.db.toFixed(1) + '  pk/fl ' + A.pk.toFixed(0) + '/' + A.fl.toFixed(0) + '  en ' + A.en.toFixed(2) + '  E ' + A.energy.toFixed(2) + '  flux x' + A.fluxR.toFixed(2) + '  energy ' + (V.energy || 0).toFixed(2) + '\n' +
+      'ANALYSIS ' + FEAT.quality.toUpperCase() + (FEAT.quality === 'live' ? '' : '  ← no real audio features (decorative/hold)') + '\n' +
+      // §IDLE خطِ صادقِ حالتِ «صدا بدونِ موسیقی»: رأیِ لایهٔ منبع + ضامنِ crossfade + چرا
+      'IDLE-HALO ' + (CFG.idleHalo ? (V.idleAudio ? 'ON' : 'off') : 'flag-off') + '  x ' + V.idleX.toFixed(2) +
+        '  level ' + idleHaloLevel().toFixed(3) + '  reason ' + V.idleWhy + '  taps ' + !!(A.ok && A.tapped) + '\n' +
+      // §SCENE خطِ حالتِ نمایش: 'source' هرگز ادعایِ پخشِ تأییدشده نمی‌کند (ANALYSIS خطِ بالا صاحبِ ادعا است)
+      'SCENE ' + (CFG.scene ? V.vstate : 'flag-off') + '  src ' + V.srcKind + '  awaken x ' + V.awakenX.toFixed(2) +
+        ' → ' + awakenTarget().toFixed(3) + '  reason ' + V.sceneWhy + '\n' +
+      'db ' + A.db.toFixed(1) + '  pk/fl ' + A.pk.toFixed(0) + '/' + A.fl.toFixed(0) + '  en ' + A.en.toFixed(2) + '  E ' + A.energy.toFixed(2) + '  flux x' + A.fluxR.toFixed(2) + '  base ' + A.fluxBase.toFixed(3) + '  norm ' + A.bandNorm.toFixed(1) + 'dB\n' +
+      'onset ' + (FEAT.onset ? 'HIT ' + FEAT.onsetStrength.toFixed(2) : '-') + '  bassBeat ' + (FEAT.beat ? 'yes' : 'no') + '  bassDom ' + FEAT.bassDom.toFixed(2) + '  energy ' + (V.energy || 0).toFixed(2) + '\n' +
       'conf ' + A.conf.toFixed(2) + '  top ' + NOTE[top] + ' ' + A.chroma[top].toFixed(2) + '  centroid ' + A.centroidR.toFixed(2) + '  bright ' + A.bright.toFixed(2) + '\n' +
-      'bands low/mid/high ' + A.low.toFixed(2) + '/' + A.mid.toFixed(2) + '/' + A.high.toFixed(2) + '  structure ' + V.structure.toFixed(2) + '\n' +
-      'aurora ' + V.L.aurora.toFixed(2) + '  galaxy ' + V.L.galaxy.toFixed(2) + '  dive ' + (V.dive || 0).toFixed(2) + '  powder ' + (V.powder.on ? V.powder.prog.toFixed(2) + '/T' + V.powder.T.toFixed(1) : '-') + '  ctx ' + (A.ok ? A.ctx.state : A.state) + '  thr ' + CFG.enterDb.toFixed(1) + '/' + CFG.exitDb.toFixed(1);
+      'bands low/mid/high ' + FEAT.bass.toFixed(2) + '/' + FEAT.mid.toFixed(2) + '/' + FEAT.treble.toFixed(2) + '  structure ' + V.structure.toFixed(2) + '\n' +
+      'aurora ' + V.L.aurora.toFixed(2) + '  galaxy ' + V.L.galaxy.toFixed(2) + '  dive ' + (V.dive || 0).toFixed(2) + '  travel ' + (V.travel || 0).toFixed(2) + '  powder ' + (V.powder.on ? V.powder.prog.toFixed(2) + '/T' + V.powder.T.toFixed(1) : '-') + '  ctx ' + (A.ok ? A.ctx.state : A.state) + '  thr E ' + CFG.enterE.toFixed(2) + '/' + CFG.exitE.toFixed(2) + '  flux ' + CFG.enterFluxR.toFixed(2) +
+      '\n' + hudShowLine();
   }
   function toggleHud() {
     V.hudOn = !V.hudOn;
@@ -2141,23 +3435,30 @@ void main(){
   /* ---------- رویدادهای Music Mode ---------- */
   function newTrackLook(seed) {
     cancelTitleEntrance(true);
-    V.opening.elapsed = 0; V.dive = 0;          // هر آهنگ، روایتِ دوربین از نمای اول شروع شود
+    // §3(الف): آهنگِ تازه روایت را از نو شروع نمی‌کند (نه زمانِ سپری‌شده، نه عمقِ سفر)؛
+    // تنها زمان‌بندیِ چرخه‌ها با طولِ آهنگِ نو هماهنگ می‌شود. سفر پیوسته ماندگار است.
     Q.upBlockedUntil = 0; Q.lastUpAt = 0; Q.slow = 0; Q.fast = 0;   // با آهنگِ تازه، یک آزمونِ کیفیتِ تازه مجاز است
     Q.fpsEma = 0; Q.msEma = 0; Q.grace = performance.now() + 1500;
-    // زمان‌بندی را با طولِ آهنگِ تازه هماهنگ کن (۱۰٪ تونل، دو رویداد).
     clearTimeout(V.retimeT);
-    V.retimeT = setTimeout(function () {
-      if (V.playing && VM.isOpen() && !reduced()) startCinematicOpening(true);
-    }, 700);
+    V.retimeT = setTimeout(guard(function () {
+      if (V.playing && VM.isOpen() && !reduced()) {
+        if (V.opening.started) retimeOpening(); else startCinematicOpening();
+      }
+    }, 'to:retime-700ms'), 700);
     const r = mulberry32((seed ^ V.session) >>> 0);
     V.track++;
     V.tiltT = (r() - 0.5) * 0.35;                // ±۱۰° شیبِ دیسک
     V.spiralPhT = r() * TAU;
     V.seed3 = [r(), r(), r()];
-    A.warm = 1.5; A.snap = true;
+    resetTransient();                                             // آهنگِ تازه: فلاکس/باسِ آهنگِ قبل نباید ضربهٔ کاذب بسازد
     V.powder.key = '';
   }
-  window.addEventListener('voidmusic:track', function (e) { cancelStarFlight(); newTrackLook((e.detail && e.detail.seed) || Math.random() * 4294967296); });
+  window.addEventListener('voidmusic:track', function (e) {
+    cancelStarFlight();
+    // §SHOW عنوانِ گزارش‌شده-only-for-seed: همان آهنگ ⇒ همان seed ⇒ همان پالت/روایت (بی‌تحلیلِ صدا)
+    if (e.detail && typeof e.detail.title === 'string') V.show.title = e.detail.title;
+    newTrackLook((e.detail && e.detail.seed) || Math.random() * 4294967296);
+  });
   window.addEventListener('voidmusic:title-ready', function (e) { startTitleEntrance(e.detail); });
 
 
@@ -2176,22 +3477,22 @@ void main(){
   let bgT = 0;
   function bgKick() {
     if (bgT) return;
-    bgT = setInterval(function () {
+    bgT = setInterval(guard(function () {
       const a = VM.getAudio();
-      if (SND.bg !== 'live' || !document.hidden || !(a && !a.paused)) { clearInterval(bgT); bgT = 0; return; }
+      if (SND.bg !== 'live' || !document.hidden || !playSignal(a)) { clearInterval(bgT); bgT = 0; return; }
       if (!(VM.remoteWanted && VM.remoteWanted())) return;
       if (!A.ok) return;
-      try { analyze(0.17, true); pushVizNow(); } catch (e) {}
-    }, 170);
+      try { anCount(true); analyze(0.17, true); pushVizNow(); } catch (e) {}
+    }, 'int:bg-kick-170ms'), 170);
   }
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { if (SND.bg === 'live') bgKick(); }
-    else { refreshTaps(); Q.grace = performance.now() + 2000; }
+    else { refreshTaps(); Q.grace = performance.now() + 2000; recoverOnReturn(); }
   });
   const MINI = { raf: 0, last: 0, tick: 0, boot: false };
   function miniActive() {
     const a = VM.getAudio();
-    return !!(a && !a.paused && !VM.isOpen() && VM.isMiniVisible && VM.isMiniVisible() && !document.hidden && VM.getMiniCanvas && VM.getMiniCanvas());
+    return !!(playSignal(a) && !VM.isOpen() && VM.isMiniVisible && VM.isMiniVisible() && !document.hidden && VM.getMiniCanvas && VM.getMiniCanvas());
   }
   const PAL_CSS = [], PAL_CSS_L = [];
   for (let i = 0; i < 12; i++) {
@@ -2250,14 +3551,16 @@ void main(){
     MINI.raf = 0;
     if (!miniActive()) { miniDraw(now / 1000, false); return; }
     const dt = (now - MINI.last) / 1000;
-    if (dt < 0.062) { MINI.raf = requestAnimationFrame(miniFrame); return; }     // ≈۱۵fps
+    if (dt < 0.062) { MINI.raf = requestAnimationFrame(miniG); return; }     // ≈۱۵fps
     MINI.last = now; MINI.tick++;
-    if (A.ok) { try { analyze(Math.min(dt, 0.12), true); } catch (e) {} }
+    if (A.ok) { try { anCount(true); analyze(Math.min(dt, 0.12), true); } catch (e) {} }
     V.tilt += (V.tiltT - V.tilt) * expK(dt, 2.5);
     miniDraw(now / 1000, true);
     if ((MINI.tick & 3) === 0) pushVizNow();
-    MINI.raf = requestAnimationFrame(miniFrame);
+    MINI.raf = requestAnimationFrame(miniG);
   }
+  // §0 همان نگهبانِ زنجیره برای orb کوچک (miniActive=false یعنی توقفِ قانونی، نه مرگِ زنجیره)
+  const miniG = guardChain(miniFrame, 'raf:mini-frame', function () { return MINI.raf; }, miniActive);
   async function miniKick() {
     if (MINI.raf) return;
     if (!miniActive()) { if (VM.getMiniCanvas && VM.getMiniCanvas()) miniDraw(performance.now() / 1000, false); return; }
@@ -2266,14 +3569,13 @@ void main(){
     if (A.ok && A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (e) {} }
     if (MINI.raf || !miniActive()) return;
     A.snap = true; MINI.last = performance.now();
-    MINI.raf = requestAnimationFrame(miniFrame);
+    MINI.raf = requestAnimationFrame(miniG);
   }
-  window.addEventListener('voidmusic:mini', function () { miniKick(); setTimeout(refreshTaps, 50); });
+  window.addEventListener('voidmusic:mini', function () { miniKick(); setTimeout(guard(refreshTaps, 'to:refreshTaps-50ms'), 50); });
   document.addEventListener('visibilitychange', function () { if (document.hidden) cancelTitleEntrance(true); else miniKick(); refreshTaps(); });
 
-  function startCinematicOpening(force) {
-    if (V.opening.started && !force) return;
-    if (reduced() || !V.playing || !VM.isOpen() || document.hidden) return;
+  /* زمان‌بندیِ روایت از طولِ آهنگ ساخته می‌شود، نه از هر رویدادِ رابطِ کاربر. */
+  function openingTiming() {
     const audio = VM.getAudio();
     const duration = audio && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 0;
     const currentTime = audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
@@ -2282,34 +3584,72 @@ void main(){
     const titleTail = duration > 0
       ? Math.min(Math.max(CFG.powderMinS, duration / 20 * 1.1), duration * 0.5)
       : CFG.powderMinS;
-    const reserved = V.entrance.duration + V.entrance.handoff + titleTail;
-    const usable = Math.max(24, remaining - reserved);
-    const cycles = Math.max(2, BREATH.cyclesPerTrack);
-    const cycleS = clamp(usable / cycles, BREATH.minCycleS, BREATH.maxCycleS);
-    // رویدادِ تونل: حدودِ DIVE.trackShare از طولِ آهنگ (پیش‌فرض ۱۰٪ در هر بار).
-    let eventS = clamp(trackDur * DIVE.trackShare, DIVE.minEventS, DIVE.maxEventS);
-    eventS = Math.min(eventS, cycleS * 0.50);
-    const returnS = Math.max(2, Math.min(clamp(cycleS * 0.12, 3.5, 10), cycleS - eventS - 8));
-    V.opening.cycleS = cycleS; V.opening.eventS = eventS; V.opening.returnS = returnS;
-    V.opening.started = true; V.opening.elapsed = 0; V.opening.progress = 0;
+    const usable = Math.max(24, remaining - (V.entrance.duration + V.entrance.handoff + titleTail));
+    const cycleS = clamp(usable / Math.max(2, BREATH.cyclesPerTrack), BREATH.minCycleS, BREATH.maxCycleS);
+    // رویدادِ تونل: حدودِ DIVE.trackShare از طولِ آهنگ، و روایتِ گشایش یک‌سومِ نخستین چرخه.
+    const eventS = Math.min(clamp(trackDur * DIVE.trackShare, DIVE.minEventS, DIVE.maxEventS), cycleS * 0.50);
+    return { cycleS: cycleS, eventS: eventS, openS: clamp(cycleS * 0.34, 6, 40) };
+  }
+  /* «تب شناسایی شد» با «موسیقی واقعاً پخش می‌شود» یکی نیست (§1 و §4). گشایشِ در به دادهٔ صوتی
+     گره می‌خورد: آنالایزرِ زنده، یا نبودِ آنالایزر (ambient)؛ سکوتِ بی‌سیگنال تنها پس از یک
+     مهلتِ کوتاه مجاز است، تا آهنگِ واقعاً بی‌صدای کاربر هم سفرش را ببیند. */
+  function gateSignalOk() {
+    return FEAT.quality === 'live' || FEAT.quality === 'ambient' ||
+      (FEAT.quality === 'silent' && V.tPlay > DIVE.silentGraceS);
+  }
+  /* §3(الف): درِ کرم‌چاله یک‌بار و در آغازِ واقعیِ پخش گشوده می‌شود. «رسیدنِ اطلاعاتِ تب» یا
+     «آهنگِ تازه» آن را از نو باز نمی‌کند؛ آن‌ها فقط زمان‌بندیِ چرخه را تازه می‌کنند (retime)،
+     پس سفرِ پیوسته (§3(ب)) هیچ‌وقت به نقطهٔ صفر برنمی‌گردد. */
+  function startCinematicOpening() {
+    if (V.opening.started || reduced() || !V.playing || !VM.isOpen() || document.hidden) return;
+    if (!gateSignalOk()) return;
+    if (V.opening.cam > 0.02) return;   // دوربین هنوز از سفرِ پیشین بیرون نیامده: گشایشِ نو پرش نمی‌کند، صبر می‌کند
+    const T = openingTiming();
+    V.opening.cycleS = T.cycleS; V.opening.eventS = T.eventS; V.opening.openS = T.openS;
+    V.opening.started = true; V.opening.phase = 'open';
+    V.opening.elapsed = 0; V.opening.progress = 0; V.opening.cam = 0;
+    V.opening.evAt = -1; V.opening.evLen = 0; V.opening.nextAt = 0;
     V.dive = 0;
-    if (!force) V.breath.pitch = BREATH.startPitch;
-    V.breath.zoom = BREATH.startZoom; V.breath.mix = 1;
+    V.breath.pitch = BREATH.startPitch; V.breath.zoom = BREATH.startZoom; V.breath.mix = 1;
+  }
+  /* آهنگِ تازه در میانهٔ سفر: طولِ نو فقط بازه‌ها را عوض می‌کند؛ فاز، زمانِ سپری‌شده و
+     عمقِ فعلی دست‌نخورده می‌مانند (بی‌هیچ پرشِ دوربین). */
+  function retimeOpening() {
+    const T = openingTiming();
+    V.opening.cycleS = T.cycleS; V.opening.eventS = T.eventS;
+    // openS همواره «طولِ کلِ گشایش» است، نه زمانِ باقی‌مانده: در میانهٔ گشایش فقط می‌تواند کوتاه شود
+    // (کوتاه‌شدنِ ناگهانی پیشرفتِ دوربین را به جلو می‌اندازد؛ بلندشدن آن را به عقب می‌برد و پرش می‌شود)
+    if (V.opening.phase === 'open') V.opening.openS = Math.max(V.opening.elapsed + 2, Math.min(T.openS, V.opening.openS));
+    if (V.opening.phase !== 'travel') V.opening.nextAt = 0;
   }
   function resetCinematicOpening() {
-    V.opening.started = false; V.opening.elapsed = 0; V.opening.progress = 0; V.opening.cycleS = 60;
-    V.opening.eventS = 12; V.opening.returnS = 6;
+    V.opening.started = false; V.opening.phase = 'idle';
+    V.opening.elapsed = 0; V.opening.progress = 0; V.opening.cycleS = 60;
+    V.opening.eventS = 12; V.opening.openS = 12; V.opening.cam = 0; V.opening.evAt = -1; V.opening.evLen = 0; V.opening.nextAt = 0;
     V.breath.mix = 0; V.breath.pitch = Number.isFinite(V.incl) ? V.incl : 50; V.breath.zoom = 1;
     V.dive = 0;
   }
+  /* §3(ج): در تنها وقتی بسته می‌شود که پخش *واقعاً* تمام شده یا Music Mode بسته شده است.
+     اینجا فقط «بستن» علامت می‌خورد و دوربین در چند ثانیه بیرون می‌آید (پرش ندارد). */
+  function closeCinematicOpening() {
+    if (!V.opening.started) return;
+    V.opening.started = false; V.opening.phase = 'closing'; V.opening.evAt = -1; V.opening.evLen = 0;
+  }
 
   window.addEventListener('voidmusic:playing', async function (e) {
-    const playing = !!(e.detail && e.detail.playing);
-    V.playing = playing;
+    const reported = !!(e.detail && e.detail.playing);
+    const a0 = VM.getAudio();
+    // §1.1 + HOTFIX: «مکث»ِ گزارش‌شده می‌تواند از المنتِ اشتباه یا از یک streamِ mute‌شده بیاید؛
+    // تا تب پخش می‌کند یا track زنده است، پخش باور می‌شود (سکوت را RMS و A.silent می‌شناسند).
+    // با webPlayRule='legacy' این خط دقیقاً همان شرطِ سختِ Phase 1 می‌شود.
+    const playing = reported || !!(a0 && a0.__web && playSignal(a0));
+    V.playing = playing; V.playReported = reported;
     if (!playing) cancelTitleEntrance(true);
+    webWatchGo();                                                   // §HOTFIX(۲) reportِ بیرونی هم «گوش‌به‌زنگ» را با آخرین حالت هم‌وقت کند
+    idleHaloCheck();                                                // §IDLE همین report می‌گوید منبعِ تازه موسیقی است یا فقط صدا (بدونِ صبر تا تیکِ ۳ ثانیه)
     if (playing && A.ok && A.ctx.state !== 'running') { try { A.ctx.resume(); } catch (er) {} }
     if (playing) {
-      V.tPlay = 0; A.snap = true; if (!A.ok) A.tries = Math.min(A.tries, 3);   // هر بار پخش (با ژستِ کاربر) دوباره امتحان کن
+      V.tPlay = 0; A.snap = true; P.hiAt = performance.now(); if (!A.ok) A.tries = Math.min(A.tries, 3);   // هر بار پخش (با ژستِ کاربر) دوباره امتحان کن
       if (document.hidden) bgKick();
       // صدا از گرافِ Web Audio می‌گذرد؛ context هیچ‌وقت نباید وقتی موزیک پخش می‌شود معلق بماند
       if (A.ok && A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (er) {} }
@@ -2321,9 +3661,18 @@ void main(){
       if (!V.playing) return;
       if (A.ok && A.ctx.state !== 'running') { try { await A.ctx.resume(); } catch (er) {} }
       startLoop();
-    } else if (!VM.isOpen()) {
-      miniKick();
-      setTimeout(function () { const a = VM.getAudio(); try { if (A.ok && A.ctx.state === 'running' && a && a.paused && !VM.isOpen()) A.ctx.suspend(); } catch (er) {} }, 300);
+    } else {
+      // §3(ج): مکثِ موقت درِ کرم‌چاله را نمی‌بندد (هیچ‌چیز از روایت پاک می‌شود و ادامه می‌یابد)؛
+      // پایانِ واقعیِ آهنگ (ended / رسیدن به انتها / نبودِ آهنگِ بارگذاری‌شده) یا خروج از Music Mode آن را می‌بندد.
+      const a2 = VM.getAudio();
+      const ended = !a2 || a2.ended === true ||
+        (Number.isFinite(a2.duration) && a2.duration > 0 && a2.currentTime >= a2.duration - 0.05) ||
+        !(VM.getState && VM.getState().current);
+      if (ended) closeCinematicOpening();
+      if (!VM.isOpen()) {
+        miniKick();
+        setTimeout(guard(function () { const a = VM.getAudio(); try { if (A.ok && A.ctx.state === 'running' && a && !playSignal(a) && !VM.isOpen() && suspendAllowed(a)) A.ctx.suspend(); } catch (er) {} }, 'to:suspend-check-300ms'), 300);
+      }
     }
   });
 
@@ -2333,7 +3682,7 @@ void main(){
       if (V.ok) { try { resizeGL(); } catch (er) {} }                 // اگر context هنوز زنده است، همان را به‌کار ببر (ورودِ فوری، بدونِ کامپایلِ دوبارهٔ شیدرها)
       // برگشت به Music Mode وقتی موزیک همچنان پخش می‌شود → نمایش دوباره شروع شود
       const a = VM.getAudio();
-      if (a && !a.paused) {
+      if (playSignal(a)) {
         // خطِ پایهٔ بلندی را نگه می‌داریم (قبلاً دوباره «همین‌الان» را پایه می‌گرفت و در بخشِ پرصدا هیچ‌وقت اوجی دیده نمی‌شد)
         V.playing = true; V.tPlay = 0; A.warm = 0;
         if (V.lastStage === 'galaxy') { V.stage = 'galaxy'; V.stageT = 0; V.loT = 0; V.hiT = 0; }
@@ -2344,8 +3693,19 @@ void main(){
         }
       } else if (VM.getState && VM.getState().current) {
         // آهنگ بارگذاری شده ولی در مکث: ردِ کم‌نورِ سیاه‌چاله همچنان در صحنه باشد
-        if (V.ok || initGL()) { V.L.galaxy = CFG.holeRest; V.L.aurora = 0; try { draw(performance.now() / 1000); } catch (er) {} }
+        if (V.ok || initGL()) {
+          /* §SCENE «مکث با آهنگ بارگذاری‌شده» = منبعِ فعالِ بی‌پخش ⇒ دیسکِ موجود روی همان
+             هدفِ بیداری می‌نشیند و ضامن هم جفت می‌شود، وگرنه حلقهٔ تازه Lg را از 0.34 به
+             holeRest می‌کشید و بعد بالا می‌آورد (فرورفتگیِ یک‌فریمه). با scene خاموش عیناً
+             رفتارِ قبلی: یک فریمِ holeRest، بدونِ دست‌زدنِ به مخلوط‌ها. */
+          let awake = false;
+          if (CFG.scene) { scenePoll(); V.vstate = visualState(); awake = V.vstate === 'source'; }
+          if (awake) { V.awakenX = 1; V.idleX = 0; }
+          V.L.galaxy = awake ? awakenTarget() : CFG.holeRest; V.L.aurora = 0;
+          try { draw(performance.now() / 1000); } catch (er) {}
+        }
       }
+      idleHaloCheck();   // §IDLE ورود به Music Mode با منبعِ صوتیِ بی‌موسیقی: هاله منتظرِ تیکِ ۳ ثانیه نمی‌ماند
       return;
     }
     cancelTitleEntrance(true);
@@ -2353,43 +3713,75 @@ void main(){
     V.lastStage = V.stage;
     V.playing = false; stopLoop(true);
     resetCinematicOpening();
-    clearTimeout(V.tdT); V.tdT = setTimeout(function () { if (!VM.isOpen()) { teardownGL(); V.dead = false; } }, 30000);   // ۳۰ ثانیه نگه می‌داریم؛ بعد آزاد می‌شود
+    clearTimeout(V.tdT); V.tdT = setTimeout(guard(function () { if (!VM.isOpen()) { teardownGL(); V.dead = false; } }, 'to:teardown-30s'), 30000);   // ۳۰ ثانیه نگه می‌داریم؛ بعد آزاد می‌شود
     V.dead = false; V.L.aurora = 0; V.L.galaxy = 0; V.stage = 'calm';
     // اگر موزیک هنوز پخش می‌شود، context را معلق نکن (صدا قطع می‌شود)
-    try { const a = VM.getAudio(); if (A.ok && A.ctx.state === 'running' && a && a.paused) A.ctx.suspend(); } catch (er) {}
+    try { const a = VM.getAudio(); if (A.ok && A.ctx.state === 'running' && a && !playSignal(a) && suspendAllowed(a)) A.ctx.suspend(); } catch (er) {}
     if (V.hud) { V.hud.hidden = true; V.hudOn = false; }
-    setTimeout(function () { miniKick(); refreshTaps(); }, 80);
+    /* §0.۱ miniKick async است: خطایش rejection است و try/catchِ نگهبان آن را نمی‌بیند، پس
+       با attach برچسبِ همین تایمر را می‌گیرد (از دست رفتنِ برچسب = «کدام تایمر پرتاب کرد؟» بی‌جواب). */
+    setTimeout(guard(function () { attach('to:post-close-80ms', miniKick()); refreshTaps(); }, 'to:post-close-80ms'), 80);
   });
 
   V.tdT = 0;
   let rzT = 0;
   window.addEventListener('resize', function () {
     V.grace = performance.now() + 3500;                          // گذارِ تمام‌صفحه/تغییر اندازه فریم‌ها را موقتاً می‌اندازد؛ کیفیت را پایین نیاور
-    clearTimeout(rzT); rzT = setTimeout(function () { if (V.ok) { resizeGL(); if (!V.running && V.playing) startLoop(); else if (!V.running) { try { draw(performance.now() / 1000); } catch (e) {} } } }, 120);
+    clearTimeout(rzT); rzT = setTimeout(guard(function () { if (V.ok) { resizeGL(); if (!V.running && V.playing) startLoop(); else if (!V.running) { try { draw(performance.now() / 1000); } catch (e) {} } } }, 'to:resize-120ms'), 120);
   });
   document.addEventListener('fullscreenchange', function () { V.grace = performance.now() + 3500; });
 
   window.VoidMusicViz = {
     debug: toggleHud,
+    // §ENCHANT پیش‌نمایشِ دستی از کنسول (بدونِ پخش): window.VoidMusicViz.previewEntrance()
+    // (موجِ شوکِ ورود روی هاله؛ افکت‌های کهکشان فقط در پخشِ واقعی اجرا می‌شوند)
+    previewEntrance: function () {
+      if (!CFG.enchant || !VM.isOpen()) return false;
+      if (!V.ok && !initGL()) return false;
+      ENCH.why = 'preview'; const I = ENCH.intro; I.on = true; I.t = 0; I.fired = true;
+      if (!V.running) startLoop();
+      return true;
+    },
+    enchantState: function () { return { starts: ENCH.starts, why: ENCH.why, introOn: ENCH.intro.on, introT: Math.round(ENCH.intro.t * 100) / 100, idleX: Math.round(V.idleX * 100) / 100, shader: !!(G && G.ench) }; },
     getStage: function () { return V.stage; },
     debugState: function () {
       const a = VM.getAudio();
       return { playing: V.playing, running: V.running, ok: V.ok, stage: V.stage, frames: V.frames, fps: V.fps,
         elapsed: V.opening.elapsed, progress: V.opening.progress, dive: V.dive, started: V.opening.started,
-        aok: A.ok, actx: A.ok ? A.ctx.state : A.state, audioPaused: a ? !!a.paused : null,
+        aok: A.ok, actx: A.ok ? A.ctx.state : A.state, audioPaused: a ? !!a.paused : null, signal: playSignal(a), web: webApi.diagnostics(),
+        analysis: FEAT.quality, energy: FEAT.energy, onset: FEAT.onset,
         audioTime: a && isFinite(a.currentTime) ? a.currentTime : null, audioDur: a && isFinite(a.duration) ? a.duration : null };
     },
     getMetrics: function () {
-      return { stage: V.stage, db: A.db, base: A.base, delta: A.db - A.base, fluxR: A.fluxR, energy: V.energy || 0, audioBands: { low: A.low, mid: A.mid, high: A.high }, structure: V.structure,
+      return { stage: V.stage, db: A.db, base: A.base, delta: A.db - A.base, fluxR: A.fluxR, energy: V.energy || 0, audioBands: { low: FEAT.bass, mid: FEAT.mid, high: FEAT.treble }, structure: V.structure,
+        analysis: { quality: FEAT.quality, onset: FEAT.onset, onsetStrength: FEAT.onsetStrength, beat: FEAT.beat, bassDom: FEAT.bassDom, bandNorm: A.bandNorm, fluxBase: A.fluxBase },
         breath: { disk: V.breath.disk || 0, zoom: V.breath.zoom, pitch: V.breath.pitch, mix: V.breath.mix },
-        dive: V.dive || 0, opening: { progress: V.opening.progress, cycleS: V.opening.cycleS, eventS: V.opening.eventS, returnS: V.opening.returnS, started: V.opening.started }, conf: A.conf, centroidR: A.centroidR,
+        dive: V.dive || 0, travel: V.travel || 0, opening: { progress: V.opening.progress, cycleS: V.opening.cycleS, eventS: V.opening.eventS, evLen: V.opening.evLen, openS: V.opening.openS, started: V.opening.started, phase: V.opening.phase, elapsed: V.opening.elapsed, evAt: V.opening.evAt, nextAt: V.opening.nextAt }, conf: A.conf, centroidR: A.centroidR,
         q: V.q, chroma: Array.prototype.slice.call(A.chroma), L: { aurora: V.L.aurora, galaxy: V.L.galaxy }, powder: { on: V.powder.on, prog: V.powder.prog, n: V.powder.n, T: V.powder.T || 0 },
         quality: { tier: Q.tier, q: V.q, rs: V.rs, budget: Q.budget, auroraEvery: Q.auroraEvery, band: Q.band, calm: Q.calm },
         ctx: A.ok ? A.ctx.state : A.state, fps: V.fps, cpuMs: V.cpuMs, ok: V.ok, N: V.N };
     },
+    // ویژگی‌های تحلیل‌شده دقیقاً همان‌طور که رندر می‌خواند؛ quality صادقانه می‌گوید دادهٔ واقعی است یا نه
+    features: function () { return { quality: FEAT.quality, live: FEAT.live, bass: FEAT.bass, mid: FEAT.mid, treble: FEAT.treble, bassDom: FEAT.bassDom, energy: FEAT.energy, fluxR: FEAT.fluxR, onset: FEAT.onset, onsetStrength: FEAT.onsetStrength, beat: FEAT.beat, conf: FEAT.conf, silent: FEAT.silent, db: FEAT.db }; },
     config: CFG,
     story: DIVE,
     sound: soundApi,
-    web: webApi
+    web: webApi,
+    _test: { A: A, V: V, FEAT: FEAT, CFG: CFG, BAND_AGC_TARGET: BAND_AGC_TARGET, step: step, analyze: analyze, updateFeatures: updateFeatures, resetTransient: resetTransient, swapSource: swapSource, ensureGraph: ensureGraph, buildGeometry: buildGeometry, splitWeights: splitWeights,
+      playSignal: playSignal, tapsSignal: tapsSignal, syncPlay: syncPlay, probeIdle: probeIdle, refreshTaps: refreshTaps, streamInfo: streamInfo, suspendAllowed: suspendAllowed, webWatchNeeded: webWatchNeeded, webWatch: WW, errors: function () { return ERR.ring.slice(); },
+      // §AMBIENT لایه‌ها از همین‌جا در آزمونِ جعبه‌سیاه خوانده می‌شوند (بی‌نیازی به GPU)
+      tierEval: tierEval, tierUpdate: tierUpdate, displayEnergy: displayEnergy, ambientEnergy: ambientEnergy,
+      // §SHOW کارگردانِ ambient: تابع‌های خالصِ زمان/seed + وضعیتِ نمایش (بی‌نیازی از GPU و از DOM)
+      SHOW: SHOW, hash32: hash32, showWanted: showWanted, showOwnsDisplay: showOwnsDisplay,
+      showBegin: showBegin, showUpdate: showUpdate, showEnergy: showEnergy, displayChroma: displayChroma, showDensity: showDensity,
+      webReportAgeMs: webReportAgeMs, siteReportedPlayingFresh: siteReportedPlayingFresh,
+      // §IDLE حالتِ «صدا بدونِ موسیقی»: رأیِ خالصِ لایهٔ منبع + نورِ هاله (بی‌نیازی از GPU)
+      idleAudioEval: idleAudioEval, idleHaloLevel: idleHaloLevel, idleHaloEnergy: idleHaloEnergy, idleHaloCheck: idleHaloCheck,
+      // §SCENE رأیِ منبع + حالتِ مشتق + هدفِ بیداری + دروازهٔ فریز/تک‌فریمِ بی‌حرکت (همه بی‌GPU)
+      scenePoll: scenePoll, visualState: visualState, awakenTarget: awakenTarget, sceneWanted: sceneWanted,
+      paintSceneStill: paintSceneStill,
+      // §ENCHANT هالهٔ افسونگر / ورودِ باشکوه (بی‌نیازی از GPU)
+      ENCH: ENCH, enchStep: enchStep, enchEnvelope: enchEnvelope, enchUniforms: enchUniforms,
+      opening: { start: startCinematicOpening, retime: retimeOpening, close: closeCinematicOpening, reset: resetCinematicOpening, signalOk: gateSignalOk, timing: openingTiming } }
   };
 })();
