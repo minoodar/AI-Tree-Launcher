@@ -76,14 +76,15 @@
     scene: true, awakenLevel: 0.34, awakenFadeS: 1.8,
     // §ENCHANT «هالهٔ افسونگر» + «ورودِ باشکوه» (فقط لایهٔ بصری؛ هیچ ربطی به تحلیل/پخش صدا ندارد):
     //   enchant       = در حالتِ idle (بی‌منبع یا فقط-صدا) دورِ کرهٔ سیاه یک «اژدهای خفته» می‌چرخد: پیچِ مارپیچیِ
-    //                   کم‌نورِ آبی‌-یخی با پولکِ ریز و گرهِ ستاره‌ای، یک اخگرِ گرمِ بسیار کم‌نور، و غبارِ ریز
+    //                   کوچک و کم‌نورِ کهربایی-گرم (هم‌رنگِ هالهٔ افق) با پولکِ ریز و گرهِ ستاره‌ای، یک اخگرِ بسیار
+    //                   کم‌نور، و غبارِ ریز؛ با شروعِ پخش نرم محو می‌شود و افکتِ اصلی جایش را می‌گیرد
     //                   (یک پاسِ شیدرِ سبکِ جدا، بعد از پاسِ افق؛ کرهٔ سیاه کدر می‌ماند). enchantLevel شدتِ آن.
     //   grandEntrance = لحظهٔ آغازِ واقعیِ پخش (پس از سکوتی ≥ entranceCooldownS) یک نمایشِ ~entranceS ثانیه‌ای:
     //                   اژدها بیدار می‌شود: نفسِ عمیق ← اخگر روشن ← دو موجِ شوک ← جریان شتاب می‌گیرد، هم‌زمان با ابزارهای موجودِ همین فایل
     //                   (V.flare / V.ejBurst / spawnBloom / awakenDistantGroups). با reduced-motion اجرا نمی‌شود.
     // یک‌خط برگشت: enchant:false و/یا grandEntrance:false ⇒ صفحه دقیقاً مثلِ قبل است.
-    enchant: true, enchantLevel: 0.9,
-    grandEntrance: true, entranceS: 6.5, entranceCooldownS: 20,
+    enchant: true, enchantLevel: 0.85,
+    grandEntrance: true, entranceS: 5.0, entranceCooldownS: 20,
     // حساسیت: انرژیِ نرمال‌شده (۰..۱) نسبت به بازهٔ پویاییِ همین آهنگ؛ sens بزرگ‌تر = زودتر و بیشتر. با HUD (Shift+D) تنظیم کن
     sens: 1.15, enterE: 0.46, enterFluxE: 0.34, enterFluxR: 1.45, exitE: 0.26,
     minGalaxyS: 1.2, exitHoldS: 1.4, enterHoldS: 0.18, cooldownS: 0.6, holeRest: 0.20, holeBase: 0.30,
@@ -789,14 +790,14 @@
     intro: { on: false, t: 0, fired: false }, starts: 0, why: 'none' };
   const ENCH_TMP = { swell: 0, squeeze: 0, r1: 1, a1: 0, r2: 1, a2: 0 };
   const ENCH_OUT = { aura: 0, swell: 0, squeeze: 0, r1: 1, a1: 0, r2: 1, a2: 0 };
-  /* منحنیِ بیدارشدن (ثانیه از شروع): ۰–۰٫۹ نفسِ عمیق (هاله جمع می‌شود) · ۰٫۹ موجِ اول · ۱٫۵ موجِ دوم ·
-     تورمِ نرمِ هاله تا ~۵٫۰. همه smoother5 و پیوسته‌اند؛ هیچ پله/چشمک‌ی نیست (حساسیتِ نوری). */
+  /* منحنیِ بیدارشدن (ثانیه از شروع): ۰–۰٫۸ نفسِ کوتاه (هاله جمع می‌شود) · ۰٫۸ موجِ اول · ۱٫۲ موجِ دوم (ملایم) ·
+     تورمِ نرمِ هاله و محوِ کاملش تا ~۴٫۸؛ بعد افکتِ اصلی تنها می‌ماند. همه smoother5 و پیوسته‌اند؛ هیچ پله/چشمک‌ی نیست (حساسیتِ نوری). */
   function enchEnvelope(tt, o) {
-    o.swell = 0.70 * smoother5(tt / 1.8) * (1 - smoother5((tt - 3.2) / 3.0));
-    o.squeeze = tt < 0.9 ? Math.sin(Math.PI * clamp(tt / 0.9, 0, 1)) * 0.8 : 0;
-    const p1 = clamp((tt - 0.9) / 2.6, 0, 1), p2 = clamp((tt - 1.5) / 3.4, 0, 1);
-    o.r1 = 1 + 5.2 * smoother5(p1); o.a1 = tt >= 0.9 ? 0.70 * smoother5(p1 / 0.15) * Math.pow(1 - p1, 1.3) : 0;
-    o.r2 = 1 + 5.2 * smoother5(p2); o.a2 = tt >= 1.5 ? 0.46 * smoother5(p2 / 0.15) * Math.pow(1 - p2, 1.3) : 0;
+    o.swell = 0.45 * smoother5(tt / 1.5) * (1 - smoother5((tt - 2.2) / 2.6));
+    o.squeeze = tt < 0.8 ? Math.sin(Math.PI * clamp(tt / 0.8, 0, 1)) * 0.6 : 0;
+    const p1 = clamp((tt - 0.8) / 2.2, 0, 1), p2 = clamp((tt - 1.2) / 2.6, 0, 1);
+    o.r1 = 1 + 3.4 * smoother5(p1); o.a1 = tt >= 0.8 ? 0.40 * smoother5(p1 / 0.15) * Math.pow(1 - p1, 1.3) : 0;
+    o.r2 = 1 + 3.4 * smoother5(p2); o.a2 = tt >= 1.2 ? 0.22 * smoother5(p2 / 0.15) * Math.pow(1 - p2, 1.3) : 0;
     return o;
   }
   function enchStartIntro() { const I = ENCH.intro; I.on = true; I.t = 0; I.fired = false; ENCH.starts++; }
@@ -825,16 +826,16 @@
     if (I.on) {
       if (rm || !playing && !I.fired && I.t > 0.2 && ENCH.why !== 'preview') { I.on = false; return; }   // مکثِ فوری یا reduced-motion: ورود را رها کن
       I.t += dt;
-      if (!I.fired && I.t >= 0.9) {
+      if (!I.fired && I.t >= 0.8) {
         I.fired = true;
-        // لحظهٔ موجِ اول: ابزارهای موجودِ همین فایل (همانی که کارگردانِ ambient هم صدا می‌زند)، سقفِ سختِ flare
-        V.flare = Math.max(V.flare, Math.min(SHOW.flareMax, 0.32));
-        V.ejBurst = Math.min(0.5, V.ejBurst + 0.30);
+        // لحظهٔ موجِ اول: ابزارهای موجودِ همین فایل (همانی که کارگردانِ ambient هم صدا می‌زند)، ملایم و با سقفِ سختِ flare
+        V.flare = Math.max(V.flare, Math.min(SHOW.flareMax, 0.22));
+        V.ejBurst = Math.min(0.5, V.ejBurst + 0.20);
         try {
           if (V.cosmic.sessionActive) {
             const ct = V.cosmic.activeElapsed;
-            spawnBloom(ct, 0.85); awakenDistantGroups(ct, Q.tier >= 2 ? 2 : 1, 0.5);
-            V.cosmic.glow = Math.max(V.cosmic.glow, 0.30);
+            spawnBloom(ct, 0.60); awakenDistantGroups(ct, 1, 0.4);
+            V.cosmic.glow = Math.max(V.cosmic.glow, 0.20);
           }
         } catch (e) {}
       }
@@ -2102,7 +2103,7 @@ void main(){
   o = vec4(col, body);
 }`;
 
-  // §ENCHANT اژدهای خفته: پیچِ مارپیچیِ آبی-یخی + اخگر + ذراتِ ریز + دو موجِ شوکِ بیدارشدن. فقط بیرونِ کره (d>1) می‌کشد.
+  // §ENCHANT اژدهای خفته: پیچِ مارپیچیِ کوچکِ کهربایی-گرم + اخگر + ذراتِ ریز + دو موجِ شوکِ بیدارشدن. فقط بیرونِ کره (d>1) می‌کشد.
   const FS_ENCHANT = `#version 300 es
 precision highp float;
 uniform vec2 uCanvas; uniform float uPx; uniform vec2 uCenter; uniform float uScale, uHoleR;
@@ -2124,15 +2125,16 @@ void main(){
   float a = atan(pd.y, pd.x);
   float t = uTime;
   float k = d - 1.0;
-  float mask = smoothstep(1.0, 1.035, d) * (1.0 - smoothstep(5.2, 6.6, d));
-  vec3 deep = vec3(0.13, 0.24, 0.60), ice = vec3(0.62, 0.83, 1.00), ember = vec3(1.00, 0.62, 0.30);
+  float mask = smoothstep(1.0, 1.035, d) * (1.0 - smoothstep(4.4, 6.0, d));
+  vec3 deep = vec3(0.30, 0.14, 0.05), ice = vec3(1.00, 0.84, 0.56), ember = vec3(1.00, 0.46, 0.18);
+  vec3 amber = vec3(1.00, 0.62, 0.24);
   float breathe = 0.90 + 0.10 * sin(t * 0.40);
   float gain = uAura * breathe;
   float wake = uSwell;
 
   float n1 = eNoise(a + t * 0.05, 3.0);
-  float veil = (0.85 * exp(-k * (3.0 + 2.0 * uSqueeze)) + 0.35 * exp(-k * 0.9)) * (0.80 + 0.20 * n1);
-  vec3 col = mix(deep, ice, exp(-k * 2.2)) * veil * (gain * 0.62 + wake * 0.50);
+  float veil = (0.85 * exp(-k * (3.4 + 2.0 * uSqueeze)) + 0.28 * exp(-k * 1.1)) * (0.82 + 0.18 * n1);
+  vec3 col = mix(deep, amber, exp(-k * 2.6)) * veil * (gain * 0.62 + wake * 0.45);
 
   float aa = mod(a + 3.14159265 - uFlow * 0.045, 6.2831853);
   float body = 0.0, knots = 0.0;
@@ -2140,8 +2142,8 @@ void main(){
     float s = aa + 6.2831853 * float(n);
     float tt = s / 10.6;
     if (tt > 1.0) continue;
-    float rc = 1.18 + 1.90 * pow(tt, 0.85) + 0.11 * sin(s * 1.9 - uFlow * 1.1) + 0.04 * sin(s * 5.1 + uFlow * 0.7);
-    float w = mix(0.175, 0.036, smoothstep(0.0, 1.0, tt));
+    float rc = 1.16 + 1.25 * pow(tt, 0.85) + 0.07 * sin(s * 1.9 - uFlow * 1.1) + 0.025 * sin(s * 5.1 + uFlow * 0.7);
+    float w = mix(0.130, 0.030, smoothstep(0.0, 1.0, tt));
     float dist = d - rc;
     float core = exp(-pow(dist / w, 2.0));
     float pulse = (0.50 + 0.50 * sin(s * 2.6 - uFlow * 1.6)) * (0.50 + 0.50 * eNoise(s * 0.9 + uFlow * 0.05, 5.0)) + 0.18;
@@ -2150,17 +2152,17 @@ void main(){
     body += core * pulse * fade * scale;
     knots += core * fade * pow(max(0.0, sin(s * 1.9 + 1.3)), 14.0);
   }
-  float dg = gain * 0.95 + wake * 1.05;
-  col += mix(deep * 1.6, ice, clamp(body * 0.9, 0.0, 1.0)) * body * dg * 0.70;
-  col += vec3(0.85, 0.94, 1.00) * knots * dg * 0.55;
+  float dg = gain * 0.80 + wake * 0.90;
+  col += mix(deep * 2.2, amber, clamp(body * 0.9, 0.0, 1.0)) * body * dg * 0.70;
+  col += ice * knots * dg * 0.38;
 
   float ah = -3.14159265 + 0.64 + uFlow * 0.045;
-  vec2 hp = vec2(cos(ah), sin(ah)) * 1.24;
+  vec2 hp = vec2(cos(ah), sin(ah)) * 1.20;
   float he = exp(-dot(pd - hp, pd - hp) / 0.010);
   col += ember * he * (0.16 + 0.84 * wake) * (0.80 + 0.20 * sin(t * 0.7)) * (0.35 + 0.65 * gain + wake);
 
   float ph = exp(-pow((d - 1.03) / 0.026, 2.0)) * (0.7 + 0.3 * sin(7.0 * a - t * 0.6));
-  col += ice * ph * (gain * 0.22 + wake * 0.30);
+  col += ice * ph * (gain * 0.20 + wake * 0.26);
 
   float rr = k * 7.0;
   float cr = floor(rr), cf = fract(rr);
@@ -2169,16 +2171,16 @@ void main(){
   float cells = 26.0 + 11.0 * cr;
   float ca = floor(ang * cells), cfa = fract(ang * cells);
   float hh = eHash2(vec2(ca, cr + 7.0));
-  float present = step(0.86, hh);
+  float present = step(0.90, hh);
   float tw = 0.5 + 0.5 * sin(t * (0.8 + 2.0 * hh) + hh * 40.0);
   float mote = present * smoothstep(0.26, 0.0, length(vec2(cfa - 0.5, cf - 0.5))) * (0.30 + 0.70 * tw) * exp(-k * 0.5);
-  col += mix(ice, vec3(1.0), 0.5) * mote * (gain * 0.60 + wake * 0.50);
+  col += mix(ice, vec3(1.0), 0.35) * mote * (gain * 0.50 + wake * 0.40);
 
   float w1 = 0.10 + 0.05 * uR1, w2 = 0.11 + 0.045 * uR2;
   float ring1 = uA1 * smoothstep(1.0, 1.7, uR1) * exp(-pow((d - uR1) / w1, 2.0)) * (0.84 + 0.16 * sin(6.0 * a + uR1 * 3.0));
   float ring2 = uA2 * smoothstep(1.0, 1.7, uR2) * exp(-pow((d - uR2) / w2, 2.0)) * (0.84 + 0.16 * sin(5.0 * a - uR2 * 2.5 + 1.0));
-  vec3 rc1 = mix(vec3(0.98, 0.78, 0.58), vec3(0.70, 0.87, 1.00), clamp((uR1 - 1.0) / 2.6, 0.0, 1.0));
-  vec3 rc2 = vec3(0.50, 0.74, 1.00);
+  vec3 rc1 = mix(vec3(1.00, 0.88, 0.66), amber, clamp((uR1 - 1.0) / 2.4, 0.0, 1.0));
+  vec3 rc2 = vec3(0.95, 0.62, 0.30);
   col += rc1 * ring1 + rc2 * ring2;
 
   col = min(col, vec3(1.10)) * mask;
@@ -3249,7 +3251,7 @@ void main(){
         gl.bindVertexArray(G.emptyVao); gl.drawArrays(gl.TRIANGLES, 0, 3);
         gl.disable(gl.SCISSOR_TEST);
       };
-      /* §ENCHANT پاسِ هالهٔ افسونگر: یک مثلثِ تمام‌صفحه با scissor دورِ کره (۷٫۵R)، جمع‌شونده (ONE,ONE)
+      /* §ENCHANT پاسِ هالهٔ افسونگر: یک مثلثِ تمام‌صفحه با scissor دورِ کره (۷R)، جمع‌شونده (ONE,ONE)
          بعد از پاسِ افق؛ بیرونِ کره می‌کشد پس کرهٔ سیاه کدر می‌ماند. enchU=null ⇒ هیچ کاری نمی‌کند. */
       const enchU = enchUniforms(idleW);
       const drawEnch = function () {
@@ -3260,7 +3262,7 @@ void main(){
         gl.uniform1f(e.uScale, sceneScale); gl.uniform1f(e.uHoleR, HOLE_R);
         gl.uniform1f(e.uTime, ENCH.t); gl.uniform1f(e.uFlow, ENCH.flow); gl.uniform1f(e.uAura, enchU.aura); gl.uniform1f(e.uSwell, enchU.swell); gl.uniform1f(e.uSqueeze, enchU.squeeze);
         gl.uniform1f(e.uR1, enchU.r1); gl.uniform1f(e.uA1, enchU.a1); gl.uniform1f(e.uR2, enchU.r2); gl.uniform1f(e.uA2, enchU.a2);
-        const radDev = (HOLE_R * sceneScale * 7.5 + 6) * V.rs;
+        const radDev = (HOLE_R * sceneScale * 7.0 + 6) * V.rs;
         const cxd = V.cx * V.rs, cyd = V.H - V.cy * V.rs;
         const x0 = Math.max(0, Math.floor(cxd - radDev)), y0 = Math.max(0, Math.floor(cyd - radDev));
         const x1 = Math.min(V.W, Math.ceil(cxd + radDev)), y1 = Math.min(V.H, Math.ceil(cyd + radDev));
